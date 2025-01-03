@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Radiance Rising</title>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+    />
+
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/gui/babylon.gui.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylon.glTF2FileLoader.js"></script>
+    <script src="js/utilities/config.js"></script>
+    <script src="js/utilities/logger.js"></script>
+    <script src="./js/initialization/gameInitialization.js"></script>
+
+    <style>
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden; /* Prevent scrollbars */
+      }
+
+      canvas {
+        display: block; /* Remove inline styling issues */
+        position: absolute; /* Ensure it fills the container */
+        top: 0;
+        left: 0;
+        width: 100%; /* Fixed width */
+        height: 100%; /* Fixed height */
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="renderCanvas"></canvas>
+
+    <script>
+      // Get the canvas element
+      var canvas = document.getElementById("renderCanvas");
+
+      // Generate the Babylon.js engine
+      var engine = new BABYLON.Engine(canvas, true, { stencil: true });
+
+      // Initialize your game
+      var gameInit = new GameInitialization(engine);
+      gameInit.initialize();
+
+      // Resize the engine on window resize
+      window.addEventListener("resize", function () {
+        engine.resize();
+      });
+    </script>
+  </body>
+</html>

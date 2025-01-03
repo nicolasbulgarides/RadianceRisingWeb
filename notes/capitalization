@@ -1,0 +1,11 @@
+Understanding and following JavaScript naming conventions and capitalization standards helps you write clean, readable, and maintainable code. These conventions are widely accepted in the JavaScript community, and adhering to them will make it easier for you and others to work with your code.
+
+Key Takeaways:
+
+Classes and Constructors: Use PascalCase.
+Functions and Methods: Use camelCase.
+Variables: Use camelCase.
+Constants: Use UPPERCASE_WITH_UNDERSCORES or PascalCase.
+Enums:
+Enum names: Use PascalCase.
+Enum members: Use UPPERCASE_WITH_UNDERSCORES.

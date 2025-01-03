@@ -1,0 +1,17 @@
+import { LightingPreset } from './enums/lightingEnums.js';
+
+function applyPresetLighting(scene, presetName) {
+  switch (presetName) {
+    case LightingPreset.DAY:
+      setupDayLighting(scene);
+      break;
+    case LightingPreset.NIGHT:
+      setupNightLighting(scene);
+      break;
+    case LightingPreset.DUSK:
+      setupDuskLighting(scene);
+      break;
+    default:
+      console.warn(`Unknown lighting preset: ${presetName}`);
+  }
+}

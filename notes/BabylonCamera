@@ -1,0 +1,96 @@
+/**
+ * Babylon.js Camera Types and Use Cases
+ * -------------------------------------
+ * Summary of Babylon.js cameras with typical use cases and configuration options.
+ */
+
+/* 1. ArcRotateCamera
+   - Purpose: Orbiting camera controlled by the user.
+   - Use Case: Best for orbiting around a target (e.g., 3D model viewers).
+   - Key Configs:
+     * target: Point the camera orbits.
+     * alpha, beta: Horizontal and vertical angles around the target.
+     * radius: Distance from the target.
+
+   Constructor Example:
+   const arcCamera = new BABYLON.ArcRotateCamera("arcCamera", Math.PI / 2, Math.PI / 4, 10, BABYLON.Vector3.Zero(), scene);
+   arcCamera.attachControl(canvas, true);
+*/
+
+/* 2. FreeCamera
+   - Purpose: First-person or free-floating camera.
+   - Use Case: Ideal for simulations or first-person games.
+   - Key Configs:
+     * position: Initial position.
+     * attachControl: Attaches to input controls like mouse and keyboard.
+
+   Constructor Example:
+   const freeCamera = new BABYLON.FreeCamera("freeCamera", new BABYLON.Vector3(0, 5, -10), scene);
+   freeCamera.attachControl(canvas, true);
+*/
+
+/* 3. UniversalCamera
+   - Purpose: Enhanced FreeCamera for both desktop and mobile platforms.
+   - Use Case: For compatibility across desktop and mobile platforms.
+
+   Constructor Example:
+   const universalCamera = new BABYLON.UniversalCamera("universalCamera", new BABYLON.Vector3(0, 5, -10), scene);
+   universalCamera.attachControl(canvas, true);
+*/
+
+/* 4. FollowCamera
+   - Purpose: Smooth-follow camera to track a target.
+   - Use Case: Ideal for third-person games (follows player).
+   - Key Configs:
+     * lockedTarget: Object or mesh to follow.
+     * radius, heightOffset, rotationOffset: Control distance, height, and angle to the target.
+
+   Constructor Example:
+   const followCamera = new BABYLON.FollowCamera("followCamera", new BABYLON.Vector3(0, 5, -10), scene);
+   followCamera.lockedTarget = targetMesh;  // Set target
+   followCamera.radius = 10;
+*/
+
+/* 5. AnaglyphArcRotateCamera & AnaglyphFreeCamera
+   - Purpose: Stereoscopic 3D cameras (for red/blue 3D glasses).
+   - Use Case: For scenes intended to be viewed with anaglyph glasses.
+   - Key Configs:
+     * interaxialDistance: Controls distance between “eyes” for depth perception.
+
+   Constructor Example:
+   const anaglyphCamera = new BABYLON.AnaglyphArcRotateCamera("anaglyphArcCamera", Math.PI / 2, Math.PI / 4, 10, BABYLON.Vector3.Zero(), 0.063, scene);
+   anaglyphCamera.attachControl(canvas, true);
+*/
+
+/* 6. DeviceOrientationCamera
+   - Purpose: Controls the camera based on device orientation (e.g., gyroscope).
+   - Use Case: Mobile or VR applications for immersive experiences.
+
+   Constructor Example:
+   const deviceCamera = new BABYLON.DeviceOrientationCamera("deviceOrientationCamera", new BABYLON.Vector3(0, 5, -10), scene);
+   deviceCamera.attachControl(canvas, true);
+*/
+
+/* 7. VRExperienceHelper and WebVRFreeCamera
+   - Purpose: VR-specific cameras designed for VR headsets.
+   - Use Case: Full VR applications using WebXR or WebVR for immersion.
+
+   Constructor Example:
+   const vrHelper = scene.createDefaultVRExperience();
+*/
+
+/* 8. Orthographic Camera Mode
+   - Purpose: Creates a non-perspective (flat) view where scale is consistent.
+   - Use Case: 2D games or scenes where perspective distortion is undesirable.
+   - Key Configs:
+     * orthoTop, orthoBottom, orthoLeft, orthoRight: Define the orthographic view.
+     * Can be applied to FreeCamera or ArcRotateCamera.
+
+   Constructor Example:
+   const orthoCamera = new BABYLON.FreeCamera("orthoCamera", new BABYLON.Vector3(0, 5, -10), scene);
+   orthoCamera.mode = BABYLON.Camera.ORTHOGRAPHIC_CAMERA;
+   orthoCamera.orthoTop = 5;
+   orthoCamera.orthoBottom = -5;
+   orthoCamera.orthoLeft = -5;
+   orthoCamera.orthoRight = 5;
+*/
