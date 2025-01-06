@@ -55,24 +55,20 @@ class CameraManager {
     // Set the new camera as active and attach control to it
     if (this.currentCamera) {
       this.scene.activeCamera = this.currentCamera;
+      //this.currentCamera.inputs.addDeviceOrientation();
+
       this.currentCamera.attachControl(
         this.scene.getEngine().getRenderingCanvas(),
         true
       );
+
       window.Logger.log(`CameraManager: Applied preset '${presetName}'.`);
     }
   }
 
-  /**
-   * Sets up a default camera.
-   * @returns {BABYLON.ArcRotateCamera} The configured default camera.
-   */
   setupDefaultCamera() {
-    const camera = new BABYLON.ArcRotateCamera(
+    const camera = new BABYLON.DeviceOrientationCamera(
       "defaultCamera",
-      Math.PI / 2,
-      Math.PI / 4,
-      10,
       BABYLON.Vector3.Zero(),
       this.scene
     );
