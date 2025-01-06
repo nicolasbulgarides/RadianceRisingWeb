@@ -8,8 +8,8 @@ class BaseGameUI extends BABYLON.Scene {
         this
       );
 
-    this.advancedTexture.idealHeight = 1000;
-    this.advancedTexture.idealWidth = 500;
+    this.advancedTexture.idealHeight = 2000;
+    this.advancedTexture.idealWidth = 1000;
 
     // Add the bottom base panel
     const bottomBasePanel = new BABYLON.GUI.Image(
@@ -17,7 +17,7 @@ class BaseGameUI extends BABYLON.Scene {
       "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/uiBasePanel.png"
     );
     bottomBasePanel.stretch = BABYLON.GUI.Image.STRETCH_FILL;
-    bottomBasePanel.width = "1250px";
+    bottomBasePanel.width = "1000px";
     bottomBasePanel.height = "550px";
     bottomBasePanel.verticalAlignment =
       BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
@@ -25,7 +25,7 @@ class BaseGameUI extends BABYLON.Scene {
 
     // Container to center the game base pad and buttons
     const baseContainer = new BABYLON.GUI.Container("BaseContainer");
-    baseContainer.width = "1250px";
+    baseContainer.width = "1000px";
     baseContainer.height = "550px"; // Matches bottom panel height
     baseContainer.verticalAlignment =
       BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
