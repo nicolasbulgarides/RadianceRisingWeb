@@ -66,16 +66,27 @@ class CameraManager {
     }
   }
 
+  /**
+   * Sets up a default camera.
+   * @returns {BABYLON.ArcRotateCamera} The configured default camera.
+   */
   setupDefaultCamera() {
-    const camera = new BABYLON.DeviceOrientationCamera(
+    const camera = new BABYLON.ArcRotateCamera(
       "defaultCamera",
+      Math.PI / 2,
+      Math.PI / 4,
+      10,
       BABYLON.Vector3.Zero(),
       this.scene
     );
-
-    camera.angularSensibility = 10;
-    camera.moveSensibility = 10;
-
+    return camera;
+  }
+  setupDeviceMotionCamera() {
+    const camera = new BABYLON.DeviceOrientationCamera(
+      "motionCamera",
+      BABYLON.Vector3.Zero(),
+      this.scene
+    );
     return camera;
   }
 
