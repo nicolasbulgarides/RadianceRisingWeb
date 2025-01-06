@@ -25,7 +25,7 @@ class DemoWorld1 {
    */
   async loadTestObjects() {
     const object = new PositionedObject(
-      "bridgeWholePre",
+      "cube",
       0,
       0,
       0,
