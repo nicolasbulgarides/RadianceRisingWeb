@@ -9,6 +9,7 @@ class BaseGameUI extends BABYLON.Scene {
       );
 
     this.advancedTexture.idealHeight = 2500;
+    this.advancedTexture.idealWidth = 1250;
 
     // Add the bottom base panel
     const bottomBasePanel = new BABYLON.GUI.Image(
