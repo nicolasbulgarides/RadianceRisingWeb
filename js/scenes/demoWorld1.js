@@ -39,6 +39,18 @@ class DemoWorld1 {
     );
 
     await this.sceneBuilder.loadSceneModel(object);
+
+    // Load the sound and play it automatically once ready
+    const music = new BABYLON.Sound(
+      "Music",
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/duskReverie.mp3",
+      this.scene,
+      null,
+      {
+        loop: true,
+        autoplay: true,
+      }
+    );
   }
 
   /**
