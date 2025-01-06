@@ -5,7 +5,7 @@ class GameInitialization {
    */
   constructor(engineInstance) {
     this.engine = engineInstance;
-    // this.engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
+    engine.setHardwareScalingLevel(1 / (window.devicePixelRatio || 1));
 
     this.animatedModelLoader = null;
     this.demoWorldLoaded = false;
