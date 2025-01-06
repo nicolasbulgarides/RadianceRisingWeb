@@ -20,7 +20,7 @@ class BaseGameUI extends BABYLON.Scene {
     );
     bottomBasePanel.stretch = BABYLON.GUI.Image.STRETCH_FILL;
     bottomBasePanel.width = "1000px";
-    bottomBasePanel.height = "550px";
+    bottomBasePanel.height = "480px";
     bottomBasePanel.verticalAlignment =
       BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
     this.advancedTexture.addControl(bottomBasePanel);
@@ -28,7 +28,7 @@ class BaseGameUI extends BABYLON.Scene {
     // Container to center the game base pad and buttons
     const baseContainer = new BABYLON.GUI.Container("BaseContainer");
     baseContainer.width = "1000px";
-    baseContainer.height = "550px"; // Matches bottom panel height
+    baseContainer.height = "480px"; // Matches bottom panel height
     baseContainer.verticalAlignment =
       BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
     this.advancedTexture.addControl(baseContainer);
@@ -38,8 +38,8 @@ class BaseGameUI extends BABYLON.Scene {
       "gameBasePad",
       "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/gamepadBase.png"
     );
-    gameBasePad.width = "400px"; // Scales relative to ideal width (320px at 1000px)
-    gameBasePad.height = "400px"; // Maintains aspect ratio (circle)
+    gameBasePad.width = "360px"; // Scales relative to ideal width (320px at 1000px)
+    gameBasePad.height = "360px"; // Maintains aspect ratio (circle)
     gameBasePad.horizontalAlignment =
       BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
     gameBasePad.verticalAlignment =
@@ -51,8 +51,8 @@ class BaseGameUI extends BABYLON.Scene {
       const button = BABYLON.GUI.Button.CreateImageOnlyButton(name, imageUrl);
 
       // Explicitly set equal width and height for circular buttons
-      button.width = "160px"; // 110px at 1000px width
-      button.height = "160px"; // Ensure buttons are square
+      button.width = "140px"; // 110px at 1000px width
+      button.height = "140px"; // Ensure buttons are square
       button.left = offsetX;
       button.top = offsetY;
       // Ensure buttons are centered relative to the gameBasePad
