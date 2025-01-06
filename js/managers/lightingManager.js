@@ -24,9 +24,9 @@ class LightingManager {
    */
   initialize() {
     if (typeof this.config === "string") {
-      //  this.applyPresetLighting(this.config);
+      this.applyPresetLighting(this.config);
     } else if (typeof this.config === "object") {
-      // this.applyLightingFromConfig(this.config);
+      this.applyLightingFromConfig(this.config);
     } else {
       window.Logger.warn("LightingManager: Invalid lighting configuration.");
     }
@@ -60,12 +60,27 @@ class LightingManager {
    * Sets up day lighting with high intensity for a bright scene.
    */
   setupDayLighting() {
-    const light = new BABYLON.HemisphericLight(
+    const light = new BABYLON.PointLight(
       "dayLight",
-      new BABYLON.Vector3(0, 1, 0),
+      new BABYLON.Vector3(0, -1, 0),
       this.scene
     );
-    light.intensity = 1.0;
+    light.intensity = 30.0;
+
+    const light2 = new BABYLON.PointLight(
+      "dayLight",
+      new BABYLON.Vector3(1, 0, 0),
+      this.scene
+    );
+    light2.intensity = 30.0;
+
+    const light3 = new BABYLON.PointLight(
+      "dayLight",
+      new BABYLON.Vector3(-1, 0, 0),
+      this.scene
+    );
+    light3.intensity = 30.0;
+
     window.Logger.log("LightingManager: Day lighting setup complete.");
   }
 

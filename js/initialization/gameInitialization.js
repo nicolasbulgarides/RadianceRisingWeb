@@ -65,8 +65,7 @@ class GameInitialization {
       //this.mainMenuUI = new MainMenuUI(this.scene, this.engine);
       //this.baseMenuUI.initUI();
 
-      /** 
-       *       this.scene2 = new BaseGameUI(this.engine);
+      this.scene2 = new BaseGameUI(this.engine);
       this.scene2.autoClear = false;
       this.scene2.initUI();
       var camera = new BABYLON.FreeCamera(
@@ -82,16 +81,13 @@ class GameInitialization {
       );
       light.intensity = 1;
 
-
-      */
-
       // Set up resize handling
       this.setupResizeHandler();
 
       // Start the render loop
       this.engine.runRenderLoop(() => {
         this.scene.render();
-        // this.scene2.render();
+        this.scene2.render();
         //this.baseMenuUI.render();
       });
     });

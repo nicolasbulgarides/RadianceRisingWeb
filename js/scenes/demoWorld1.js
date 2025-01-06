@@ -48,8 +48,8 @@ class DemoWorld1 {
   async buildDemoWorld() {
     // Set the background color
     this.sceneBuilder.setBackgroundColor(new BABYLON.Color4(0.1, 0.1, 0.3, 1));
-    /** */
-    const light = new BABYLON.PointLight(
+    /**
+     *     const light = new BABYLON.PointLight(
       "pointLight",
       new BABYLON.Vector3(0, 10, 2),
       this.scene
@@ -68,6 +68,8 @@ class DemoWorld1 {
     light.intensity = 1000;
     light2.intensity = 1000;
     light3.intensity = 1000;
+     */
+
     // Await each loading step to ensure complete setup
     await this.loadTestObjects();
 
