@@ -72,6 +72,10 @@ class CameraManager {
       BABYLON.Vector3.Zero(),
       this.scene
     );
+
+    camera.angularSensibility = 10;
+    camera.moveSensibility = 10;
+
     return camera;
   }
 
