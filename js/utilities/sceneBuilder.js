@@ -160,6 +160,22 @@ class SceneBuilder {
           BABYLON.Tools.ToRadians(positionedObject.rotation.roll)
         );
 
+        for (let row = 0; row < 20; row++) {
+          for (let col = 0; col < 20; col++) {
+            // Create a unique name for each box, e.g. "Box_3_7"
+            const boxClone = loadedModel.clone(`Box_${row}_${col}`);
+
+            // Position the box in a 2D grid (row and col)
+            boxClone.position.x = col;
+            boxClone.position.y = row;
+
+            // If you also want some spacing between boxes, you could do:
+            // boxClone.position.x = col * 2;
+            // boxClone.position.y = row * 2;
+          }
+        }
+
+        box2.position.x = -2;
         return loadedModel;
       } else {
         console.error(
