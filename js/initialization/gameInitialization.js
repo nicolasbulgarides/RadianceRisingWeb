@@ -155,10 +155,7 @@ class GameInitialization {
         panel,
         "Scene Render Time: "
       );
-      const cameraRenderTime = addInstrumentationTextBlock(
-        panel,
-        "Camera Render Time: "
-      );
+
       const targetsRenderTime = addInstrumentationTextBlock(
         panel,
         "Targets Render Time: "
@@ -179,6 +176,81 @@ class GameInitialization {
             "Active Meshes: " + this.scene.getActiveMeshes().length;
           activeVertices.text = `Total Vertices: ${this.scene.totalVerticesPerfCounter.current.toLocaleString()}`;
           activeIndices.text = `Active Indices: ${this.scene.totalActiveIndicesPerfCounter.current.toLocaleString()}`;
+          particlesFrameTime.text =
+            "Particles Render Time: " +
+            sceneInstrumentation.particlesRenderTimeCounter.current.toFixed(2);
+          interFrameTime.text =
+            "Inter Frame Time: " +
+            sceneInstrumentation.interFrameTimeCounter.lastSecAverage.toFixed();
+          gpuFrameTime.text =
+            "GPU Frame Time: " +
+            (
+              engineInstrumentation.gpuFrameTimeCounter.average * 0.000001
+            ).toFixed(2);
+          shaderCompTime.text =
+            "Shader Comp Time: " +
+            engineInstrumentation.shaderCompilationTimeCounter.current.toFixed(
+              2
+            );
+          evalTimeMax.text =
+            "Active Meshes Eval Time: " +
+            sceneInstrumentation.activeMeshesEvaluationTimeCounter.lastSecAverage.toFixed(
+              2
+            );
+          sceneRenderTime.text =
+            "Scene Render Time: " +
+            sceneInstrumentation.renderTimeCounter.current.toFixed();
+          particlesFrameTime.text =
+            "Particles Render Time: " +
+            sceneInstrumentation.particlesRenderTimeCounter.current.toFixed(2);
+          drawCalls.text =
+            "Draw Calls: " + sceneInstrumentation.drawCallsCounter.current;
+          sceneRenderTime.text =
+            "Scene Render Time: " +
+            sceneInstrumentation.renderTimeCounter.current.toFixed();
+          frameTimeMax.text =
+            "Scene Frame Time: " +
+            sceneInstrumentation.frameTimeCounter.lastSecAverage.toFixed(2);
+          totalLights.text = "Lights: " + this.scene.lights.length;
+          targetsRenderTime.text =
+            "Targets Render Time: " +
+            sceneInstrumentation.renderTargetsRenderTimeCounter.current.toFixed();
+
+          materialsLength.text = "Materials: " + this.scene.materials.length;
+          texturesLength.text = "Textures: " + this.scene.textures.length;
+          shaderTotal.text =
+            "Total Shaders: " +
+            engineInstrumentation.shaderCompilationTimeCounter.count;
+          sceneRenderTime.text =
+            "Scene Render Time: " +
+            sceneInstrumentation.renderTimeCounter.current.toFixed();
+          targetsRenderTime.text =
+            "Targets Render Time: " +
+            sceneInstrumentation.renderTargetsRenderTimeCounter.current.toFixed();
+          fpsValue.text = "FPS: " + this.engine.getFps().toFixed() + " fps";
+
+          heapSize.text =
+            "Heap Used: " +
+            (!performance.memory
+              ? "unavailabe"
+              : (performance.memory.usedJSHeapSize / 1024 / 1024).toFixed() +
+                " Mb");
+          heapTotal.text =
+            "Heap Total: " +
+            (!performance.memory
+              ? "unavailabe"
+              : (performance.memory.totalJSHeapSize / 1024 / 1024).toFixed() +
+                " Mb");
+          heapLimit.text =
+            "Heap Limit: " +
+            (!performance.memory
+              ? "unavailabe"
+              : (performance.memory.jsHeapSizeLimit / 1024 / 1024).toFixed() +
+                " Mb");
+          if (this.scene.deltaTime) {
+            deltaTimeValue.text =
+              "Delta Time: " + this.scene.deltaTime.toFixed(2);
+          }
         }
         this.scene.render();
         this.scene2.render();
@@ -186,80 +258,6 @@ class GameInitialization {
       });
     });
   }
-
-  /**
- *   particlesFrameTime.text =
-    "Particles Render Time: " +
-    sceneInstrumentation.particlesRenderTimeCounter.current.toFixed(2);
-  interFrameTime.text =
-    "Inter Frame Time: " +
-    sceneInstrumentation.interFrameTimeCounter.lastSecAverage.toFixed();
-  gpuFrameTime.text =
-    "GPU Frame Time: " +
-    (
-      engineInstrumentation.gpuFrameTimeCounter.average * 0.000001
-    ).toFixed(2);
-  shaderCompTime.text =
-    "Shader Comp Time: " +
-    engineInstrumentation.shaderCompilationTimeCounter.current.toFixed(
-      2
-    );
-  shaderTotal.text =
-    "Total Shaders: " +
-    engineInstrumentation.shaderCompilationTimeCounter.count;
-  sceneRenderTime.text =
-    "Scene Render Time: " +
-    sceneInstrumentation.renderTimeCounter.current.toFixed();
-  cameraRenderTime.text =
-    "Camera Render Time: " +
-    sceneInstrumentation.cameraRenderTimeCounter.current.toFixed();
-  targetsRenderTime.text =
-    "Targets Render Time: " +
-    sceneInstrumentation.renderTargetsRenderTimeCounter.current.toFixed();
-  fpsValue.text = "FPS: " + this.engine.getFps().toFixed() + " fps";
-  heapSize.text =
-    "Heap Used: " +
-    (!performance.memory
-      ? "unavailabe"
-      : (performance.memory.usedJSHeapSize / 1024 / 1024).toFixed() +
-        " Mb");
-  heapTotal.text =
-    "Heap Total: " +
-    (!performance.memory
-      ? "unavailabe"
-      : (performance.memory.totalJSHeapSize / 1024 / 1024).toFixed() +
-        " Mb");
-  heapLimit.text =
-    "Heap Limit: " +
-    (!performance.memory
-      ? "unavailabe"
-      : (performance.memory.jsHeapSizeLimit / 1024 / 1024).toFixed() +
-        " Mb");
-  if (this.scene.deltaTime) {
-    deltaTimeValue.text =
-      "Delta Time: " + this.scene.deltaTime.toFixed(2);
-  }
-  if (this.scene.activeCamera.alpha) {
-    copyButton.children[0].text =
-      this.scene.activeCamera.alpha.toFixed(2) +
-      ", " +
-      this.scene.activeCamera.beta.toFixed(2) +
-      ", " +
-      this.scene.activeCamera.radius.toFixed(2);
-    clickToCopy.text =
-      "CAMERA POSITION \n Click to copy alpha, beta, radius";
-  } else {
-    copyButton.children[0].text =
-      this.scene.activeCamera.position.x.toFixed(2) +
-      ", " +
-      this.scene.activeCamera.position.y.toFixed(2) +
-      ", " +
-      this.scene.activeCamera.position.z.toFixed(2);
-    clickToCopy.text = "CAMERA POSITION \n Click to copy x, y, z";
-  }
-
-
- */
 
   /**
    * Sets up the SceneBuilder, applies background color, and loads specified assets into the scene.
