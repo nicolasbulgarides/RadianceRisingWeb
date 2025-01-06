@@ -88,6 +88,11 @@ class SceneBuilder {
 
       // Load the model and apply position and rotation
       const loadedModel = await this.loadSceneModel(positionedObject, modelUrl);
+
+      if (positionedObject.freeze) {
+        loadedModel.freezeWorldMatrix();
+      }
+
       loadedModels.push(loadedModel);
 
       if (loadedModel) {
@@ -128,6 +133,15 @@ class SceneBuilder {
           positionedObject.position.y,
           positionedObject.position.z
         );
+
+        if (positionedObject.freeze) {
+          loadedModel.freezeWorldMatrix();
+        }
+
+        if (positionedObject.interactive == false) {
+          loadedModel.isPickable = false;
+          loadedModel.doNotSyncBoundingInfo = true;
+        }
 
         // Apply scaling
         loadedModel.scaling.x = positionedObject.scaling;

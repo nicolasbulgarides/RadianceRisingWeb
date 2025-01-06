@@ -51,6 +51,8 @@ class DemoWorld1 {
         autoplay: true,
       }
     );
+
+    this.scene.clearCachedVertexData();
   }
 
   /**

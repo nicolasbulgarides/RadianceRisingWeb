@@ -27,7 +27,7 @@ class AssetManifest {
     bridgeBrokenPre:
       "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/bridgeBrokenPre.glb",
     bridgeWholePre:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/bridgeWholePre.glb",
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/bridgeWholeCompressedTest.glb",
     celestialPrismPre:
       "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/celestialPrismPre.glb",
     cube: "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/cube2.glb",

@@ -5,7 +5,7 @@ class GameInitialization {
    */
   constructor(engineInstance) {
     this.engine = engineInstance;
-    engine.setHardwareScalingLevel(1 / (window.devicePixelRatio || 1));
+    this.engine.setHardwareScalingLevel(1 / (window.devicePixelRatio || 1));
 
     this.animatedModelLoader = null;
     this.demoWorldLoaded = false;
@@ -63,12 +63,11 @@ class GameInitialization {
       this.buildScene();
 
       // --> Now it's safe to build the scene (ModelLoader is defined).
-      //this.mainMenuUI = new MainMenuUI(this.scene, this.engine);
-      //this.baseMenuUI.initUI();
 
       this.scene2 = new BaseGameUI(this.engine);
       this.scene2.autoClear = false;
       this.scene2.initUI();
+
       var camera = new BABYLON.FreeCamera(
         "camera",
         new BABYLON.Vector3(0, 0, 0),
@@ -84,15 +83,183 @@ class GameInitialization {
 
       // Set up resize handling
       this.setupResizeHandler();
+      // Instrumentation debugging tool
+      let sceneInstrumentation = new BABYLON.SceneInstrumentation(this.scene);
+      sceneInstrumentation.captureActiveMeshesEvaluationTime = true;
+      sceneInstrumentation.captureFrameTime = true;
+      sceneInstrumentation.captureParticlesRenderTime = true;
+      sceneInstrumentation.captureRenderTime = true;
+      sceneInstrumentation.captureCameraRenderTime = true;
+      sceneInstrumentation.captureRenderTargetsRenderTime = true;
+      sceneInstrumentation.captureInterFrameTime = true;
+      let engineInstrumentation = new BABYLON.EngineInstrumentation(
+        this.engine
+      );
+      engineInstrumentation.captureGPUFrameTime = true;
+      engineInstrumentation.captureShaderCompilationTime = true;
+      // GUI
+      const advancedTexture = this.scene2.advancedTexture;
+
+      const panel = addPanel(advancedTexture, 0, 0);
+      panel.horizontalAlignment = 0;
+      panel.verticalAlignment = 0;
+
+      const meshesLength = addInstrumentationTextBlock(panel, "Meshes: ");
+      const activeMeshesLength = addInstrumentationTextBlock(
+        panel,
+        "Active Meshes: "
+      );
+      const activeVertices = addInstrumentationTextBlock(
+        panel,
+        "Active Vertice Count: "
+      );
+      const activeIndices = addInstrumentationTextBlock(
+        panel,
+        "Active Indices: "
+      );
+      const materialsLength = addInstrumentationTextBlock(panel, "Materials: ");
+      const texturesLength = addInstrumentationTextBlock(panel, "Textures: ");
+
+      const animationLength = addInstrumentationTextBlock(
+        panel,
+        "Animations: "
+      );
+      const drawCalls = addInstrumentationTextBlock(panel, "Draw Calls: ");
+      const totalLights = addInstrumentationTextBlock(panel, "Lights: ");
+      const frameTimeMax = addInstrumentationTextBlock(
+        panel,
+        "Scene Frame Time: "
+      );
+      const evalTimeMax = addInstrumentationTextBlock(
+        panel,
+        "Active Meshes Eval Time: "
+      );
+      const particlesFrameTime = addInstrumentationTextBlock(
+        panel,
+        "Particles Render Time: "
+      );
+      const interFrameTime = addInstrumentationTextBlock(
+        panel,
+        "Inter Frame Time: "
+      );
+      const gpuFrameTime = addInstrumentationTextBlock(
+        panel,
+        "GPU Frame Time: "
+      );
+      const shaderCompTime = addInstrumentationTextBlock(
+        panel,
+        "Shader Comp Time: "
+      );
+      const shaderTotal = addInstrumentationTextBlock(panel, "Total Shaders: ");
+      const sceneRenderTime = addInstrumentationTextBlock(
+        panel,
+        "Scene Render Time: "
+      );
+      const cameraRenderTime = addInstrumentationTextBlock(
+        panel,
+        "Camera Render Time: "
+      );
+      const targetsRenderTime = addInstrumentationTextBlock(
+        panel,
+        "Targets Render Time: "
+      );
+      const fpsValue = addInstrumentationTextBlock(panel, "FPS: ");
+      const heapSize = addInstrumentationTextBlock(panel, "Heap Used: ");
+      const heapTotal = addInstrumentationTextBlock(panel, "Heap Total: ");
+      const heapLimit = addInstrumentationTextBlock(panel, "Heap Limit: ");
+      const deltaTimeValue = addInstrumentationTextBlock(panel, "Delta Time: ");
+
+      advancedTexture.addControl(panel);
 
       // Start the render loop
       this.engine.runRenderLoop(() => {
+        if (true) {
+          meshesLength.text = "Meshes: " + this.scene.meshes.length;
+          activeMeshesLength.text =
+            "Active Meshes: " + this.scene.getActiveMeshes().length;
+          activeVertices.text = `Total Vertices: ${this.scene.totalVerticesPerfCounter.current.toLocaleString()}`;
+          activeIndices.text = `Active Indices: ${this.scene.totalActiveIndicesPerfCounter.current.toLocaleString()}`;
+        }
         this.scene.render();
         this.scene2.render();
         //this.baseMenuUI.render();
       });
     });
   }
+
+  /**
+ *   particlesFrameTime.text =
+    "Particles Render Time: " +
+    sceneInstrumentation.particlesRenderTimeCounter.current.toFixed(2);
+  interFrameTime.text =
+    "Inter Frame Time: " +
+    sceneInstrumentation.interFrameTimeCounter.lastSecAverage.toFixed();
+  gpuFrameTime.text =
+    "GPU Frame Time: " +
+    (
+      engineInstrumentation.gpuFrameTimeCounter.average * 0.000001
+    ).toFixed(2);
+  shaderCompTime.text =
+    "Shader Comp Time: " +
+    engineInstrumentation.shaderCompilationTimeCounter.current.toFixed(
+      2
+    );
+  shaderTotal.text =
+    "Total Shaders: " +
+    engineInstrumentation.shaderCompilationTimeCounter.count;
+  sceneRenderTime.text =
+    "Scene Render Time: " +
+    sceneInstrumentation.renderTimeCounter.current.toFixed();
+  cameraRenderTime.text =
+    "Camera Render Time: " +
+    sceneInstrumentation.cameraRenderTimeCounter.current.toFixed();
+  targetsRenderTime.text =
+    "Targets Render Time: " +
+    sceneInstrumentation.renderTargetsRenderTimeCounter.current.toFixed();
+  fpsValue.text = "FPS: " + this.engine.getFps().toFixed() + " fps";
+  heapSize.text =
+    "Heap Used: " +
+    (!performance.memory
+      ? "unavailabe"
+      : (performance.memory.usedJSHeapSize / 1024 / 1024).toFixed() +
+        " Mb");
+  heapTotal.text =
+    "Heap Total: " +
+    (!performance.memory
+      ? "unavailabe"
+      : (performance.memory.totalJSHeapSize / 1024 / 1024).toFixed() +
+        " Mb");
+  heapLimit.text =
+    "Heap Limit: " +
+    (!performance.memory
+      ? "unavailabe"
+      : (performance.memory.jsHeapSizeLimit / 1024 / 1024).toFixed() +
+        " Mb");
+  if (this.scene.deltaTime) {
+    deltaTimeValue.text =
+      "Delta Time: " + this.scene.deltaTime.toFixed(2);
+  }
+  if (this.scene.activeCamera.alpha) {
+    copyButton.children[0].text =
+      this.scene.activeCamera.alpha.toFixed(2) +
+      ", " +
+      this.scene.activeCamera.beta.toFixed(2) +
+      ", " +
+      this.scene.activeCamera.radius.toFixed(2);
+    clickToCopy.text =
+      "CAMERA POSITION \n Click to copy alpha, beta, radius";
+  } else {
+    copyButton.children[0].text =
+      this.scene.activeCamera.position.x.toFixed(2) +
+      ", " +
+      this.scene.activeCamera.position.y.toFixed(2) +
+      ", " +
+      this.scene.activeCamera.position.z.toFixed(2);
+    clickToCopy.text = "CAMERA POSITION \n Click to copy x, y, z";
+  }
+
+
+ */
 
   /**
    * Sets up the SceneBuilder, applies background color, and loads specified assets into the scene.
@@ -120,8 +287,8 @@ class GameInitialization {
       Config.LIGHTING_PRESET
     );
     // **Ensure model is fully loaded before passing it to VelocityManager**
-    const animatedModel = await this.sceneBuilder.getAnimatedModel(); //
-    this.addVelocityManagerToModel(animatedModel);
+    // const animatedModel = await this.sceneBuilder.getAnimatedModel(); //
+    // this.addVelocityManagerToModel(animatedModel);
     // Load demo world (awaiting it here ensures models are loaded before proceeding)
     await this.loadDemoWorld();
     this.demoWorldLoaded = true;
@@ -129,7 +296,7 @@ class GameInitialization {
     // Add the velocity manager's position update to the render loop if initialized
     if (this.velocityManager) {
       this.scene.onBeforeRenderObservable.add(() => {
-        this.velocityManager.updatePosition();
+        // this.velocityManager.updatePosition();
       });
     }
   }
@@ -206,4 +373,30 @@ class GameInitialization {
       window.Logger.log("GameInitialization: Engine resized.");
     });
   }
+}
+function addPanel(adt, ha, va) {
+  const panel = new BABYLON.GUI.StackPanel();
+  panel.horizontalAlignment = ha;
+  panel.verticalAlignment = va;
+  panel.height = "100%";
+  panel.width = "300px";
+  panel.paddingTop = "10px";
+  panel.paddingLeft = "10px";
+  panel.paddingBottom = "10px";
+  panel.paddingRight = "10px";
+  adt.addControl(panel);
+  return panel;
+}
+
+function addInstrumentationTextBlock(panel, text) {
+  const textBlock = new BABYLON.GUI.TextBlock();
+  textBlock.text = text;
+  textBlock.height = "20px";
+  textBlock.width = "200px";
+  textBlock.color = "white";
+  textBlock.fontSize = 14;
+  textBlock.textHorizontalAlignment = 0;
+  panel.addControl(textBlock);
+
+  return textBlock;
 }
