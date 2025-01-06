@@ -50,8 +50,8 @@ class BaseGameUI extends BABYLON.Scene {
       const button = BABYLON.GUI.Button.CreateImageOnlyButton(name, imageUrl);
 
       // Explicitly set equal width and height for circular buttons
-      button.width = "160px"; // 110px at 1000px width
-      button.height = "160px"; // Ensure buttons are square
+      button.width = "144px"; // 110px at 1000px width
+      button.height = "144px"; // Ensure buttons are square
       button.left = offsetX;
       button.top = offsetY;
       // Ensure buttons are centered relative to the gameBasePad
@@ -71,7 +71,7 @@ class BaseGameUI extends BABYLON.Scene {
     // Place directional buttons with proper alignment and scaling
     createButton(
       "buttonLeft",
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/buttonLeft256.png",
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/buttonLeft144.png",
       "-160px", // Left of center
       "0px", // Centered vertically
       "LEFTCLICK"
