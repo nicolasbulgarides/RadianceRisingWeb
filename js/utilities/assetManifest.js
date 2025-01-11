@@ -182,6 +182,70 @@ class AssetManifest {
       "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/doorClosed_lowPolyCompressed.glb",
     doorOpen_lowPolyCompressed:
       "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/doorOpen_lowPolyCompressed.glb",
+    archwayTop_lowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/archwayTop_lowPoly.glb",
+    archwayPillarRight_lowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/archwayPillarRight_lowPoly.glb",
+    archwayPillarLeft_lowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/archwayPillarLeft_lowPoly.glb",
+    archwayTop_lowPolyCompressed:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/archwayTop_lowPolyCompressed.glb",
+    archwayPillarRight_lowPolyCompressed:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/archwayPillarRight_lowPolyCompressed.glb",
+    archwayPillarLeft_lowPolyCompressed:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/archwayPillarLeft_lowPolyCompressed.glb",
+    breakablelWallInside_LowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/breakablelWallInside_LowPoly.glb",
+    breakablelWallFrame_LowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/breakablelWallFrame_LowPoly.glb",
+    breakablelWallInside_LowPolyCompressed:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/breakablelWallInside_LowPolyCompressed.glb",
+    big_InnerRing001CelestialPrism_lowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/big_InnerRing001CelestialPrism_lowPoly.glb",
+    big_InnerRing002CelestialPrism_lowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/big_InnerRing002CelestialPrism_lowPoly.glb",
+    big_InnerRing003CelestialPrism_lowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/big_InnerRing003CelestialPrism_lowPoly.glb",
+    big_InnerRing004CelestialPrism_lowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/big_InnerRing004CelestialPrism_lowPoly.glb",
+    big_outerRingCelestialPrism_lowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/big_outerRingCelestialPrism_lowPoly.glb",
+    big_sphereCelestialPrism_lowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/big_sphereCelestialPrism_lowPoly.glb",
+    small_InnerRing001CelestialPrism_lowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/small_InnerRing001CelestialPrism_lowPoly.glb",
+    small_InnerRing002CelestialPrism_lowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/small_InnerRing002CelestialPrism_lowPoly.glb",
+    small_InnerRing003CelestialPrism_lowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/small_InnerRing003CelestialPrism_lowPoly.glb",
+    small_InnerRing004CelestialPrism_lowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/small_InnerRing004CelestialPrism_lowPoly.glb",
+    small_outerRingCelestialPrism_lowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/small_outerRingCelestialPrism_lowPoly.glb",
+    small_sphereCelestialPrism_lowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/small_sphereCelestialPrism_lowPoly.glb",
+    small_outerRingCelestialPrism_lowPolyCompressed:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/small_outerRingCelestialPrism_lowPolyCompressed.glb",
+    small_InnerRing004CelestialPrism_lowPolyCompressed:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/small_InnerRing004CelestialPrism_lowPolyCompressed.glb",
+    rotatingLeverHandle_lowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/rotatingLeverHandle_lowPoly.glb",
+    rotatingLeverBase_lowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/rotatingLeverBase_lowPoly.glb",
+    doorFrame_lowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/doorFrame_lowPoly.glb",
+    doorLeft_lowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/doorLeft_lowPoly.glb",
+    doorRight_lowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/doorRight_lowPoly.glb",
+    doorRight_lowPolyCompressed:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/doorRight_lowPolyCompressed.glb",
+    doorLeft_lowPolyCompressed:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/doorLeft_lowPolyCompressed.glb",
+    leverBase_lowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/leverBase_lowPoly.glb",
+    leverHandle_lowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/leverHandle_lowPoly.glb",
   };
 }
 
