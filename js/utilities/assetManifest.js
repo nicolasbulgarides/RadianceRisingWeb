@@ -30,7 +30,6 @@ class AssetManifest {
       "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/bridgeWholeCompressedTest.glb",
     celestialPrismPre:
       "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/celestialPrismPre.glb",
-    cube: "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/cube2.glb",
     doorClosedPre:
       "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/doorClosedPre.glb",
     doorFramePre:
@@ -95,6 +94,94 @@ class AssetManifest {
       "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/wallInsidePre.glb",
     wallWholePre:
       "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/wallWholePre.glb",
+    archway_lowPolyCompressed:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/archway_lowPolyCompressed.glb",
+    archway_lowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/archway_lowPoly.glb",
+    bagLowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/bagLowPoly.glb",
+    bag_lowPolyCompressed:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/bag_lowPolyCompressed.glb",
+    big_wholeCelestialPrism_lowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/big_wholeCelestialPrism_lowPoly.glb",
+    celestialPrism_lowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/celestialPrism_lowPoly.glb",
+    big_wholeCelestialPrism_lowPolyCompressed:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/big_wholeCelestialPrism_lowPolyCompressed.glb",
+    small_celestialPrism_lowPolyCompressed:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/small_celestialPrism_lowPolyCompressed.glb",
+    breakablelWallWhole_LowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/breakablelWallWhole_LowPoly.glb",
+    breakablelWallWhole_LowPolyCompressed:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/breakablelWallWhole_LowPolyCompressed.glb",
+    bridgeBent_lowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/bridgeBent_lowPoly.glb",
+    bridgeBent_lowPolyCompressed:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/bridgeBent_lowPolyCompressed.glb",
+    bridgeBrokenPiece_lowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/bridgeBrokenPiece_lowPoly.glb",
+    bridgeBrokenPiece_lowPolyCompressed:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/bridgeBrokenPiece_lowPolyCompressed.glb",
+    bridgeBroken_lowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/bridgeBroken_lowPoly.glb",
+    bridgeBroken_lowPolyCompressed:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/bridgeBroken_lowPolyCompressed.glb",
+    bridgeWhole_lowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/bridgeWhole_lowPoly.glb",
+    bridgeWhole_lowPolyCompressed:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/bridgeWhole_lowPolyCompressed.glb",
+    tile001V1_lowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/tile001V1_lowPoly.glb",
+    tile001V2_lowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/tile001V2_lowPoly.glb",
+    tile002V1_lowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/tile002V1_lowPoly.glb",
+    tile002V2_lowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/tile002V2_lowPoly.glb",
+    tile003V1_lowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/tile003V1_lowPoly.glb",
+    tile003V2_lowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/tile003V2_lowPoly.glb",
+    tile004V1_lowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/tile004V1_lowPoly.glb",
+    tile005V1_lowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/tile005V1_lowPoly.glb",
+    tile001V1_lowPolyCompressed:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/tile001V1_lowPolyCompressed.glb",
+    tile002V1_lowPolyCompressed:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/tile002V1_lowPolyCompressed.glb",
+    tile002V2_lowPolyCompressed:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/tile002V2_lowPolyCompressed.glb",
+    tile003V1_lowPolyCompressed:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/tile003V1_lowPolyCompressed.glb",
+    tile003V2_lowPolyCompressed:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/tile003V2_lowPolyCompressed.glb",
+    tile004V1_lowPolyCompressed:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/tile004V1_lowPolyCompressed.glb",
+    tile005V1_lowPolyCompressed:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/tile005V1_lowPolyCompressed.glb",
+    rotatingLeverWhole_lowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/rotatingLeverWhole_lowPoly.glb",
+    pendant_lowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/pendant_lowPoly.glb",
+    lotus_lowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/lotus_lowPoly.glb",
+    key_lowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/key_lowPoly.glb",
+    doorClosed_lowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/doorClosed_lowPoly.glb",
+    doorOpen_lowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/doorOpen_lowPoly.glb",
+    leverWholeP1_lowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/leverWholeP1_lowPoly.glb",
+    leverWholeP2_lowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/leverWholeP2_lowPoly.glb",
+    leverWholeP3_lowPoly:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/leverWholeP3_lowPoly.glb",
+    doorClosed_lowPolyCompressed:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/doorClosed_lowPolyCompressed.glb",
+    doorOpen_lowPolyCompressed:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/doorOpen_lowPolyCompressed.glb",
   };
 }
 
