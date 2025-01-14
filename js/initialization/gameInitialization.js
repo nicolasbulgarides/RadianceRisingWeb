@@ -309,7 +309,7 @@ class GameInitialization {
     this.demoWorldLoaded = true;
 
     this.scene.onBeforeRenderObservable.add(() => {
-      this.coreBenchmarks();
+      //this.coreBenchmarks();
     });
 
     // Add the velocity manager's position update to the render loop if initialized
