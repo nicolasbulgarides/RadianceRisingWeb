@@ -99,6 +99,7 @@ class GameInitialization {
       // Set up resize handling
       this.setupResizeHandler();
       // Instrumentation debugging tool
+      /**
       let sceneInstrumentation = new BABYLON.SceneInstrumentation(this.scene);
       sceneInstrumentation.captureActiveMeshesEvaluationTime = true;
       sceneInstrumentation.captureFrameTime = true;
@@ -182,7 +183,7 @@ class GameInitialization {
       const deltaTimeValue = addInstrumentationTextBlock(panel, "Delta Time: ");
 
       advancedTexture.addControl(panel);
-
+ */
       // Start the render loop
       this.engine.runRenderLoop(() => {
         if (false) {
