@@ -36,6 +36,7 @@ class DemoWorld1 {
       this.scene
     );
 
+    await gridGenerator.loadTiles();
     // Generate a 20x20 grid of tiles
     await gridGenerator.generateGrid();
   }
@@ -54,7 +55,10 @@ class DemoWorld1 {
       "",
       "",
       "",
-      1
+      1,
+      true,
+      false,
+      true
     );
 
     const object2 = new PositionedObject(

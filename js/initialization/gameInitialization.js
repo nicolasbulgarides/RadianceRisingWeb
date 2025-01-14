@@ -185,7 +185,7 @@ class GameInitialization {
 
       // Start the render loop
       this.engine.runRenderLoop(() => {
-        if (true) {
+        if (false) {
           meshesLength.text = "Meshes: " + this.scene.meshes.length;
           activeMeshesLength.text =
             "Active Meshes: " + this.scene.getActiveMeshes().length;
