@@ -52,7 +52,7 @@ class GameGridGenerator {
     return true;
   }
 
-  async generateGrid(gridSize = 20, tileSize = 1) {
+  async generateGrid(gridSize = 12, tileSize = 1) {
     // Ensure tiles are loaded
     if (this.loadedTiles.length === 0) {
       const success = await this.loadTiles();
