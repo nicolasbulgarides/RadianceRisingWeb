@@ -31,6 +31,91 @@ class GameInitialization {
     );
   }
 
+  loadBenchmarkers() {
+    this.sceneInstrumentation = new BABYLON.SceneInstrumentation(this.scene);
+    // sceneInstrumentation.captureActiveMeshesEvaluationTime = true;
+    this.sceneInstrumentation.captureFrameTime = true;
+    //  sceneInstrumentation.captureRenderTime = true;
+    //  sceneInstrumentation.captureCameraRenderTime = true;
+    //sceneInstrumentation.captureRenderTargetsRenderTime = true;
+    this.sceneInstrumentation.captureInterFrameTime = true;
+    this.engineInstrumentation = new BABYLON.EngineInstrumentation(this.engine);
+    this.engineInstrumentation.captureGPUFrameTime = true;
+    //   engineInstrumentation.captureShaderCompilationTime = true;
+    // GUI
+    const advancedTexture = this.scene2.advancedTexture;
+
+    const panel = addPanel(advancedTexture, 0, 0);
+    panel.horizontalAlignment = 0;
+    panel.verticalAlignment = 0;
+
+    /**
+    //  const meshesLength = addInstrumentationTextBlock(panel, "Meshes: ");
+      const activeMeshesLength = addInstrumentationTextBlock(
+        panel,
+        "Active Meshes: "
+      );
+      const activeVertices = addInstrumentationTextBlock(
+        panel,
+        "Active Vertice Count: "
+      );
+      const activeIndices = addInstrumentationTextBlock(
+        panel,
+        "Active Indices: "
+      );
+      const materialsLength = addInstrumentationTextBlock(panel, "Materials: ");
+      const texturesLength = addInstrumentationTextBlock(panel, "Textures: ");
+
+      const animationLength = addInstrumentationTextBlock(
+        panel,
+        "Animations: "
+      );
+      const drawCalls = addInstrumentationTextBlock(panel, "Draw Calls: ");
+      const totalLights = addInstrumentationTextBlock(panel, "Lights: ");
+      const frameTimeMax = addInstrumentationTextBlock(
+        panel,
+        "Scene Frame Time: "
+      );
+      const evalTimeMax = addInstrumentationTextBlock(
+        panel,
+        "Active Meshes Eval Time: "
+      );
+      const particlesFrameTime = addInstrumentationTextBlock(
+        panel,
+        "Particles Render Time: "
+      );
+
+       */
+    this.interFrameTime = addInstrumentationTextBlock(
+      panel,
+      "Inter Frame Time: "
+    );
+    this.gpuFrameTime = addInstrumentationTextBlock(panel, "GPU Frame Time: ");
+
+    /**
+      const shaderCompTime = addInstrumentationTextBlock(
+        panel,
+        "Shader Comp Time: "
+      );
+      const shaderTotal = addInstrumentationTextBlock(panel, "Total Shaders: ");
+      const sceneRenderTime = addInstrumentationTextBlock(
+        panel,
+        "Scene Render Time: "
+      );
+
+      const targetsRenderTime = addInstrumentationTextBlock(
+        panel,
+        "Targets Render Time: "
+      );
+      const fpsValue = addInstrumentationTextBlock(panel, "FPS: ");
+      const heapSize = addInstrumentationTextBlock(panel, "Heap Used: ");
+      const heapTotal = addInstrumentationTextBlock(panel, "Heap Total: ");
+      const heapLimit = addInstrumentationTextBlock(panel, "Heap Limit: ");
+      const deltaTimeValue = addInstrumentationTextBlock(panel, "Delta Time: ");
+ */
+    advancedTexture.addControl(panel);
+  }
+
   /**
    * Initializes the game by loading all necessary scripts and setting up the scene.
    */
@@ -86,6 +171,7 @@ class GameInitialization {
       this.scene2 = new BaseGameUI(this.engine);
       this.scene2.autoClear = false;
       this.scene2.initUI();
+      this.loadBenchmarkers();
 
       var camera = new BABYLON.FreeCamera(
         "camera",
@@ -98,181 +184,96 @@ class GameInitialization {
 
       // Set up resize handling
       this.setupResizeHandler();
-      // Instrumentation debugging tool
-      /**
-      let sceneInstrumentation = new BABYLON.SceneInstrumentation(this.scene);
-      sceneInstrumentation.captureActiveMeshesEvaluationTime = true;
-      sceneInstrumentation.captureFrameTime = true;
-      sceneInstrumentation.captureParticlesRenderTime = true;
-      sceneInstrumentation.captureRenderTime = true;
-      sceneInstrumentation.captureCameraRenderTime = true;
-      sceneInstrumentation.captureRenderTargetsRenderTime = true;
-      sceneInstrumentation.captureInterFrameTime = true;
-      let engineInstrumentation = new BABYLON.EngineInstrumentation(
-        this.engine
-      );
-      engineInstrumentation.captureGPUFrameTime = true;
-      engineInstrumentation.captureShaderCompilationTime = true;
-      // GUI
-      const advancedTexture = this.scene2.advancedTexture;
 
-      const panel = addPanel(advancedTexture, 0, 0);
-      panel.horizontalAlignment = 0;
-      panel.verticalAlignment = 0;
-
-      const meshesLength = addInstrumentationTextBlock(panel, "Meshes: ");
-      const activeMeshesLength = addInstrumentationTextBlock(
-        panel,
-        "Active Meshes: "
-      );
-      const activeVertices = addInstrumentationTextBlock(
-        panel,
-        "Active Vertice Count: "
-      );
-      const activeIndices = addInstrumentationTextBlock(
-        panel,
-        "Active Indices: "
-      );
-      const materialsLength = addInstrumentationTextBlock(panel, "Materials: ");
-      const texturesLength = addInstrumentationTextBlock(panel, "Textures: ");
-
-      const animationLength = addInstrumentationTextBlock(
-        panel,
-        "Animations: "
-      );
-      const drawCalls = addInstrumentationTextBlock(panel, "Draw Calls: ");
-      const totalLights = addInstrumentationTextBlock(panel, "Lights: ");
-      const frameTimeMax = addInstrumentationTextBlock(
-        panel,
-        "Scene Frame Time: "
-      );
-      const evalTimeMax = addInstrumentationTextBlock(
-        panel,
-        "Active Meshes Eval Time: "
-      );
-      const particlesFrameTime = addInstrumentationTextBlock(
-        panel,
-        "Particles Render Time: "
-      );
-      const interFrameTime = addInstrumentationTextBlock(
-        panel,
-        "Inter Frame Time: "
-      );
-      const gpuFrameTime = addInstrumentationTextBlock(
-        panel,
-        "GPU Frame Time: "
-      );
-      const shaderCompTime = addInstrumentationTextBlock(
-        panel,
-        "Shader Comp Time: "
-      );
-      const shaderTotal = addInstrumentationTextBlock(panel, "Total Shaders: ");
-      const sceneRenderTime = addInstrumentationTextBlock(
-        panel,
-        "Scene Render Time: "
-      );
-
-      const targetsRenderTime = addInstrumentationTextBlock(
-        panel,
-        "Targets Render Time: "
-      );
-      const fpsValue = addInstrumentationTextBlock(panel, "FPS: ");
-      const heapSize = addInstrumentationTextBlock(panel, "Heap Used: ");
-      const heapTotal = addInstrumentationTextBlock(panel, "Heap Total: ");
-      const heapLimit = addInstrumentationTextBlock(panel, "Heap Limit: ");
-      const deltaTimeValue = addInstrumentationTextBlock(panel, "Delta Time: ");
-
-      advancedTexture.addControl(panel);
- */
       // Start the render loop
       this.engine.runRenderLoop(() => {
-        if (false) {
-          meshesLength.text = "Meshes: " + this.scene.meshes.length;
-          activeMeshesLength.text =
-            "Active Meshes: " + this.scene.getActiveMeshes().length;
-          activeVertices.text = `Total Vertices: ${this.scene.totalVerticesPerfCounter.current.toLocaleString()}`;
-          activeIndices.text = `Active Indices: ${this.scene.totalActiveIndicesPerfCounter.current.toLocaleString()}`;
-          particlesFrameTime.text =
-            "Particles Render Time: " +
-            sceneInstrumentation.particlesRenderTimeCounter.current.toFixed(2);
-          interFrameTime.text =
-            "Inter Frame Time: " +
-            sceneInstrumentation.interFrameTimeCounter.lastSecAverage.toFixed();
-          gpuFrameTime.text =
-            "GPU Frame Time: " +
-            (
-              engineInstrumentation.gpuFrameTimeCounter.average * 0.000001
-            ).toFixed(2);
-          shaderCompTime.text =
-            "Shader Comp Time: " +
-            engineInstrumentation.shaderCompilationTimeCounter.current.toFixed(
-              2
-            );
-          evalTimeMax.text =
-            "Active Meshes Eval Time: " +
-            sceneInstrumentation.activeMeshesEvaluationTimeCounter.lastSecAverage.toFixed(
-              2
-            );
-          sceneRenderTime.text =
-            "Scene Render Time: " +
-            sceneInstrumentation.renderTimeCounter.current.toFixed();
-          particlesFrameTime.text =
-            "Particles Render Time: " +
-            sceneInstrumentation.particlesRenderTimeCounter.current.toFixed(2);
-          drawCalls.text =
-            "Draw Calls: " + sceneInstrumentation.drawCallsCounter.current;
-          sceneRenderTime.text =
-            "Scene Render Time: " +
-            sceneInstrumentation.renderTimeCounter.current.toFixed();
-          frameTimeMax.text =
-            "Scene Frame Time: " +
-            sceneInstrumentation.frameTimeCounter.lastSecAverage.toFixed(2);
-          totalLights.text = "Lights: " + this.scene.lights.length;
-          targetsRenderTime.text =
-            "Targets Render Time: " +
-            sceneInstrumentation.renderTargetsRenderTimeCounter.current.toFixed();
-
-          materialsLength.text = "Materials: " + this.scene.materials.length;
-          texturesLength.text = "Textures: " + this.scene.textures.length;
-          shaderTotal.text =
-            "Total Shaders: " +
-            engineInstrumentation.shaderCompilationTimeCounter.count;
-          sceneRenderTime.text =
-            "Scene Render Time: " +
-            sceneInstrumentation.renderTimeCounter.current.toFixed();
-          targetsRenderTime.text =
-            "Targets Render Time: " +
-            sceneInstrumentation.renderTargetsRenderTimeCounter.current.toFixed();
-          fpsValue.text = "FPS: " + this.engine.getFps().toFixed() + " fps";
-
-          heapSize.text =
-            "Heap Used: " +
-            (!performance.memory
-              ? "unavailabe"
-              : (performance.memory.usedJSHeapSize / 1024 / 1024).toFixed() +
-                " Mb");
-          heapTotal.text =
-            "Heap Total: " +
-            (!performance.memory
-              ? "unavailabe"
-              : (performance.memory.totalJSHeapSize / 1024 / 1024).toFixed() +
-                " Mb");
-          heapLimit.text =
-            "Heap Limit: " +
-            (!performance.memory
-              ? "unavailabe"
-              : (performance.memory.jsHeapSizeLimit / 1024 / 1024).toFixed() +
-                " Mb");
-          if (this.scene.deltaTime) {
-            deltaTimeValue.text =
-              "Delta Time: " + this.scene.deltaTime.toFixed(2);
-          }
-        }
+        this.coreBenchmarks();
         this.scene.render();
         this.scene2.render();
         //this.baseMenuUI.render();
       });
     });
+  }
+
+  coreBenchmarks() {
+    this.interFrameTime.text =
+      "Inter Frame Time: " +
+      this.sceneInstrumentation.interFrameTimeCounter.lastSecAverage.toFixed();
+    this.gpuFrameTime.text =
+      "GPU Frame Time: " +
+      (
+        this.engineInstrumentation.gpuFrameTimeCounter.average * 0.000001
+      ).toFixed(2);
+  }
+
+  nonCoreBenchmarks() {
+    meshesLength.text = "Meshes: " + this.scene.meshes.length;
+    activeMeshesLength.text =
+      "Active Meshes: " + this.scene.getActiveMeshes().length;
+    activeVertices.text = `Total Vertices: ${this.scene.totalVerticesPerfCounter.current.toLocaleString()}`;
+    activeIndices.text = `Active Indices: ${this.scene.totalActiveIndicesPerfCounter.current.toLocaleString()}`;
+    particlesFrameTime.text =
+      "Particles Render Time: " +
+      sceneInstrumentation.particlesRenderTimeCounter.current.toFixed(2);
+
+    shaderCompTime.text =
+      "Shader Comp Time: " +
+      engineInstrumentation.shaderCompilationTimeCounter.current.toFixed(2);
+    evalTimeMax.text =
+      "Active Meshes Eval Time: " +
+      sceneInstrumentation.activeMeshesEvaluationTimeCounter.lastSecAverage.toFixed(
+        2
+      );
+    sceneRenderTime.text =
+      "Scene Render Time: " +
+      sceneInstrumentation.renderTimeCounter.current.toFixed();
+    particlesFrameTime.text =
+      "Particles Render Time: " +
+      sceneInstrumentation.particlesRenderTimeCounter.current.toFixed(2);
+    drawCalls.text =
+      "Draw Calls: " + sceneInstrumentation.drawCallsCounter.current;
+    sceneRenderTime.text =
+      "Scene Render Time: " +
+      sceneInstrumentation.renderTimeCounter.current.toFixed();
+    frameTimeMax.text =
+      "Scene Frame Time: " +
+      sceneInstrumentation.frameTimeCounter.lastSecAverage.toFixed(2);
+    totalLights.text = "Lights: " + this.scene.lights.length;
+    targetsRenderTime.text =
+      "Targets Render Time: " +
+      sceneInstrumentation.renderTargetsRenderTimeCounter.current.toFixed();
+
+    materialsLength.text = "Materials: " + this.scene.materials.length;
+    texturesLength.text = "Textures: " + this.scene.textures.length;
+    shaderTotal.text =
+      "Total Shaders: " +
+      engineInstrumentation.shaderCompilationTimeCounter.count;
+    sceneRenderTime.text =
+      "Scene Render Time: " +
+      sceneInstrumentation.renderTimeCounter.current.toFixed();
+    targetsRenderTime.text =
+      "Targets Render Time: " +
+      sceneInstrumentation.renderTargetsRenderTimeCounter.current.toFixed();
+    fpsValue.text = "FPS: " + this.engine.getFps().toFixed() + " fps";
+
+    heapSize.text =
+      "Heap Used: " +
+      (!performance.memory
+        ? "unavailabe"
+        : (performance.memory.usedJSHeapSize / 1024 / 1024).toFixed() + " Mb");
+    heapTotal.text =
+      "Heap Total: " +
+      (!performance.memory
+        ? "unavailabe"
+        : (performance.memory.totalJSHeapSize / 1024 / 1024).toFixed() + " Mb");
+    heapLimit.text =
+      "Heap Limit: " +
+      (!performance.memory
+        ? "unavailabe"
+        : (performance.memory.jsHeapSizeLimit / 1024 / 1024).toFixed() + " Mb");
+    if (this.scene.deltaTime) {
+      deltaTimeValue.text = "Delta Time: " + this.scene.deltaTime.toFixed(2);
+    }
   }
 
   /**
