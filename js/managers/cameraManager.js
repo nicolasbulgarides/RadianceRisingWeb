@@ -33,6 +33,9 @@ class CameraManager {
       case CameraPreset.DEFAULT:
         this.currentCamera = this.setupDefaultCamera();
         break;
+      case CameraPreset.GAMEWORLDTEST:
+        this.currentCamera = this.setupGameWorldTestCamera();
+        break;
       case CameraPreset.ORTHOGRAPHIC:
         this.currentCamera = this.setupOrthographicCamera();
         break;
@@ -64,6 +67,31 @@ class CameraManager {
 
       window.Logger.log(`CameraManager: Applied preset '${presetName}'.`);
     }
+  }
+
+  /**
+   * Sets up a default camera.
+   * @returns {BABYLON.ArcRotateCamera} The configured default camera.
+   */
+  setupGameWorldTestCamera() {
+    // Define the center of the game world
+    const centerX = 10; // Center of the X-axis
+    const centerZ = 10; // Center of the Z-axis
+
+    // Create an ArcRotateCamera
+    const camera = new BABYLON.ArcRotateCamera(
+      "gameWorldTestCamera",
+      Math.PI / 2, // Angle around the Y-axis (horizontal rotation)
+      Math.PI / 4, // Angle above the ground (vertical rotation)
+      30, // Distance from the target (radius)
+      new BABYLON.Vector3(centerX, 0, centerZ), // Target position (center of the game world)
+      this.scene // The scene
+    );
+
+    // Attach camera controls to the canvas for interaction
+    camera.attachControl(this.scene.getEngine().getRenderingCanvas(), true);
+
+    return camera;
   }
 
   /**

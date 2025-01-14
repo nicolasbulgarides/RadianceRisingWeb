@@ -9,7 +9,7 @@ class Config {
   static LOGGING_ENABLED = true;
 
   // Presets for testing different setups
-  static CAMERA_PRESET = "TESTINGUI"; // Options: 'ISOMETRIC', 'ORTHOGRAPHIC', 'PERSPECTIVE', etc.
+  static CAMERA_PRESET = "gameworldtest"; // Options: 'ISOMETRIC', 'ORTHOGRAPHIC', 'PERSPECTIVE', etc.
   static LIGHTING_PRESET = "day"; // Options: 'day', 'night', 'dusk', etc.
 }
 

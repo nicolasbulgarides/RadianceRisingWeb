@@ -20,12 +20,31 @@ class DemoWorld1 {
     this.scene = scene;
   }
 
+  async loadTestGrid() {
+    // Initialize GridGenerator
+    const tileIds = [
+      "testTile1",
+      "testTile2",
+      "testTile3",
+      "testTile4",
+      "testTile5",
+      "testTile6",
+    ];
+    const gridGenerator = new GameGridGenerator(
+      this.sceneBuilder,
+      tileIds,
+      this.scene
+    );
+
+    // Generate a 20x20 grid of tiles
+    await gridGenerator.generateGrid();
+  }
   /**
    * Loads additional test objects.
    */
   async loadTestObjects() {
     const object = new PositionedObject(
-      "testCloudBlue",
+      "testTile1",
       0,
       0,
       0,
@@ -38,7 +57,37 @@ class DemoWorld1 {
       1
     );
 
-    // await this.sceneBuilder.loadSceneModel(object);
+    const object2 = new PositionedObject(
+      "testTile2",
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      "",
+      "",
+      "",
+      1
+    );
+
+    const object3 = new PositionedObject(
+      "testTile3",
+      2,
+      0,
+      0,
+      0,
+      0,
+      0,
+      "",
+      "",
+      "",
+      1
+    );
+
+    await this.sceneBuilder.loadSceneModel(object);
+    await this.sceneBuilder.loadSceneModel(object2);
+    await this.sceneBuilder.loadSceneModel(object3);
 
     // Load the sound and play it automatically once ready
     const music = new BABYLON.Sound(
@@ -62,31 +111,10 @@ class DemoWorld1 {
   async buildDemoWorld() {
     // Set the background color
     this.sceneBuilder.setBackgroundColor(new BABYLON.Color4(0.1, 0.1, 0.3, 1));
-    /**
-     *     const light = new BABYLON.PointLight(
-      "pointLight",
-      new BABYLON.Vector3(0, 10, 2),
-      this.scene
-    );
-
-    const light2 = new BABYLON.PointLight(
-      "pointLight",
-      new BABYLON.Vector3(2, 0, 5),
-      this.scene
-    );
-    const light3 = new BABYLON.PointLight(
-      "pointLight",
-      new BABYLON.Vector3(-2, 0, 5),
-      this.scene
-    );
-    light.intensity = 1000;
-    light2.intensity = 1000;
-    light3.intensity = 1000;
-     */
 
     // Await each loading step to ensure complete setup
-    await this.loadTestObjects();
-
+    //await this.loadTestObjects();
+    await this.loadTestGrid();
     console.log("DemoWorld1: Demo world built successfully.");
   }
 }

@@ -119,51 +119,52 @@ class SceneBuilder {
         modelUrl
       );
       if (loadedModel) {
+        if (positionedObject.cloneBase) {
+          const loadedModelBase = loadedModel.meshes[0];
+          loadedModelBase.isVisible = false;
+          loadedModelBase.setParent(null);
+
+          // loadedModelBase.isVisible = false;
+          //  loadedModelBase.setParent(null);
+
+          window.Logger.log("Invisible clone");
+        }
         window.Logger.log(
           `SceneBuilder: Model '${positionedObject.modelId}' loaded into the scene.`
         );
 
         // Apply position and rotation
-        loadedModel.position = new BABYLON.Vector3(
+        loadedModel.meshes[0].position = new BABYLON.Vector3(
           positionedObject.position.x,
           positionedObject.position.y,
           positionedObject.position.z
         );
 
         if (positionedObject.freeze) {
-          loadedModel.freezeWorldMatrix();
+          loadedModel.meshes[0].freezeWorldMatrix();
         }
 
         if (positionedObject.interactive == false) {
-          loadedModel.isPickable = false;
-          loadedModel.doNotSyncBoundingInfo = true;
+          loadedModel.meshes[0].isPickable = false;
+          loadedModel.meshes[0].doNotSyncBoundingInfo = true;
         }
 
         // Apply scaling
-        loadedModel.scaling.x = positionedObject.scaling;
-        loadedModel.scaling.y = positionedObject.scaling;
-        loadedModel.scaling.z = positionedObject.scaling;
+        loadedModel.meshes[0].scaling.x = positionedObject.scaling;
+        loadedModel.meshes[0].scaling.y = positionedObject.scaling;
+        loadedModel.meshes[0].scaling.z = positionedObject.scaling;
 
         // Debugging log for scaling
         window.Logger.log(
-          `SceneBuilder: Applied scaling to model '${positionedObject.modelId}' - x: ${loadedModel.scaling.x}, y: ${loadedModel.scaling.y}, z: ${loadedModel.scaling.z}`
+          `SceneBuilder: Applied scaling to model '${positionedObject.modelId}' - x: ${loadedModel.meshes[0].scaling.x}, y: ${loadedModel.meshes[0].scaling.y}, z: ${loadedModel.meshes[0].scaling.z}`
         );
 
         // Apply rotation in radians for Babylon.js compatibility
-        loadedModel.rotation = new BABYLON.Vector3(
+        loadedModel.meshes[0].rotation = new BABYLON.Vector3(
           BABYLON.Tools.ToRadians(positionedObject.rotation.pitch),
           BABYLON.Tools.ToRadians(positionedObject.rotation.yaw),
           BABYLON.Tools.ToRadians(positionedObject.rotation.roll)
         );
-
-        loadedModel.isVisible = false;
-        loadedModel.setParent(null);
-
-        var matrix = BABYLON.Matrix.Translation(-5, 5, 5);
-        var idx = loadedModel.thinInstanceAdd(matrix);
-
-        var matrix2 = BABYLON.Matrix.Translation(5, -5, 5);
-        var idx2 = loadedModel.thinInstanceAdd(matrix2);
 
         return loadedModel;
       } else {

@@ -8,4 +8,5 @@ const CameraPreset = Object.freeze({
   DEFAULT: "default",
   TESTINGUI: "testingui",
   HELICOPTER: "helicopter",
+  GAMEWORLDTEST: "gameworldtest",
 });

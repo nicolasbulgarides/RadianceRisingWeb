@@ -10,6 +10,8 @@ class AssetManifest {
 
   // Asset manifest data (3D objects only)
   static assets = {
+    testPlaceholder:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/bridgeWholePre.glb",
     purpleNoteMini:
       "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/purpleNoteMini.glb",
     redNoteBig:
@@ -35,13 +37,25 @@ class AssetManifest {
     testFlower:
       "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testFlower.glb",
     testGlassArch:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testGlassArch.glb",
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testGlassArchway.glb",
     testGlassBridge:
       "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testGlassBridge.glb",
     testGlassDoor:
       "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testGlassDoor.glb",
-    testGlassTile:
+    testTile1:
       "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testGlassTile.glb",
+    testTile2:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testTile2.glb",
+    testTile3:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testTile3.glb",
+    testTile4:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testTile4.glb",
+    testTile5:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testTile5.glb",
+    testTile6:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testTile6.glb",
+    testTile7:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testTile7.glb",
     testGoddess2PinkLotusLarge:
       "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testGoddess2PinkLotusLarge.glb",
     testGoddess2PinkLotusSmall:

@@ -13,6 +13,12 @@ class PositionedObject {
    * @param {string} animationID1 - First animation ID to pair with specific animations.
    * @param {string} animationID2 - Second animation ID to pair with specific animations.
    * @param {string} animationID3 - Third animation ID to pair with specific animations.
+   *  @param {number} scale - scale in the scene.
+
+   * @param {boolean} freeze - if the model is frozen / doesn't move for performance
+  * @param {boolean} interactive - if the model is interactive for performance
+   * @param {boolean} cloneBase - if the model is a base model to be cloned for performance
+
    */
   constructor(
     modelId,
@@ -26,13 +32,15 @@ class PositionedObject {
     animationID2 = "",
     animationID3 = "",
     scale = 1,
-    freeze,
-    interactive
+    freeze = false,
+    interactive = true,
+    cloneBase = false
   ) {
     this.modelId = modelId;
     this.scaling = scale;
     this.freeze = freeze;
     this.interactive = interactive;
+    this.cloneBase = cloneBase;
 
     // Retrieve the default configuration
     const config = AssetManifestOverrides.getConfig(modelId);

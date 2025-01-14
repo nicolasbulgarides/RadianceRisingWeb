@@ -48,6 +48,7 @@ class GameInitialization {
       "./js/utilities/positionedObject.js",
       "./js/utilities/assetManifestOverrides.js",
       "./js/utilities/assetManifest.js",
+      "./js/utilities/gameGridGenerator.js",
       "./js/utilities/soundAssetManifest.js",
       "./js/managers/soundEffectsManager.js",
       "./js/utilities/animatedModelLoader.js",
