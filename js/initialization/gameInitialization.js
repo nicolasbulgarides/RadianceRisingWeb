@@ -171,7 +171,7 @@ class GameInitialization {
       this.scene2 = new BaseGameUI(this.engine);
       this.scene2.autoClear = false;
       this.scene2.initUI();
-      this.loadBenchmarkers();
+      // this.loadBenchmarkers();
 
       var camera = new BABYLON.FreeCamera(
         "camera",
@@ -187,7 +187,7 @@ class GameInitialization {
 
       // Start the render loop
       this.engine.runRenderLoop(() => {
-        this.coreBenchmarks();
+        //  this.coreBenchmarks();
         this.scene.render();
         this.scene2.render();
         //this.baseMenuUI.render();
@@ -311,20 +311,6 @@ class GameInitialization {
     this.scene.onBeforeRenderObservable.add(() => {
       //this.coreBenchmarks();
     });
-
-    // Add the velocity manager's position update to the render loop if initialized
-    if (this.velocityManager) {
-      this.scene.onBeforeRenderObservable.add(() => {
-        // this.velocityManager.updatePosition();
-      });
-    }
-  }
-
-  addVelocityManagerToModel(animatedModel) {
-    this.velocityManager = new VelocityManager(
-      this.onMoveObservable,
-      animatedModel
-    );
   }
 
   loadScripts(scripts, callback) {
