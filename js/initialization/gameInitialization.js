@@ -308,6 +308,10 @@ class GameInitialization {
     await this.loadDemoWorld();
     this.demoWorldLoaded = true;
 
+    this.scene.onBeforeRenderObservable.add(() => {
+      this.coreBenchmarks();
+    });
+
     // Add the velocity manager's position update to the render loop if initialized
     if (this.velocityManager) {
       this.scene.onBeforeRenderObservable.add(() => {
