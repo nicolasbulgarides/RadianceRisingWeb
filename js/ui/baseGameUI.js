@@ -47,7 +47,13 @@ class BaseGameUI extends BABYLON.Scene {
     baseContainer.addControl(gameBasePad);
 
     // Add directional buttons
-    const createButton = (name, imageUrl, offsetX, offsetY, direction) => {
+    const createButton = (
+      name,
+      imageUrl,
+      offsetX,
+      offsetY,
+      buttonFunctionKey
+    ) => {
       const button = BABYLON.GUI.Button.CreateImageOnlyButton(name, imageUrl);
 
       // Explicitly set equal width and height for circular buttons
@@ -63,7 +69,7 @@ class BaseGameUI extends BABYLON.Scene {
       baseContainer.addControl(button);
 
       button.onPointerUpObservable.add(() => {
-        this.printDirection(direction);
+        this.buttonFunction(buttonFunctionKey);
       });
 
       return button;
@@ -115,7 +121,21 @@ class BaseGameUI extends BABYLON.Scene {
       "ARTIFACT"
     );
   }
-  printDirection(direction) {
-    console.log(`Button pressed: ${direction}`);
+  buttonFunction(buttonFunctionKey) {
+    if (buttonFunctionKey === "RIGHTCLICK") {
+      window.soundManager.playSound("menuMovement");
+    } else if (buttonFunctionKey === "LEFTCLICK") {
+      window.soundManager.playSound("menuMovement");
+    } else if (buttonFunctionKey === "UPCLICK") {
+      window.soundManager.playSound("menuMovement");
+    } else if (buttonFunctionKey === "DOWNCLICK") {
+      window.soundManager.playSound("menuMovement");
+    } else if (buttonFunctionKey === "MAGIC") {
+      window.soundManager.playSound("radianceGameStart");
+    } else if (buttonFunctionKey === "ARTIFACT") {
+      window.soundManager.playSound("artifactUsage");
+    }
+
+    console.log(`Button pressed: ${buttonFunctionKey}`);
   }
 }

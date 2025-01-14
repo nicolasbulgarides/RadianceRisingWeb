@@ -76,29 +76,25 @@ class SceneBuilder {
         );
       }
 
-      // Retrieve model URL from AssetManifest using modelId
+      // Retrieve model URL from AssetManifest
       const modelUrl = AssetManifest.getAssetUrl(positionedObject.modelId);
       if (!modelUrl) {
         console.error(
           `SceneBuilder: Asset '${positionedObject.modelId}' not found in AssetManifest.`
         );
-        loadedModels.push(null); // Add null to keep index alignment in the array
+        loadedModels.push(null); // Keep index alignment
         continue;
       }
 
-      // Load the model and apply position and rotation
+      // Load the model and apply transformations
       const loadedModel = await this.loadSceneModel(positionedObject, modelUrl);
 
-      if (positionedObject.freeze) {
-        loadedModel.freezeWorldMatrix();
+      if (loadedModel) {
+        this.loadedModels.push(loadedModel); // Store reference
+        positionedObject.setModel(loadedModel); // Link the model
       }
 
       loadedModels.push(loadedModel);
-
-      if (loadedModel) {
-        this.loadedModels.push(loadedModel); // Store reference to the loaded model
-        positionedObject.setModel(loadedModel); // Set the loaded model in PositionedObject
-      }
     }
 
     return loadedModels;

@@ -25,7 +25,7 @@ class DemoWorld1 {
    */
   async loadTestObjects() {
     const object = new PositionedObject(
-      "tile005V1_lowPolyCompressed",
+      "testCloudBlue",
       0,
       0,
       0,
@@ -38,7 +38,7 @@ class DemoWorld1 {
       1
     );
 
-    await this.sceneBuilder.loadSceneModel(object);
+    // await this.sceneBuilder.loadSceneModel(object);
 
     // Load the sound and play it automatically once ready
     const music = new BABYLON.Sound(
@@ -48,11 +48,11 @@ class DemoWorld1 {
       null,
       {
         loop: true,
-        autoplay: true,
+        autoplay: false,
       }
     );
 
-    this.scene.clearCachedVertexData();
+    // this.scene.clearCachedVertexData();
   }
 
   /**

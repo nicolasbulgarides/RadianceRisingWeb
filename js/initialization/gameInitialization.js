@@ -16,6 +16,19 @@ class GameInitialization {
 
     this.scene = new BABYLON.Scene(this.engine);
     this.scene.clearColor = new BABYLON.Color4(0, 0, 0, 0);
+
+    BABYLON.Engine.audioEngine.useCustomUnlockedButton = true;
+
+    // Unlock audio on first user interaction.
+    window.addEventListener(
+      "click",
+      () => {
+        if (!BABYLON.Engine.audioEngine.unlocked) {
+          BABYLON.Engine.audioEngine.unlock();
+        }
+      },
+      { once: true }
+    );
   }
 
   /**
@@ -33,7 +46,10 @@ class GameInitialization {
       "./js/managers/cameraManager.js",
       "./js/managers/lightingManager.js",
       "./js/utilities/positionedObject.js",
+      "./js/utilities/assetManifestOverrides.js",
       "./js/utilities/assetManifest.js",
+      "./js/utilities/soundAssetManifest.js",
+      "./js/managers/soundEffectsManager.js",
       "./js/utilities/animatedModelLoader.js",
       "./js/utilities/sceneBuilder.js",
       "./js/utilities/inputManager.js",
@@ -55,6 +71,7 @@ class GameInitialization {
         return;
       }
 
+      //  this.soundEffectsManager = new SoundEffectsManager(this.scene);
       this.cameraManager = new CameraManager(
         this.scene,
         Config.CAMERA_PRESET,

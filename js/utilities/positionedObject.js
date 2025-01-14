@@ -34,6 +34,22 @@ class PositionedObject {
     this.freeze = freeze;
     this.interactive = interactive;
 
+    // Retrieve the default configuration
+    const config = AssetManifestOverrides.getConfig(modelId);
+
+    // Apply default values and augmentations
+    this.position = {
+      x: config.position.x + x,
+      y: config.position.y + y,
+      z: config.position.z + z,
+    };
+    this.rotation = {
+      pitch: config.rotation.pitch + pitch,
+      roll: config.rotation.roll + roll,
+      yaw: config.rotation.yaw + yaw,
+    };
+    this.scaling = config.scale * scale;
+
     // Retrieve the model URL from AssetManifest
     const modelUrl = AssetManifest.getAssetUrl(modelId);
     if (modelUrl) {
@@ -45,9 +61,6 @@ class PositionedObject {
       this.modelUrl = null;
     }
 
-    // Initialize position, rotation, and animation IDs
-    this.position = { x, y, z };
-    this.rotation = { pitch, roll, yaw };
     this.animationIDs = {
       AnimationID1: animationID1,
       AnimationID2: animationID2,
