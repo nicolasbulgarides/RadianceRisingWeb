@@ -25,7 +25,7 @@ class DemoWorld1 {
    */
   async loadTestObjects() {
     const object = new PositionedObject(
-      "exampleTask",
+      "tile005V1_lowPolyCompressed",
       0,
       0,
       0,
@@ -37,10 +37,9 @@ class DemoWorld1 {
       "",
       1
     );
-    
-  
+
     await this.sceneBuilder.loadSceneModel(object);
-    
+
     // Load the sound and play it automatically once ready
     const music = new BABYLON.Sound(
       "Music",

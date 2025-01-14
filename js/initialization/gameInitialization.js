@@ -54,6 +54,7 @@ class GameInitialization {
         );
         return;
       }
+
       this.cameraManager = new CameraManager(
         this.scene,
         Config.CAMERA_PRESET,
@@ -74,12 +75,8 @@ class GameInitialization {
         this.scene2
       );
       camera.setTarget(BABYLON.Vector3.Zero());
-      const light = new BABYLON.HemisphericLight(
-        "dayLight",
-        new BABYLON.Vector3(0, 1, 0),
-        this.scene2
-      );
-      light.intensity = 1;
+
+      // this.lightingManager = new LightingManager(this.scene);
 
       // Set up resize handling
       this.setupResizeHandler();

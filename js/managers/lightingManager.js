@@ -66,7 +66,12 @@ class LightingManager {
       this.scene
     );
     light.intensity = 30.0;
-
+    const lightC = new BABYLON.DirectionalLight(
+      "dayLight",
+      new BABYLON.Vector3(0, 1, 0),
+      this.scene
+    );
+    lightC.intensity = 30.0;
     const light2 = new BABYLON.DirectionalLight(
       "dayLight",
       new BABYLON.Vector3(1, 0, 0),
