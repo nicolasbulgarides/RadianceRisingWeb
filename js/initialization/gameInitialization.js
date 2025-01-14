@@ -157,7 +157,7 @@ class GameInitialization {
         return;
       }
 
-      //  this.soundEffectsManager = new SoundEffectsManager(this.scene);
+      this.soundEffectsManager = new SoundEffectsManager(this.scene);
       this.cameraManager = new CameraManager(
         this.scene,
         Config.CAMERA_PRESET,
