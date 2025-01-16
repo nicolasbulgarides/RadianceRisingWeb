@@ -128,8 +128,8 @@ class GameInitialization {
       this.sceneRenderManager.activeUIScene.advancedTexture
     );
 
-    // this.benchmarks.loadBenchmarksBasic();
-    this.benchmarks.loadBenchmarksFull();
+    this.benchmarks.loadBenchmarksBasic();
+    //  this.benchmarks.loadBenchmarksFull();
   }
   /**
    * Sets up the SceneBuilder, applies background color, and loads specified assets into the scene.
