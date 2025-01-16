@@ -9,11 +9,6 @@ class BenchmarkManager {
     this.interFrameTime.text =
       "Inter Frame Time: " +
       this.sceneInstrumentation.interFrameTimeCounter.lastSecAverage.toFixed();
-    this.gpuFrameTime.text =
-      "GPU Frame Time: " +
-      (
-        this.engineInstrumentation.gpuFrameTimeCounter.average * 0.000001
-      ).toFixed(2);
   }
 
   nonCoreBenchmarksUpdate() {
