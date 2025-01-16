@@ -30,37 +30,12 @@ class BenchmarkManager {
     this.activeVertices.text = `Total Vertices: ${this.scene.totalVerticesPerfCounter.current.toLocaleString()}`;
     this.activeIndices.text = `Active Indices: ${this.scene.totalActiveIndicesPerfCounter.current.toLocaleString()}`;
 
-    this.evalTimeMax.text =
-      "Active Meshes Eval Time: " +
-      this.sceneInstrumentation.activeMeshesEvaluationTimeCounter.lastSecAverage.toFixed(
-        2
-      );
-    this.sceneRenderTime.text =
-      "Scene Render Time: " +
-      this.sceneInstrumentation.renderTimeCounter.current.toFixed();
-
     this.drawCalls.text =
       "Draw Calls: " + this.sceneInstrumentation.drawCallsCounter.current;
-    this.sceneRenderTime.text =
-      "Scene Render Time: " +
-      this.sceneInstrumentation.renderTimeCounter.current.toFixed();
-    this.frameTimeMax.text =
-      "Scene Frame Time: " +
-      this.sceneInstrumentation.frameTimeCounter.lastSecAverage.toFixed(2);
-    this.totalLights.text = "Lights: " + this.scene.lights.length;
-    this.targetsRenderTime.text =
-      "Targets Render Time: " +
-      this.sceneInstrumentation.renderTargetsRenderTimeCounter.current.toFixed();
 
     this.materialsLength.text = "Materials: " + this.scene.materials.length;
     this.texturesLength.text = "Textures: " + this.scene.textures.length;
 
-    this.sceneRenderTime.text =
-      "Scene Render Time: " +
-      this.sceneInstrumentation.renderTimeCounter.current.toFixed();
-    this.targetsRenderTime.text =
-      "Targets Render Time: " +
-      this.sceneInstrumentation.renderTargetsRenderTimeCounter.current.toFixed();
     this.fpsValue.text = "FPS: " + this.engine.getFps().toFixed() + " fps";
   }
 
@@ -88,10 +63,6 @@ class BenchmarkManager {
   loadBenchmarksFull() {
     this.sceneInstrumentation = new BABYLON.SceneInstrumentation(this.scene);
     this.sceneInstrumentation.captureActiveMeshesEvaluationTime = true;
-    this.sceneInstrumentation.captureFrameTime = true;
-    this.sceneInstrumentation.captureRenderTime = true;
-    this.sceneInstrumentation.captureCameraRenderTime = true;
-    this.sceneInstrumentation.captureRenderTargetsRenderTime = true;
     this.sceneInstrumentation.captureInterFrameTime = true;
     this.engineInstrumentation = new BABYLON.EngineInstrumentation(this.engine);
     this.engineInstrumentation.captureGPUFrameTime = true;
@@ -117,15 +88,6 @@ class BenchmarkManager {
 
     this.animationLength = addInstrumentationTextBlock(panel, "Animations: ");
     this.drawCalls = addInstrumentationTextBlock(panel, "Draw Calls: ");
-    this.totalLights = addInstrumentationTextBlock(panel, "Lights: ");
-    this.frameTimeMax = addInstrumentationTextBlock(
-      panel,
-      "Scene Frame Time: "
-    );
-    this.evalTimeMax = addInstrumentationTextBlock(
-      panel,
-      "Active Meshes Eval Time: "
-    );
 
     this.interFrameTime = addInstrumentationTextBlock(
       panel,
@@ -133,15 +95,6 @@ class BenchmarkManager {
     );
     this.gpuFrameTime = addInstrumentationTextBlock(panel, "GPU Frame Time: ");
 
-    this.sceneRenderTime = addInstrumentationTextBlock(
-      panel,
-      "Scene Render Time: "
-    );
-
-    this.targetsRenderTime = addInstrumentationTextBlock(
-      panel,
-      "Targets Render Time: "
-    );
     this.fpsValue = addInstrumentationTextBlock(panel, "FPS: ");
 
     this.adt.addControl(panel);

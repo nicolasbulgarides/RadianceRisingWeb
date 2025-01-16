@@ -12,6 +12,7 @@ class GameInitialization {
     window.Logger.log("Finished constructor of Game Init");
 
     this.scene = new BABYLON.Scene(this.engine);
+    this.autoClearDepthAndStencil = false;
     this.scene.clearColor = new BABYLON.Color4(0, 0, 0, 0);
 
     // Unlock audio on first user interaction.
@@ -105,7 +106,7 @@ class GameInitialization {
       );
       cameraExp.setTarget(BABYLON.Vector3.Zero());
 
-      // this.benchmarkTest();
+      this.benchmarkTest();
       // Start the render loop
       this.engine.runRenderLoop(() => {
         this.sceneRenderManager.render();

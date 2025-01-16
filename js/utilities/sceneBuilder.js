@@ -142,6 +142,7 @@ class SceneBuilder {
 
         if (positionedObject.freeze) {
           loadedModel.meshes[0].freezeWorldMatrix();
+          loadedModel.meshes[0].convertToUnIndexedMesh();
         }
 
         if (positionedObject.interactive == false) {
