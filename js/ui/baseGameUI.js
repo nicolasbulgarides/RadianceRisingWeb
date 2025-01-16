@@ -1,5 +1,12 @@
 class BaseGameUI extends BABYLON.Scene {
   initUI() {
+    this.autoClear = false;
+    var cameraBase = new BABYLON.FreeCamera(
+      "camera",
+      new BABYLON.Vector3(0, 0, 0),
+      this
+    );
+    cameraBase.setTarget(BABYLON.Vector3.Zero());
     // Create a full-screen GUI on top of the scene
     this.advancedTexture =
       BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
@@ -16,7 +23,7 @@ class BaseGameUI extends BABYLON.Scene {
     // Add the bottom base panel
     const bottomBasePanel = new BABYLON.GUI.Image(
       "menuBackground",
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/uiBasePanel.png"
+      UIAssetManifest.getAssetUrl("uiBasePanel")
     );
     bottomBasePanel.stretch = BABYLON.GUI.Image.STRETCH_FILL;
     bottomBasePanel.width = "1000px";
@@ -36,7 +43,7 @@ class BaseGameUI extends BABYLON.Scene {
     // Game base pad (centered inside container)
     const gameBasePad = new BABYLON.GUI.Image(
       "gameBasePad",
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/gamepadBase.png"
+      UIAssetManifest.getAssetUrl("gamepadBase")
     );
     gameBasePad.width = "360px"; // Scales relative to ideal width (320px at 1000px)
     gameBasePad.height = "360px"; // Maintains aspect ratio (circle)
@@ -78,28 +85,28 @@ class BaseGameUI extends BABYLON.Scene {
     // Place directional buttons with proper alignment and scaling
     createButton(
       "buttonLeft",
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/buttonLeft.png",
+      UIAssetManifest.getAssetUrl("buttonLeft"),
       "-160px", // Left of center
       "0px", // Centered vertically
       "LEFTCLICK"
     );
     createButton(
       "buttonRight",
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/buttonRight.png",
+      UIAssetManifest.getAssetUrl("buttonRight"),
       "160px", // Right of center
       "0px", // Centered vertically
       "RIGHTCLICK"
     );
     createButton(
       "buttonUp",
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/buttonUp.png",
+      UIAssetManifest.getAssetUrl("buttonUp"),
       "0px", // Centered horizontally
       "-160px", // Above center
       "UPCLICK"
     );
     createButton(
       "buttonDown",
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/buttonDown.png",
+      UIAssetManifest.getAssetUrl("buttonDown"),
       "0px", // Centered horizontally
       "160px", // Below center
       "DOWNCLICK"
@@ -107,7 +114,7 @@ class BaseGameUI extends BABYLON.Scene {
 
     createButton(
       "buttonLeft",
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/buttonMagic1.png",
+      UIAssetManifest.getAssetUrl("buttonMagic1"),
       "-360px", // Left of center
       "0px", // Centered vertically
       "MAGIC"
@@ -115,7 +122,7 @@ class BaseGameUI extends BABYLON.Scene {
 
     createButton(
       "buttonLeft",
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/buttonArtifact.png",
+      UIAssetManifest.getAssetUrl("buttonArtifact"),
       "360px", // Left of center
       "0px", // Centered vertically
       "ARTIFACT"
@@ -133,7 +140,8 @@ class BaseGameUI extends BABYLON.Scene {
     } else if (buttonFunctionKey === "MAGIC") {
       window.soundManager.playSound("radianceGameStart");
     } else if (buttonFunctionKey === "ARTIFACT") {
-      window.soundManager.playSound("artifactUsage");
+      // window.soundManager.playSound("artifactUsage");
+      window.soundManager.playNextSound();
     }
 
     console.log(`Button pressed: ${buttonFunctionKey}`);

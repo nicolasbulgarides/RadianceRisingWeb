@@ -89,7 +89,7 @@ class CameraManager {
     );
 
     // Attach camera controls to the canvas for interaction
-    camera.attachControl(this.scene.getEngine().getRenderingCanvas(), true);
+    // camera.attachControl(this.scene.getEngine().getRenderingCanvas(), true);
 
     return camera;
   }
