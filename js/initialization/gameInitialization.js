@@ -117,8 +117,8 @@ class GameInitialization {
 
   onFrameRenderUpdates() {
     if (this.benchmarks != null) {
-      //this.benchmarks.coreBenchmarksUpdate();
-      this.benchmarks.nonCoreBenchmarksUpdate();
+      this.benchmarks.coreBenchmarksUpdate();
+      //this.benchmarks.nonCoreBenchmarksUpdate();
     }
   }
   benchmarkTest() {
