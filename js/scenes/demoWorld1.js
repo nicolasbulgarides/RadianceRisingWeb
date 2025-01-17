@@ -82,7 +82,7 @@ class DemoWorld1 {
       scale: 2,
     };
     // await window.animatedModelLoader.loadModel("animatedSphere", optionsPass);
-    await window.animatedModelLoader.loadModel("spaceSky1", optionsPass2);
+    //  await window.animatedModelLoader.loadModel("spaceSky1", optionsPass2);
 
     // await this.sceneBuilder.loadSceneModel(object2);
     //  await this.sceneBuilder.loadSceneModel(object3);
