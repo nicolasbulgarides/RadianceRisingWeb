@@ -21,7 +21,7 @@ class AnimatedModelLoader {
    * @param {number} options.scale - Scale factor for the model.
    * @returns {Promise<BABYLON.Mesh|null>} - A promise that resolves with the loaded model mesh or null if loading fails.
    */
-  loadModel(assetName, options = {}) {
+  loadModel(assetName, optionsPass) {
     const modelUrl = AssetManifest.getAssetUrl(assetName);
     if (!modelUrl) {
       console.error(
@@ -30,70 +30,53 @@ class AnimatedModelLoader {
       return Promise.resolve(null);
     }
 
-    const {
-      x = 0,
-      y = 0,
-      z = 0,
-      pitch = 0,
-      yaw = 0,
-      roll = 0,
-      scale = 1,
-    } = options;
-
     return new Promise((resolve, reject) => {
-      BABYLON.SceneLoader.ImportMeshAsync(
-        null,
-        "",
-        modelUrl,
-        this.scene,
-        (meshes, particleSystems, skeletons, animationGroups) => {
-          const model = meshes[0];
+      BABYLON.SceneLoader.ImportMeshAsync(null, "", modelUrl, this.scene)
+        .then((result) => {
+          const root = result.meshes[0];
 
-          if (model instanceof BABYLON.AbstractMesh) {
-            // Apply transformations only if it’s a mesh
-            model.position = new BABYLON.Vector3(x, y, z);
-            model.rotation = new BABYLON.Vector3(
-              BABYLON.Tools.ToRadians(pitch),
-              BABYLON.Tools.ToRadians(yaw),
-              BABYLON.Tools.ToRadians(roll)
-            );
-            model.scaling = new BABYLON.Vector3(scale, scale, scale);
-            window.Logger.log(
-              `Model loaded with position: x=${model.position.x}, y=${model.position.y}, z=${model.position.z}`
-            );
-          } else {
-            console.warn(
-              "Loaded model is not an instance of BABYLON.AbstractMesh. Position property may be missing."
-            );
+          if (!root) {
+            console.error("No root mesh found in the model.");
+            reject("No root mesh found in the model.");
+            return;
           }
 
-          // Apply position, rotation, and scale
-          model.position = new BABYLON.Vector3(x, y, z);
-          model.rotation = new BABYLON.Vector3(
-            BABYLON.Tools.ToRadians(pitch),
-            BABYLON.Tools.ToRadians(yaw),
-            BABYLON.Tools.ToRadians(roll)
+          // Apply transformations to the root mesh
+          root.getChildMeshes().forEach((child) => {
+            child.position = new BABYLON.Vector3(
+              optionsPass.x,
+              optionsPass.y,
+              optionsPass.z
+            );
+            child.rotation = new BABYLON.Vector3(
+              BABYLON.Tools.ToRadians(optionsPass.pitch),
+              BABYLON.Tools.ToRadians(optionsPass.yaw),
+              BABYLON.Tools.ToRadians(optionsPass.roll)
+            );
+            child.scaling = new BABYLON.Vector3(
+              optionsPass.scale,
+              optionsPass.scale,
+              optionsPass.scale
+            );
+          });
+
+          window.Logger.log(
+            `Model loaded with position: x=${root.position.x}, y=${root.position.y}, z=${root.position.z}`
           );
-          model.scaling = new BABYLON.Vector3(scale, scale, scale);
 
           // Start animations if available
-          if (animationGroups.length > 0) {
-            animationGroups.forEach((animationGroup) => {
-              animationGroup.start(true); // Loop all animations
+          if (result.animationGroups && result.animationGroups.length > 0) {
+            result.animationGroups.forEach((animationGroup) => {
+              animationGroup.start(true); // Loop animations
             });
           }
 
-          console.log(
-            `AnimatedModelLoader: Model '${assetName}' loaded successfully.`
-          );
-          resolve(model); // Return the model for external manipulation
-        },
-        null,
-        (scene, message, exception) => {
-          console.error("Error loading model:", message, exception);
-          resolve(null); // Resolve with null if there's an error
-        }
-      );
+          resolve(root); // Resolve with the loaded mesh
+        })
+        .catch((error) => {
+          console.error("Error loading model:", error);
+          reject(error); // Reject if there's an error
+        });
     });
   }
 }

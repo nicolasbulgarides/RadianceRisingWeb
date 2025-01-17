@@ -10,8 +10,14 @@ class AssetManifest {
 
   // Asset manifest data (3D objects only)
   static assets = {
-    testPlaceholder:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/bridgeWholePre.glb",
+    animatedSphere:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/animatedSphere.glb",
+    spaceSky1:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/spaceSky.glb",
+    spaceSky2:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/spaceSky2.glb",
+    spaceSky3:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/spaceSky3.glb",
     purpleNoteMini:
       "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/purpleNoteMini.glb",
     redNoteBig:

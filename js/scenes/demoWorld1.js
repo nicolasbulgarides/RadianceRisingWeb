@@ -44,8 +44,9 @@ class DemoWorld1 {
    * Loads additional test objects.
    */
   async loadTestObjects() {
+    /** 
     const object = new PositionedObject(
-      "testTile1",
+      "animatedSphere",
       0,
       0,
       0,
@@ -55,43 +56,36 @@ class DemoWorld1 {
       "",
       "",
       "",
-      1,
+      100,
       true,
       false,
       true
     );
+*/
+    const optionsPass = {
+      x: -10,
+      y: 10,
+      z: -20,
+      pitch: 0,
+      yaw: 0,
+      roll: 0,
+      scale: 5,
+    };
 
-    const object2 = new PositionedObject(
-      "testTile2",
-      1,
-      0,
-      0,
-      0,
-      0,
-      0,
-      "",
-      "",
-      "",
-      1
-    );
+    const optionsPass2 = {
+      x: 0,
+      y: 0,
+      z: 0,
+      pitch: 0,
+      yaw: 0,
+      roll: 0,
+      scale: 2,
+    };
+    await window.animatedModelLoader.loadModel("animatedSphere", optionsPass);
+    await window.animatedModelLoader.loadModel("spaceSky1", optionsPass2);
 
-    const object3 = new PositionedObject(
-      "testTile3",
-      2,
-      0,
-      0,
-      0,
-      0,
-      0,
-      "",
-      "",
-      "",
-      1
-    );
-
-    await this.sceneBuilder.loadSceneModel(object);
-    await this.sceneBuilder.loadSceneModel(object2);
-    await this.sceneBuilder.loadSceneModel(object3);
+    // await this.sceneBuilder.loadSceneModel(object2);
+    //  await this.sceneBuilder.loadSceneModel(object3);
 
     // Load the sound and play it automatically once ready
     const music = new BABYLON.Sound(
@@ -117,7 +111,7 @@ class DemoWorld1 {
     this.sceneBuilder.setBackgroundColor(new BABYLON.Color4(0.1, 0.1, 0.3, 1));
 
     // Await each loading step to ensure complete setup
-    //await this.loadTestObjects();
+    await this.loadTestObjects();
     await this.loadTestGrid();
     console.log("DemoWorld1: Demo world built successfully.");
   }

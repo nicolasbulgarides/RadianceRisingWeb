@@ -16,6 +16,7 @@ class GameInitialization {
     this.autoClearDepthAndStencil = false;
     this.scene.clearColor = new BABYLON.Color4(0, 0, 0, 0);
 
+    // this.performanceMonitor = new this.performanceMonitor();
     // Unlock audio on first user interaction.
     this.addAudioUnlock();
     this.setupResizeHandler();
@@ -129,7 +130,6 @@ class GameInitialization {
       this.sceneRenderManager.activeUIScene.advancedTexture
     );
 
-    this.benchmarks.loadBenchmarksBasic();
     //  this.benchmarks.loadBenchmarksFull();
   }
   /**
@@ -140,13 +140,14 @@ class GameInitialization {
 
     // Initialize ModelLoader and SceneBuilder
     this.modelLoader = new ModelLoader();
-    this.animatedModelLoader = new AnimatedModelLoader();
+    this.animatedModelLoader = new AnimatedModelLoader(this.scene);
     this.sceneBuilder = new SceneBuilder(
       this.scene,
       this.modelLoader,
       this.animatedModelLoader
     );
 
+    window.animatedModelLoader = this.animatedModelLoader;
     // Set the scene background color
     this.sceneBuilder.setBackgroundColor(new BABYLON.Color4(0, 0, 0, 0));
     this.onMoveObservable = new BABYLON.Observable();
