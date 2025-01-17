@@ -8,11 +8,11 @@ class BenchmarkManager {
   }
 
   coreBenchmarksUpdate() {
-    this.frameAverage += this.engine.getFps().toFixed();
+    this.frameAverage += this.engine.getFps();
     this.framesCounter += 1;
 
     if (this.framesCounter % 240 == 0) {
-      this.cpuFrameTime.text = this.frameAverage / 60;
+      this.cpuFrameTime.text = "FPS: " + this.frameAverage / 240;
       this.frameAverage = 0;
       this.framesCounter = 0;
     }
@@ -56,7 +56,7 @@ class BenchmarkManager {
 
     const panel = addPanel(this.adt);
 
-    this.cpuFrameTime = addInstrumentationTextBlock(panel, "CPU Frame Time: ");
+    this.cpuFrameTime = addInstrumentationTextBlock(panel, "FPS: ");
 
     // this.gpuFrameTime = addInstrumentationTextBlock(panel, "GPU Frame Time: ");
   }
