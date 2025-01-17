@@ -3,11 +3,19 @@ class BenchmarkManager {
     this.engine = engine;
     this.scene = scene;
     this.adt = adt;
+    this.frameAverage = 0;
+    this.framesCounter = 0;
   }
 
   coreBenchmarksUpdate() {
-    this.cpuFrameTime.text =
-      "Frames " + this.engine.getFps().toFixed() + " fps";
+    this.frameAverage += this.engine.getFps().toFixed();
+    this.framesCounter += 1;
+
+    if (this.framesCounter % 240 == 0) {
+      this.cpuFrameTime.text = this.frameAverage / 60;
+      this.frameAverage = 0;
+      this.framesCounter = 0;
+    }
     /** this.gpuFrameTime.text =
       "GPU Frame Time: " +
       (
