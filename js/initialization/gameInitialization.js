@@ -108,7 +108,7 @@ class GameInitialization {
       );
       cameraExp.setTarget(BABYLON.Vector3.Zero());
 
-      // this.benchmarkTest();
+      this.benchmarkTest();
       // Start the render loop
       this.engine.runRenderLoop(() => {
         this.sceneRenderManager.render();
@@ -118,19 +118,18 @@ class GameInitialization {
   }
 
   onFrameRenderUpdates() {
-    if (this.benchmarks != null) {
-      this.benchmarks.coreBenchmarksUpdate();
-      //this.benchmarks.nonCoreBenchmarksUpdate();
+    if (this.benchmark != null) {
+      this.benchmark.coreBenchmarksUpdate();
+      //  this.benchmarks.nonCoreBenchmarksUpdate();
     }
   }
   benchmarkTest() {
-    this.benchmarks = new BenchmarkManager(
+    this.benchmark = new BenchmarkManager(
       this.engine,
       this.scene,
       this.sceneRenderManager.activeUIScene.advancedTexture
     );
-
-    //  this.benchmarks.loadBenchmarksFull();
+    this.benchmark.loadBenchmarksBasic();
   }
   /**
    * Sets up the SceneBuilder, applies background color, and loads specified assets into the scene.

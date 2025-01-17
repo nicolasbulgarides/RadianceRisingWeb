@@ -6,9 +6,14 @@ class BenchmarkManager {
   }
 
   coreBenchmarksUpdate() {
-    this.interFrameTime.text =
-      "Inter Frame Time: " +
-      this.sceneInstrumentation.interFrameTimeCounter.lastSecAverage.toFixed();
+    this.cpuFrameTime.text =
+      "Frames " + this.engine.getFps().toFixed() + " fps";
+    /** this.gpuFrameTime.text =
+      "GPU Frame Time: " +
+      (
+        this.engineInstrumentation.gpuFrameTimeCounter.average * 0.000001
+      ).toFixed(2);
+      */
   }
 
   nonCoreBenchmarksUpdate() {
@@ -38,21 +43,14 @@ class BenchmarkManager {
     this.sceneInstrumentation = new BABYLON.SceneInstrumentation(this.scene);
     this.sceneInstrumentation.captureFrameTime = true;
 
-    this.sceneInstrumentation.captureInterFrameTime = true;
-    this.engineInstrumentation = new BABYLON.EngineInstrumentation(this.engine);
-    this.engineInstrumentation.captureGPUFrameTime = true;
+    // this.engineInstrumentation = new BABYLON.EngineInstrumentation(this.engine);
+    // this.engineInstrumentation.captureGPUFrameTime = true;
 
-    const panel = addPanel(this.adt, 0, 0);
-    panel.horizontalAlignment = 0;
-    panel.verticalAlignment = 0;
+    const panel = addPanel(this.adt);
 
-    this.interFrameTime = addInstrumentationTextBlock(
-      panel,
-      "Inter Frame Time: "
-    );
-    this.gpuFrameTime = addInstrumentationTextBlock(panel, "GPU Frame Time: ");
+    this.cpuFrameTime = addInstrumentationTextBlock(panel, "CPU Frame Time: ");
 
-    this.adt.addControl(panel);
+    // this.gpuFrameTime = addInstrumentationTextBlock(panel, "GPU Frame Time: ");
   }
 
   loadBenchmarksFull() {
@@ -64,9 +62,7 @@ class BenchmarkManager {
     this.engineInstrumentation.captureShaderCompilationTime = true;
     // GUI
 
-    const panel = addPanel(this.adt, 0, 0);
-    panel.horizontalAlignment = 0;
-    panel.verticalAlignment = 0;
+    const panel = addPanel(this.adt);
 
     //  const meshesLength = addInstrumentationTextBlock(panel, "Meshes: ");
     this.activeMeshesLength = addInstrumentationTextBlock(
@@ -95,16 +91,15 @@ class BenchmarkManager {
     this.adt.addControl(panel);
   }
 }
-function addPanel(adt, ha, va) {
+function addPanel(adt) {
   const panel = new BABYLON.GUI.StackPanel();
-  panel.horizontalAlignment = ha;
-  panel.verticalAlignment = va;
-  panel.height = "100%";
-  panel.width = "400px";
+
   panel.paddingTop = "10px";
   panel.paddingLeft = "10px";
   panel.paddingBottom = "10px";
   panel.paddingRight = "10px";
+  panel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+  panel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
   adt.addControl(panel);
   return panel;
 }
@@ -112,11 +107,12 @@ function addPanel(adt, ha, va) {
 function addInstrumentationTextBlock(panel, text) {
   const textBlock = new BABYLON.GUI.TextBlock();
   textBlock.text = text;
-  textBlock.height = "20px";
-  textBlock.width = "300px";
-  textBlock.color = "white";
-  textBlock.fontSize = 18;
-  textBlock.textHorizontalAlignment = 0;
+  textBlock.height = "100px";
+  textBlock.width = "600px";
+  textBlock.color = "red";
+  textBlock.fontSize = 50;
+  textBlock.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+  panel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
   panel.addControl(textBlock);
 
   return textBlock;
