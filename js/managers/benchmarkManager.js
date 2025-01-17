@@ -8,20 +8,19 @@ class BenchmarkManager {
   }
 
   coreBenchmarksUpdate() {
+    // Accumulate FPS value
     this.frameAverage += this.engine.getFps();
     this.framesCounter += 1;
 
-    if (this.framesCounter % 240 == 0) {
-      this.cpuFrameTime.text = "FPS: " + this.frameAverage / 240;
+    // After 240 frames, calculate and display the average FPS
+    if (this.framesCounter % 240 === 0) {
+      const averageFps = this.frameAverage / this.framesCounter;
+      this.cpuFrameTime.text = "FPS: " + averageFps.toFixed(2); // Display with 2 decimal points
+
+      // Reset after calculation
       this.frameAverage = 0;
       this.framesCounter = 0;
     }
-    /** this.gpuFrameTime.text =
-      "GPU Frame Time: " +
-      (
-        this.engineInstrumentation.gpuFrameTimeCounter.average * 0.000001
-      ).toFixed(2);
-      */
   }
 
   nonCoreBenchmarksUpdate() {
