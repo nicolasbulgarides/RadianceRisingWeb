@@ -59,7 +59,7 @@ class LightingManager {
   /**
    * Sets up day lighting with high intensity for a bright scene.
    */
-  setupDayLighting() {
+  setupDayLighting2() {
     const light = new BABYLON.PointLight(
       "pointLight",
       new BABYLON.Vector3(10, 10, 10),
@@ -72,7 +72,7 @@ class LightingManager {
   /**
    * Sets up day lighting with high intensity for a bright scene.
    */
-  setupDayLighting2() {
+  setupDayLighting() {
     const light = new BABYLON.DirectionalLight(
       "dayLight",
       new BABYLON.Vector3(0, -1, 0),
