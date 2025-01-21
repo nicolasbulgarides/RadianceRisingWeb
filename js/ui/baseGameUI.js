@@ -85,28 +85,28 @@ class BaseGameUI extends BABYLON.Scene {
     // Place directional buttons with proper alignment and scaling
     createButton(
       "buttonLeft",
-      UIAssetManifest.getAssetUrl("directionalPadTap"),
+      UIAssetManifest.getAssetUrl("buttonLeft"),
       "-160px", // Left of center
       "0px", // Centered vertically
       "LEFTCLICK"
     );
     createButton(
       "buttonRight",
-      UIAssetManifest.getAssetUrl("directionalPadTap"),
+      UIAssetManifest.getAssetUrl("buttonRight"),
       "160px", // Right of center
       "0px", // Centered vertically
       "RIGHTCLICK"
     );
     createButton(
       "buttonUp",
-      UIAssetManifest.getAssetUrl("directionalPadTap"),
+      UIAssetManifest.getAssetUrl("buttonUp"),
       "0px", // Centered horizontally
       "-160px", // Above center
       "UPCLICK"
     );
     createButton(
       "buttonDown",
-      UIAssetManifest.getAssetUrl("directionalPadTap"),
+      UIAssetManifest.getAssetUrl("buttonDown"),
       "0px", // Centered horizontally
       "160px", // Below center
       "DOWNCLICK"
@@ -114,7 +114,7 @@ class BaseGameUI extends BABYLON.Scene {
 
     createButton(
       "buttonLeft",
-      UIAssetManifest.getAssetUrl("directionalPadTap"),
+      UIAssetManifest.getAssetUrl("buttonMagic1"),
       "-360px", // Left of center
       "0px", // Centered vertically
       "MAGIC"
