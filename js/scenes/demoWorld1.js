@@ -44,6 +44,7 @@ class DemoWorld1 {
    * Loads additional test objects.
    */
   async loadTestObjects() {
+    /** 
     const object1 = new PositionedObject(
       "testTile1",
       0,
@@ -145,6 +146,14 @@ class DemoWorld1 {
       false,
       true
     );
+    this.sceneBuilder.loadSceneModel(object1);
+    this.sceneBuilder.loadSceneModel(object2);
+    this.sceneBuilder.loadSceneModel(object3);
+    this.sceneBuilder.loadSceneModel(object4);
+    this.sceneBuilder.loadSceneModel(object5);
+    this.sceneBuilder.loadSceneModel(object6);
+
+    */
 
     const optionsPass = {
       x: -10,
@@ -165,14 +174,10 @@ class DemoWorld1 {
       roll: 0,
       scale: 2,
     };
+
     window.animatedModelLoader.loadModel("animatedSphere", optionsPass);
     window.animatedModelLoader.loadModel("spaceSky1", optionsPass2);
-    this.sceneBuilder.loadSceneModel(object1);
-    this.sceneBuilder.loadSceneModel(object2);
-    this.sceneBuilder.loadSceneModel(object3);
-    this.sceneBuilder.loadSceneModel(object4);
-    this.sceneBuilder.loadSceneModel(object5);
-    this.sceneBuilder.loadSceneModel(object6);
+
     // await this.sceneBuilder.loadSceneModel(object2);
     //  await this.sceneBuilder.loadSceneModel(object3);
 
@@ -201,7 +206,7 @@ class DemoWorld1 {
 
     // Await each loading step to ensure complete setup
     await this.loadTestObjects();
-    // await this.loadTestGrid();
+    await this.loadTestGrid();
     console.log("DemoWorld1: Demo world built successfully.");
   }
 }

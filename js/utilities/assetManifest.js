@@ -49,17 +49,19 @@ class AssetManifest {
     testGlassDoor:
       "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testGlassDoor.glb",
     testTile1:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/tiles1.glb",
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/tile6Clone1.glb",
     testTile2:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/tiles2.glb",
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/tile6Clone2.glb",
     testTile3:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/tiles3.glb",
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/tile6Clone3.glb",
     testTile4:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/tiles4.glb",
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/tile6Clone4.glb",
     testTile5:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/tiles5.glb",
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/tile6Clone5.glb",
     testTile6:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/tile6.glb",
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/tile6Clone6.glb",
+    testTilePure:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testTile2.glb",
     testGoddess2PinkLotusLarge:
       "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testGoddess2PinkLotusLarge.glb",
     testGoddess2PinkLotusSmall:

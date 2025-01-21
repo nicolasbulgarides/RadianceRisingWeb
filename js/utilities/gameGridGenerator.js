@@ -29,14 +29,14 @@ class GameGridGenerator {
         "",
         "",
         1,
-        true,
+        false,
         false,
         true
       );
       const baseTile = await this.sceneBuilder.loadSceneModel(positionedObject);
 
       if (baseTile) {
-        baseTile.isVisible = false; // Make the base tile invisible
+        //baseTile.isVisible = false; // Make the base tile invisible
         this.loadedTiles.push(baseTile);
       } else {
         console.error(`GridGenerator: Failed to load tile '${tileId}'.`);
@@ -63,7 +63,8 @@ class GameGridGenerator {
     for (let x = 0; x < gridSize; x++) {
       for (let z = 0; z < gridSize; z++) {
         // Determine which tile to use based on a pattern
-        const tileIndex = (x + z) % this.loadedTiles.length; // Example pattern
+        const rowOffset = x % this.loadedTiles.length; // Offset every row
+        const tileIndex = (z + rowOffset) % this.loadedTiles.length; // Alternate tile selection
         const baseTile = this.loadedTiles[tileIndex];
         const children = baseTile.meshes[0].getChildren(undefined, false);
 
@@ -74,13 +75,15 @@ class GameGridGenerator {
             const zPos = z * tileSize;
 
             // Create a transformation matrix with y fixed at 0
-            const matrix = BABYLON.Matrix.Translation(xPos, 0, zPos);
+            const matrix = BABYLON.Matrix.Translation(
+              xPos + 1 * xPos,
+              0,
+              zPos + 1 * zPos
+            );
             mesh.thinInstanceAdd(matrix);
           }
         }
       }
     }
-
-    console.log("GridGenerator: Grid generated successfully.");
   }
 }

@@ -48,6 +48,7 @@ class AssetManifestOverrides {
   static {
     const baseConfigTiles = this.getConfig("testTile1");
     const tileNames = [
+      "testTilePure",
       "testTile2",
       "testTile3",
       "testTile4",
