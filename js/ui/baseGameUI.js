@@ -85,28 +85,28 @@ class BaseGameUI extends BABYLON.Scene {
     // Place directional buttons with proper alignment and scaling
     createButton(
       "buttonLeft",
-      UIAssetManifest.getAssetUrl("buttonLeft"),
+      UIAssetManifest.getAssetUrl("directionalPadTap"),
       "-160px", // Left of center
       "0px", // Centered vertically
       "LEFTCLICK"
     );
     createButton(
       "buttonRight",
-      UIAssetManifest.getAssetUrl("buttonRight"),
+      UIAssetManifest.getAssetUrl("directionalPadTap"),
       "160px", // Right of center
       "0px", // Centered vertically
       "RIGHTCLICK"
     );
     createButton(
       "buttonUp",
-      UIAssetManifest.getAssetUrl("buttonUp"),
+      UIAssetManifest.getAssetUrl("directionalPadTap"),
       "0px", // Centered horizontally
       "-160px", // Above center
       "UPCLICK"
     );
     createButton(
       "buttonDown",
-      UIAssetManifest.getAssetUrl("buttonDown"),
+      UIAssetManifest.getAssetUrl("directionalPadTap"),
       "0px", // Centered horizontally
       "160px", // Below center
       "DOWNCLICK"
@@ -114,7 +114,7 @@ class BaseGameUI extends BABYLON.Scene {
 
     createButton(
       "buttonLeft",
-      UIAssetManifest.getAssetUrl("buttonMagic1"),
+      UIAssetManifest.getAssetUrl("directionalPadTap"),
       "-360px", // Left of center
       "0px", // Centered vertically
       "MAGIC"
@@ -140,8 +140,8 @@ class BaseGameUI extends BABYLON.Scene {
     } else if (buttonFunctionKey === "MAGIC") {
       window.soundManager.playSound("radianceGameStart");
     } else if (buttonFunctionKey === "ARTIFACT") {
-      // window.soundManager.playSound("artifactUsage");
-      window.soundManager.playNextSound();
+      window.soundManager.playSound("artifactUsage");
+      //  window.soundManager.playNextSound();
     }
 
     console.log(`Button pressed: ${buttonFunctionKey}`);
