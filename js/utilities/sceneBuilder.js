@@ -121,9 +121,11 @@ class SceneBuilder {
       if (loadedModel) {
         if (positionedObject.cloneBase) {
           const loadedModelBase = loadedModel.meshes[0];
-          loadedModelBase.isVisible = false;
+          // loadedModelBase.isVisible = false;
           loadedModelBase.setParent(null);
-
+          loadedModel.meshes.forEach((mesh) => {
+            //mesh.isVisible = false;
+          });
           // loadedModelBase.isVisible = false;
           //  loadedModelBase.setParent(null);
 

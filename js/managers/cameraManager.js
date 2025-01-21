@@ -75,9 +75,11 @@ class CameraManager {
    */
   setupGameWorldTestCamera() {
     // Define the center of the game world
-    const centerX = 10; // Center of the X-axis
-    const centerZ = 10; // Center of the Z-axis
+    // const centerX = 10; // Center of the X-axis
+    // const centerZ = 10; // Center of the Z-axis
 
+    const centerX = 0;
+    const centerZ = 0;
     // Create an ArcRotateCamera
     const camera = new BABYLON.ArcRotateCamera(
       "gameWorldTestCamera",

@@ -44,9 +44,8 @@ class DemoWorld1 {
    * Loads additional test objects.
    */
   async loadTestObjects() {
-    /** 
-    const object = new PositionedObject(
-      "animatedSphere",
+    const object1 = new PositionedObject(
+      "testTile1",
       0,
       0,
       0,
@@ -56,12 +55,97 @@ class DemoWorld1 {
       "",
       "",
       "",
-      100,
+      1,
       true,
       false,
       true
     );
-*/
+
+    const object2 = new PositionedObject(
+      "testTile2",
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      "",
+      "",
+      "",
+      1,
+      true,
+      false,
+      true
+    );
+
+    const object3 = new PositionedObject(
+      "testTile3",
+      2,
+      0,
+      0,
+      0,
+      0,
+      0,
+      "",
+      "",
+      "",
+      1,
+      true,
+      false,
+      true
+    );
+
+    const object4 = new PositionedObject(
+      "testTile4",
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      "",
+      "",
+      "",
+      1,
+      true,
+      false,
+      true
+    );
+
+    const object5 = new PositionedObject(
+      "testTile5",
+      1,
+      0,
+      1,
+      0,
+      0,
+      0,
+      "",
+      "",
+      "",
+      1,
+      true,
+      false,
+      true
+    );
+
+    const object6 = new PositionedObject(
+      "testTile6",
+      2,
+      0,
+      1,
+      0,
+      0,
+      0,
+      "",
+      "",
+      "",
+      1,
+      true,
+      false,
+      true
+    );
+
     const optionsPass = {
       x: -10,
       y: 10,
@@ -81,9 +165,14 @@ class DemoWorld1 {
       roll: 0,
       scale: 2,
     };
-    await window.animatedModelLoader.loadModel("animatedSphere", optionsPass);
-    await window.animatedModelLoader.loadModel("spaceSky1", optionsPass2);
-
+    window.animatedModelLoader.loadModel("animatedSphere", optionsPass);
+    window.animatedModelLoader.loadModel("spaceSky1", optionsPass2);
+    this.sceneBuilder.loadSceneModel(object1);
+    this.sceneBuilder.loadSceneModel(object2);
+    this.sceneBuilder.loadSceneModel(object3);
+    this.sceneBuilder.loadSceneModel(object4);
+    this.sceneBuilder.loadSceneModel(object5);
+    this.sceneBuilder.loadSceneModel(object6);
     // await this.sceneBuilder.loadSceneModel(object2);
     //  await this.sceneBuilder.loadSceneModel(object3);
 
@@ -95,7 +184,7 @@ class DemoWorld1 {
       null,
       {
         loop: true,
-        autoplay: true,
+        autoplay: false,
       }
     );
 
@@ -112,7 +201,7 @@ class DemoWorld1 {
 
     // Await each loading step to ensure complete setup
     await this.loadTestObjects();
-    await this.loadTestGrid();
+    // await this.loadTestGrid();
     console.log("DemoWorld1: Demo world built successfully.");
   }
 }

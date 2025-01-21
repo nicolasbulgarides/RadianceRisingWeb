@@ -61,9 +61,9 @@ class GameGridGenerator {
 
     // Generate the grid
     for (let x = 0; x < gridSize; x++) {
-      for (let y = 0; y < gridSize; y++) {
+      for (let z = 0; z < gridSize; z++) {
         // Determine which tile to use based on a pattern
-        const tileIndex = (x + y) % this.loadedTiles.length; // Example pattern
+        const tileIndex = (x + z) % this.loadedTiles.length; // Example pattern
         const baseTile = this.loadedTiles[tileIndex];
         const children = baseTile.meshes[0].getChildren(undefined, false);
 
@@ -71,10 +71,10 @@ class GameGridGenerator {
         for (const mesh of children) {
           if (mesh instanceof BABYLON.Mesh) {
             const xPos = x * tileSize;
-            const yPos = y * tileSize;
+            const zPos = z * tileSize;
 
             // Create a transformation matrix with y fixed at 0
-            const matrix = BABYLON.Matrix.Translation(xPos, yPos, 0);
+            const matrix = BABYLON.Matrix.Translation(xPos, 0, zPos);
             mesh.thinInstanceAdd(matrix);
           }
         }

@@ -120,7 +120,7 @@ class GameInitialization {
   onFrameRenderUpdates() {
     if (this.benchmark != null) {
       this.benchmark.coreBenchmarksUpdate();
-      //  this.benchmarks.nonCoreBenchmarksUpdate();
+      //this.benchmarks.nonCoreBenchmarksUpdate();
     }
   }
   benchmarkTest() {
@@ -130,6 +130,7 @@ class GameInitialization {
       this.sceneRenderManager.activeUIScene.advancedTexture
     );
     this.benchmark.loadBenchmarksBasic();
+    //this.benchmark.loadBenchmarksFull();
   }
   /**
    * Sets up the SceneBuilder, applies background color, and loads specified assets into the scene.
