@@ -176,7 +176,7 @@ class DemoWorld1 {
     };
 
     window.animatedModelLoader.loadModel("animatedSphere", optionsPass);
-    window.animatedModelLoader.loadModel("spaceSky1", optionsPass2);
+    // window.animatedModelLoader.loadModel("spaceSky1", optionsPass2);
 
     // await this.sceneBuilder.loadSceneModel(object2);
     //  await this.sceneBuilder.loadSceneModel(object3);
