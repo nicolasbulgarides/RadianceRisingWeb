@@ -29,7 +29,7 @@ class GameGridGenerator {
         "",
         "",
         1,
-        false,
+        true,
         false,
         true
       );
