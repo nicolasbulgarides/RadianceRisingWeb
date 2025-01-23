@@ -8,10 +8,10 @@ class AssetManifestOverrides {
 
   // Asset-specific overrides
   static overrides = {
-    testTile1: {
+    testTileZ: {
       position: { x: 0, y: 0, z: 0 },
       rotation: { pitch: 0, roll: 0, yaw: 0 },
-      scale: 1,
+      scale: 1.063,
     },
   };
 
@@ -46,7 +46,8 @@ class AssetManifestOverrides {
 
   // Static initialization block to set initial values for testTile2 - testTile7
   static {
-    const baseConfigTiles = this.getConfig("testTile1");
+    //  const baseConfigTiles = this.getConfig("testTile1");
+    /** 
     const tileNames = [
       "testTilePure",
       "testTile2",
@@ -57,5 +58,6 @@ class AssetManifestOverrides {
       "testTile7",
     ];
     this.setConfigForMultiple(tileNames, baseConfigTiles);
+    */
   }
 }

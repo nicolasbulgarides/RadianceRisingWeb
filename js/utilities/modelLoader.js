@@ -12,7 +12,7 @@ class ModelLoader {
    * @returns {BABYLON.Mesh} - The root mesh of the loaded model.
    */
   async loadModelFromUrl(scene, modelUrl) {
-    console.log(`Attempting to load model from URL: ${modelUrl}`);
+    //console.log(`Attempting to load model from URL: ${modelUrl}`);
 
     try {
       // Import the model using SceneLoader.ImportMeshAsync directly from the URL

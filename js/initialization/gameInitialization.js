@@ -193,7 +193,7 @@ class GameInitialization {
         script.src = src;
 
         script.onload = () => {
-          window.Logger.log(`GameInitialization: Loaded script: ${src}`);
+          // window.Logger.log(`GameInitialization: Loaded script: ${src}`);
           loadedScripts.add(src); // Add the script to the loaded list
           loadScript(index + 1); // Load the next script
         };

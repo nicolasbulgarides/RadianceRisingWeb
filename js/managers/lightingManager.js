@@ -75,30 +75,28 @@ class LightingManager {
   setupDayLighting() {
     const light = new BABYLON.DirectionalLight(
       "dayLight",
-      new BABYLON.Vector3(0, -1, 0),
+      new BABYLON.Vector3(1, -1, 0),
       this.scene
     );
-    light.intensity = 10.0;
+    light.intensity = 5.0;
 
-    /**
     const lightC = new BABYLON.DirectionalLight(
       "dayLight",
-      new BABYLON.Vector3(0, 1, 0),
+      new BABYLON.Vector3(-1, 1, 0),
       this.scene
     );
-        lightC.intensity = 10.0;
+    lightC.intensity = 2.0;
 
- */
     const light2 = new BABYLON.DirectionalLight(
       "dayLight",
-      new BABYLON.Vector3(1, 0, 0),
+      new BABYLON.Vector3(1, -2, 0),
       this.scene
     );
     light2.intensity = 10.0;
 
     const light3 = new BABYLON.DirectionalLight(
       "dayLight",
-      new BABYLON.Vector3(-1, 0, 0),
+      new BABYLON.Vector3(-1, 2, 0),
       this.scene
     );
     light3.intensity = 10.0;

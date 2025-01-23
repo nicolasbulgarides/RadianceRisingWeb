@@ -22,14 +22,7 @@ class DemoWorld1 {
 
   async loadTestGrid() {
     // Initialize GridGenerator
-    const tileIds = [
-      "testTile1",
-      "testTile2",
-      "testTile3",
-      "testTile4",
-      "testTile5",
-      "testTile6",
-    ];
+    const tileIds = ["cube", "cube", "cube", "cube", "cube", "cube"];
     const gridGenerator = new GameGridGenerator(
       this.sceneBuilder,
       tileIds,
@@ -38,15 +31,17 @@ class DemoWorld1 {
 
     await gridGenerator.loadTiles();
     // Generate a 20x20 grid of tiles
-    await gridGenerator.generateGrid();
+    await gridGenerator.generateGrid(20, 0.94);
   }
   /**
    * Loads additional test objects.
    */
   async loadTestObjects() {
-    /** 
     const object1 = new PositionedObject(
-      "testTile1",
+      "animatedSphere",
+      -10,
+      10,
+      -20,
       0,
       0,
       0,
@@ -56,15 +51,18 @@ class DemoWorld1 {
       "",
       "",
       "",
-      1,
-      true,
+      5,
       false,
-      true
+      false,
+      false
     );
 
     const object2 = new PositionedObject(
-      "testTile2",
-      1,
+      "testSphereUnit",
+      5,
+      0,
+      5,
+      0,
       0,
       0,
       0,
@@ -74,108 +72,20 @@ class DemoWorld1 {
       "",
       "",
       1,
-      true,
       false,
-      true
+      false,
+      false
     );
 
-    const object3 = new PositionedObject(
-      "testTile3",
-      2,
-      0,
-      0,
-      0,
-      0,
-      0,
-      "",
-      "",
-      "",
-      1,
-      true,
-      false,
-      true
-    );
+    this.sceneBuilder.loadAnimatedModel(object1);
+    this.sceneBuilder.loadModel(object2);
 
-    const object4 = new PositionedObject(
-      "testTile4",
-      0,
-      0,
-      1,
-      0,
-      0,
-      0,
-      "",
-      "",
-      "",
-      1,
-      true,
-      false,
-      true
-    );
+    // this.sceneBuilder.loadModel(object5);
+    //  this.sceneBuilder.loadModel(object6);
 
-    const object5 = new PositionedObject(
-      "testTile5",
-      1,
-      0,
-      1,
-      0,
-      0,
-      0,
-      "",
-      "",
-      "",
-      1,
-      true,
-      false,
-      true
-    );
+    console.log("Finished loading sphere");
+    //this.cameraManager.setCameraToChase(object2.model);
 
-    const object6 = new PositionedObject(
-      "testTile6",
-      2,
-      0,
-      1,
-      0,
-      0,
-      0,
-      "",
-      "",
-      "",
-      1,
-      true,
-      false,
-      true
-    );
-    this.sceneBuilder.loadSceneModel(object1);
-    this.sceneBuilder.loadSceneModel(object2);
-    this.sceneBuilder.loadSceneModel(object3);
-    this.sceneBuilder.loadSceneModel(object4);
-    this.sceneBuilder.loadSceneModel(object5);
-    this.sceneBuilder.loadSceneModel(object6);
-
-    */
-
-    const optionsPass = {
-      x: -10,
-      y: 10,
-      z: -20,
-      pitch: 0,
-      yaw: 0,
-      roll: 0,
-      scale: 5,
-    };
-
-    const optionsPass2 = {
-      x: 0,
-      y: 0,
-      z: 0,
-      pitch: 0,
-      yaw: 0,
-      roll: 0,
-      scale: 2,
-    };
-
-    window.animatedModelLoader.loadModel("animatedSphere", optionsPass);
     // window.animatedModelLoader.loadModel("spaceSky1", optionsPass2);
 
     // await this.sceneBuilder.loadSceneModel(object2);

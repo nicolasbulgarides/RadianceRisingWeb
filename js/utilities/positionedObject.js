@@ -28,6 +28,9 @@ class PositionedObject {
     pitch = 0,
     roll = 0,
     yaw = 0,
+    offsetX,
+    offsetY,
+    offsetZ,
     animationID1 = "",
     animationID2 = "",
     animationID3 = "",
@@ -51,12 +54,19 @@ class PositionedObject {
       y: config.position.y + y,
       z: config.position.z + z,
     };
+    // Apply default values and augmentations
+    this.offset = {
+      offsetX: offsetX,
+      offsetY: offsetY,
+      offsetZ: offsetZ,
+    };
     this.rotation = {
       pitch: config.rotation.pitch + pitch,
       roll: config.rotation.roll + roll,
       yaw: config.rotation.yaw + yaw,
     };
     this.scaling = config.scale * scale;
+    console.log("Scale: ", this.scaling);
 
     // Retrieve the model URL from AssetManifest
     const modelUrl = AssetManifest.getAssetUrl(modelId);
@@ -83,8 +93,9 @@ class PositionedObject {
    * Sets the Babylon.js model reference after it has been loaded.
    * @param {BABYLON.AbstractMesh} model - The loaded Babylon.js model.
    */
-  setModel(model) {
+  setModel(model, name) {
     this.model = model;
+    console.log("Model set! ", name);
   }
 
   /**
@@ -153,6 +164,7 @@ class PositionedObject {
       modelId: this.modelId,
       modelUrl: this.modelUrl,
       position: this.position,
+      offset: this.offset,
       rotation: this.rotation,
       animationIDs: this.animationIDs,
       scaling: this.scaling,

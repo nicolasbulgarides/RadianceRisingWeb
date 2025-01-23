@@ -33,7 +33,7 @@ class GameGridGenerator {
         false,
         true
       );
-      const baseTile = await this.sceneBuilder.loadSceneModel(positionedObject);
+      const baseTile = await this.sceneBuilder.loadModel(positionedObject);
 
       if (baseTile) {
         //baseTile.isVisible = false; // Make the base tile invisible
@@ -71,15 +71,11 @@ class GameGridGenerator {
         // Add a thin instance for each child mesh
         for (const mesh of children) {
           if (mesh instanceof BABYLON.Mesh) {
-            const xPos = x * tileSize;
-            const zPos = z * tileSize;
+            const xPos = x * tileSize + 10;
+            const zPos = z * tileSize + 10;
 
             // Create a transformation matrix with y fixed at 0
-            const matrix = BABYLON.Matrix.Translation(
-              xPos + 1 * xPos,
-              0,
-              zPos + 1 * zPos
-            );
+            const matrix = BABYLON.Matrix.Translation(xPos, 0, zPos);
             mesh.thinInstanceAdd(matrix);
           }
         }

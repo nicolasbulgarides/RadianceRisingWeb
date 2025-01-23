@@ -10,6 +10,7 @@ class AssetManifest {
 
   // Asset manifest data (3D objects only)
   static assets = {
+    cube: "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/cube.glb",
     animatedSphere:
       "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/animatedSphere.glb",
     spaceSky1:
@@ -102,6 +103,8 @@ class AssetManifest {
       "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testTrumpetAmethyst.glb",
     testTrumpetSapphire:
       "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testTrumpetSapphire.glb",
+    testSphereUnit:
+      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testSphereUnit2.glb",
   };
 }
 

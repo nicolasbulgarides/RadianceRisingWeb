@@ -75,8 +75,8 @@ class CameraManager {
    */
   setupGameWorldTestCamera() {
     // Define the center of the game world
-    const centerX = 10; // Center of the X-axis
-    const centerZ = 10; // Center of the Z-axis
+    const centerX = 5; // Center of the X-axis
+    const centerZ = 5; // Center of the Z-axis
 
     ///const centerX = 0;
     ///const centerZ = 0;
@@ -93,7 +93,47 @@ class CameraManager {
     // Attach camera controls to the canvas for interaction
     // camera.attachControl(this.scene.getEngine().getRenderingCanvas(), true);
 
+    this.currentCamera = camera;
     return camera;
+  }
+
+  setCameraToChase(modelToChase) {
+    if (!modelToChase) {
+      console.error("Model to chase null");
+    } else if (modelToChase instanceof BABYLON.AbstractMesh) {
+      console.error("Model to chase not abstract mesh");
+
+      return;
+    }
+    //console.error("Targeted the model");
+
+    // Dispose of the old camera before creating a new one
+    if (this.currentCamera) {
+      this.currentCamera.detachControl();
+      this.currentCamera.dispose();
+    }
+
+    // Create and configure the new follow camera
+    const followCamera = new BABYLON.FollowCamera(
+      "helicopterFollowCamera",
+      new BABYLON.Vector3(0, 0, 0),
+      this.scene
+    );
+
+    // Set the target mesh
+    this.targetMesh = modelToChase.meshes[0];
+    followCamera.lockedTarget = this.targetMesh; // Use the mesh directly
+    // Configure the camera to be just above the model
+    followCamera.radius = 1; // Distance from the target
+    followCamera.heightOffset = 5; // Height above the target
+    followCamera.rotationOffset = 0; // Angle around the target in the x-y plane
+    followCamera.cameraAcceleration = 0.1; // Speed of movement
+    followCamera.maxCameraSpeed = 1; // Maximum speed
+
+    // Assign the new camera and activate it
+    this.currentCamera = followCamera;
+    this.scene.activeCamera = null;
+    this.scene.activeCamera = this.currentCamera;
   }
 
   /**

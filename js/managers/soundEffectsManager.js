@@ -25,7 +25,7 @@ class SoundEffectsManager {
           () => {
             sound.setVolume(volume); // Set the volume from the manifest
             this.sounds.set(soundName, sound);
-            console.log(`Sound loaded: ${soundName}`);
+            // console.log(`Sound loaded: ${soundName}`);
             resolve();
           },
           (error) => {
