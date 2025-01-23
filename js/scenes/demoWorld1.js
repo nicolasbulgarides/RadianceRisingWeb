@@ -31,7 +31,7 @@ class DemoWorld1 {
 
     await gridGenerator.loadTiles();
     // Generate a 20x20 grid of tiles
-    await gridGenerator.generateGrid(20, 0.94);
+    await gridGenerator.generateGrid(20, 1);
   }
   /**
    * Loads additional test objects.

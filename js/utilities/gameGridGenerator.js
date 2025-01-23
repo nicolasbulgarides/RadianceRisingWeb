@@ -71,8 +71,8 @@ class GameGridGenerator {
         // Add a thin instance for each child mesh
         for (const mesh of children) {
           if (mesh instanceof BABYLON.Mesh) {
-            const xPos = x * tileSize + 10;
-            const zPos = z * tileSize + 10;
+            const xPos = x * tileSize;
+            const zPos = z * tileSize;
 
             // Create a transformation matrix with y fixed at 0
             const matrix = BABYLON.Matrix.Translation(xPos, 0, zPos);
