@@ -15,6 +15,7 @@ class GameInitialization {
     // this.scene.showFps();
     this.autoClearDepthAndStencil = false;
     this.scene.clearColor = new BABYLON.Color4(0, 0, 0, 0);
+    this.baseUIScene = null;
 
     // this.performanceMonitor = new this.performanceMonitor();
     // Unlock audio on first user interaction.
@@ -50,6 +51,7 @@ class GameInitialization {
       "./js/utilities/positionedObject.js",
       "./js/utilities/assetManifestOverrides.js",
       "./js/utilities/assetManifest.js",
+      "./js/managers/gameplayManager.js",
       "./js/utilities/gameGridGenerator.js",
       "./js/utilities/soundAssetManifest.js",
       "./js/managers/soundEffectsManager.js",
@@ -58,6 +60,8 @@ class GameInitialization {
       "./js/utilities/sceneBuilder.js",
       "./js/utilities/inputManager.js",
       "./js/managers/velocityManager.js",
+      "./js/managers/movementManager.js",
+      "./js/gameplay/playerUnit.js",
       "./js/scenes/demoWorld1.js",
     ];
 
@@ -73,7 +77,6 @@ class GameInitialization {
       Config.CAMERA_PRESET,
       null
     );
-    this.buildScene();
     this.sceneRenderManager = new RenderSceneManager(this.engine);
     window.sceneRenderManager = this.sceneRenderManager;
 
@@ -83,6 +86,7 @@ class GameInitialization {
     this.expUIScene = new ExperienceBarUI(this.engine);
     this.expUIScene.autoClear = false;
     this.expUIScene.initExperienceBarUI();
+    this.buildScene();
 
     this.sceneRenderManager.registerScene("ExpUI", this.expUIScene);
     this.sceneRenderManager.registerScene("BaseUIScene", this.baseUIScene);
@@ -118,8 +122,10 @@ class GameInitialization {
   }
 
   onFrameRenderUpdates() {
+    this.gameplayManager.processEndOfFrameEvents();
+
     if (this.benchmark != null) {
-      this.benchmark.coreBenchmarksUpdate();
+      //this.benchmark.coreBenchmarksUpdate();
       //this.benchmarks.nonCoreBenchmarksUpdate();
     }
   }
@@ -147,7 +153,7 @@ class GameInitialization {
       this.animatedModelLoader
     );
 
-    window.animatedModelLoader = this.animatedModelLoader;
+    window.sceneBuilder = this.sceneBuilder;
     // Set the scene background color
     this.sceneBuilder.setBackgroundColor(new BABYLON.Color4(0, 0, 0, 0));
     this.onMoveObservable = new BABYLON.Observable();
@@ -212,16 +218,14 @@ class GameInitialization {
   }
 
   loadDemoWorld() {
-    const demoWorld = new DemoWorld1(
+    this.gameplayManager = new GameplayManager(
       this.sceneBuilder,
       this.cameraManager,
       this.lightingManager,
-      this.gridManager,
       this.scene
     );
-
-    demoWorld.buildDemoWorld();
-    this.demoWorldLoaded = true;
+    this.gameplayManager.initializeGameplay();
+    this.baseUIScene.registerGameplayManager(this.gameplayManager);
   }
 
   /**

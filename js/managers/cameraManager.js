@@ -100,12 +100,12 @@ class CameraManager {
   setCameraToChase(modelToChase) {
     if (!modelToChase) {
       console.error("Model to chase null");
-    } else if (modelToChase instanceof BABYLON.AbstractMesh) {
-      console.error("Model to chase not abstract mesh");
-
+      return;
+    } else if (!(modelToChase instanceof BABYLON.AbstractMesh)) {
+      console.error("Model to chase is not a valid AbstractMesh");
       return;
     }
-    //console.error("Targeted the model");
+    console.log("Model to chase is an abstract mesh");
 
     // Dispose of the old camera before creating a new one
     if (this.currentCamera) {
@@ -121,18 +121,18 @@ class CameraManager {
     );
 
     // Set the target mesh
-    this.targetMesh = modelToChase.meshes[0];
-    followCamera.lockedTarget = this.targetMesh; // Use the mesh directly
-    // Configure the camera to be just above the model
-    followCamera.radius = 1; // Distance from the target
-    followCamera.heightOffset = 5; // Height above the target
-    followCamera.rotationOffset = 0; // Angle around the target in the x-y plane
-    followCamera.cameraAcceleration = 0.1; // Speed of movement
-    followCamera.maxCameraSpeed = 1; // Maximum speed
+    this.targetMesh = modelToChase;
+    followCamera.lockedTarget = this.targetMesh; // Lock camera to the target
 
+    // Configure the camera to follow from a height of 10 units
+    followCamera.radius = 20; // Adjusted distance from the target (try increasing if needed)
+    followCamera.heightOffset = 20; // Height above the target
+    followCamera.rotationOffset = 0; // Angle around the target (set to 0 for no rotation)
+    followCamera.cameraAcceleration = 0.05; // Lower acceleration for smoother movement
+    followCamera.maxCameraSpeed = 1; // Adjust maximum speed for smooth camera movement
+    followCamera.rotationOffset = 180;
     // Assign the new camera and activate it
     this.currentCamera = followCamera;
-    this.scene.activeCamera = null;
     this.scene.activeCamera = this.currentCamera;
   }
 
@@ -174,15 +174,15 @@ class CameraManager {
 
     const followCamera = new BABYLON.FollowCamera(
       "helicopterFollowCamera",
-      new BABYLON.Vector3(0, 5, -10),
+      new BABYLON.Vector3(0, 0, 0),
       this.scene
     );
     followCamera.lockedTarget = this.targetMesh;
-    followCamera.radius = 10;
-    followCamera.heightOffset = 5;
-    followCamera.rotationOffset = -45;
+    followCamera.radius = -2;
+    followCamera.heightOffset = 10;
     followCamera.cameraAcceleration = 0.05;
     followCamera.maxCameraSpeed = 10;
+    followCamera.rotationOffset = 180;
 
     return followCamera;
   }

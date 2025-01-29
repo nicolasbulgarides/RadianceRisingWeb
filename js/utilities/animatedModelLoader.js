@@ -24,6 +24,10 @@ class AnimatedModelLoader {
         .then((result) => {
           const root = result.meshes[0];
 
+          const config = AssetManifestOverrides.getConfig(
+            positionedObject.modelId
+          );
+
           if (!root) {
             console.error("No root mesh found in the model.");
             reject("No root mesh found in the model.");
@@ -32,9 +36,9 @@ class AnimatedModelLoader {
 
           // Apply transformations from PositionedObject
           root.position = new BABYLON.Vector3(
-            positionedObject.position.x,
-            positionedObject.position.y,
-            positionedObject.position.z
+            positionedObject.position.x + config.offset.x,
+            positionedObject.position.y + config.offset.y,
+            positionedObject.position.z + config.offset.z
           );
           root.rotation = new BABYLON.Vector3(
             BABYLON.Tools.ToRadians(positionedObject.rotation.pitch),
@@ -54,7 +58,7 @@ class AnimatedModelLoader {
             });
           }
 
-          positionedObject.setModel(result);
+          positionedObject.setModel(root, positionedObject.modelId);
           resolve(positionedObject.model);
         })
         .catch((error) => {

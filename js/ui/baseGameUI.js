@@ -131,12 +131,16 @@ class BaseGameUI extends BABYLON.Scene {
   buttonFunction(buttonFunctionKey) {
     if (buttonFunctionKey === "RIGHTCLICK") {
       window.soundManager.playSound("menuMovement");
+      this.processMovementClick(buttonFunctionKey);
     } else if (buttonFunctionKey === "LEFTCLICK") {
       window.soundManager.playSound("menuMovement");
+      this.processMovementClick(buttonFunctionKey);
     } else if (buttonFunctionKey === "UPCLICK") {
       window.soundManager.playSound("menuMovement");
+      this.processMovementClick(buttonFunctionKey);
     } else if (buttonFunctionKey === "DOWNCLICK") {
       window.soundManager.playSound("menuMovement");
+      this.processMovementClick(buttonFunctionKey);
     } else if (buttonFunctionKey === "MAGIC") {
       window.soundManager.playSound("radianceGameStart");
     } else if (buttonFunctionKey === "ARTIFACT") {
@@ -145,5 +149,15 @@ class BaseGameUI extends BABYLON.Scene {
     }
 
     console.log(`Button pressed: ${buttonFunctionKey}`);
+  }
+
+  registerGameplayManager(gameplayManager) {
+    this.gameplayManager = gameplayManager;
+  }
+
+  processMovementClick(buttonFunctionKey) {
+    if (this.gameplayManager != null) {
+      this.gameplayManager.processAttemptedMovement(buttonFunctionKey);
+    }
   }
 }

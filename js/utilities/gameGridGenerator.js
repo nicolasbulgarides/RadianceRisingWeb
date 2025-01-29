@@ -52,7 +52,7 @@ class GameGridGenerator {
     return true;
   }
 
-  async generateGrid(gridSize = 20, tileSize = 1) {
+  async generateGrid(width = 20, depth = 10, tileSize = 1) {
     // Ensure tiles are loaded
     if (this.loadedTiles.length === 0) {
       const success = await this.loadTiles();
@@ -60,8 +60,8 @@ class GameGridGenerator {
     }
 
     // Generate the grid
-    for (let x = 0; x < gridSize; x++) {
-      for (let z = 0; z < gridSize; z++) {
+    for (let x = 0; x < width; x++) {
+      for (let z = 0; z < depth; z++) {
         // Determine which tile to use based on a pattern
         const rowOffset = x % this.loadedTiles.length; // Offset every row
         const tileIndex = (z + rowOffset) % this.loadedTiles.length; // Alternate tile selection

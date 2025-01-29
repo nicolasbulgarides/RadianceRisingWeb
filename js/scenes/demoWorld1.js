@@ -12,12 +12,14 @@ class DemoWorld1 {
     sceneBuilder,
     cameraManager = null,
     lightingManager = null,
-    scene = null
+    scene = null,
+    gameplayManager = null
   ) {
     this.sceneBuilder = sceneBuilder;
     this.cameraManager = cameraManager;
     this.lightingManager = lightingManager;
     this.scene = scene;
+    this.gameplayerManager = gameplayManager;
   }
 
   async loadTestGrid() {
@@ -31,7 +33,7 @@ class DemoWorld1 {
 
     await gridGenerator.loadTiles();
     // Generate a 20x20 grid of tiles
-    await gridGenerator.generateGrid(20, 1);
+    await gridGenerator.generateGrid(11, 21, 1);
   }
   /**
    * Loads additional test objects.
@@ -57,39 +59,9 @@ class DemoWorld1 {
       false
     );
 
-    const object2 = new PositionedObject(
-      "mechaSphereBronzeLowRes",
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      "",
-      "",
-      "",
-      1,
-      false,
-      false,
-      false
-    );
-
     this.sceneBuilder.loadAnimatedModel(object1);
-    this.sceneBuilder.loadModel(object2);
-
-    // this.sceneBuilder.loadModel(object5);
-    //  this.sceneBuilder.loadModel(object6);
 
     console.log("Finished loading sphere");
-    //this.cameraManager.setCameraToChase(object2.model);
-
-    // window.animatedModelLoader.loadModel("spaceSky1", optionsPass2);
-
-    // await this.sceneBuilder.loadSceneModel(object2);
-    //  await this.sceneBuilder.loadSceneModel(object3);
 
     // Load the sound and play it automatically once ready
     const music = new BABYLON.Sound(

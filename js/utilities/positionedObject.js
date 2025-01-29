@@ -44,29 +44,39 @@ class PositionedObject {
     this.freeze = freeze;
     this.interactive = interactive;
     this.cloneBase = cloneBase;
+    this.baseMesh = null;
 
     // Retrieve the default configuration
     const config = AssetManifestOverrides.getConfig(modelId);
+    // Apply default values and augmentations
+    this.offset = {
+      x: offsetX + config.offset.x,
+      y: offsetY + config.offset.y,
+      z: offsetZ + config.offset.z,
+    };
 
+    console.log(
+      "Composite offset: " +
+        this.offset.x +
+        " , " +
+        this.offset.y +
+        ", " +
+        this.offset.z
+    );
     // Apply default values and augmentations
     this.position = {
       x: config.position.x + x,
       y: config.position.y + y,
       z: config.position.z + z,
     };
-    // Apply default values and augmentations
-    this.offset = {
-      offsetX: offsetX,
-      offsetY: offsetY,
-      offsetZ: offsetZ,
-    };
+
     this.rotation = {
       pitch: config.rotation.pitch + pitch,
       roll: config.rotation.roll + roll,
       yaw: config.rotation.yaw + yaw,
     };
     this.scaling = config.scale * scale;
-    console.log("Scale: ", this.scaling);
+    //console.log("Scale: ", this.scaling);
 
     // Retrieve the model URL from AssetManifest
     const modelUrl = AssetManifest.getAssetUrl(modelId);
@@ -105,9 +115,31 @@ class PositionedObject {
    * @param {number} z - New Z position.
    */
   setPosition(x, y, z) {
-    this.position = { x, y, z };
+    this.position = {
+      x: x,
+      y: y,
+      z: z,
+    };
+    let adjustedX = this.offset.x + this.position.x;
+    let adjustedY = this.offset.y + this.position.y;
+    let adjustedZ = this.offset.z + this.position.z;
+
+    this.finalizedPosition = new BABYLON.Vector3(
+      adjustedX,
+      adjustedY,
+      adjustedZ
+    );
+
     if (this.model) {
-      this.model.position.set(x, y, z);
+      // console.log("Model not null A!");
+
+      this.model.position = this.finalizedPosition;
+      // console.log("Offsets:", this.offset);
+      //console.log("Position:", this.position);
+      // console.log("Finalized position:", adjustedX, adjustedY, adjustedZ);
+      // console.log("Model not null!");
+    } else {
+      console.log("Model null");
     }
   }
 

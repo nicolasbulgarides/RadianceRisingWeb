@@ -2,16 +2,18 @@ class AssetManifestOverrides {
   // Default transformations
   static defaults = {
     position: { x: 0, y: 0, z: 0 },
+    offset: { x: 0, y: 0, z: 0 },
     rotation: { pitch: 0, roll: 0, yaw: 0 },
     scale: 1,
   };
 
   // Asset-specific overrides
   static overrides = {
-    testTileZ: {
+    mechaSphereBronzeLowRes: {
       position: { x: 0, y: 0, z: 0 },
+      offset: { x: 0, y: 0.5, z: 0 },
       rotation: { pitch: 0, roll: 0, yaw: 0 },
-      scale: 1.063,
+      scale: 1,
     },
   };
 

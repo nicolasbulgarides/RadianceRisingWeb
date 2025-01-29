@@ -149,9 +149,9 @@ class SceneBuilder {
 */
         // Apply position and rotation
         loadedModel.meshes[0].position = new BABYLON.Vector3(
-          positionedObject.position.x,
-          positionedObject.position.y,
-          positionedObject.position.z
+          positionedObject.position.x + positionedObject.offset.x,
+          positionedObject.position.y + positionedObject.offset.y,
+          positionedObject.position.z + positionedObject.offset.z
         );
 
         if (positionedObject.freeze) {
@@ -164,7 +164,6 @@ class SceneBuilder {
           loadedModel.meshes[0].doNotSyncBoundingInfo = true;
         }
 
-        loadedModel.meshes[0].setPivotMatrix(BABYLON.Matrix.Identity());
         // Apply scaling
         loadedModel.meshes[0].scaling.x = positionedObject.scaling;
         loadedModel.meshes[0].scaling.y = positionedObject.scaling;
