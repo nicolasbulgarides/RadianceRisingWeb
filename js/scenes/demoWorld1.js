@@ -22,7 +22,7 @@ class DemoWorld1 {
 
   async loadTestGrid() {
     // Initialize GridGenerator
-    const tileIds = ["cube", "cube", "cube", "cube", "cube", "cube"];
+    const tileIds = ["tile1", "tile2", "tile3", "tile4", "tile5", "tile6"];
     const gridGenerator = new GameGridGenerator(
       this.sceneBuilder,
       tileIds,

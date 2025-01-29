@@ -1,112 +1,124 @@
 class AssetManifest {
+  // Base path to all your models/env files:
+  static baseUrl =
+    "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main";
+
+  // Map from a friendly key => actual file name in GitHub
+  static assets = {
+    animatedSphere: "animatedSphere.glb",
+    archway: "archway.glb",
+    archwayPillar: "archwayPillar.glb",
+    archwayTop: "archwayTop.glb",
+    bag: "bag.glb",
+    breakableWallFrame: "breakableWallFrame.glb",
+    breakableWallInside: "breakableWallInside.glb",
+    breakableWallWhole: "breakableWallWhole.glb",
+    bridgeBent: "bridgeBent.glb",
+    bridgeBroken: "bridgeBroken.glb",
+    bridgeBrokenPiece: "bridgeBrokenPiece.glb",
+    bridgeWhole: "bridgeWhole.glb",
+    bridgeWholePre: "bridgeWholePre.glb",
+    celestialPrism: "celestialPrism.glb",
+    celestialPrism_innerRing1: "celestialPrism_innerRing001.glb",
+    celestialPrism_innerRing2: "celestialPrism_innerRing002.glb",
+    celestialPrism_innerRing3: "celestialPrism_innerRing003.glb",
+    celestialPrism_innerRing4: "celestialPrism_innerRing004.glb",
+    celestialPrism_outerRing: "celestialPrism_outerRing.glb",
+    celestialPrism_sphere: "celestialPrism_sphere.glb",
+    cube: "cube.glb",
+    doorClosed: "doorClosed.glb",
+    doorFrame: "doorFrame.glb",
+    doorLeft: "doorLeft.glb",
+    doorOpen: "doorOpen.glb",
+    doorRight: "doorRight.glb",
+    key: "key.glb",
+    leverBase: "leverBase_lowPoly_lowPoly.glb",
+    leverHandle: "leverHandle_lowPoly_lowPoly.glb",
+    leverWholeP1: "leverWholeP1_lowPoly_lowPoly.glb",
+    leverWholeP2: "leverWholeP2_lowPoly_lowPoly.glb",
+    leverWholeP3: "leverWholeP3_lowPoly_lowPoly.glb",
+    lotus: "lotus.glb",
+    pendant_lowPoly: "pendant_lowPoly.glb",
+    purpleNoteBig: "purpleNoteBig.glb",
+    purpleNoteMini: "purpleNoteMini.glb",
+    redCastle: "redCastle.glb",
+    redNoteBig: "redNoteBig.glb",
+    redNoteMini: "redNoteMini.glb",
+    rotatingLeverBase_lowPoly: "rotatingLeverBase_lowPoly.glb",
+    rotatingLeverHandle_lowPoly: "rotatingLeverHandle_lowPoly.glb",
+    rotatingLeverWhole_lowPoly: "rotatingLeverWhole_lowPoly.glb",
+    running: "running.glb",
+    spaceSky: "spaceSky.glb",
+    spaceSky2: "spaceSky2.glb",
+    spaceSky3: "spaceSky3.glb",
+    sphereModelTest: "sphereModelTest.glb",
+    testBoulder: "testBoulder.glb",
+    testBowCrystal: "testBowCrystal.glb",
+    testCloudBlue: "testCloudBlue.glb",
+    testCloudWhite: "testCloudWhite.glb",
+    testCloudWhite2: "testCloudWhite2.glb",
+    testCubeGildedVoid: "testCubeGildedVoid.glb",
+    testDoorway: "testDoorway.glb",
+    testElectricSwitch: "testElectricSwitch.glb",
+    testExport: "testExport.glb",
+    testFire: "testFire.glb",
+    testFlower: "testFlower.glb",
+    testGateway: "testGateway.glb",
+    testGlassArchway: "testGlassArchway.glb",
+    testGlassBridge: "testGlassBridge.glb",
+    testGlassDoor: "testGlassDoor.glb",
+    testGlassKey: "testGlassKey.glb",
+    testGlassTile: "testGlassTile.glb",
+    testGlassTreasureChest: "testGlassTreasureChest.glb",
+    testGoddess2PinkLotusLarge: "testGoddess2PinkLotusLarge.glb",
+    testGoddess2PinkLotusSmall: "testGoddess2PinkLotusSmall.glb",
+    testGoddessPinkLotusLarge: "testGoddessPinkLotusLarge.glb",
+    testGoddessPinkLotusSmall: "testGoddessPinkLotusSmall.glb",
+    testHairbowCrystalBlue: "testHairbowCrystalBlue.glb",
+    testHand: "testHand.glb",
+    testHeartRed: "testHeartRed.glb",
+    testHourglassOrange: "testHourglassOrange.glb",
+    testLock: "testLock.glb",
+    testLore: "testLore.glb",
+    testLotusPink: "testLotusPink.glb",
+    testMango: "testMango.glb",
+    testMaskRainbow: "testMaskRainbow.glb",
+    testMoonSilver: "testMoonSilver.glb",
+    testMountain: "testMountain.glb",
+    testQuestion: "testQuestion.glb",
+    testRefreshRainbow: "testRefreshRainbow.glb",
+    testSphereStarBlue: "testSphereStarBlue.glb",
+    testSphereStarFloral: "testSphereStarFloral.glb",
+    testSphereStarPurple: "testSphereStarPurple.glb",
+    testSphereStarRed: "testSphereStarRed.glb",
+    testSphereStarSilver: "testSphereStarSilver.glb",
+    testSphereUnit: "testSphereUnit.glb",
+    testSphereUnit2: "testSphereUnit2.glb",
+    testSpiral: "testSpiral.glb",
+    testStarRainbow: "testStarRainbow.glb",
+    testStarSpike: "testStarSpike.glb",
+    testTree: "testTree.glb",
+    testTrumpetAmethyst: "testTrumpetAmethyst.glb",
+    testVeenaSapphire: "testVeenaSapphire.glb",
+    testVailEmerald: "testVailEmerald.glb",
+    tile1: "tile1.glb",
+    tile2: "tile2.glb",
+    tile3: "tile3.glb",
+    tile4: "tile4.glb",
+    tile5: "tile5.glb",
+    tile6: "tile6.glb",
+  };
+
   /**
    * Retrieves the URL for a given asset name.
-   * @param {string} assetName - The name of the asset.
-   * @returns {string|null} - The URL of the asset, or null if not found.
+   * @param {string} assetName - The key you used above (e.g. "archway").
+   * @returns {string|null} - The full URL of the asset, or null if not found.
    */
   static getAssetUrl(assetName) {
-    return this.assets[assetName] || null;
+    const fileName = this.assets[assetName];
+    return fileName ? `${this.baseUrl}/${fileName}` : null;
   }
-
-  // Asset manifest data (3D objects only)
-  static assets = {
-    cube: "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/cube.glb",
-    animatedSphere:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/animatedSphere.glb",
-    spaceSky1:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/spaceSky.glb",
-    spaceSky2:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/spaceSky2.glb",
-    spaceSky3:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/spaceSky3.glb",
-    purpleNoteMini:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/purpleNoteMini.glb",
-    redNoteBig:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/redNoteBig.glb",
-    redNoteMini:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/redNoteMini.glb",
-    spaceSky2:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/spaceSky2.glb",
-    spaceSky3:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/spaceSky3.glb",
-    testBoulder:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testBoulder.glb",
-    testBowCrystal:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testBowCrystal.glb",
-    testCloudBlue:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testCloudBlue.glb",
-    testCloudWhite:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testCloudWhite.glb",
-    testDoorway:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testDoorway.glb",
-    testFire:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testFire.glb",
-    testFlower:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testFlower.glb",
-    testGlassArch:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testGlassArchway.glb",
-    testGlassBridge:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testGlassBridge.glb",
-    testGlassDoor:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testGlassDoor.glb",
-    testTile1:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/tile6Clone1.glb",
-    testTile2:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/tile6Clone2.glb",
-    testTile3:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/tile6Clone3.glb",
-    testTile4:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/tile6Clone4.glb",
-    testTile5:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/tile6Clone5.glb",
-    testTile6:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/tile6Clone6.glb",
-    testTilePure:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testTile2.glb",
-    testGoddess2PinkLotusLarge:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testGoddess2PinkLotusLarge.glb",
-    testGoddess2PinkLotusSmall:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testGoddess2PinkLotusSmall.glb",
-    testGoddessPinkLotus:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testGoddessPinkLotus.glb",
-    testHand:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testHand.glb",
-    testHeartRed:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testHeartRed.glb",
-    testHourglassOrange:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testHourglassOrange.glb",
-    testLock:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testLock.glb",
-    testLore:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testLore.glb",
-    testMango:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testMango.glb",
-    testMaskRainbow:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testMaskRainbow.glb",
-    testMoonSilver:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testMoonSilver.glb",
-    testMountain:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testMountain.glb",
-    testQuestion:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testQuestion.glb",
-    testRefreshRainbow:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testRefreshRainbow.glb",
-    testSpiral:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testSpiral.glb",
-    testStarRainbow:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testStarRainbow.glb",
-    testStarSpike:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testStarSpike.glb",
-    testTree:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testTree.glb",
-    testTrumpetAmethyst:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testTrumpetAmethyst.glb",
-    testTrumpetSapphire:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testTrumpetSapphire.glb",
-    testSphereUnit:
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/testSphereUnit2.glb",
-  };
 }
 
-// Export AssetManifest class globally
+// Optionally expose the class globally (if your setup requires it)
 window.AssetManifest = AssetManifest;
