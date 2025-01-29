@@ -58,10 +58,10 @@ class DemoWorld1 {
     );
 
     const object2 = new PositionedObject(
-      "testSphereUnit",
-      5,
+      "mechaSphereBronzeLowRes",
       0,
-      5,
+      0,
+      0,
       0,
       0,
       0,

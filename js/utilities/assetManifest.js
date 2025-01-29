@@ -101,6 +101,7 @@ class AssetManifest {
     testTrumpetAmethyst: "testTrumpetAmethyst.glb",
     testVeenaSapphire: "testVeenaSapphire.glb",
     testVailEmerald: "testVailEmerald.glb",
+    mechaSphereBronzeLowRes: "mechaSphereBronzeLowRes",
     tile1: "tile1.glb",
     tile2: "tile2.glb",
     tile3: "tile3.glb",
