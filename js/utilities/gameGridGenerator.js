@@ -16,11 +16,10 @@ class GameGridGenerator {
    * @returns {Promise<boolean>} - Resolves to true if tiles are loaded successfully, otherwise false.
    */
   async loadTilesThenGenerateGrid(tileIds, tileSize) {
-    let position = {
-      x: 0,
-      y: 0,
-      z: 0,
-    };
+    let position = new BABYLON.Vector3(0, 0, 0);
+
+    console.log("Tile size: " + tileSize);
+
     for (const tileId of tileIds) {
       const positionedObject = PositionedObject.getPositionedObjectQuick(
         tileId,

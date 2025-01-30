@@ -1,13 +1,10 @@
 class MovementPathManager {
-  constructor() {
+  constructor(player) {
     this.activeWorld = null;
-    this.activePlayer = null;
-    this.playerModelMovementManager = new PlayerModelMovementManager();
-  }
-
-  registerPlayer(playerToRegister) {
-    this.activePlayer = playerToRegister;
-    this.playerModelMovementManager.registerPlayer(this.activePlayer);
+    this.activePlayer = player;
+    this.playerModelMovementManager = new PlayerModelMovementManager(
+      this.activePlayer
+    );
   }
 
   setActiveWorld(worldToSet) {
@@ -16,21 +13,35 @@ class MovementPathManager {
 
   processMovementByDirection(player, direction) {
     const directionString = direction.toUpperCase();
-    let playerPosition = {
-      x: player.currentXPosition,
-      y: player.currentYPosition,
-      z: player.currentZPosition,
-    };
+
+    let currentPositionVector =
+      player.getPlayerPositionAndModelManager().currentPosition;
+
+    let xShift = 0;
+    let yShift = 0;
+    let zShift = 0;
 
     if (directionString == "UP") {
-      playerPosition.z += 2;
+      zShift += 2;
     } else if (directionString == "DOWN") {
-      playerPosition.z -= 2;
+      zShift -= 2;
     } else if (directionString == "LEFT") {
-      playerPosition.x -= 2;
+      xShift -= 2;
     } else if (directionString == "RIGHT") {
-      playerPosition.x += 2;
+      xShift += 2;
     }
+
+    let destinationVector = new BABYLON.Vector3(
+      currentPositionVector.x + xShift,
+      currentPositionVector.y + yShift,
+      currentPositionVector.z + zShift
+    );
+
+    player
+      .getPlayerPositionAndModelManager()
+      .setCurrentPathingDestination(destinationVector);
+
+    this.playerModelMovementManager.initMovement(Config.DEFAULT_SPEED);
   }
 
   processPossiblePlayerModelMovements() {

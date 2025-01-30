@@ -3,6 +3,7 @@ class ScriptManifest {
     const scriptsToLoad = [
       "./js/utilities/config.js",
       "./js/utilities/logger.js",
+      "./js/utilities/sceneBuilder.js",
       "./js/utilities/soundAssetManifest.js",
       "./js/managers/benchmarkManager.js",
       "./js/utilities/uiAssetManifest.js",
@@ -31,7 +32,6 @@ class ScriptManifest {
       "./js/managers/musicManager.js",
       "./js/utilities/animatedModelLoader.js",
       "./js/managers/renderSceneManager.js",
-      "./js/utilities/sceneBuilder.js",
       "./js/utilities/mainInputManager.js",
       "./js/managers/velocityManager.js",
       "./js/managers/playerPositionAndModelManager.js",

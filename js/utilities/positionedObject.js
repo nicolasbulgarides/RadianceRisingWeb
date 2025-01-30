@@ -4,12 +4,8 @@ class PositionedObject {
   /**
    * Constructor for PositionedObject.
    * @param {string} modelId - Unique identifier for the model (used to look up URL in AssetManifest).
-   * @param {number} x - X position in the scene.
-   * @param {number} y - Y position in the scene.
-   * @param {number} z - Z position in the scene.
-   * @param {number} pitch - Pitch rotation angle (in degrees).
-   * @param {number} roll - Roll rotation angle (in degrees).
-   * @param {number} yaw - Yaw rotation angle (in degrees).
+   * @param {number} position 
+   * @param {number} rotation
    * @param {string} animationID1 - First animation ID to pair with specific animations.
    * @param {string} animationID2 - Second animation ID to pair with specific animations.
    * @param {string} animationID3 - Third animation ID to pair with specific animations.
@@ -22,15 +18,9 @@ class PositionedObject {
    */
   constructor(
     modelId,
-    x = 0,
-    y = 0,
-    z = 0,
-    pitch = 0,
-    roll = 0,
-    yaw = 0,
-    offsetX,
-    offsetY,
-    offsetZ,
+    position,
+    rotation,
+    offset,
     animationID1 = "",
     animationID2 = "",
     animationID3 = "",
@@ -49,24 +39,33 @@ class PositionedObject {
     // Retrieve the default configuration
     const config = AssetManifestOverrides.getConfig(modelId);
     // Apply default values and augmentations
-    this.offset = {
-      x: offsetX + config.offset.x,
-      y: offsetY + config.offset.y,
-      z: offsetZ + config.offset.z,
-    };
+    this.offset = new BABYLON.Vector3(
+      offset.x + config.offset.x,
+      offset.y + config.offset.y,
+      offset.z + config.offset.z
+    );
 
     // Apply default values and augmentations
-    this.position = {
-      x: config.position.x + x,
-      y: config.position.y + y,
-      z: config.position.z + z,
-    };
+    this.position = new BABYLON.Vector3(
+      position.x + config.position.x,
+      position.y + config.position.y,
+      position.z + config.position.z
+    );
 
-    this.rotation = {
-      pitch: config.rotation.pitch + pitch,
-      roll: config.rotation.roll + roll,
-      yaw: config.rotation.yaw + yaw,
-    };
+    console.log(
+      "Position here: " +
+        this.position.x +
+        ", " +
+        this.position.y +
+        " , " +
+        this.position.z
+    );
+
+    this.rotation = new BABYLON.Vector3(
+      rotation.x + config.rotation.pitch,
+      rotation.y + config.rotation.roll,
+      rotation.z + config.rotation.yaw
+    );
     this.scaling = config.scale * scale;
     //console.log("Scale: ", this.scaling);
 
@@ -99,22 +98,15 @@ class PositionedObject {
     interactive,
     cloneBase
   ) {
-    const config = AssetManifestOverrides.getConfig(modelId);
+    let offset = new BABYLON.Vector3(0, 0, 0);
 
-    let offset = config.offset;
-    let rotation = config.rotation;
+    let rotation = new BABYLON.Vector3(0, 0, 0);
 
     let object = new PositionedObject(
       modelId,
-      position.x,
-      position.y,
-      position.z,
-      rotation.pitch,
-      rotation.roll,
-      rotation.yaw,
-      offset.x,
-      offset.y,
-      offset.z,
+      position,
+      rotation,
+      offset,
       "",
       "",
       "",
@@ -142,15 +134,12 @@ class PositionedObject {
    * @param {number} y - New Y position.
    * @param {number} z - New Z position.
    */
-  setPosition(x, y, z) {
-    this.position = {
-      x: x,
-      y: y,
-      z: z,
-    };
-    let adjustedX = this.offset.x + this.position.x;
-    let adjustedY = this.offset.y + this.position.y;
-    let adjustedZ = this.offset.z + this.position.z;
+  setPosition(positionVector) {
+    let adjustedX = this.offset.x + positionVector.x;
+    let adjustedY = this.offset.y + positionVector.y;
+    let adjustedZ = this.offset.z + positionVector.z;
+
+    this.position = positionVector;
 
     this.finalizedPosition = new BABYLON.Vector3(
       adjustedX,
@@ -159,13 +148,7 @@ class PositionedObject {
     );
 
     if (this.model) {
-      // console.log("Model not null A!");
-
       this.model.position = this.finalizedPosition;
-      // console.log("Offsets:", this.offset);
-      //console.log("Position:", this.position);
-      // console.log("Finalized position:", adjustedX, adjustedY, adjustedZ);
-      // console.log("Model not null!");
     } else {
       console.log("Model null");
     }

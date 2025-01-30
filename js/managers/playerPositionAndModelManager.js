@@ -2,69 +2,45 @@ class PlayerPositionAndModelManager {
   constructor(playerModelObject, position) {
     this.playerModelPositionedObject = playerModelObject;
 
-    this.currentXPosition = position.x;
-    this.currentYPosition = position.y;
-    this.currentZPosition = position.z;
+    this.currentPosition = position;
     this.pathingDestination = null;
     console.log(
-      "Player position loaded at: " +
-        this.currentXPosition +
-        " , y " +
-        this.currentYPosition +
-        ",z " +
-        this.currentZPosition
+      "Player initialized too: " + this.currentPosition.x + " , " + this,
+      this.currentPosition.y + " ,  " + this.currentPosition.z
     );
   }
-  setCurrentPathingDestination(x, y, z) {
-    this.pathingDestination = {
-      xPosition: x,
-      yPosition: y,
-      zPosition: z,
-    };
+  setCurrentPathingDestination(destination) {
+    this.pathingDestination = destination;
   }
 
   getPositionVector() {
-    const position = new BABYLON.Vector3(
-      this.currentXPosition,
-      this.currentYPosition,
-      this.currentZPosition
-    );
-    return position;
+    return this.currentPosition;
   }
   // Update position
-  setPositionNoMotion(x, y, z) {
-    this.currentXPosition = x;
-    this.currentYPosition = y;
-    this.currentZPosition = z;
+  setPositionNoMotion(positionVector) {
+    this.currentPosition = positionVector;
   }
 
-  adjustPositionNoMotion(x, y, z) {
-    this.currentXPosition += x;
-    this.currentYPosition += y;
-    this.currentZPosition += z;
+  adjustPositionNoMotion(adjustmentVector) {
+    this.currentPosition = new BABYLON.Vector3(
+      adjustmentVector.x + this.currentPosition.x,
+      adjustmentVector.y + this.currentPosition.y,
+      adjustmentVector.z + this.currentPosition.z
+    );
   }
 
-  adjustPositionRelocateModelInstantly(x, y, z) {
-    this.currentXPosition += x;
-    this.currentYPosition += y;
-    this.currentZPosition += z;
+  adjustPositionRelocateModelInstantly(adjustmentVector) {
+    this.adjustPositionNoMotion(djustmentVector);
     this.relocateToCurrentPositionInstantly;
   }
 
-  setPositionRelocateModelInstantly(x, y, z) {
-    this.currentXPosition = x;
-    this.currentYPosition = y;
-    this.currentZPosition = z;
-
+  setPositionRelocateModelInstantly(positionVector) {
+    this.setPositionNoMotion(positionVector);
     this.relocateToCurrentPositionInstantly;
   }
 
   relocateToCurrentPositionInstantly() {
-    this.playerModelPositionedObject.setPosition(
-      this.currentXPosition,
-      this.currentYPosition,
-      this.currentZPosition
-    );
+    this.playerModelPositionedObject.setPosition(this.currentPosition);
   }
 
   getPlayerModelDirectly() {

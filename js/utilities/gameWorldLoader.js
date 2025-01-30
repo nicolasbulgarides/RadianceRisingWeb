@@ -8,6 +8,10 @@ class GameWorldLoader {
     this.sceneBuilder = sceneBuilder;
     this.loadLighting();
     this.gridManager = new GameGridGenerator(this.sceneBuilder);
+    this.cameraManager = new CameraManager(
+      this.sceneBuilder.getGameWorldScene()
+    );
+    console.log("Default camera loaded!");
   }
 
   async loadDemoWorldTest() {
@@ -32,21 +36,20 @@ class GameWorldLoader {
 
     return demoMap;
   }
-
-  setPlayerCamera(player) {
-    this.loadCamera();
-    this.cameraManager.setCameraToChase(
-      player.getPlayerPositionAndModelManager().getPlayerModelDirectly()
-    );
-    window.RenderSceneManager.baseGameCamera = this.cameraManager.currentCamera;
+  setPlaceholderCamera() {
+    this.cameraManager.setPlaceholderCamera();
   }
-  loadCamera() {
-    this.cameraManager = new CameraManager(
-      this.sceneBuilder.getGameWorldScene(),
-      Config.CAMERA_PRESET,
-      null
-    );
-    console.log("Default camera loaded!");
+  setPlayerCamera(player) {
+    /** 
+    if (player == null) {
+      console.log("Player null");
+    }
+    let model = player
+      .getPlayerPositionAndModelManager()
+      .getPlayerModelDirectly();
+
+      */
+    this.cameraManager.setCameraToChase(player);
   }
 
   loadLighting() {

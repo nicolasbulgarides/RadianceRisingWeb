@@ -24,10 +24,6 @@ class AnimatedModelLoader {
         .then((result) => {
           const root = result.meshes[0];
 
-          const config = AssetManifestOverrides.getConfig(
-            positionedObject.modelId
-          );
-
           if (!root) {
             console.error("No root mesh found in the model.");
             reject("No root mesh found in the model.");
@@ -36,15 +32,28 @@ class AnimatedModelLoader {
 
           // Apply transformations from PositionedObject
           root.position = new BABYLON.Vector3(
-            positionedObject.position.x + config.offset.x,
-            positionedObject.position.y + config.offset.y,
-            positionedObject.position.z + config.offset.z
+            positionedObject.position.x + positionedObject.offset.x,
+            positionedObject.position.y + positionedObject.offset.y,
+            positionedObject.position.z + positionedObject.offset.z
           );
+
+          console.log(
+            "Root Position: " +
+              root.position.x +
+              " , " +
+              root.position.y +
+              " , " +
+              root.position.z
+          );
+
+          /** 
           root.rotation = new BABYLON.Vector3(
-            BABYLON.Tools.ToRadians(positionedObject.rotation.pitch),
-            BABYLON.Tools.ToRadians(positionedObject.rotation.yaw),
-            BABYLON.Tools.ToRadians(positionedObject.rotation.roll)
+            BABYLON.Tools.ToRadians(positionedObject.rotation.x),
+            BABYLON.Tools.ToRadians(positionedObject.rotation.y),
+            BABYLON.Tools.ToRadians(positionedObject.rotation.z)
           );
+*/
+
           root.scaling = new BABYLON.Vector3(
             positionedObject.scaling,
             positionedObject.scaling,
@@ -59,6 +68,7 @@ class AnimatedModelLoader {
           }
 
           positionedObject.setModel(root, positionedObject.modelId);
+          console.log("Animated model fully loaded I think!");
           resolve(positionedObject.model);
         })
         .catch((error) => {

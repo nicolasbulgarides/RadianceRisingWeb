@@ -9,17 +9,21 @@ class SceneBuilder {
     this.modelLoader = new ModelLoader();
     this.animatedModelLoader = new AnimatedModelLoader(this.scene);
     this.loadedModels = []; // Array to store references to all loaded models
+    this.setBackgroundColor(new BABYLON.Color4(0.1, 0.1, 0.3, 1));
   }
   getGameWorldScene() {
     return this.scene;
   }
-  this.setBackgroundColor(new BABYLON.Color4(0.1, 0.1, 0.3, 1));
 
   setBackgroundColor(color) {
     this.scene.clearColor = color;
     window.Logger.log("SceneBuilder: Background color set.");
   }
 
+  registerGameWorldLoader(gameWorldLoader, player) {
+    this.gameWorldLoader = gameWorldLoader;
+    this.player = player;
+  }
   // Ensures that the animated model is loaded and returns it
   async getAnimatedModel() {
     if (!this.loadedAnimatedModel) {
@@ -40,7 +44,9 @@ class SceneBuilder {
       );
       if (positionedModel) {
         this.loadedModels.push(positionedModel);
+        this.gameWorldLoader.setPlayerCamera(positionedModel);
       }
+
       console.log("Model loaded animated!");
       return positionedModel;
     } catch (error) {
@@ -110,21 +116,13 @@ class SceneBuilder {
 
         if (positionedObject.cloneBase) {
           const loadedModelBase = loadedModel.meshes[0];
-          loadedModelBase.isVisible = false;
+          //oadedModelBase.isVisible = false;
           loadedModelBase.setParent(null);
           loadedModel.meshes.forEach((mesh) => {
             //mesh.isVisible = false;
           });
-          // loadedModelBase.isVisible = false;
-          //  loadedModelBase.setParent(null);
-
-          //window.Logger.log("Invisible clone");
         }
-        /** 
-        window.Logger.log(
-          `SceneBuilder: Model '${positionedObject.modelId}' loaded into the scene.`
-        );
-*/
+
         // Apply position and rotation
         loadedModel.meshes[0].position = new BABYLON.Vector3(
           positionedObject.position.x + positionedObject.offset.x,
@@ -151,11 +149,13 @@ class SceneBuilder {
         }
 
         // Apply scaling
-        loadedModel.meshes[0].scaling.x = positionedObject.scaling;
-        loadedModel.meshes[0].scaling.y = positionedObject.scaling;
-        loadedModel.meshes[0].scaling.z = positionedObject.scaling;
+        loadedModel.meshes[0].scaling = new BABYLON.Vector3(
+          positionedObject.scaling,
+          positionedObject.scaling,
+          positionedObject.scaling
+        );
 
-        // console.log("Scaling: " + positionedObject.scaling);
+        console.log("Scaling: " + positionedObject.scaling);
         //console.log("Scaling: " + positionedObject.scaling);
 
         /**
@@ -166,9 +166,9 @@ class SceneBuilder {
  */
         // Apply rotation in radians for Babylon.js compatibility
         loadedModel.meshes[0].rotation = new BABYLON.Vector3(
-          BABYLON.Tools.ToRadians(positionedObject.rotation.pitch),
-          BABYLON.Tools.ToRadians(positionedObject.rotation.yaw),
-          BABYLON.Tools.ToRadians(positionedObject.rotation.roll)
+          BABYLON.Tools.ToRadians(positionedObject.rotation.x),
+          BABYLON.Tools.ToRadians(positionedObject.rotation.y),
+          BABYLON.Tools.ToRadians(positionedObject.rotation.z)
         );
 
         // console.log("Successfully loaded a model: " + positionedObject.modelId);

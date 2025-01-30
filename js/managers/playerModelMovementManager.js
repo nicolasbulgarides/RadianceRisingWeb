@@ -1,6 +1,6 @@
 class PlayerModelMovementManager {
-  constructor() {
-    this.currentPlayer = null;
+  constructor(player) {
+    this.currentPlayer = player;
     this.movementActive = false;
   }
   /**
@@ -10,21 +10,29 @@ class PlayerModelMovementManager {
    * @param {number} durationInSeconds - Total duration in seconds for the movement.
    * @param {number} framesPerSecond - Number of frames per second (FPS), default is 60.
    */
-  initMovement(
-    startPosition,
-    endPosition,
-    durationInSeconds,
-    framesPerSecond = 60
-  ) {
-    this.startPosition = startPosition;
-    this.endPosition = endPosition;
-    this.durationInSeconds = durationInSeconds; // Total duration in seconds
-    this.framesPerSecond = framesPerSecond; // Frames per second
-    this.totalFrames = durationInSeconds * framesPerSecond; // Total frames for the movement
+  initMovement(durationInSeconds) {
+    if (this.currentPlayer == null) {
+      console.log("Player is null still!");
+    }
+    this.startPosition =
+      this.currentPlayer.getPlayerPositionAndModelManager().currentPosition;
+
+    console.log(
+      "PLayer pos: " + this.startPosition.x + " , " + this,
+      this.startPosition.y + " , " + this.startPosition.z
+    );
+    this.endPosition =
+      this.currentPlayer.getPlayerPositionAndModelManager().pathingDestination;
+    this.totalDistance = BABYLON.Vector3.Distance(
+      this.startPosition,
+      this.endPosition
+    );
+
+    this.durationInSeconds = this.totalDistance / durationInSeconds; // Total duration in seconds
+    this.totalFrames = durationInSeconds * Config.FPS; // Total frames for the movement
     this.currentFrame = 0; // Current frame during the movement
 
     // Calculate the total distance between start and end positions
-    this.totalDistance = BABYLON.Vector3.Distance(startPosition, endPosition);
 
     // Calculate the movement per frame (linear movement per frame)
     this.movementPerFrame = this.totalDistance / this.totalFrames;

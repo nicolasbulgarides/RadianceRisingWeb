@@ -9,6 +9,7 @@ class Config {
   static DEFAULT_NAME = "Francisco";
   static DEFAULT_MODEL = "mechaSphereBronzeLowRes";
   static DEMO_WORLD = "testWorld0";
+  static DEFAULT_SPEED = 2;
 
   //logging and benchmark utilities
   static LOGGING_ENABLED = true;
@@ -24,6 +25,7 @@ class Config {
   // Presets for testing different setups
   static CAMERA_PRESET = "gameworldtest"; // Options: 'ISOMETRIC', 'ORTHOGRAPHIC', 'PERSPECTIVE', etc.
   static LIGHTING_PRESET = "day"; // Options: 'day', 'night', 'dusk', etc.
+  static FPS = 60;
 }
 
 // Expose Config globally

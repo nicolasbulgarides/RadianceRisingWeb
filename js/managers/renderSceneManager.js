@@ -70,7 +70,10 @@ class RenderSceneManager {
 
   render() {
     if (this.baseGameCamera != null) {
+      //console.log("TRYING!");
       this.activeGameScene.render();
+    } else {
+      console.log("NULL camera!");
     }
     this.activeUIScene.render();
   }

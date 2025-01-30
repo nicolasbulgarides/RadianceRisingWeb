@@ -15,11 +15,15 @@ class WorldMap {
     this.initializeStartingPosition(worldToLoad);
   }
   initializeStartingPosition(worldToLoad) {
-    this.startingPosition = {
-      x: worldToLoad.playerStartX,
-      y: worldToLoad.playerStartY,
-      z: worldToLoad.playerStartZ,
-    };
+    this.startingPosition = new BABYLON.Vector3(
+      worldToLoad.playerStartX,
+      worldToLoad.playerStartY,
+      worldToLoad.playerStartZ
+    );
+    console.log(
+      "Starting position of map:" + this.startingPosition.x + " , " + this,
+      this.startingPosition.y + ",  " + this.startingPosition.z
+    );
   }
   initializeBoardSlots(width, depth) {
     this.boardSlots = new Array(width);

@@ -94,14 +94,14 @@ class CameraManager {
     return camera;
   }
 
-  static setPlaceholderCamera(scene) {
+  setPlaceholderCamera() {
     const camera = new BABYLON.ArcRotateCamera(
       "defaultCamera",
       Math.PI / 2,
       Math.PI / 4,
       10,
       BABYLON.Vector3.Zero(),
-      scene
+      this.scene
     );
     window.RenderSceneManager.baseGameCamera = camera;
   }
@@ -129,14 +129,18 @@ class CameraManager {
       this.scene
     );
 
+    if (this.scene == null) {
+      console.log("Camera scene null");
+    }
+
     // Set the target mesh
     this.targetMesh = modelToChase;
     followCamera.lockedTarget = this.targetMesh; // Lock camera to the target
 
     // Configure the camera to follow from a height of 10 units
 
-    followCamera.radius = 5; // Adjusted distance from the target (try increasing if needed)
-    followCamera.heightOffset = 20; // Height above the target
+    followCamera.radius = 0.1; // Adjusted distance from the target (try increasing if needed)
+    followCamera.heightOffset = 30; // Height above the target
 
     // followCamera.radius = 20; // Adjusted distance from the target (try increasing if needed)
     // followCamera.heightOffset = 40; // Height above the target
@@ -148,7 +152,13 @@ class CameraManager {
     this.currentCamera = followCamera;
     this.scene.activeCamera = this.currentCamera;
 
+    if (this.scene == null) {
+      console.log("NULL SCENE!");
+    }
+
     console.log("Set a chase camera!");
+
+    window.RenderSceneManager.baseGameCamera = this.currentCamera;
   }
 
   /**
