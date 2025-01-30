@@ -6,8 +6,8 @@ class WorldData {
       depth: 21,
       width: 11,
       playerStartX: 5,
-      playerStartY: 0.5,
-      playerStartZ: 11,
+      playerStartY: 0.25,
+      playerStartZ: 10,
       obstacles: [
         {
           obstacleArchetype: "testMountain",
@@ -24,9 +24,15 @@ class WorldData {
 
   // Method to get a world by nickname
   static getWorldByNickname(nickname) {
-    return this.worlds.find((world) => world.nickname === nickname);
+    const world = this.worlds.find((world) => world.nickname === nickname);
+    if (world) {
+      console.log("World found: " + nickname);
+      return world; // Return the world if found
+    } else {
+      window.Logger.log("Invalid world nickname"); // Log an error if the world is not found
+      return "InvalidWorldNickname"; // Return a string indicating an invalid nickname
+    }
   }
-
   // Method to add a new world
   static addWorld(world) {
     this.worlds.push(world);
@@ -37,5 +43,3 @@ class WorldData {
     this.worlds = this.worlds.filter((world) => world.nickname !== nickname);
   }
 }
-
-export default WorldData;

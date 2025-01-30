@@ -3,7 +3,7 @@ class SoundAssetManifest {
     "https://raw.githubusercontent.com/nicolasbulgarides/radiancesoundfx/main/";
 
   // Sound asset manifest data with all volumes set to 1.0
-  static sounds = {
+  static allSounds = {
     achivementUnlocked: { volume: 1.0 },
     artifactFullyRechargedDing: { volume: 1.0 },
     artifactSelect: { volume: 1.0 },
@@ -125,6 +125,6 @@ class SoundAssetManifest {
    * @returns {number} - The volume of the sound effect, or 1.0 if not found.
    */
   static getSoundVolume(soundName) {
-    return this.sounds[soundName]?.volume || 1.0;
+    return this.allSounds[soundName]?.volume || 1.0;
   }
 }

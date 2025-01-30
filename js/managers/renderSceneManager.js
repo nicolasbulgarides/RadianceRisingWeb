@@ -4,6 +4,7 @@ class RenderSceneManager {
     this.scenes = {}; // Stores scenes with their rendering status
     this.activeUIScene = null;
     this.activeGameScene = null;
+    this.baseGameCamera = null;
   }
 
   /**
@@ -30,6 +31,7 @@ class RenderSceneManager {
     if (this.scenes[sceneId]) {
       this.scenes[sceneId].isRendering = true;
       this.activeGameScene = this.scenes[sceneId];
+      console.log("Set scene to active game world scene: " + sceneId);
     } else {
       console.error(`Scene with ID '${sceneId}' not found.`);
     }
@@ -54,6 +56,7 @@ class RenderSceneManager {
    * @returns {BABYLON.Scene | null} - The active game world scene, or null if none is active.
    */
   getActiveGameWorldScene() {
+    console.log("ACTIVE!");
     return this.activeGameScene;
   }
 
@@ -66,7 +69,9 @@ class RenderSceneManager {
   }
 
   render() {
-    this.activeGameScene.render();
+    if (this.baseGameCamera != null) {
+      this.activeGameScene.render();
+    }
     this.activeUIScene.render();
   }
 }

@@ -1,40 +1,41 @@
 class SoundEffectsManager {
-  constructor(scene) {
-    this.scene = scene;
+  constructor() {
     this.soundIndex = 0;
     this.sounds = new Map(); // A map to store BABYLON.Sound instances
 
-    window.soundManager = this;
-    this.loadSounds();
+    this.loadAllSounds();
+    window.SoundEffectsManager = this;
   }
 
   /**
    * Loads all sound effects from the manifest asynchronously.
    * @returns {Promise<void>} - Resolves when all sounds are loaded.
    */
-  async loadSounds() {
-    const promises = Object.keys(SoundAssetManifest.sounds).map((soundName) => {
-      return new Promise((resolve, reject) => {
-        const url = SoundAssetManifest.getSoundUrl(soundName);
-        const volume = SoundAssetManifest.getSoundVolume(soundName);
+  async loadAllSounds(scene) {
+    const promises = Object.keys(SoundAssetManifest.allSounds).map(
+      (soundName) => {
+        return new Promise((resolve, reject) => {
+          const url = SoundAssetManifest.getSoundUrl(soundName);
+          const volume = SoundAssetManifest.getSoundVolume(soundName);
 
-        const sound = new BABYLON.Sound(
-          soundName,
-          url,
-          this.scene,
-          () => {
-            sound.setVolume(volume); // Set the volume from the manifest
-            this.sounds.set(soundName, sound);
-            // console.log(`Sound loaded: ${soundName}`);
-            resolve();
-          },
-          (error) => {
-            console.error(`Error loading sound: ${soundName}`, error);
-            reject(error);
-          }
-        );
-      });
-    });
+          const sound = new BABYLON.Sound(
+            soundName,
+            url,
+            scene,
+            () => {
+              sound.setVolume(volume); // Set the volume from the manifest
+              this.sounds.set(soundName, sound);
+              // console.log(`Sound loaded: ${soundName}`);
+              resolve();
+            },
+            (error) => {
+              console.error(`Error loading sound: ${soundName}`, error);
+              reject(error);
+            }
+          );
+        });
+      }
+    );
 
     await Promise.all(promises);
     console.log("All sounds loaded successfully.");

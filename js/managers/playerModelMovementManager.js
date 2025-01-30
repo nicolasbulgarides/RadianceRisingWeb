@@ -1,6 +1,7 @@
-class ModelMovementManager {
+class PlayerModelMovementManager {
   constructor() {
     this.currentPlayer = null;
+    this.movementActive = false;
   }
   /**
    * Initializes the movement from a start position to an end position over a set number of frames.
@@ -86,7 +87,7 @@ class ModelMovementManager {
   }
 
   processPossibleModelMovements() {
-    if (this.movementManager.movementActive) {
+    if (this.movementActive) {
       vectorMovement = this.getNextPosition();
 
       // Validate the vector components

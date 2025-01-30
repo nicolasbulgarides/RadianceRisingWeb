@@ -1,0 +1,45 @@
+class ScriptManifest {
+  static getScriptsToLoad() {
+    const scriptsToLoad = [
+      "./js/utilities/config.js",
+      "./js/utilities/logger.js",
+      "./js/utilities/soundAssetManifest.js",
+      "./js/managers/benchmarkManager.js",
+      "./js/utilities/uiAssetManifest.js",
+      "./js/utilities/songAssetManifest.js",
+      "./js/utilities/assetManifestOverrides.js",
+      "./js/utilities/assetManifest.js",
+      "./js/utilities/gameGridGenerator.js",
+      "./js/ui/baseGameUI.js",
+      "./js/ui/mainMenuUI.js",
+      "./js/ui/experienceBarUI.js",
+      "./js/enums/cameraEnums.js",
+      "./js/enums/lightingEnums.js",
+      "./js/utilities/modelLoader.js",
+      "./js/managers/cameraManager.js",
+      "./js/managers/lightingManager.js",
+      "./js/utilities/positionedObject.js",
+      "./js/utilities/gameWorldLoader.js",
+      "./js/managers/gameplayManager.js",
+      "./js/utilities/worldData.js",
+      "./js/gameplay/worldMap.js",
+      "./js/gameplay/boardSlot.js",
+      "./js/gameplay/obstacles.js",
+      "./js/gameplay/playerStatus.js",
+      "./js/utilities/playerLoader.js",
+      "./js/managers/soundEffectsManager.js",
+      "./js/managers/musicManager.js",
+      "./js/utilities/animatedModelLoader.js",
+      "./js/managers/renderSceneManager.js",
+      "./js/utilities/sceneBuilder.js",
+      "./js/utilities/mainInputManager.js",
+      "./js/managers/velocityManager.js",
+      "./js/managers/playerPositionAndModelManager.js",
+      "./js/managers/playerModelMovementManager.js",
+      "./js/managers/movementPathManager.js",
+      "./js/gameplay/playerUnit.js",
+    ];
+
+    return scriptsToLoad;
+  }
+}

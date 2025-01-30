@@ -3,6 +3,13 @@ class ExperienceBarUI extends BABYLON.Scene {
     super();
     this.experienceBarSegments = [];
     this.counter = 0;
+
+    var cameraExp = new BABYLON.FreeCamera(
+      "camera",
+      new BABYLON.Vector3(0, 0, 0),
+      this
+    );
+    cameraExp.setTarget(BABYLON.Vector3.Zero());
   }
   initExperienceBarUI() {
     // Create a full-screen GUI on top of the scene

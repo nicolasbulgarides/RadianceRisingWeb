@@ -8,13 +8,9 @@ class CameraManager {
    * @param {String} initialPreset - The initial camera preset.
    * @param {BABYLON.Mesh} targetMesh - The mesh the camera should follow (e.g., the player).
    */
-  constructor(scene, initialPreset = CameraPreset.DEFAULT, targetMesh = null) {
+  constructor(scene) {
     this.scene = scene;
-    this.targetMesh = targetMesh;
-    this.currentCamera = null;
-
-    // Apply the initial camera preset
-    this.applyPresetCamera(initialPreset);
+    this.targetMesh = null;
   }
 
   /**
@@ -75,8 +71,8 @@ class CameraManager {
    */
   setupGameWorldTestCamera() {
     // Define the center of the game world
-    const centerX = 5; // Center of the X-axis
-    const centerZ = 5; // Center of the Z-axis
+    const centerX = 0; // Center of the X-axis
+    const centerZ = 0; // Center of the Z-axis
 
     ///const centerX = 0;
     ///const centerZ = 0;
@@ -90,11 +86,24 @@ class CameraManager {
       this.scene // The scene
     );
 
+    console.log("Thsi ca mera set!");
     // Attach camera controls to the canvas for interaction
     // camera.attachControl(this.scene.getEngine().getRenderingCanvas(), true);
 
     this.currentCamera = camera;
     return camera;
+  }
+
+  static setPlaceholderCamera(scene) {
+    const camera = new BABYLON.ArcRotateCamera(
+      "defaultCamera",
+      Math.PI / 2,
+      Math.PI / 4,
+      10,
+      BABYLON.Vector3.Zero(),
+      scene
+    );
+    window.RenderSceneManager.baseGameCamera = camera;
   }
 
   setCameraToChase(modelToChase) {
@@ -125,8 +134,12 @@ class CameraManager {
     followCamera.lockedTarget = this.targetMesh; // Lock camera to the target
 
     // Configure the camera to follow from a height of 10 units
-    followCamera.radius = 20; // Adjusted distance from the target (try increasing if needed)
+
+    followCamera.radius = 5; // Adjusted distance from the target (try increasing if needed)
     followCamera.heightOffset = 20; // Height above the target
+
+    // followCamera.radius = 20; // Adjusted distance from the target (try increasing if needed)
+    // followCamera.heightOffset = 40; // Height above the target
     followCamera.rotationOffset = 0; // Angle around the target (set to 0 for no rotation)
     followCamera.cameraAcceleration = 0.05; // Lower acceleration for smoother movement
     followCamera.maxCameraSpeed = 1; // Adjust maximum speed for smooth camera movement
@@ -134,6 +147,8 @@ class CameraManager {
     // Assign the new camera and activate it
     this.currentCamera = followCamera;
     this.scene.activeCamera = this.currentCamera;
+
+    console.log("Set a chase camera!");
   }
 
   /**
@@ -149,6 +164,9 @@ class CameraManager {
       BABYLON.Vector3.Zero(),
       this.scene
     );
+
+    camera.attachControl(this.scene.getEngine().getRenderingCanvas(), true);
+
     return camera;
   }
   setupDeviceMotionCamera() {

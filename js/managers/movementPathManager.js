@@ -2,12 +2,12 @@ class MovementPathManager {
   constructor() {
     this.activeWorld = null;
     this.activePlayer = null;
-    this.modelMovementManager = new ModelMovementManager();
+    this.playerModelMovementManager = new PlayerModelMovementManager();
   }
 
   registerPlayer(playerToRegister) {
     this.activePlayer = playerToRegister;
-    this.modelMovementManager.registerPlayer(this.activePlayer);
+    this.playerModelMovementManager.registerPlayer(this.activePlayer);
   }
 
   setActiveWorld(worldToSet) {
@@ -15,22 +15,25 @@ class MovementPathManager {
   }
 
   processMovementByDirection(player, direction) {
-    direction = direction.toUpperCase();
+    const directionString = direction.toUpperCase();
     let playerPosition = {
       x: player.currentXPosition,
       y: player.currentYPosition,
       z: player.currentZPosition,
     };
 
-    if (direction == "UP") {
+    if (directionString == "UP") {
       playerPosition.z += 2;
-    } else if (direction == "DOWN") {
+    } else if (directionString == "DOWN") {
       playerPosition.z -= 2;
-    } else if (direction == "LEFT") {
+    } else if (directionString == "LEFT") {
       playerPosition.x -= 2;
-    } else if (direction == "RIGHT") {
+    } else if (directionString == "RIGHT") {
       playerPosition.x += 2;
     }
-    return playerPosition;
+  }
+
+  processPossiblePlayerModelMovements() {
+    this.playerModelMovementManager.processPossibleModelMovements();
   }
 }

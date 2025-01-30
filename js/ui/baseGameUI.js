@@ -127,28 +127,32 @@ class BaseGameUI extends BABYLON.Scene {
       "0px", // Centered vertically
       "ARTIFACT"
     );
+    this.setBackgroundColor(new BABYLON.Color4(0.1, 0.1, 0.3, 1));
+
+    window.BaseGameUI = this;
   }
   buttonFunction(buttonFunctionKey) {
     if (buttonFunctionKey === "RIGHTCLICK") {
-      window.soundManager.playSound("menuMovement");
       this.processMovementClick(buttonFunctionKey);
     } else if (buttonFunctionKey === "LEFTCLICK") {
-      window.soundManager.playSound("menuMovement");
       this.processMovementClick(buttonFunctionKey);
     } else if (buttonFunctionKey === "UPCLICK") {
-      window.soundManager.playSound("menuMovement");
       this.processMovementClick(buttonFunctionKey);
     } else if (buttonFunctionKey === "DOWNCLICK") {
-      window.soundManager.playSound("menuMovement");
       this.processMovementClick(buttonFunctionKey);
     } else if (buttonFunctionKey === "MAGIC") {
-      window.soundManager.playSound("radianceGameStart");
+      window.SoundEffectsManager.playSound("radianceGameStart");
     } else if (buttonFunctionKey === "ARTIFACT") {
-      window.soundManager.playSound("artifactUsage");
+      window.SoundEffectsManager.playSound("artifactUsage");
       //  window.soundManager.playNextSound();
     }
 
     console.log(`Button pressed: ${buttonFunctionKey}`);
+  }
+
+  setBackgroundColor(color) {
+    this.clearColor = color;
+    window.Logger.log("SceneBuilder: Background color set.");
   }
 
   registerGameplayManager(gameplayManager) {
@@ -158,15 +162,16 @@ class BaseGameUI extends BABYLON.Scene {
   processMovementClick(buttonFunctionKey) {
     if (this.gameplayManager != null) {
       let playerDirection = null;
+      window.SoundEffectsManager.playSound("menuMovement");
 
       if (buttonFunctionKey == "LEFTCLICK") {
-        playerDirection == "LEFT";
+        playerDirection = "LEFT";
       } else if (buttonFunctionKey == "RIGHTCLICK") {
-        playerDirection == "RIGHT";
+        playerDirection = "RIGHT";
       } else if (buttonFunctionKey == "UPCLICK") {
-        playerDirection == "UP";
+        playerDirection = "UP";
       } else if (buttonFunctionKey == "DOWNCLICK") {
-        playerDirection == "DOWN";
+        playerDirection = "DOWN";
       }
 
       this.gameplayManager.processAttemptedMovementFromUIClick(playerDirection);

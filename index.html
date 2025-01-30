@@ -11,9 +11,8 @@
     <script src="https://cdn.babylonjs.com/babylon.js"></script>
     <script src="https://cdn.babylonjs.com/gui/babylon.gui.js"></script>
     <script src="https://cdn.babylonjs.com/loaders/babylon.glTF2FileLoader.js"></script>
-    <script src="js/utilities/config.js"></script>
-    <script src="js/utilities/logger.js"></script>
-    <script src="./js/initialization/gameInitialization.js"></script>
+    <script src="./js/utilities/scriptManifest.js"></script>
+    <script src="./js/initialization/engineInitialization.js"></script>
 
     <style>
       html,
@@ -46,8 +45,8 @@
       var engine = new BABYLON.Engine(canvas, true, { stencil: true });
 
       // Initialize your game
-      var gameInit = new GameInitialization(engine);
-      gameInit.initialize();
+      var engineInitialization = new EngineInitialization(engine);
+      engineInitialization.initializeEngine();
 
       // Resize the engine on window resize
       window.addEventListener("resize", function () {

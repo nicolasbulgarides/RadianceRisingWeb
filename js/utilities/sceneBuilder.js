@@ -2,49 +2,22 @@ class SceneBuilder {
   /**
    * Constructor for SceneBuilder.
    * @param {BABYLON.Scene} scene - The Babylon.js scene instance.
-   * @param {ModelLoader} modelLoader - The globally loaded ModelLoader instance.
    */
-  constructor(scene, modelLoader, animatedModelLoader) {
+  constructor(scene) {
     this.scene = scene;
-    this.modelLoader = modelLoader;
-    this.animatedModelLoader = animatedModelLoader;
+
+    this.modelLoader = new ModelLoader();
+    this.animatedModelLoader = new AnimatedModelLoader(this.scene);
     this.loadedModels = []; // Array to store references to all loaded models
-    this.loadedAnimatedModel = null;
-    this.loadingAnimatedModel = null;
-    setBackgroundColor(new BABYLON.Color4(0.1, 0.1, 0.3, 1));
   }
   getGameWorldScene() {
     return this.scene;
   }
+  this.setBackgroundColor(new BABYLON.Color4(0.1, 0.1, 0.3, 1));
+
   setBackgroundColor(color) {
     this.scene.clearColor = color;
     window.Logger.log("SceneBuilder: Background color set.");
-  }
-  // Loads the animated model only if it's not already loading
-  async loadAnimatedModel() {
-    if (this.loadingAnimatedModel) {
-      // If already loading, return the in-progress Promise
-      return this.loadingAnimatedModel;
-    }
-
-    // Otherwise, start the loading process
-    this.loadingAnimatedModel = this.animatedModelLoader.loadModel("running", {
-      x: 0,
-      y: 0,
-      z: 0,
-    });
-
-    try {
-      this.loadedAnimatedModel = await this.loadingAnimatedModel;
-      return this.loadedAnimatedModel;
-    } catch (error) {
-      console.error("Error loading animated model:", error);
-      this.loadedAnimatedModel = null; // Reset on failure
-      throw error;
-    } finally {
-      // Reset loading flag to prevent queueing
-      this.loadingAnimatedModel = null;
-    }
   }
 
   // Ensures that the animated model is loaded and returns it
@@ -68,6 +41,7 @@ class SceneBuilder {
       if (positionedModel) {
         this.loadedModels.push(positionedModel);
       }
+      console.log("Model loaded animated!");
       return positionedModel;
     } catch (error) {
       console.error("SceneBuilder: Error loading animated model:", error);
@@ -157,6 +131,14 @@ class SceneBuilder {
           positionedObject.position.y + positionedObject.offset.y,
           positionedObject.position.z + positionedObject.offset.z
         );
+        console.log(
+          "Position " +
+            positionedObject.position.x +
+            ", Y " +
+            positionedObject.position.y +
+            " , z " +
+            positionedObject.position.z
+        );
 
         if (positionedObject.freeze) {
           loadedModel.meshes[0].freezeWorldMatrix();
@@ -173,6 +155,7 @@ class SceneBuilder {
         loadedModel.meshes[0].scaling.y = positionedObject.scaling;
         loadedModel.meshes[0].scaling.z = positionedObject.scaling;
 
+        // console.log("Scaling: " + positionedObject.scaling);
         //console.log("Scaling: " + positionedObject.scaling);
 
         /**
@@ -188,6 +171,7 @@ class SceneBuilder {
           BABYLON.Tools.ToRadians(positionedObject.rotation.roll)
         );
 
+        // console.log("Successfully loaded a model: " + positionedObject.modelId);
         return loadedModel;
       } else {
         console.error(

@@ -1,33 +1,36 @@
 class GameplayManager {
-  constructor(sceneBuilder, cameraManager) {
+  constructor(sceneBuilder) {
     this.sceneBuilder = sceneBuilder;
-    loadLighting();
 
-    this.cameraManager = cameraManager;
     this.demoPlayer = null;
     this.movementPathManager = new MovementPathManager();
     this.playerLoader = new PlayerLoader();
     this.gameWorldLoader = new GameWorldLoader(this.sceneBuilder);
+    this.currentMap = null;
   }
 
-  loadLighting() {
-    this.lightingManager = new LightingManager(
-      this.sceneBuilder.getGameWorldScene(),
-      Config.LIGHTING_PRESET
-    );
-  }
   async initializeGameplay() {
+    this.currentMap = await this.gameWorldLoader.loadDemoWorldTest();
     this.loadPlayer();
+    this.soundEffectsManager = new SoundEffectsManager(window.baseGameUI);
+    this.musicManager = new MusicManager();
   }
   async loadPlayer() {
-    this.demoPlayer = this.playerLoader.getDemoPlayer("Nicolas");
-    await this.sceneBuilder.loadAnimatedModel(this.demoPlayer.getPlayerModel());
-    this.cameraManager.setCameraToChase(playerModelObject.model);
+    this.demoPlayer = this.playerLoader.getDemoPlayer(this.currentMap);
+
+    let positionedObject = this.demoPlayer
+      .getPlayerPositionAndModelManager()
+      .getPlayerModelPositionedObject();
+
+    await this.sceneBuilder.loadAnimatedModel(positionedObject);
+
     this.movementPathManager.registerPlayer(this.demoPlayer);
+
+    this.gameWorldLoader.setPlayerCamera(this.demoPlayer);
   }
 
   processEndOfFrameEvents() {
-    this.movementManager.processPossibleModelMovements();
+    this.movementPathManager.processPossiblePlayerModelMovements();
   }
 
   processAttemptedMovementFromUIClick(direction) {

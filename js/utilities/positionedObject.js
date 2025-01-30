@@ -55,14 +55,6 @@ class PositionedObject {
       z: offsetZ + config.offset.z,
     };
 
-    console.log(
-      "Composite offset: " +
-        this.offset.x +
-        " , " +
-        this.offset.y +
-        ", " +
-        this.offset.z
-    );
     // Apply default values and augmentations
     this.position = {
       x: config.position.x + x,
@@ -99,13 +91,49 @@ class PositionedObject {
     this.model = null;
   }
 
+  static getPositionedObjectQuick(
+    modelId,
+    position,
+    scale,
+    freeze,
+    interactive,
+    cloneBase
+  ) {
+    const config = AssetManifestOverrides.getConfig(modelId);
+
+    let offset = config.offset;
+    let rotation = config.rotation;
+
+    let object = new PositionedObject(
+      modelId,
+      position.x,
+      position.y,
+      position.z,
+      rotation.pitch,
+      rotation.roll,
+      rotation.yaw,
+      offset.x,
+      offset.y,
+      offset.z,
+      "",
+      "",
+      "",
+      scale,
+      freeze,
+      interactive,
+      cloneBase
+    );
+
+    return object;
+  }
+
   /**
    * Sets the Babylon.js model reference after it has been loaded.
    * @param {BABYLON.AbstractMesh} model - The loaded Babylon.js model.
    */
   setModel(model, name) {
     this.model = model;
-    console.log("Model set! ", name);
+    //console.log("Model set! ", name);
   }
 
   /**

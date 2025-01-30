@@ -1,4 +1,4 @@
-class MusicLoder {
+class MusicManager {
   constructor() {
     this.currentMusic = null;
   }
@@ -29,3 +29,5 @@ class MusicLoder {
     });
   }
 }
+
+window.MusicManager = this;

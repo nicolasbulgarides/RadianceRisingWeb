@@ -1,42 +1,35 @@
 class PlayerLoader {
-  constructor() {
-    loadPlayerModel();
-  }
-
-  getDefaultPlayerModel(xPosition, yPosition, zPosition) {
-    const playerModelObject = new PositionedObject(
-      "mechaSphereBronzeLowRes",
-      xPosition,
-      yPosition,
-      zPosition,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      "",
-      "",
-      "",
+  loadModelAndPosition(player, position) {
+    const playerModelObject = PositionedObject.getPositionedObjectQuick(
+      Config.DEFAULT_MODEL,
+      position,
       0.25,
       false,
       false,
       false
     );
 
-    return playerModelObject;
+    player.loadPositionManager(playerModelObject, position);
+    console.log("Default model: " + Config.DEFAULT_MODEL);
   }
 
-  getDemoPlayer(playerName, xPosition, yPosition, zPosition) {
-    let playerModel = this.getDefaultPlayerModel();
-
-    let gamePlayer = new PlayerUnit(
-      playerName,
-      playerModel,
-      xPosition,
-      yPosition,
-      zPosition
+  getDemoPlayer(defaultMap) {
+    let gamePlayer = new PlayerUnit();
+    gamePlayer.loadStatusFresh(
+      Config.DEFAULT_NAME,
+      Config.STARTING_LEVEL,
+      Config.STARTING_EXP,
+      Config.STARTING_HEALTH,
+      Config.STARTING_HEALTH
     );
+
+    let position = defaultMap.getPlayerStartingPosition();
+    console.log(
+      "Position: " + position.x + " , y" + position.y + " , z" + position.z
+    );
+
+    this.loadModelAndPosition(gamePlayer, position);
+
     return gamePlayer;
   }
 }

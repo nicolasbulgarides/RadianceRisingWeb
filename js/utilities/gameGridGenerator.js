@@ -2,8 +2,6 @@ class GameGridGenerator {
   /**
    * Constructor for GridGenerator.
    * @param {SceneBuilder} sceneBuilder - The SceneBuilder instance to load models and manage the scene.
-   * @param {Array<string>} tileIds - Array of asset IDs to randomly choose tiles from.
-   * @param {BABYLON.Scene} scene - The Babylon.js scene instance.
    */
   constructor(sceneBuilder) {
     this.sceneBuilder = sceneBuilder;
@@ -12,29 +10,29 @@ class GameGridGenerator {
 
   /**
    * Loads all tiles into memory.
+   * @param {Array<string>} tileIds - Array of tile IDs to load.
+   * @param {WorldMap} mapToLoad - The map to generate the grid for.
+   * @param {number} tileSize - The size of each tile.
+   * @returns {Promise<boolean>} - Resolves to true if tiles are loaded successfully, otherwise false.
    */
-  async loadTiles(tileIds) {
+  async loadTilesThenGenerateGrid(tileIds, tileSize) {
+    let position = {
+      x: 0,
+      y: 0,
+      z: 0,
+    };
     for (const tileId of tileIds) {
-      const positionedObject = new PositionedObject(
+      const positionedObject = PositionedObject.getPositionedObjectQuick(
         tileId,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        "",
-        "",
-        "",
-        1,
+        position,
+        tileSize,
         true,
         false,
         true
       );
-      const baseTile = this.sceneBuilder.loadModel(positionedObject);
+      const baseTile = await this.sceneBuilder.loadModel(positionedObject);
 
       if (baseTile) {
-        //baseTile.isVisible = false; // Make the base tile invisible
         this.loadedTiles.push(baseTile);
       } else {
         console.error(`GridGenerator: Failed to load tile '${tileId}'.`);
@@ -46,20 +44,36 @@ class GameGridGenerator {
       return false;
     }
 
-    console.log("GridGenerator: All tiles loaded successfully.");
+    console.log(
+      "GridGenerator: All tiles loaded successfully. Num of tiles: " +
+        this.loadedTiles.length
+    );
+
     return true;
   }
 
-  async generateGrid(
-    width = Config.TEST_MAP_WIDTH,
-    depth = Config.TEST_MAP_DEPTH,
-    tileSize = 1
-  ) {
-    // Ensure tiles are loaded
+  /**
+   * Checks if tiles are loaded and cancels grid generation if not.
+   * @returns {boolean} - Returns true if tiles are loaded, otherwise false.
+   */
+  cancelIfNoTilesToDisplay() {
     if (this.loadedTiles.length === 0) {
-      const success = await this.loadTiles();
-      if (!success) return;
+      window.Logger.log("NO tiles loaded! Cannot generate grid!");
+      return false;
+    } else {
+      return true;
     }
+  }
+
+  async generateGrid(mapToLoad, tileSize = 1) {
+    if (!this.cancelIfNoTilesToDisplay()) {
+      return;
+    }
+    let width = mapToLoad.mapWidth;
+    let depth = mapToLoad.mapDepth;
+    // Ensure tiles are loaded
+
+    console.log("Width, depth: ", width + ", ", depth);
 
     // Generate the grid
     for (let x = 0; x < width; x++) {
@@ -79,6 +93,7 @@ class GameGridGenerator {
             // Create a transformation matrix with y fixed at 0
             const matrix = BABYLON.Matrix.Translation(xPos, 0, zPos);
             mesh.thinInstanceAdd(matrix);
+            console.log("WOW!");
           }
         }
       }

@@ -7,24 +7,38 @@ class GameWorldLoader {
   constructor(sceneBuilder) {
     this.sceneBuilder = sceneBuilder;
     this.loadLighting();
-    this.loadCamera();
     this.gridManager = new GameGridGenerator(this.sceneBuilder);
   }
 
   async loadDemoWorldTest() {
-    const tileIds = this.getTileIdsByWorldArchetype("demoWorld");
-    await this.gridManager.loadTiles(tileIds);
-    this.gridManager.generateGrid(
-      Config.TEST_MAP_WIDTH,
-      Config.TEST_MAP_DEPTH,
+    let demoMap = new WorldMap();
+    demoMap.attemptToLoadMapComposite(Config.DEMO_WORLD);
+
+    const tileIds = this.getTileIdsByWorldArchetype(Config.DEMO_WORLD);
+
+    // Load tiles and wait for them to finish loading
+    const tilesLoaded = await this.gridManager.loadTilesThenGenerateGrid(
+      tileIds,
       1
     );
 
-    let demoWorldMap = new WorldMap(
-      Config.TEST_MAP_WIDTH,
-      Config.TEST_MAP_DEPTH
+    if (tilesLoaded) {
+      // Generate the grid only after tiles are loaded
+      await this.gridManager.generateGrid(demoMap, 1);
+      console.log("Grid generated!");
+    } else {
+      console.error("Failed to load tiles. Grid generation aborted.");
+    }
+
+    return demoMap;
+  }
+
+  setPlayerCamera(player) {
+    this.loadCamera();
+    this.cameraManager.setCameraToChase(
+      player.getPlayerPositionAndModelManager().getPlayerModelDirectly()
     );
-    return demoWorldMap;
+    window.RenderSceneManager.baseGameCamera = this.cameraManager.currentCamera;
   }
   loadCamera() {
     this.cameraManager = new CameraManager(
@@ -32,6 +46,7 @@ class GameWorldLoader {
       Config.CAMERA_PRESET,
       null
     );
+    console.log("Default camera loaded!");
   }
 
   loadLighting() {
@@ -42,10 +57,10 @@ class GameWorldLoader {
   }
 
   getTileIdsByWorldArchetype(archetype) {
-    const tileIds = ["tile1"];
+    let tileIds = ["tile1"];
 
     switch (archetype) {
-      case "demoWorld":
+      case "testWorld0":
         tileIds = ["tile1", "tile2", "tile3", "tile4", "tile5", "tile6"];
         break;
     }
