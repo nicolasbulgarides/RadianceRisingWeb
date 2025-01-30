@@ -11,6 +11,8 @@ class Config {
   // Presets for testing different setups
   static CAMERA_PRESET = "gameworldtest"; // Options: 'ISOMETRIC', 'ORTHOGRAPHIC', 'PERSPECTIVE', etc.
   static LIGHTING_PRESET = "day"; // Options: 'day', 'night', 'dusk', etc.
+  static TEST_MAP_WIDTH = 21;
+  static TEST_MAP_DEPTH = 11;
 }
 
 // Expose Config globally

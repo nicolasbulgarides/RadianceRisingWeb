@@ -20,21 +20,22 @@ class DemoWorld1 {
     this.lightingManager = lightingManager;
     this.scene = scene;
     this.gameplayerManager = gameplayManager;
+    this.worldMap = null;
   }
 
   async loadTestGrid() {
     // Initialize GridGenerator
-    const tileIds = ["tile1", "tile2", "tile3", "tile4", "tile5", "tile6"];
-    const gridGenerator = new GameGridGenerator(
-      this.sceneBuilder,
-      tileIds,
-      this.scene
-    );
+    const gridGenerator = new GameGridGenerator(this.sceneBuilder, this.scene);
 
     await gridGenerator.loadTiles();
     // Generate a 20x20 grid of tiles
-    await gridGenerator.generateGrid(11, 21, 1);
+    await gridGenerator.generateGrid(
+      Config.TEST_MAP_DEPTH,
+      Config.TEST_MAP_WIDTH,
+      1
+    );
   }
+  async addTestMountains() {}
   /**
    * Loads additional test objects.
    */
@@ -87,6 +88,8 @@ class DemoWorld1 {
     this.sceneBuilder.setBackgroundColor(new BABYLON.Color4(0.1, 0.1, 0.3, 1));
 
     // Await each loading step to ensure complete setup
+
+    this.worldMap = new WorldMap(Config.TEST_MAP_WIDTH, Config.TEST_MAP_DEPTH);
     await this.loadTestObjects();
     await this.loadTestGrid();
     console.log("DemoWorld1: Demo world built successfully.");

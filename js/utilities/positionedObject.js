@@ -160,6 +160,19 @@ class PositionedObject {
     }
   }
 
+  unfreeze() {
+    if (this.model) {
+      this.model.meshes[0].freezeWorldMatrix();
+      this.model.meshes[0].convertToUnIndexedMesh();
+    }
+  }
+  makeInteractive() {
+    if (this.model) {
+      this.model.meshes[0].isPickable = false;
+      this.model.meshes[0].doNotSyncBoundingInfo = true;
+    }
+  }
+
   /**
    * Updates the animation IDs for pairing the object with specific behaviors.
    * @param {string} animationID1 - Updated ID for the first animation.

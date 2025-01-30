@@ -5,18 +5,16 @@ class GameGridGenerator {
    * @param {Array<string>} tileIds - Array of asset IDs to randomly choose tiles from.
    * @param {BABYLON.Scene} scene - The Babylon.js scene instance.
    */
-  constructor(sceneBuilder, tileIds, scene) {
+  constructor(sceneBuilder) {
     this.sceneBuilder = sceneBuilder;
-    this.tileIds = tileIds; // Array of asset IDs, e.g., ["testTile1", "testTile2", ..., "testTile6"]
-    this.scene = scene;
     this.loadedTiles = []; // To store loaded tile meshes
   }
 
   /**
    * Loads all tiles into memory.
    */
-  async loadTiles() {
-    for (const tileId of this.tileIds) {
+  async loadTiles(tileIds) {
+    for (const tileId of tileIds) {
       const positionedObject = new PositionedObject(
         tileId,
         0,
@@ -33,7 +31,7 @@ class GameGridGenerator {
         false,
         true
       );
-      const baseTile = await this.sceneBuilder.loadModel(positionedObject);
+      const baseTile = this.sceneBuilder.loadModel(positionedObject);
 
       if (baseTile) {
         //baseTile.isVisible = false; // Make the base tile invisible
@@ -52,7 +50,11 @@ class GameGridGenerator {
     return true;
   }
 
-  async generateGrid(width = 20, depth = 10, tileSize = 1) {
+  async generateGrid(
+    width = Config.TEST_MAP_WIDTH,
+    depth = Config.TEST_MAP_DEPTH,
+    tileSize = 1
+  ) {
     // Ensure tiles are loaded
     if (this.loadedTiles.length === 0) {
       const success = await this.loadTiles();

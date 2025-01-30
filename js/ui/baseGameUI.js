@@ -157,7 +157,19 @@ class BaseGameUI extends BABYLON.Scene {
 
   processMovementClick(buttonFunctionKey) {
     if (this.gameplayManager != null) {
-      this.gameplayManager.processAttemptedMovement(buttonFunctionKey);
+      let playerDirection = null;
+
+      if (buttonFunctionKey == "LEFTCLICK") {
+        playerDirection == "LEFT";
+      } else if (buttonFunctionKey == "RIGHTCLICK") {
+        playerDirection == "RIGHT";
+      } else if (buttonFunctionKey == "UPCLICK") {
+        playerDirection == "UP";
+      } else if (buttonFunctionKey == "DOWNCLICK") {
+        playerDirection == "DOWN";
+      }
+
+      this.gameplayManager.processAttemptedMovementFromUIClick(playerDirection);
     }
   }
 }

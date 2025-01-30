@@ -11,6 +11,10 @@ class SceneBuilder {
     this.loadedModels = []; // Array to store references to all loaded models
     this.loadedAnimatedModel = null;
     this.loadingAnimatedModel = null;
+    setBackgroundColor(new BABYLON.Color4(0.1, 0.1, 0.3, 1));
+  }
+  getGameWorldScene() {
+    return this.scene;
   }
   setBackgroundColor(color) {
     this.scene.clearColor = color;

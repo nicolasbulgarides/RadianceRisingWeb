@@ -1,4 +1,7 @@
-class MovementManager {
+class ModelMovementManager {
+  constructor() {
+    this.currentPlayer = null;
+  }
   /**
    * Initializes the movement from a start position to an end position over a set number of frames.
    * @param {BABYLON.Vector3} startPosition - The starting position (X, Y, Z).
@@ -30,6 +33,9 @@ class MovementManager {
     this.movementActive = true;
   }
 
+  registerPlayer(player) {
+    this.currentPlayer = player;
+  }
   /**
    * Calculates the next position based on the total number of frames.
    * If the movement is completed, it resets automatically.
@@ -77,5 +83,31 @@ class MovementManager {
    */
   isMovementComplete() {
     return this.currentFrame >= this.totalFrames;
+  }
+
+  processPossibleModelMovements() {
+    if (this.movementManager.movementActive) {
+      vectorMovement = this.getNextPosition();
+
+      // Validate the vector components
+      if (
+        isFinite(vectorMovement.x) &&
+        isFinite(vectorMovement.y) &&
+        isFinite(vectorMovement.z)
+      ) {
+        // If valid, update the position
+        this.currentPlayer.setPosition(
+          vectorMovement.x,
+          vectorMovement.y,
+          vectorMovement.z
+        );
+      } else {
+        // Log an error if any component of the vector is invalid
+        console.error(
+          "Invalid position detected in vector movement:",
+          vectorMovement
+        );
+      }
+    }
   }
 }

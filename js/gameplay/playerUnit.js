@@ -1,21 +1,32 @@
 class PlayerUnit {
-  constructor(name = "Player", playerModelPositionedObject, x, y, z) {
+  constructor(
+    name = "Player",
+    playerModelPositionedObject,
+    x,
+    y,
+    z,
+    currentLevel,
+    currentExperience,
+    baseMagicPoints,
+    baseHealthPoints
+  ) {
     this.name = name;
 
     // Player Stats
-    this.currentLevel = 1;
-    this.currentExperience = 0;
+    this.currentLevel = currentLevel;
+    this.currentExperience = currentExperience;
     this.currentXPosition = x;
     this.currentYPosition = y;
     this.currentZPosition = z;
-    this.currentMagicPoints = 3;
-    this.maximumMagicPoints = 3;
-    this.currentHealthPoints = 5;
-    this.maximumHealthPoints = 5;
+    this.currentMagicPoints = baseMagicPoints;
+    this.maximumMagicPoints = baseMagicPoints;
+    this.currentHealthPoints = baseHealthPoints;
+    this.maximumHealthPoints = baseHealthPoints;
     this.playerModelPositionedObject = playerModelPositionedObject;
-    console.log(
-      playerModelPositionedObject.modelId + " model id of player unit"
-    );
+  }
+
+  getPlayerModel() {
+    return this.playerModelPositionedObject;
   }
 
   // Update position
@@ -27,14 +38,6 @@ class PlayerUnit {
       this.currentXPosition,
       this.currentYPosition,
       this.currentZPosition
-    );
-    console.log(
-      "Position set to X,Y,Z:" +
-        this.currentXPosition +
-        " , " +
-        this.currentYPosition +
-        " , " +
-        this.currentZPosition
     );
   }
 
@@ -51,15 +54,6 @@ class PlayerUnit {
     this.currentXPosition += x;
     this.currentYPosition += y;
     this.currentZPosition += z;
-
-    console.log(
-      "Position updated to X,Y,Z:" +
-        this.currentXPosition +
-        " , " +
-        this.currentYPosition +
-        " , " +
-        this.currentZPosition
-    );
 
     this.playerModelPositionedObject.setPosition(
       this.currentXPosition,

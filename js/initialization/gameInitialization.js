@@ -51,16 +51,25 @@ class GameInitialization {
       "./js/utilities/positionedObject.js",
       "./js/utilities/assetManifestOverrides.js",
       "./js/utilities/assetManifest.js",
+      "./js/utilities/gameWorldLoader.js",
       "./js/managers/gameplayManager.js",
+      "./js/utilities/worldData.js",
+      "./js/gameplay/worldMap.js",
+      "./js/gameplay/boardSlot.js",
+      "./js/gameplay/obstacles.js",
+      "./js/utilities/playerLoader.js",
       "./js/utilities/gameGridGenerator.js",
       "./js/utilities/soundAssetManifest.js",
       "./js/managers/soundEffectsManager.js",
+      "./js/managers/songAssetManifest.js",
+      "./js/managers/musicLoader.js",
       "./js/utilities/animatedModelLoader.js",
       "./js/managers/renderSceneManager.js",
       "./js/utilities/sceneBuilder.js",
-      "./js/utilities/inputManager.js",
+      "./js/utilities/mainInputManager.js",
       "./js/managers/velocityManager.js",
-      "./js/managers/movementManager.js",
+      "./js/managers/movementPathManager.js",
+      "./js/managers/modelMovementManager.js",
       "./js/gameplay/playerUnit.js",
       "./js/scenes/demoWorld1.js",
     ];
@@ -72,11 +81,6 @@ class GameInitialization {
    */
 
   sceneRenderProcess() {
-    this.cameraManager = new CameraManager(
-      this.scene,
-      Config.CAMERA_PRESET,
-      null
-    );
     this.sceneRenderManager = new RenderSceneManager(this.engine);
     window.sceneRenderManager = this.sceneRenderManager;
 
@@ -116,7 +120,7 @@ class GameInitialization {
       // Start the render loop
       this.engine.runRenderLoop(() => {
         this.sceneRenderManager.render();
-        this.onFrameRenderUpdates();
+        //this.onFrameRenderUpdates();
       });
     });
   }
@@ -153,22 +157,7 @@ class GameInitialization {
       this.animatedModelLoader
     );
 
-    window.sceneBuilder = this.sceneBuilder;
-    // Set the scene background color
-    this.sceneBuilder.setBackgroundColor(new BABYLON.Color4(0, 0, 0, 0));
-    this.onMoveObservable = new BABYLON.Observable();
-
-    // Instantiate InputManager
-    this.inputManager = new InputManager(this.onMoveObservable);
-    this.lightingManager = new LightingManager(
-      this.scene,
-      Config.LIGHTING_PRESET
-    );
-    // **Ensure model is fully loaded before passing it to VelocityManager**
-    // const animatedModel = await this.sceneBuilder.getAnimatedModel(); //
-
-    // Load demo world (awaiting it here ensures models are loaded before proceeding)
-    await this.loadDemoWorld();
+    await this.loadGameplay();
 
     this.scene.onBeforeRenderObservable.add(() => {});
   }
@@ -217,12 +206,11 @@ class GameInitialization {
     loadScript(0); // Start loading the first script
   }
 
-  loadDemoWorld() {
+  loadGameplay() {
     this.gameplayManager = new GameplayManager(
       this.sceneBuilder,
       this.cameraManager,
-      this.lightingManager,
-      this.scene
+      this.lightingManager
     );
     this.gameplayManager.initializeGameplay();
     this.baseUIScene.registerGameplayManager(this.gameplayManager);
