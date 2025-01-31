@@ -31,6 +31,7 @@ class EngineInitialization {
 
     this.addAudioUnlock();
     this.setupResizeHandler();
+    console.log("Finished loading engin settings");
   }
   /**
    * Initializes the game by loading all necessary scripts and setting up the scene.
@@ -58,6 +59,7 @@ class EngineInitialization {
   initializeEngine() {
     const scriptsToLoad = ScriptManifest.getScriptsToLoad();
 
+    console.log("Obtained scripts to load");
     this.loadScripts(scriptsToLoad, () => {
       this.sceneRenderProcess();
       // this.benchmarkTest();
