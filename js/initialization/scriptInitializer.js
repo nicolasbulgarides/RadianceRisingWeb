@@ -29,7 +29,7 @@ class ScriptInitializer {
       ScriptInitializer.CORE_SCRIPTS.ENGINE_INITIALIZATION
     );
     engineInit.onLoad = () => {
-      document.head.appendChild(script);
+      document.head.appendChild(engineInit);
 
       var engine = new BABYLON.Engine(canvas, true, { stencil: true });
 
