@@ -52,6 +52,7 @@ class PositionedObject {
       position.z + config.position.z
     );
 
+    /** 
     console.log(
       "Position here: " +
         this.position.x +
@@ -60,7 +61,7 @@ class PositionedObject {
         " , " +
         this.position.z
     );
-
+*/
     this.rotation = new BABYLON.Vector3(
       rotation.x + config.rotation.pitch,
       rotation.y + config.rotation.roll,

@@ -46,6 +46,9 @@ class PlayerUnit {
     return this.playerPositionAndModelManager;
   }
 
+  getPlayerModelDirectly() {
+    return this.getPlayerPositionAndModelManager().getPlayerModelDirectly();
+  }
   getPlayerStatus() {
     return this.playerStatus;
   }

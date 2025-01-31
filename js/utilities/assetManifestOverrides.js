@@ -11,8 +11,8 @@ class AssetManifestOverrides {
   static overrides = {
     mechaSphereBronzeLowRes: {
       position: { x: 0, y: 0, z: 0 },
-      offset: { x: 0, y: 0.5, z: 0 },
-      rotation: { x: 0, y: 0, z: 0 },
+      offset: { x: 0, y: 0.33, z: 0 },
+      rotation: { pitch: 0, roll: 0, yaw: 0 },
       scale: 1,
     },
   };

@@ -20,10 +20,6 @@ class SceneBuilder {
     window.Logger.log("SceneBuilder: Background color set.");
   }
 
-  registerGameWorldLoader(gameWorldLoader, player) {
-    this.gameWorldLoader = gameWorldLoader;
-    this.player = player;
-  }
   // Ensures that the animated model is loaded and returns it
   async getAnimatedModel() {
     if (!this.loadedAnimatedModel) {
@@ -44,10 +40,9 @@ class SceneBuilder {
       );
       if (positionedModel) {
         this.loadedModels.push(positionedModel);
-        this.gameWorldLoader.setPlayerCamera(positionedModel);
       }
 
-      console.log("Model loaded animated!");
+      // console.log("Model loaded animated!");
       return positionedModel;
     } catch (error) {
       console.error("SceneBuilder: Error loading animated model:", error);
@@ -129,6 +124,7 @@ class SceneBuilder {
           positionedObject.position.y + positionedObject.offset.y,
           positionedObject.position.z + positionedObject.offset.z
         );
+        /**
         console.log(
           "Position " +
             positionedObject.position.x +
@@ -137,7 +133,7 @@ class SceneBuilder {
             " , z " +
             positionedObject.position.z
         );
-
+ */
         if (positionedObject.freeze) {
           loadedModel.meshes[0].freezeWorldMatrix();
           loadedModel.meshes[0].convertToUnIndexedMesh();
@@ -155,7 +151,7 @@ class SceneBuilder {
           positionedObject.scaling
         );
 
-        console.log("Scaling: " + positionedObject.scaling);
+        //console.log("Scaling: " + positionedObject.scaling);
         //console.log("Scaling: " + positionedObject.scaling);
 
         /**

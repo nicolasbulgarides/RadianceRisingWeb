@@ -52,6 +52,7 @@ class EngineInitialization {
     this.renderSceneManager.setActiveGameWorldScene("GameWorldScene");
     this.renderSceneManager.setActiveUIScene("BaseUIScene");
     window.RenderSceneManager = this.renderSceneManager;
+    CameraManager.setPlaceholderCamera(this.scene);
 
     console.log("Loaded all scenes!");
   }

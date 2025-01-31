@@ -24,10 +24,11 @@ class PlayerLoader {
     );
 
     let position = defaultMap.getPlayerStartingPosition();
+    /** 
     console.log(
       "Position: " + position.x + " , " + position.y + " , " + position.z
     );
-
+*/
     this.loadModelAndPosition(gamePlayer, position);
 
     return gamePlayer;

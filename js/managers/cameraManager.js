@@ -86,7 +86,6 @@ class CameraManager {
       this.scene // The scene
     );
 
-    console.log("Thsi ca mera set!");
     // Attach camera controls to the canvas for interaction
     // camera.attachControl(this.scene.getEngine().getRenderingCanvas(), true);
 
@@ -94,14 +93,14 @@ class CameraManager {
     return camera;
   }
 
-  setPlaceholderCamera() {
+  static setPlaceholderCamera(scene) {
     const camera = new BABYLON.ArcRotateCamera(
       "defaultCamera",
       Math.PI / 2,
       Math.PI / 4,
       10,
       BABYLON.Vector3.Zero(),
-      this.scene
+      scene
     );
     window.RenderSceneManager.baseGameCamera = camera;
   }

@@ -22,14 +22,12 @@ class GameplayManager {
       .getPlayerPositionAndModelManager()
       .getPlayerModelPositionedObject();
 
-    this.sceneBuilder.registerGameWorldLoader(
-      this.gameWorldLoader,
-      this.demoPlayer
-    );
     await this.sceneBuilder.loadAnimatedModel(positionedObject);
+    this.gameWorldLoader.setPlayerCamera(
+      this.demoPlayer.getPlayerModelDirectly()
+    );
 
     //this.gameWorldLoader.setPlaceholderCamera();
-    console.log("CAMERA FINALIZED!");
   }
 
   processEndOfFrameEvents() {
