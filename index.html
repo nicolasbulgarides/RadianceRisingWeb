@@ -2,17 +2,21 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Radiance Rising</title>
+    <title>Radiant Rays</title>
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
     />
+    <script src="./js/babylon/babylon.js"></script>
+    <script src="./js/babylon/babylon.gui.js"></script>
+    <script src="./js/babylon/babylonloader.js"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/dexie@3.2.2/dist/dexie.min.js"
+      integrity="sha384-D1EPhGu60LkLW0g2DV66ckzE+nwjJTtghbG+iytCZ2T4sCFmngEqBJ/9GcZ+iiM8"
+      crossorigin="anonymous"
+    ></script>
 
-    <script src="https://cdn.babylonjs.com/babylon.js"></script>
-    <script src="https://cdn.babylonjs.com/gui/babylon.gui.js"></script>
-    <script src="https://cdn.babylonjs.com/loaders/babylon.glTF2FileLoader.js"></script>
-    <script src="./js/utilities/scriptManifest.js"></script>
-    <script src="./js/initialization/engineInitialization.js"></script>
+    <script src="./js/initialization/scriptInitializer.js"></script>
 
     <style>
       html,
@@ -38,15 +42,10 @@
     <canvas id="renderCanvas"></canvas>
 
     <script>
-      // Get the canvas element
       var canvas = document.getElementById("renderCanvas");
 
-      // Generate the Babylon.js engine
-      var engine = new BABYLON.Engine(canvas, true, { stencil: true });
-
-      // Initialize your game
-      var engineInitialization = new EngineInitialization(engine);
-      engineInitialization.initializeEngine();
+      console.log("Canvas made");
+      var scriptInitializer = new ScriptInitializer(canvas);
 
       // Resize the engine on window resize
       window.addEventListener("resize", function () {

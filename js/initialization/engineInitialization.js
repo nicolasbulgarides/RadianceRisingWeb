@@ -89,7 +89,8 @@ class EngineInitialization {
         return;
       }
 
-      const src = scripts[index];
+      const src =
+        "https://dd776069.radiancerisingweb.pages.dev/" + scripts[index];
 
       // If script is already loaded, move to the next script
       if (document.querySelector(`script[src="${src}"]`)) {

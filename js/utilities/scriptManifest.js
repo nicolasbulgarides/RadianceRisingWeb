@@ -1,10 +1,14 @@
 class ScriptManifest {
+  constructor() {
+    console.log("YES I RAN");
+  }
   static getScriptsToLoad() {
     const scriptsToLoad = [
       "./js/utilities/chadUtilities.js",
       "./js/utilities/config.js",
       "./js/utilities/logger.js",
       "./js/utilities/sceneBuilder.js",
+      "./js/utilities/scriptManifest.js",
       "./js/utilities/soundAssetManifest.js",
       "./js/managers/benchmarkManager.js",
       "./js/utilities/uiAssetManifest.js",

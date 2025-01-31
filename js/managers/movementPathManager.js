@@ -110,7 +110,7 @@ class MovementPathManager {
         direction
       );
 
-      ChadUtilities.describeVector("Stopping at: ", stoppingPosition);
+      //ChadUtilities.describeVector("Stopping at: ", stoppingPosition);
       this.setDestinationAndBeginMovement(stoppingPosition);
     }
   }
