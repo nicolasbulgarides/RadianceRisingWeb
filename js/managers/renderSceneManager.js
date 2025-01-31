@@ -31,7 +31,7 @@ class RenderSceneManager {
     if (this.scenes[sceneId]) {
       this.scenes[sceneId].isRendering = true;
       this.activeGameScene = this.scenes[sceneId];
-      console.log("Set scene to active game world scene: " + sceneId);
+      //console.log("Set scene to active game world scene: " + sceneId);
     } else {
       console.error(`Scene with ID '${sceneId}' not found.`);
     }
@@ -45,7 +45,7 @@ class RenderSceneManager {
     if (this.scenes[sceneId]) {
       this.scenes[sceneId].isRendering = true;
       this.activeUIScene = this.scenes[sceneId];
-      console.log("UI Scene set");
+      //console.log("UI Scene set");
     } else {
       console.error(`Scene with ID '${sceneId}' not found.`);
     }
@@ -56,7 +56,7 @@ class RenderSceneManager {
    * @returns {BABYLON.Scene | null} - The active game world scene, or null if none is active.
    */
   getActiveGameWorldScene() {
-    console.log("ACTIVE!");
+    // console.log("ACTIVE!");
     return this.activeGameScene;
   }
 

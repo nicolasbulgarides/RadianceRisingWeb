@@ -113,7 +113,7 @@ class CameraManager {
       console.error("Model to chase is not a valid AbstractMesh");
       return;
     }
-    console.log("Model to chase is an abstract mesh");
+    // console.log("Model to chase is an abstract mesh");
 
     // Dispose of the old camera before creating a new one
     if (this.currentCamera) {
@@ -138,8 +138,8 @@ class CameraManager {
 
     // Configure the camera to follow from a height of 10 units
 
-    followCamera.radius = 0.1; // Adjusted distance from the target (try increasing if needed)
-    followCamera.heightOffset = 30; // Height above the target
+    followCamera.radius = 5; // Adjusted distance from the target (try increasing if needed)
+    followCamera.heightOffset = 10; // Height above the target
 
     // followCamera.radius = 20; // Adjusted distance from the target (try increasing if needed)
     // followCamera.heightOffset = 40; // Height above the target
@@ -154,8 +154,6 @@ class CameraManager {
     if (this.scene == null) {
       console.log("NULL SCENE!");
     }
-
-    console.log("Set a chase camera!");
 
     window.RenderSceneManager.baseGameCamera = this.currentCamera;
   }
@@ -205,7 +203,7 @@ class CameraManager {
       this.scene
     );
     followCamera.lockedTarget = this.targetMesh;
-    followCamera.radius = -2;
+    followCamera.radius = 2;
     followCamera.heightOffset = 10;
     followCamera.cameraAcceleration = 0.05;
     followCamera.maxCameraSpeed = 10;
@@ -225,22 +223,3 @@ class CameraManager {
 
   // Additional camera setup methods (setupOrthographicCamera, setupPerspectiveCamera, setupIsometricCamera)...
 }
-
-// IIFE to attach CameraManager and CameraPreset to the global window object
-(function () {
-  if (typeof window !== "undefined") {
-    window.CameraManager = CameraManager;
-    window.CameraPreset = {
-      DEFAULT: "DEFAULT",
-      ORTHOGRAPHIC: "ORTHOGRAPHIC",
-      PERSPECTIVE: "PERSPECTIVE",
-      ISOMETRIC: "ISOMETRIC",
-      HELICOPTER: "HELICOPTER",
-    };
-    console.log(
-      "CameraManager and CameraPreset successfully loaded and available globally."
-    );
-  } else {
-    console.log("Global export not available; `window` is undefined.");
-  }
-})();

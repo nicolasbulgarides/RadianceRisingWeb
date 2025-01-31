@@ -38,7 +38,7 @@ class SoundEffectsManager {
     );
 
     await Promise.all(promises);
-    console.log("All sounds loaded successfully.");
+    //  console.log("All sounds loaded successfully.");
   }
 
   /**
@@ -50,7 +50,7 @@ class SoundEffectsManager {
 
     if (sound) {
       sound.play();
-      console.log(`Playing sound: ${soundName}`);
+      //console.log(`Playing sound: ${soundName}`);
     } else {
       console.warn(`Sound not found: ${soundName}`);
     }

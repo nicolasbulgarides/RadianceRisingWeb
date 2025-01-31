@@ -147,7 +147,7 @@ class BaseGameUI extends BABYLON.Scene {
       //  window.soundManager.playNextSound();
     }
 
-    console.log(`Button pressed: ${buttonFunctionKey}`);
+    //console.log(`Button pressed: ${buttonFunctionKey}`);
   }
 
   setBackgroundColor(color) {
@@ -159,18 +159,19 @@ class BaseGameUI extends BABYLON.Scene {
     this.gameplayManager = gameplayManager;
   }
 
-  processMovementClick(buttonFunctionKey) {
+  processMovementClick(buttonFunction) {
+    let buttonFunctionKey = String(buttonFunction);
     if (this.gameplayManager != null) {
       let playerDirection = null;
       window.SoundEffectsManager.playSound("menuMovement");
 
-      if (buttonFunctionKey == "LEFTCLICK") {
+      if (buttonFunctionKey === "LEFTCLICK") {
         playerDirection = "LEFT";
-      } else if (buttonFunctionKey == "RIGHTCLICK") {
+      } else if (buttonFunctionKey === "RIGHTCLICK") {
         playerDirection = "RIGHT";
-      } else if (buttonFunctionKey == "UPCLICK") {
+      } else if (buttonFunctionKey === "UPCLICK") {
         playerDirection = "UP";
-      } else if (buttonFunctionKey == "DOWNCLICK") {
+      } else if (buttonFunctionKey === "DOWNCLICK") {
         playerDirection = "DOWN";
       }
 

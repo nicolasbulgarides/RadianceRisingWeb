@@ -26,7 +26,6 @@ class WorldData {
   static getWorldByNickname(nickname) {
     const world = this.worlds.find((world) => world.nickname === nickname);
     if (world) {
-      console.log("World found: " + nickname);
       return world; // Return the world if found
     } else {
       window.Logger.log("Invalid world nickname"); // Log an error if the world is not found

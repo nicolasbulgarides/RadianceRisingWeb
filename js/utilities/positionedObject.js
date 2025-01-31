@@ -52,22 +52,16 @@ class PositionedObject {
       position.z + config.position.z
     );
 
-    /** 
-    console.log(
-      "Position here: " +
-        this.position.x +
-        ", " +
-        this.position.y +
-        " , " +
-        this.position.z
-    );
-*/
     this.rotation = new BABYLON.Vector3(
-      rotation.x + config.rotation.pitch,
-      rotation.y + config.rotation.roll,
-      rotation.z + config.rotation.yaw
+      BABYLON.Tools.ToRadians(rotation.x + config.rotation.pitch),
+      BABYLON.Tools.ToRadians(rotation.y + config.rotation.roll),
+      BABYLON.Tools.ToRadians(rotation.z + config.rotation.yaw)
     );
-    this.scaling = config.scale * scale;
+    this.scaling = new BABYLON.Vector3(
+      scale * config.scale.x,
+      scale * config.scale.y,
+      scale * config.scale.z
+    );
     //console.log("Scale: ", this.scaling);
 
     // Retrieve the model URL from AssetManifest
@@ -100,7 +94,6 @@ class PositionedObject {
     cloneBase
   ) {
     let offset = new BABYLON.Vector3(0, 0, 0);
-
     let rotation = new BABYLON.Vector3(0, 0, 0);
 
     let object = new PositionedObject(
@@ -124,9 +117,22 @@ class PositionedObject {
    * Sets the Babylon.js model reference after it has been loaded.
    * @param {BABYLON.AbstractMesh} model - The loaded Babylon.js model.
    */
-  setModel(model, name) {
+  setModel(model) {
     this.model = model;
     //console.log("Model set! ", name);
+  }
+
+  getCompositePositionBaseline() {
+    let adjustedX = this.offset.x + this.position.x;
+    let adjustedY = this.offset.y + this.position.y;
+    let adjustedZ = this.offset.z + this.position.z;
+
+    let finalizedPosition = new BABYLON.Vector3(
+      adjustedX,
+      adjustedY,
+      adjustedZ
+    );
+    return finalizedPosition;
   }
 
   /**
@@ -136,22 +142,21 @@ class PositionedObject {
    * @param {number} z - New Z position.
    */
   setPosition(positionVector) {
-    let adjustedX = this.offset.x + positionVector.x;
-    let adjustedY = this.offset.y + positionVector.y;
-    let adjustedZ = this.offset.z + positionVector.z;
-
-    this.position = positionVector;
-
-    this.finalizedPosition = new BABYLON.Vector3(
-      adjustedX,
-      adjustedY,
-      adjustedZ
-    );
-
-    if (this.model) {
-      this.model.position = this.finalizedPosition;
+    if (!this.model) {
+      return;
     } else {
-      console.log("Model null");
+      let adjustedX = this.offset.x + positionVector.x;
+      let adjustedY = this.offset.y + positionVector.y;
+      let adjustedZ = this.offset.z + positionVector.z;
+
+      this.position = positionVector;
+
+      this.finalizedPosition = new BABYLON.Vector3(
+        adjustedX,
+        adjustedY,
+        adjustedZ
+      );
+      this.model.position = this.finalizedPosition;
     }
   }
 
@@ -161,14 +166,22 @@ class PositionedObject {
    * @param {number} roll - New roll rotation angle (in degrees).
    * @param {number} yaw - New yaw rotation angle (in degrees).
    */
-  setRotation(pitch, roll, yaw) {
-    this.rotation = { pitch, roll, yaw };
+  setRotation(rotation) {
+    this.rotation = rotation;
     if (this.model) {
-      this.model.rotation = new BABYLON.Vector3(
-        BABYLON.Tools.ToRadians(pitch),
-        BABYLON.Tools.ToRadians(yaw),
-        BABYLON.Tools.ToRadians(roll)
-      );
+      this.model.rotation = this.rotation;
+    }
+  }
+
+  adjustRotation(rotation) {
+    let totalRotation = new BABYLON.Vector3(
+      this.rotation.x + rotation.x,
+      this.rotation.y + rotation.y,
+      this.rotation.z + rotation.z
+    );
+    this.rotation = totalRotation;
+    if (this.model) {
+      this.model.rotation = this.rotation;
     }
   }
 

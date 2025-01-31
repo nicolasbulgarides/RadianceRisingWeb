@@ -53,8 +53,6 @@ class EngineInitialization {
     this.renderSceneManager.setActiveUIScene("BaseUIScene");
     window.RenderSceneManager = this.renderSceneManager;
     CameraManager.setPlaceholderCamera(this.scene);
-
-    console.log("Loaded all scenes!");
   }
 
   initializeEngine() {
@@ -66,7 +64,7 @@ class EngineInitialization {
       this.loadGameplay();
       // Start the render loop
       this.engine.runRenderLoop(() => {
-        // this.onFrameRenderUpdates();
+        this.onFrameRenderUpdates();
         this.renderSceneManager.render();
       });
     });
@@ -74,7 +72,7 @@ class EngineInitialization {
 
   onFrameRenderUpdates() {
     this.gameplayManager.processEndOfFrameEvents();
-    this.benchmarkFrameUpdate();
+    //this.benchmarkFrameUpdate();
   }
 
   loadScripts(scripts, callback) {

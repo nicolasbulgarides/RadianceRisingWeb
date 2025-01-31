@@ -1,65 +1,67 @@
+class AssetConfig {
+  constructor(overrides = {}) {
+    this.position = {
+      ...AssetManifestOverrides.defaults.position,
+      ...overrides.position,
+    };
+    this.offset = {
+      ...AssetManifestOverrides.defaults.offset,
+      ...overrides.offset,
+    };
+    this.rotation = {
+      ...AssetManifestOverrides.defaults.rotation,
+      ...overrides.rotation,
+    };
+    this.scale = {
+      ...AssetManifestOverrides.defaults.scale,
+      ...overrides.scale,
+    };
+  }
+}
+
 class AssetManifestOverrides {
-  // Default transformations
   static defaults = {
     position: { x: 0, y: 0, z: 0 },
     offset: { x: 0, y: 0, z: 0 },
     rotation: { pitch: 0, roll: 0, yaw: 0 },
-    scale: 1,
+    scale: { x: 1, y: 1, z: 1 },
   };
 
-  // Asset-specific overrides
   static overrides = {
     mechaSphereBronzeLowRes: {
-      position: { x: 0, y: 0, z: 0 },
       offset: { x: 0, y: 0.33, z: 0 },
-      rotation: { pitch: 0, roll: 0, yaw: 0 },
-      scale: 1,
+    },
+    testMountain: {
+      scale: { x: 0.2, y: 0.2, z: 0.2 },
     },
   };
 
   /**
    * Retrieves the configuration for a given asset name.
    * @param {string} assetName - The name of the asset.
-   * @returns {Object} - Configuration object with position, rotation, and scale.
+   * @returns {AssetConfig} - An instance of AssetConfig with merged defaults and overrides.
    */
   static getConfig(assetName) {
-    return this.overrides[assetName] || this.defaults;
+    const override = this.overrides[assetName] || {};
+    return new AssetConfig(override);
   }
 
   /**
-   * Sets or updates the configuration for a single asset.
-   * @param {string} assetName - The name of the asset.
-   * @param {Object} config - Configuration object with position, rotation, and scale.
+   * Initializes models with unique configurations.
+   * @param {Object} models - An object where each key is a model name and the value is the model's configuration.
    */
-  static setConfig(assetName, config) {
-    this.overrides[assetName] = { ...this.defaults, ...config };
-  }
-
-  /**
-   * Sets the same configuration for multiple assets.
-   * @param {Array<string>} assetNames - Array of asset names to apply the configuration to.
-   * @param {Object} config - Configuration object with position, rotation, and scale.
-   */
-  static setConfigForMultiple(assetNames, config) {
-    for (const assetName of assetNames) {
-      this.setConfig(assetName, config);
+  static initializeModels(models) {
+    for (const key in models) {
+      if (models.hasOwnProperty(key)) {
+        models[key] = this.getConfig(key);
+      }
     }
   }
-
-  // Static initialization block to set initial values for testTile2 - testTile7
-  static {
-    //  const baseConfigTiles = this.getConfig("testTile1");
-    /** 
-    const tileNames = [
-      "testTilePure",
-      "testTile2",
-      "testTile3",
-      "testTile4",
-      "testTile5",
-      "testTile6",
-      "testTile7",
-    ];
-    this.setConfigForMultiple(tileNames, baseConfigTiles);
-    */
-  }
 }
+
+// Example usage:
+const models = {
+  mechaSphereBronzeLowRes: {},
+};
+
+AssetManifestOverrides.initializeModels(models);

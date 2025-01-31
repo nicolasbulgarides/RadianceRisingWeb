@@ -17,7 +17,6 @@ class SceneBuilder {
 
   setBackgroundColor(color) {
     this.scene.clearColor = color;
-    window.Logger.log("SceneBuilder: Background color set.");
   }
 
   // Ensures that the animated model is loaded and returns it
@@ -119,21 +118,9 @@ class SceneBuilder {
         }
 
         // Apply position and rotation
-        loadedModel.meshes[0].position = new BABYLON.Vector3(
-          positionedObject.position.x + positionedObject.offset.x,
-          positionedObject.position.y + positionedObject.offset.y,
-          positionedObject.position.z + positionedObject.offset.z
-        );
-        /**
-        console.log(
-          "Position " +
-            positionedObject.position.x +
-            ", Y " +
-            positionedObject.position.y +
-            " , z " +
-            positionedObject.position.z
-        );
- */
+        loadedModel.meshes[0].position =
+          positionedObject.getCompositePositionBaseline();
+
         if (positionedObject.freeze) {
           loadedModel.meshes[0].freezeWorldMatrix();
           loadedModel.meshes[0].convertToUnIndexedMesh();
@@ -144,29 +131,8 @@ class SceneBuilder {
           loadedModel.meshes[0].doNotSyncBoundingInfo = true;
         }
 
-        // Apply scaling
-        loadedModel.meshes[0].scaling = new BABYLON.Vector3(
-          positionedObject.scaling,
-          positionedObject.scaling,
-          positionedObject.scaling
-        );
-
-        //console.log("Scaling: " + positionedObject.scaling);
-        //console.log("Scaling: " + positionedObject.scaling);
-
-        /**
-        // Debugging log for scaling
-        window.Logger.log(
-          `SceneBuilder: Applied scaling to model '${positionedObject.modelId}' - x: ${loadedModel.meshes[0].scaling.x}, y: ${loadedModel.meshes[0].scaling.y}, z: ${loadedModel.meshes[0].scaling.z}`
-        );
- */
-        // Apply rotation in radians for Babylon.js compatibility
-        loadedModel.meshes[0].rotation = new BABYLON.Vector3(
-          BABYLON.Tools.ToRadians(positionedObject.rotation.x),
-          BABYLON.Tools.ToRadians(positionedObject.rotation.y),
-          BABYLON.Tools.ToRadians(positionedObject.rotation.z)
-        );
-
+        loadedModel.meshes[0].scaling = positionedObject.scaling;
+        loadedModel.meshes[0].rotation = positionedObject.rotation;
         // console.log("Successfully loaded a model: " + positionedObject.modelId);
         return loadedModel;
       } else {

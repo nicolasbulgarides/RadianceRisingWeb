@@ -10,10 +10,18 @@ class GameplayManager {
 
   async initializeGameplay() {
     this.currentMap = await this.gameWorldLoader.loadDemoWorldTest();
+    this.worldMapObstacleGeneator = new WorldMapObstacleGenerator(
+      this.sceneBuilder
+    );
     this.loadPlayer();
     this.soundEffectsManager = new SoundEffectsManager(window.baseGameUI);
     this.musicManager = new MusicManager();
-    this.movementPathManager = new MovementPathManager(this.demoPlayer);
+    this.movementPathManager = new MovementPathManager(
+      this.demoPlayer,
+      this.currentMap
+    );
+
+    this.currentMap.worldObstacleTest(this.worldMapObstacleGeneator);
   }
   async loadPlayer() {
     this.demoPlayer = this.playerLoader.getDemoPlayer(this.currentMap);
@@ -31,13 +39,17 @@ class GameplayManager {
   }
 
   processEndOfFrameEvents() {
-    // this.movementPathManager.processPossiblePlayerModelMovements();
+    if (this.movementPathManager != null) {
+      this.movementPathManager.processPossiblePlayerModelMovements();
+    }
   }
 
   processAttemptedMovementFromUIClick(direction) {
     this.movementPathManager.processMovementByDirection(
-      this.demoPlayer,
-      direction
+      direction,
+      Config.UNBOUNDED_MOVEMENT,
+      Config.MAX_MOVEMENT,
+      Config.IGNORE_OBSTACLES
     );
   }
 }

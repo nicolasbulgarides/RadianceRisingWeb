@@ -7,9 +7,13 @@
 class Config {
   // Default values
   static DEFAULT_NAME = "Francisco";
+
   static DEFAULT_MODEL = "mechaSphereBronzeLowRes";
   static DEMO_WORLD = "testWorld0";
-  static DEFAULT_SPEED = 2;
+  static DEFAULT_SPEED = 4;
+  static MAX_MOVEMENT = 999;
+  static IGNORE_OBSTACLES = false;
+  static UNBOUNDED_MOVEMENT = true;
 
   //logging and benchmark utilities
   static LOGGING_ENABLED = true;

@@ -18,7 +18,7 @@ class GameGridGenerator {
   async loadTilesThenGenerateGrid(tileIds, tileSize) {
     let position = new BABYLON.Vector3(0, 0, 0);
 
-    console.log("Tile size: " + tileSize);
+    // console.log("Tile size: " + tileSize);
 
     for (const tileId of tileIds) {
       const positionedObject = PositionedObject.getPositionedObjectQuick(
@@ -43,11 +43,12 @@ class GameGridGenerator {
       return false;
     }
 
+    /**
     console.log(
       "GridGenerator: All tiles loaded successfully. Num of tiles: " +
         this.loadedTiles.length
     );
-
+ */
     return true;
   }
 
@@ -72,7 +73,7 @@ class GameGridGenerator {
     let depth = mapToLoad.mapDepth;
     // Ensure tiles are loaded
 
-    console.log("Width, depth: ", width + ", ", depth);
+    //  console.log("Width, depth: ", width + ", ", depth);
 
     // Generate the grid
     for (let x = 0; x < width; x++) {
@@ -92,7 +93,6 @@ class GameGridGenerator {
             // Create a transformation matrix with y fixed at 0
             const matrix = BABYLON.Matrix.Translation(xPos, 0, zPos);
             mesh.thinInstanceAdd(matrix);
-            console.log("WOW!");
           }
         }
       }

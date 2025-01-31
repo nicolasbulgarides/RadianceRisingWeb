@@ -29,7 +29,6 @@ class GameWorldLoader {
     if (tilesLoaded) {
       // Generate the grid only after tiles are loaded
       await this.gridManager.generateGrid(demoMap, 1);
-      console.log("Grid generated!");
     } else {
       console.error("Failed to load tiles. Grid generation aborted.");
     }
@@ -40,15 +39,6 @@ class GameWorldLoader {
     this.cameraManager.setPlaceholderCamera();
   }
   setPlayerCamera(player) {
-    /** 
-    if (player == null) {
-      console.log("Player null");
-    }
-    let model = player
-      .getPlayerPositionAndModelManager()
-      .getPlayerModelDirectly();
-
-      */
     this.cameraManager.setCameraToChase(player);
   }
 

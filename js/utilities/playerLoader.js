@@ -10,7 +10,7 @@ class PlayerLoader {
     );
 
     player.loadPositionManager(playerModelObject, position);
-    console.log("Default model: " + Config.DEFAULT_MODEL);
+    //console.log("Default model: " + Config.DEFAULT_MODEL);
   }
 
   getDemoPlayer(defaultMap) {

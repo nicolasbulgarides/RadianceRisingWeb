@@ -1,13 +1,8 @@
 class PlayerPositionAndModelManager {
   constructor(playerModelObject, position) {
     this.playerModelPositionedObject = playerModelObject;
-
     this.currentPosition = position;
     this.pathingDestination = null;
-    console.log(
-      "Player initialized too: " + this.currentPosition.x + " , " + this,
-      this.currentPosition.y + " ,  " + this.currentPosition.z
-    );
   }
   setCurrentPathingDestination(destination) {
     this.pathingDestination = destination;
@@ -30,13 +25,13 @@ class PlayerPositionAndModelManager {
   }
 
   adjustPositionRelocateModelInstantly(adjustmentVector) {
-    this.adjustPositionNoMotion(djustmentVector);
-    this.relocateToCurrentPositionInstantly;
+    this.adjustPositionNoMotion(adjustmentVector);
+    this.relocateToCurrentPositionInstantly();
   }
 
   setPositionRelocateModelInstantly(positionVector) {
     this.setPositionNoMotion(positionVector);
-    this.relocateToCurrentPositionInstantly;
+    this.relocateToCurrentPositionInstantly();
   }
 
   relocateToCurrentPositionInstantly() {

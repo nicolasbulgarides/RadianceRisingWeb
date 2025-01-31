@@ -2,7 +2,6 @@
 class AnimatedModelLoader {
   constructor(scene) {
     this.scene = scene;
-    console.log("Modular AnimatedModelLoader initialized");
   }
 
   /**
@@ -31,34 +30,9 @@ class AnimatedModelLoader {
           }
 
           // Apply transformations from PositionedObject
-          root.position = new BABYLON.Vector3(
-            positionedObject.position.x + positionedObject.offset.x,
-            positionedObject.position.y + positionedObject.offset.y,
-            positionedObject.position.z + positionedObject.offset.z
-          );
-
-          console.log(
-            "Root Position: " +
-              root.position.x +
-              " , " +
-              root.position.y +
-              " , " +
-              root.position.z
-          );
-
-          /** 
-          root.rotation = new BABYLON.Vector3(
-            BABYLON.Tools.ToRadians(positionedObject.rotation.x),
-            BABYLON.Tools.ToRadians(positionedObject.rotation.y),
-            BABYLON.Tools.ToRadians(positionedObject.rotation.z)
-          );
-*/
-
-          root.scaling = new BABYLON.Vector3(
-            positionedObject.scaling,
-            positionedObject.scaling,
-            positionedObject.scaling
-          );
+          root.position = positionedObject.getCompositePositionBaseline();
+          root.rotation = positionedObject.rotation;
+          root.scaling = positionedObject.scaling;
 
           // Start animations if available
           if (result.animationGroups && result.animationGroups.length > 0) {
@@ -68,7 +42,7 @@ class AnimatedModelLoader {
           }
 
           positionedObject.setModel(root, positionedObject.modelId);
-          console.log("Animated model fully loaded I think!");
+          //console.log("Animated model fully loaded I think!");
           resolve(positionedObject.model);
         })
         .catch((error) => {

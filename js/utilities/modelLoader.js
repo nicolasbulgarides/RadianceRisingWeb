@@ -1,9 +1,5 @@
 class ModelLoader {
-  constructor() {
-    console.log(
-      "ModelLoader initialized for loading models from a direct URL."
-    );
-  }
+  constructor() {}
 
   /**
    * Loads a .glb model directly from a given URL into the Babylon.js scene.

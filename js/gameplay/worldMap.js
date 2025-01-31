@@ -4,6 +4,7 @@ class WorldMap {
     this.mapWidth = 1;
     this.mapDepth = 1;
     this.startingPosition = null;
+    this.obstacles = {};
   }
 
   attemptToLoadMapComposite(worldPreset) {
@@ -11,6 +12,7 @@ class WorldMap {
     this.mapWidth = worldToLoad.width;
     this.mapDepth = worldToLoad.depth;
 
+    //console.log("Width: " + this.mapWidth + " , depth " + this.mapDepth);
     this.initializeBoardSlots(this.mapWidth, this.mapDepth);
     this.initializeStartingPosition(worldToLoad);
   }
@@ -20,15 +22,26 @@ class WorldMap {
       worldToLoad.playerStartY,
       worldToLoad.playerStartZ
     );
+    /**
     console.log(
       "Starting position of map:" + this.startingPosition.x + " , " + this,
       this.startingPosition.y + ",  " + this.startingPosition.z
     );
+     */
+  }
+
+  worldObstacleTest(generator) {
+    generator.generateEdgeMountains(this);
+    generator.initializeObstacles(this);
   }
   initializeBoardSlots(width, depth) {
     this.boardSlots = new Array(width);
     for (let x = 0; x < width; x++) {
       this.boardSlots[x] = new Array(depth);
+
+      for (let z = 0; z < depth; z++) {
+        this.boardSlots[x][z] = new BoardSlot(x, 0, z);
+      }
     }
   }
 

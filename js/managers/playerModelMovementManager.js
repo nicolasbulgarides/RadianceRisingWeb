@@ -10,64 +10,97 @@ class PlayerModelMovementManager {
    * @param {number} durationInSeconds - Total duration in seconds for the movement.
    * @param {number} framesPerSecond - Number of frames per second (FPS), default is 60.
    */
-  initMovement(durationInSeconds) {
-    if (this.currentPlayer == null) {
-      console.log("Player is null still!");
+  /**
+   * Initializes the movement from a start position to an end position based on speed.
+   * @param {number} speed - Speed in units per second.
+   */
+  initMovement(speed) {
+    if (!this.currentPlayer) {
+      console.error("No player to move!");
+      return;
     }
+
     this.startPosition =
       this.currentPlayer.getPlayerPositionAndModelManager().currentPosition;
-
-    console.log(
-      "PLayer pos: " + this.startPosition.x + " , " + this,
-      this.startPosition.y + " , " + this.startPosition.z
-    );
     this.endPosition =
       this.currentPlayer.getPlayerPositionAndModelManager().pathingDestination;
     this.totalDistance = BABYLON.Vector3.Distance(
       this.startPosition,
       this.endPosition
     );
+    if (this.totalDistance > 0) {
+      this.direction = this.endPosition
+        .subtract(this.startPosition)
+        .normalize();
+    } else {
+      console.warn(
+        "Warning: No movement required, start and end positions are the same."
+      );
+      this.direction = BABYLON.Vector3.Zero(); // Prevent NaN values
+    }
+    // Calculate duration dynamically based on speed
+    this.durationInSeconds = this.totalDistance / speed;
+    this.totalFrames = Math.ceil(this.durationInSeconds * Config.FPS);
+    this.currentFrame = 0;
 
-    this.durationInSeconds = this.totalDistance / durationInSeconds; // Total duration in seconds
-    this.totalFrames = durationInSeconds * Config.FPS; // Total frames for the movement
-    this.currentFrame = 0; // Current frame during the movement
+    // Calculate movement direction (unit vector)
+    this.direction = this.endPosition.subtract(this.startPosition).normalize();
 
-    // Calculate the total distance between start and end positions
+    this.movementPerFrame = this.direction.scale(
+      this.totalDistance / this.totalFrames
+    );
 
-    // Calculate the movement per frame (linear movement per frame)
-    this.movementPerFrame = this.totalDistance / this.totalFrames;
-
-    // Calculate the direction vector
-    this.direction = this.endPosition.subtract(this.startPosition).normalize(); // Unit vector
     this.movementActive = true;
+  }
+
+  describeMovement() {
+    console.log(
+      `Movement initialized: Speed = ${speed}, Duration = ${this.durationInSeconds.toFixed(
+        2
+      )}s, Frames = ${this.totalFrames}`
+    );
   }
 
   registerPlayer(player) {
     this.currentPlayer = player;
   }
-  /**
-   * Calculates the next position based on the total number of frames.
-   * If the movement is completed, it resets automatically.
-   * @returns {BABYLON.Vector3} - The next position of the object in the movement.
-   */
   getNextPosition() {
-    // If the movement has finished, automatically reset the movement
+    if (!this.movementActive) {
+      return this.startPosition;
+    }
+
+    // If the movement has finished, reset and return final position
     if (this.currentFrame >= this.totalFrames) {
-      this.resetMovement(); // Reset to start position
+      this.resetMovement();
       return this.endPosition;
     }
 
-    // Calculate how much movement to apply this frame (based on linear movement)
-    const movementDistance = this.movementPerFrame;
+    // Ensure movementPerFrame is valid
+    if (
+      !isFinite(this.movementPerFrame.x) ||
+      !isFinite(this.movementPerFrame.y) ||
+      !isFinite(this.movementPerFrame.z)
+    ) {
+      console.error("Invalid movement vector detected!", this.movementPerFrame);
+      this.resetMovement();
+      return this.startPosition;
+    }
 
-    // Calculate the new position by moving along the direction vector
-    const movementVector = this.direction.scale(movementDistance);
+    // Calculate movement vector per frame
+    const movementVector = this.movementPerFrame.scale(this.currentFrame + 1);
 
-    // Increment the current frame count
     this.currentFrame++;
 
-    // Move the object by a fixed amount each frame, without multiplying by currentFrame
-    return this.startPosition.add(movementVector.scale(this.currentFrame));
+    // Compute new position safely
+    let updatedPosition = this.startPosition.add(movementVector);
+
+    /** 
+    // Log for debugging
+    console.log(
+      `Updated pos: x${updatedPosition.x}, y ${updatedPosition.y}, z${updatedPosition.z}`
+    );
+*/
+    return updatedPosition;
   }
 
   /**
@@ -96,7 +129,7 @@ class PlayerModelMovementManager {
 
   processPossibleModelMovements() {
     if (this.movementActive) {
-      vectorMovement = this.getNextPosition();
+      let vectorMovement = this.getNextPosition();
 
       // Validate the vector components
       if (
@@ -105,11 +138,9 @@ class PlayerModelMovementManager {
         isFinite(vectorMovement.z)
       ) {
         // If valid, update the position
-        this.currentPlayer.setPosition(
-          vectorMovement.x,
-          vectorMovement.y,
-          vectorMovement.z
-        );
+        this.currentPlayer
+          .getPlayerPositionAndModelManager()
+          .setPositionRelocateModelInstantly(vectorMovement);
       } else {
         // Log an error if any component of the vector is invalid
         console.error(
