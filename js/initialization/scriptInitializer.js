@@ -24,14 +24,10 @@ class ScriptInitializer {
       };
     }
 
-    console.log("STARTED MANIFEST");
-    console.log("URL: " + this.CORE_SCRIPTS.SCRIPT_MANIFEST);
-
     let manifest = await this.loadScript(this.CORE_SCRIPTS.SCRIPT_MANIFEST);
     document.head.appendChild(manifest);
 
     manifest.onload = () => {
-      console.log("ScriptManifest loaded");
       if (typeof ScriptManifest === "undefined") {
         console.error("ScriptManifest class not found. Check script import.");
         return;
@@ -46,8 +42,6 @@ class ScriptInitializer {
   }
 
   async loadEngine(canvas) {
-    console.log("Loading engine...");
-
     let engineInit = await this.loadScript(
       this.CORE_SCRIPTS.ENGINE_INITIALIZATION
     );
@@ -71,7 +65,6 @@ class ScriptInitializer {
         );
         return;
       }
-      console.log("Babylon Engine loaded successfully");
 
       // Initialize engine
       const engineInitialization = new EngineInitialization(engine);
@@ -83,7 +76,6 @@ class ScriptInitializer {
   }
 
   loadScript(url) {
-    console.log("Url to load: " + url);
     const script = document.createElement("script");
     script.src = url;
     script.async = true; // Ensures it loads asynchronously
