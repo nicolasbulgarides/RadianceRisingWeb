@@ -40,7 +40,6 @@ class EngineInitialization {
     console.log("CC");
 
     this.addAudioUnlock();
-    this.setupResizeHandler();
     console.log("Finished loading engin settings");
   }
   /**
@@ -71,6 +70,8 @@ class EngineInitialization {
 
     console.log("Obtained scripts to load: " + scriptsToLoad.length);
     this.loadScripts(scriptsToLoad, () => {
+      this.setupResizeHandler();
+
       this.sceneRenderProcess();
       // this.benchmarkTest();
       this.loadGameplay();
@@ -135,6 +136,7 @@ class EngineInitialization {
    * Sets up the window resize handler.
    */
   setupResizeHandler() {
+    window.Logger = new Logger();
     window.addEventListener("resize", () => {
       this.engine.resize();
       window.Logger.log("GameInitialization: Engine resized.");
