@@ -4,6 +4,7 @@ class ScriptManifest {
   }
   static getScriptsToLoad() {
     const scriptsToLoad = [
+      "/initialization/chadUtilities.js",
       "/utilities/config.js",
       "/utilities/logger.js",
       "/utilities/sceneBuilder.js",
@@ -43,7 +44,6 @@ class ScriptManifest {
       "/managers/playerModelMovementManager.js",
       "/managers/movementPathManager.js",
       "/gameplay/playerUnit.js",
-      "/initialization/chadUtilities.js",
     ];
 
     return scriptsToLoad;
