@@ -103,10 +103,14 @@ class EngineInitialization {
         const script = document.createElement("script");
         script.src = src;
 
+        console.log("Z1");
         script.onload = () => {
+          console.log("Z2");
+
           // window.Logger.log(`GameInitialization: Loaded script: ${src}`);
           loadedScripts.add(src); // Add the script to the loaded list
           loadScript(index + 1); // Load the next script
+          console.log("Z3");
         };
 
         document.head.appendChild(script);
