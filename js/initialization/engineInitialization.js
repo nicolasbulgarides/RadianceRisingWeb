@@ -7,7 +7,11 @@ class EngineInitialization {
     console.log("Started custom engine init");
     this.engine = engineInstance;
     this.baseUIScene = null;
-    this.loadEngineSettings();
+    try {
+      this.loadEngineSettings();
+    } catch (err) {
+      console.log("Error here: " + err);
+    }
   }
 
   addAudioUnlock() {
