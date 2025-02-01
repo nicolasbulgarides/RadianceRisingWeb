@@ -94,6 +94,7 @@ class EngineInitialization {
       const src =
         "https://dd776069.radiancerisingweb.pages.dev/" + scripts[index];
 
+      console.log(src + " src of script");
       // If script is already loaded, move to the next script
       if (document.querySelector(`script[src="${src}"]`)) {
         window.Logger.log(`GameInitialization: Script already loaded: ${src}`);
