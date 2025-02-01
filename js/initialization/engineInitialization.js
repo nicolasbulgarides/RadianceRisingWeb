@@ -119,11 +119,6 @@ class EngineInitialization {
           loadScript(index + 1); // Load the next script
         };
 
-        script.onerror = () => {
-          // Continue even if a script fails to load
-          loadScript(index + 1);
-        };
-
         document.head.appendChild(script);
       }
     };
