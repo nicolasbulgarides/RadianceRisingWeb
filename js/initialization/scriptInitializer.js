@@ -15,7 +15,7 @@ class ScriptInitializer {
     console.log("STARTED MANIFEST");
     console.log("URL: " + this.CORE_SCRIPTS.SCRIPT_MANIFEST);
 
-    let manifest = this.loadScript(this.CORE_SCRIPTS.SCRIPT_MANIFEST);
+    let manifest = await this.loadScript(this.CORE_SCRIPTS.SCRIPT_MANIFEST);
     document.head.appendChild(manifest);
 
     manifest.onload = () => {
@@ -36,12 +36,11 @@ class ScriptInitializer {
   async loadEngine(canvas) {
     console.log("Loading engine...");
 
-    // Now load Engine Initialization script
-    let engineInit = await this.loadScript(
-      this.CORE_SCRIPTS.ENGINE_INITIALIZATION
-    );
-    document.head.appendChild(engineInit);
+    // Create script element manually:
+    const engineInit = document.createElement("script");
+    engineInit.src = this.CORE_SCRIPTS.ENGINE_INITIALIZATION;
 
+    // Define onload before appending
     engineInit.onload = () => {
       console.log("Engine initialization script loaded");
 
@@ -60,12 +59,15 @@ class ScriptInitializer {
         );
         return;
       }
-      console.log("babylon Engine loaded successfully");
+      console.log("Babylon Engine loaded successfully");
 
       // Initialize engine
       const engineInitialization = new EngineInitialization(engine);
       engineInitialization.initializeEngine();
     };
+
+    // Append the script only after onload is set
+    document.head.appendChild(engineInit);
   }
 
   loadScript(url) {
