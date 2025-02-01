@@ -36,45 +36,35 @@ class ScriptInitializer {
   async loadEngine(canvas) {
     console.log("Loading engine...");
 
-    // Load Babylon.js first
-    let manifestScript = await this.loadScript(
-      this.CORE_SCRIPTS.SCRIPT_MANIFEST
+    // Now load Engine Initialization script
+    let engineInit = await this.loadScript(
+      this.CORE_SCRIPTS.ENGINE_INITIALIZATION
     );
-    document.head.appendChild(manifestScript);
+    document.head.appendChild(engineInit);
 
-    manifestScript.onload = async () => {
-      console.log("Manifest loaded");
+    engineInit.onload = () => {
+      console.log("Engine initialization script loaded");
 
-      // Now load Engine Initialization script
-      let engineInit = await this.loadScript(
-        this.CORE_SCRIPTS.ENGINE_INITIALIZATION
-      );
-      document.head.appendChild(engineInit);
+      if (typeof BABYLON === "undefined") {
+        console.error("BABYLON engine not loaded. Check script import.");
+        return;
+      }
 
-      engineInit.onload = () => {
-        console.log("Engine initialization script loaded");
+      // Create Babylon engine
+      const engine = new BABYLON.Engine(canvas, true, { stencil: true });
+      console.log("Loaded Babylon engine");
 
-        if (typeof BABYLON === "undefined") {
-          console.error("BABYLON engine not loaded. Check script import.");
-          return;
-        }
+      if (typeof EngineInitialization === "undefined") {
+        console.error(
+          "EngineInitialization class not found. Check script import."
+        );
+        return;
+      }
+      console.log("babylon Engine loaded successfully");
 
-        // Create Babylon engine
-        const engine = new BABYLON.Engine(canvas, true, { stencil: true });
-        console.log("Loaded Babylon engine");
-
-        if (typeof EngineInitialization === "undefined") {
-          console.error(
-            "EngineInitialization class not found. Check script import."
-          );
-          return;
-        }
-        console.log("babylon Engine loaded successfully");
-
-        // Initialize engine
-        const engineInitialization = new EngineInitialization(engine);
-        engineInitialization.initializeEngine();
-      };
+      // Initialize engine
+      const engineInitialization = new EngineInitialization(engine);
+      engineInitialization.initializeEngine();
     };
   }
 
