@@ -92,8 +92,6 @@ class EngineInitialization {
       if (runLocally) {
         src = "." + scripts[index];
       }
-
-      console.log(src + " src of script");
       // If script is already loaded, move to the next script
       if (document.querySelector(`script[src="${src}"]`)) {
         loadedScripts.add(src);
@@ -133,9 +131,7 @@ class EngineInitialization {
     window.Logger = logger;
     window.addEventListener("resize", () => {
       this.engine.resize();
-      window.Logger.log("GameInitialization: Engine resized.");
     });
-    console.log("Finished resize handler");
   }
 
   benchmarkFrameUpdate() {
