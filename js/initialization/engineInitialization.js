@@ -102,8 +102,9 @@ class EngineInitialization {
       } else {
         const script = document.createElement("script");
         script.src = src;
+        document.head.appendChild(script);
 
-        console.log("Z1");
+        console.log("Z1 script appended");
         script.onload = () => {
           console.log("Z2");
 
@@ -112,8 +113,6 @@ class EngineInitialization {
           loadScript(index + 1); // Load the next script
           console.log("Z3");
         };
-
-        document.head.appendChild(script);
       }
     };
 
