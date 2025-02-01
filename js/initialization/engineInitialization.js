@@ -92,7 +92,7 @@ class EngineInitialization {
     const loadedScripts = new Set();
 
     const loadScript = (index) => {
-      const src = "https://www.radiant-rays.com/" + scripts[index];
+      const src = "https://www.radiant-rays.com" + scripts[index];
 
       console.log(src + " src of script");
       // If script is already loaded, move to the next script
