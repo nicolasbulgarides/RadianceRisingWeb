@@ -36,9 +36,9 @@ class ScriptInitializer {
   async loadEngine(canvas) {
     console.log("Loading engine...");
 
-    // Create script element manually:
-    const engineInit = document.createElement("script");
-    engineInit.src = this.CORE_SCRIPTS.ENGINE_INITIALIZATION;
+    let engineInit = await this.loadScript(
+      this.CORE_SCRIPTS.ENGINE_INITIALIZATION
+    );
 
     // Define onload before appending
     engineInit.onload = () => {
