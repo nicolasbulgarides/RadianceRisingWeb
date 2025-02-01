@@ -7,7 +7,7 @@ class ScriptInitializer {
   }
 
   static getIfLocal(msg) {
-    console.log("Retrieving if local: " + msg + " . " + this.runLocally);
+    //console.log("Retrieving if local: " + msg + " . " + this.runLocally);
     return this.runLocally;
   }
   async loadScriptManifest(canvas) {
