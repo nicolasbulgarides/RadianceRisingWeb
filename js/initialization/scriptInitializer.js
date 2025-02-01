@@ -33,35 +33,45 @@ class ScriptInitializer {
     };
   }
 
-  loadEngine(canvas) {
+  async loadEngine(canvas) {
     console.log("Loading engine...");
-    let engineInit = this.loadScript(this.CORE_SCRIPTS.ENGINE_INITIALIZATION);
-    document.head.appendChild(engineInit);
 
-    engineInit.onload = () => {
-      console.log("Engine initialization script loaded");
+    // Load Babylon.js first
+    let babylonScript = await this.loadScript(this.CORE_SCRIPTS.BABYLON);
+    document.head.appendChild(babylonScript);
 
-      if (typeof BABYLON === "undefined") {
-        console.error("BABYLON engine not loaded. Check script import.");
-        return;
-      }
+    babylonScript.onload = async () => {
+      console.log("Babylon.js loaded");
 
-      const engine = new BABYLON.Engine(canvas, true, { stencil: true });
-      console.log("Loaded Babylon engine");
+      // Now load Engine Initialization script
+      let engineInit = await this.loadScript(
+        this.CORE_SCRIPTS.ENGINE_INITIALIZATION
+      );
+      document.head.appendChild(engineInit);
 
-      if (typeof EngineInitialization === "undefined") {
-        console.error(
-          "EngineInitialization class not found. Check script import."
-        );
-        return;
-      }
+      engineInit.onload = () => {
+        console.log("Engine initialization script loaded");
 
-      const engineInitialization = new EngineInitialization(engine);
-      engineInitialization.initializeEngine();
-    };
+        if (typeof BABYLON === "undefined") {
+          console.error("BABYLON engine not loaded. Check script import.");
+          return;
+        }
 
-    engineInit.onerror = () => {
-      console.error("Failed to load engine initialization script.");
+        // Create Babylon engine
+        const engine = new BABYLON.Engine(canvas, true, { stencil: true });
+        console.log("Loaded Babylon engine");
+
+        if (typeof EngineInitialization === "undefined") {
+          console.error(
+            "EngineInitialization class not found. Check script import."
+          );
+          return;
+        }
+
+        // Initialize engine
+        const engineInitialization = new EngineInitialization(engine);
+        engineInitialization.initializeEngine();
+      };
     };
   }
 
