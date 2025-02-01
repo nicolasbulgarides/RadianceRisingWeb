@@ -121,7 +121,6 @@ class EngineInitialization {
         };
 
         script.onerror = () => {
-          window.Logger.error(`Failed to load script: ${src}`);
           // Continue even if a script fails to load
           loadScript(index + 1);
         };
