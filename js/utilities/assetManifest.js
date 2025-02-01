@@ -1,7 +1,6 @@
 class AssetManifest {
   // Base path to all your models/env files:
-  static baseUrl =
-    "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main";
+  static baseUrl = "https://radianceloader.nicolasbulgarides.workers.dev";
 
   // Map from a friendly key => actual file name in GitHub
   static assets = {

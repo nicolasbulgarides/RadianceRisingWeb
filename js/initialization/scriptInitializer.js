@@ -17,8 +17,9 @@ class ScriptInitializer {
     let manifest = this.loadScript(
       ScriptInitializer.CORE_SCRIPTS.SCRIPT_MANIFEST
     );
+    document.head.appendChild(manifest);
 
-    manifest.onLoad = () => {
+    manifest.onload = () => {
       window.scriptManifest = new ScriptManifest();
       this.loadEngine(canvas);
     };
@@ -28,9 +29,9 @@ class ScriptInitializer {
     let engineInit = this.loadScript(
       ScriptInitializer.CORE_SCRIPTS.ENGINE_INITIALIZATION
     );
-    engineInit.onLoad = () => {
-      document.head.appendChild(engineInit);
+    document.head.appendChild(engineInit);
 
+    engineInit.onload = () => {
       var engine = new BABYLON.Engine(canvas, true, { stencil: true });
 
       console.log("Loaded engine");
