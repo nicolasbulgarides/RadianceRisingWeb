@@ -101,7 +101,7 @@ class EngineInitialization {
         return;
       }
 
-      const src = "25e58448.radiancerisingweb.pages.dev" + scripts[index];
+      const src = "https://www.radiant-rays.com/" + scripts[index];
 
       console.log(src + " src of script");
       // If script is already loaded, move to the next script
