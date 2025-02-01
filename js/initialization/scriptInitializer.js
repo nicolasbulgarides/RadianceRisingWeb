@@ -37,11 +37,13 @@ class ScriptInitializer {
     console.log("Loading engine...");
 
     // Load Babylon.js first
-    let babylonScript = await this.loadScript(this.CORE_SCRIPTS.BABYLON);
-    document.head.appendChild(babylonScript);
+    let manifestScript = await this.loadScript(
+      this.CORE_SCRIPTS.SCRIPT_MANIFEST
+    );
+    document.head.appendChild(manifestScript);
 
-    babylonScript.onload = async () => {
-      console.log("Babylon.js loaded");
+    manifestScript.onload = async () => {
+      console.log("Manifest loaded");
 
       // Now load Engine Initialization script
       let engineInit = await this.loadScript(
