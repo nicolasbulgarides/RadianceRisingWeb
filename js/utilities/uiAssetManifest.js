@@ -1,7 +1,8 @@
 class UIAssetManifest {
-  static baseUrl =
+  static githubUrl =
     "https://raw.githubusercontent.com/nicolasbulgarides/radianceui/main/";
 
+  static workerUrl = "https://radianceloader.nicolasbulgarides.workers.dev";
   // UI asset manifest data
   static assets = {
     ascensionNebula: "ascensionNebula.png",
@@ -62,6 +63,10 @@ class UIAssetManifest {
    * @returns {string} - The full URL of the UI asset.
    */
   static getAssetUrl(assetName) {
-    return `${this.baseUrl}${this.assets[assetName] || ""}`;
+    if (ScriptInitializer.getIfLocal("UI loader, " + assetName)) {
+      return `${this.githubUrl}${this.assets[assetName] || ""}`;
+    } else {
+      return `${this.workerUrl}${this.assets[assetName] || ""}`;
+    }
   }
 }

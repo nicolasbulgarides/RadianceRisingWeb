@@ -44,8 +44,9 @@
     <script>
       var canvas = document.getElementById("renderCanvas");
 
-      console.log("Canvas made");
-      var scriptInitializer = new ScriptInitializer(canvas);
+      let runLocally = false;
+
+      var scriptInitializer = new ScriptInitializer(canvas, runLocally);
     </script>
   </body>
 </html>

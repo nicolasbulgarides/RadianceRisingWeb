@@ -1,15 +1,28 @@
 class ScriptInitializer {
-  constructor(canvas) {
-    console.log("STARTED INIT");
+  static runLocally = true;
+  constructor(canvas, runLocally) {
+    this.runLocally = runLocally;
+    console.log("STARTED INIT: Running locally: " + runLocally);
     this.loadScriptManifest(canvas);
   }
 
+  static getIfLocal(msg) {
+    console.log("Retrieving if local: " + msg + " . " + this.runLocally);
+    return this.runLocally;
+  }
   async loadScriptManifest(canvas) {
-    this.CORE_SCRIPTS = {
-      SCRIPT_MANIFEST: "https://radiant-rays.com/utilities/scriptManifest.js",
-      ENGINE_INITIALIZATION:
-        "https://radiant-rays.com/initialization/engineInitialization.js",
-    };
+    if (this.runLocally) {
+      this.CORE_SCRIPTS = {
+        SCRIPT_MANIFEST: "./utilities/scriptManifest.js",
+        ENGINE_INITIALIZATION: "./initialization/engineInitialization.js",
+      };
+    } else {
+      this.CORE_SCRIPTS = {
+        SCRIPT_MANIFEST: "https://radiant-rays.com/utilities/scriptManifest.js",
+        ENGINE_INITIALIZATION:
+          "https://radiant-rays.com/initialization/engineInitialization.js",
+      };
+    }
 
     console.log("STARTED MANIFEST");
     console.log("URL: " + this.CORE_SCRIPTS.SCRIPT_MANIFEST);
@@ -62,7 +75,7 @@ class ScriptInitializer {
 
       // Initialize engine
       const engineInitialization = new EngineInitialization(engine);
-      engineInitialization.initializeEngine();
+      engineInitialization.initializeEngine(this.runLocally);
     };
 
     // Append the script only after onload is set

@@ -2,6 +2,8 @@ class SoundAssetManifest {
   static baseUrl =
     "https://raw.githubusercontent.com/nicolasbulgarides/radiancesoundfx/main/";
 
+  static workerUrl = "https://radianceloader.nicolasbulgarides.workers.dev";
+
   // Sound asset manifest data with all volumes set to 1.0
   static allSounds = {
     achivementUnlocked: { volume: 1.0 },
@@ -116,7 +118,11 @@ class SoundAssetManifest {
    * @returns {string} - The full URL of the sound effect.
    */
   static getSoundUrl(soundName) {
-    return `${this.baseUrl}${soundName}.wav`;
+    if (ScriptInitializer.getIfLocal("Sound loader")) {
+      return `${this.baseUrl}${soundName}.wav`;
+    } else {
+      return `${this.workerUrl}${soundName}.wav`;
+    }
   }
 
   /**

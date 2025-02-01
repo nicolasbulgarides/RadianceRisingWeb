@@ -65,11 +65,11 @@ class EngineInitialization {
     CameraManager.setPlaceholderCamera(this.scene);
   }
 
-  initializeEngine() {
+  initializeEngine(runLocally) {
     const scriptsToLoad = ScriptManifest.getScriptsToLoad();
 
     console.log("Obtained scripts to load: " + scriptsToLoad.length);
-    this.loadScripts(scriptsToLoad, () => {
+    this.loadScripts(runLocally, scriptsToLoad, () => {
       this.setupResizeHandler();
 
       this.sceneRenderProcess();
@@ -91,11 +91,15 @@ class EngineInitialization {
     //this.benchmarkFrameUpdate();
   }
 
-  loadScripts(scripts, callback) {
+  loadScripts(runLocally, scripts, callback) {
     const loadedScripts = new Set();
 
     const loadScript = (index) => {
-      const src = "https://radiant-rays.com" + scripts[index];
+      let src = "https://radiant-rays.com" + scripts[index];
+
+      if (runLocally) {
+        src = "." + scripts[index];
+      }
 
       console.log(src + " src of script");
       // If script is already loaded, move to the next script
