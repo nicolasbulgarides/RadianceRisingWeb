@@ -29,18 +29,13 @@ class EngineInitialization {
   }
 
   loadEngineSettings() {
-    console.log("A custom engine init");
-
     this.engine.setHardwareScalingLevel(1 / (window.devicePixelRatio || 1));
-    console.log("AA");
 
     this.scene = new BABYLON.Scene(this.engine);
     this.autoClearDepthAndStencil = false;
     this.scene.clearColor = new BABYLON.Color4(0, 0, 0, 0);
-    console.log("CC");
 
     this.addAudioUnlock();
-    console.log("Finished loading engin settings");
   }
   /**
    * Initializes the game by loading all necessary scripts and setting up the scene.
@@ -68,15 +63,12 @@ class EngineInitialization {
   initializeEngine(runLocally) {
     const scriptsToLoad = ScriptManifest.getScriptsToLoad();
 
-    console.log("Obtained scripts to load: " + scriptsToLoad.length);
     this.loadScripts(runLocally, scriptsToLoad, () => {
       this.setupResizeHandler();
 
       this.sceneRenderProcess();
-      console.log("Finished running the scene render process");
       // this.benchmarkTest();
       this.loadGameplay();
-      console.log("Finished running the gameplay");
 
       // Start the render loop
       this.engine.runRenderLoop(() => {
