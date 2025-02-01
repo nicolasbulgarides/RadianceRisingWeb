@@ -1,23 +1,21 @@
 class ScriptInitializer {
-  static CORE_SCRIPTS = {
-    SCRIPT_MANIFEST:
-      "https://dd776069.radiancerisingweb.pages.dev/utilities/scriptManifest.js",
-    ENGINE_INITIALIZATION:
-      "https://dd776069.radiancerisingweb.pages.dev/initialization/engineInitialization.js",
-  };
-
   constructor(canvas) {
     console.log("STARTED INIT");
     this.loadScriptManifest(canvas);
   }
 
   async loadScriptManifest(canvas) {
+    this.CORE_SCRIPTS = {
+      SCRIPT_MANIFEST:
+        "https://dd776069.radiancerisingweb.pages.dev/utilities/scriptManifest.js",
+      ENGINE_INITIALIZATION:
+        "https://dd776069.radiancerisingweb.pages.dev/initialization/engineInitialization.js",
+    };
+
     console.log("STARTED MANIFEST");
     console.log("URL: " + ScriptInitializer.CORE_SCRIPTS.SCRIPT_MANIFEST);
 
-    let manifest = this.loadScript(
-      ScriptInitializer.CORE_SCRIPTS.SCRIPT_MANIFEST
-    );
+    let manifest = this.loadScript(this.CORE_SCRIPTS.SCRIPT_MANIFEST);
     document.head.appendChild(manifest);
 
     manifest.onload = () => {
@@ -37,9 +35,7 @@ class ScriptInitializer {
 
   loadEngine(canvas) {
     console.log("Loading engine...");
-    let engineInit = this.loadScript(
-      ScriptInitializer.CORE_SCRIPTS.ENGINE_INITIALIZATION
-    );
+    let engineInit = this.loadScript(this.CORE_SCRIPTS.ENGINE_INITIALIZATION);
     document.head.appendChild(engineInit);
 
     engineInit.onload = () => {
@@ -70,6 +66,7 @@ class ScriptInitializer {
   }
 
   loadScript(url) {
+    console.log("Url to load: " + url);
     const script = document.createElement("script");
     script.src = url;
     script.async = true; // Ensures it loads asynchronously

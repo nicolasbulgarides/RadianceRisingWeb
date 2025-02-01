@@ -30,7 +30,7 @@ class EngineInitialization {
     this.scene = new BABYLON.Scene(this.engine);
     this.autoClearDepthAndStencil = false;
     this.scene.clearColor = new BABYLON.Color4(0, 0, 0, 0);
-    console.log("CCs");
+    console.log("CC");
 
     this.addAudioUnlock();
     this.setupResizeHandler();

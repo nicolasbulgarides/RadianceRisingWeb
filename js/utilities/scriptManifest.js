@@ -4,8 +4,9 @@ class ScriptManifest {
   }
   static getScriptsToLoad() {
     const scriptsToLoad = [
-      "/.js/utilities/chadUtilities.js",
       "/utilities/config.js",
+
+      "/utilities/chadUtilities.js",
       "/utilities/logger.js",
       "/utilities/sceneBuilder.js",
       "/utilities/scriptManifest.js",
