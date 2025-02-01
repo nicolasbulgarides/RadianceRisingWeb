@@ -73,8 +73,11 @@ class EngineInitialization {
       this.setupResizeHandler();
 
       this.sceneRenderProcess();
+      console.log("Finished running the scene render process");
       // this.benchmarkTest();
       this.loadGameplay();
+      console.log("Finished running the gameplay");
+
       // Start the render loop
       this.engine.runRenderLoop(() => {
         this.onFrameRenderUpdates();
@@ -110,7 +113,6 @@ class EngineInitialization {
 
           if (index < scripts.length - 1) {
             loadScript(index + 1); // Load the next script
-            console.log("Z3");
           }
         };
       }
@@ -129,11 +131,13 @@ class EngineInitialization {
    * Sets up the window resize handler.
    */
   setupResizeHandler() {
-    window.Logger = new Logger();
+    let logger = new Logger();
+    window.Logger = logger;
     window.addEventListener("resize", () => {
       this.engine.resize();
       window.Logger.log("GameInitialization: Engine resized.");
     });
+    console.log("Finished resize handler");
   }
 
   benchmarkFrameUpdate() {
