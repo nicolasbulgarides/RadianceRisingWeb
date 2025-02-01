@@ -108,7 +108,7 @@ class EngineInitialization {
           // window.Logger.log(`GameInitialization: Loaded script: ${src}`);
           loadedScripts.add(src); // Add the script to the loaded list
 
-          if (index < scripts.length) {
+          if (index < scripts.length - 1) {
             loadScript(index + 1); // Load the next script
             console.log("Z3");
           }
