@@ -59,7 +59,7 @@ class EngineInitialization {
   initializeEngine() {
     const scriptsToLoad = ScriptManifest.getScriptsToLoad();
 
-    console.log("Obtained scripts to load");
+    console.log("Obtained scripts to load: " + scriptsToLoad.length);
     this.loadScripts(scriptsToLoad, () => {
       this.sceneRenderProcess();
       // this.benchmarkTest();

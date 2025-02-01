@@ -20,7 +20,7 @@ class ScriptInitializer {
     document.head.appendChild(manifest);
 
     manifest.onload = () => {
-      window.scriptManifest = new ScriptManifest();
+      var scriptManifest = new ScriptManifest();
       this.loadEngine(canvas);
     };
   }
