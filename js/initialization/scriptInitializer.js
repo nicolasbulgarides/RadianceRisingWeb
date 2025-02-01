@@ -13,7 +13,7 @@ class ScriptInitializer {
     };
 
     console.log("STARTED MANIFEST");
-    console.log("URL: " + ScriptInitializer.CORE_SCRIPTS.SCRIPT_MANIFEST);
+    console.log("URL: " + this.CORE_SCRIPTS.SCRIPT_MANIFEST);
 
     let manifest = this.loadScript(this.CORE_SCRIPTS.SCRIPT_MANIFEST);
     document.head.appendChild(manifest);
