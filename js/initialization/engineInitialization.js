@@ -25,9 +25,12 @@ class EngineInitialization {
 
   loadEngineSettings() {
     this.engine.setHardwareScalingLevel(1 / (window.devicePixelRatio || 1));
+    console.log("AA");
+
     this.scene = new BABYLON.Scene(this.engine);
     this.autoClearDepthAndStencil = false;
     this.scene.clearColor = new BABYLON.Color4(0, 0, 0, 0);
+    console.log("CCs");
 
     this.addAudioUnlock();
     this.setupResizeHandler();

@@ -34,7 +34,7 @@ class ScriptInitializer {
     engineInit.onload = () => {
       var engine = new BABYLON.Engine(canvas, true, { stencil: true });
 
-      console.log("Loaded engine");
+      console.log("Loaded Babylon engine");
       // Initialize your game
       var engineInitialization = new EngineInitialization(engine);
       engineInitialization.initializeEngine();
