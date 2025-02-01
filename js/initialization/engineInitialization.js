@@ -101,8 +101,7 @@ class EngineInitialization {
         return;
       }
 
-      const src =
-        "https://dd776069.radiancerisingweb.pages.dev/" + scripts[index];
+      const src = "https://radiancerisingweb.pages.dev/" + scripts[index];
 
       console.log(src + " src of script");
       // If script is already loaded, move to the next script
