@@ -7,9 +7,9 @@ class ScriptInitializer {
   async loadScriptManifest(canvas) {
     this.CORE_SCRIPTS = {
       SCRIPT_MANIFEST:
-        "radiancerisingweb.pages.dev/utilities/scriptManifest.js",
+        "https://radiancerisingweb.pages.dev/utilities/scriptManifest.js",
       ENGINE_INITIALIZATION:
-        "radiancerisingweb.pages.dev/initialization/engineInitialization.js",
+        "https://radiancerisingweb.pages.dev/initialization/engineInitialization.js",
     };
 
     console.log("STARTED MANIFEST");
