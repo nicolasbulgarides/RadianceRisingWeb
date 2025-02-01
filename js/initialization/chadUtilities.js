@@ -1,5 +1,6 @@
 class ChadUtilities {
   static describeVector(msg, vector) {
+    return;
     console.log(
       "MSG: " +
         msg +
@@ -12,6 +13,7 @@ class ChadUtilities {
     );
   }
   static describePositionedObject(msg, object) {
+    return;
     console.log(
       "MSG: " +
         msg +
