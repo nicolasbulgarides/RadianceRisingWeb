@@ -8,7 +8,6 @@ class ScriptManifest {
       "/utilities/chadUtilities.js",
       "/utilities/logger.js",
       "/utilities/sceneBuilder.js",
-      "/utilities/scriptManifest.js",
       "/utilities/soundAssetManifest.js",
       "/managers/benchmarkManager.js",
       "/utilities/uiAssetManifest.js",
