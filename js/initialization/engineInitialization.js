@@ -92,16 +92,6 @@ class EngineInitialization {
     const loadedScripts = new Set();
 
     const loadScript = (index) => {
-      if (index >= scripts.length) {
-        window.Logger.log(
-          `GameInitialization: All scripts loaded: ${Array.from(
-            loadedScripts
-          ).join(", ")}`
-        );
-        callback(); // All scripts are loaded, execute the callback
-        return;
-      }
-
       const src = "https://www.radiant-rays.com/" + scripts[index];
 
       console.log(src + " src of script");
