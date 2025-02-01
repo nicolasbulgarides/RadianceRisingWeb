@@ -4,6 +4,7 @@ class EngineInitialization {
    * @param {BABYLON.Engine} engineInstance - The Babylon.js engine instance.
    */
   constructor(engineInstance) {
+    console.log("Started custom engine init");
     this.engine = engineInstance;
     this.baseUIScene = null;
     this.loadEngineSettings();
@@ -24,6 +25,8 @@ class EngineInitialization {
   }
 
   loadEngineSettings() {
+    console.log("A custom engine init");
+
     this.engine.setHardwareScalingLevel(1 / (window.devicePixelRatio || 1));
     console.log("AA");
 

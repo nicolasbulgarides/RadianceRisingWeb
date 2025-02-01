@@ -67,6 +67,7 @@ class ScriptInitializer {
           );
           return;
         }
+        console.log("babylon Engine loaded successfully");
 
         // Initialize engine
         const engineInitialization = new EngineInitialization(engine);
