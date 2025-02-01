@@ -113,6 +113,8 @@ class EngineInitialization {
 
           if (index < scripts.length - 1) {
             loadScript(index + 1); // Load the next script
+          } else {
+            callback();
           }
         };
       }
