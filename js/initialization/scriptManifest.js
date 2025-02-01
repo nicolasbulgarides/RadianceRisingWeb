@@ -43,7 +43,7 @@ class ScriptManifest {
       "/managers/playerModelMovementManager.js",
       "/managers/movementPathManager.js",
       "/gameplay/playerUnit.js",
-      "/initialization/chadUtilities.js",
+      "/utilities/chadUtilities.js",
     ];
     const scriptsToLoad2 = [
       "./js/utilities/chadUtilities.js",
