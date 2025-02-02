@@ -31,9 +31,7 @@ class GameplayManager {
       .getPlayerModelPositionedObject();
 
     await this.sceneBuilder.loadAnimatedModel(positionedObject);
-    this.gameWorldLoader.setPlayerCamera(
-      this.demoPlayer.getPlayerModelDirectly()
-    );
+    this.gameWorldLoader.setPlayerCamera(this.demoPlayer);
 
     //this.gameWorldLoader.setPlaceholderCamera();
   }

@@ -39,7 +39,11 @@ class GameWorldLoader {
     this.cameraManager.setPlaceholderCamera();
   }
   setPlayerCamera(player) {
-    this.cameraManager.setCameraToChase(player);
+    this.cameraManager.setCameraToChase(
+      player.getPlayerPositionAndModelManager().getPlayerModelDirectly()
+    );
+
+    this.lightingManager.modifyPlayerModelLight(player);
   }
 
   loadLighting() {

@@ -18,6 +18,7 @@ class LightingManager {
     // Default modes – these can be overridden by a config object.
     this.colorShiftMode = LightingManager.ColorShiftMode.BLUE;
     this.lightingMode = LightingManager.LightingType.DIRECTIONAL;
+    this.playerModel = null;
 
     // If a custom config object is provided, look for overrides.
     if (typeof config === "object") {
@@ -123,6 +124,49 @@ class LightingManager {
     window.Logger.log(
       "LightingManager: Day lighting setup complete with activeLights."
     );
+  }
+
+  modifyPlayerModelLight(player) {
+    this.playerLightOffset = new BABYLON.Vector3(0, 5, 0);
+    this.positionedObjectForPlayer = player
+      .getPlayerPositionAndModelManager()
+      .getPlayerModelPositionedObject();
+
+    let playerModel = player
+      .getPlayerPositionAndModelManager()
+      .getPlayerModelDirectly();
+
+    this.excludePlayerModelFromLight(playerModel);
+    this.addPlayerChasingLight();
+  }
+  addPlayerChasingLight() {
+    let copyMe = this.positionedObjectForPlayer.getCompositePositionBaseline();
+    let position = new BABYLON.Vector3(copyMe.x, copyMe.y, copyMe.z);
+
+    this.chasingLight = new BABYLON.PointLight(
+      "chasingLight",
+      position,
+      this.scene
+    );
+    this.chasingLight.diffuse = new BABYLON.Color3(1, 1, 0.8);
+    this.chasingLight.intensity = 1;
+
+    // Optional: If you want to exclude the player from this light, you can do so:
+    // chasingLight.excludedMeshes.push(playerMesh);
+
+    // Define an offset so the light is not exactly at the player's center:
+  }
+  excludePlayerModelFromLight(playerModel) {
+    this.activeLights.forEach((light) => {
+      // If the light already has an excludedMeshes array, add the player if it's not already added.
+      // Otherwise, initialize the array.
+      if (!light.excludedMeshes) {
+        light.excludedMeshes = [];
+      }
+      if (light.excludedMeshes.indexOf(playerModel) === -1) {
+        light.excludedMeshes.push(playerModel);
+      }
+    });
   }
 
   getColorShiftPresetValuesModular(presetIndex) {
@@ -391,6 +435,26 @@ class LightingManager {
    */
   onFrameCall() {
     this.updateActiveLights();
+    this.updatePlayerLight();
+  }
+
+  updatePlayerLight() {
+    if (
+      this.playerModel != null &&
+      this.chasingLight != null &&
+      this.positionedObjectForPlayer != null
+    ) {
+      let copyMe =
+        this.positionedObjectForPlayer.getCompositePositionBaseline();
+      // console.log(copyMe);
+
+      let positionVector = new BABYLON.Vector3(copyMe.x, copyMe.y, copyMe.z);
+      this.chasingLight.position = positionVector;
+
+      // this.chasingLight.position = copyMe.add(this.playerLightOffset);
+    } else {
+      // console.log("Player model position null!");
+    }
   }
 
   /**
