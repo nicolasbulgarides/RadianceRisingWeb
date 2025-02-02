@@ -2,7 +2,7 @@ class UIAssetManifest {
   static githubUrl =
     "https://raw.githubusercontent.com/nicolasbulgarides/radianceui/main/";
 
-  static workerUrl = "https://radianceloader.nicolasbulgarides.workers.dev";
+  static workerUrl = "https://radianceloader.nicolasbulgarides.workers.dev/";
   // UI asset manifest data
   static assets = {
     ascensionNebula: "ascensionNebula.png",

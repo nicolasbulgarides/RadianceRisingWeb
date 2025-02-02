@@ -1,6 +1,6 @@
 class AssetManifest {
   // Base path to all your models/env files:
-  static baseUrl = "https://radianceloader.nicolasbulgarides.workers.dev";
+  static baseUrl = "https://radianceloader.nicolasbulgarides.workers.dev/";
   static githubUrl =
     "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/assets/";
 
@@ -123,9 +123,9 @@ class AssetManifest {
   static getAssetUrl(assetName) {
     let fileName = this.assets[assetName];
     if (ScriptInitializer.getIfLocal("MODELS")) {
-      return fileName ? `${this.githubUrl}/${fileName}` : null;
+      return fileName ? `${this.githubUrl}${fileName}` : null;
     } else {
-      return fileName ? `${this.baseUrl}/${fileName}` : null;
+      return fileName ? `${this.baseUrl}${fileName}` : null;
     }
   }
 }

@@ -2,7 +2,7 @@ class SoundAssetManifest {
   static baseUrl =
     "https://raw.githubusercontent.com/nicolasbulgarides/radiancesoundfx/main/";
 
-  static workerUrl = "https://radianceloader.nicolasbulgarides.workers.dev";
+  static workerUrl = "https://radianceloader.nicolasbulgarides.workers.dev/";
 
   // Sound asset manifest data with all volumes set to 1.0
   static allSounds = {
