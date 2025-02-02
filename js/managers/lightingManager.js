@@ -16,25 +16,12 @@ class LightingManager {
     this.scene = sceneInstance;
     this.activeLights = []; // Array to hold lights and their shift parameters
     // Default modes – these can be overridden by a config object.
-    this.colorShiftMode = LightingManager.ColorShiftMode.BLUE;
+    //this.colorShiftMode = LightingManager.ColorShiftMode.BLUE;
+    //    this.colorShiftMode = LightingManager.ColorShiftMode.BLUE;
+
+    this.doColorModeOverride = true;
     this.lightingMode = LightingManager.LightingType.DIRECTIONAL;
     this.playerModel = null;
-
-    // If a custom config object is provided, look for overrides.
-    if (typeof config === "object") {
-      if (
-        config.colorShiftMode &&
-        LightingManager.ColorShiftMode[config.colorShiftMode.toUpperCase()]
-      ) {
-        this.colorShiftMode = config.colorShiftMode;
-      }
-      if (
-        config.lightingMode &&
-        LightingManager.LightingType[config.lightingMode.toUpperCase()]
-      ) {
-        this.lightingMode = config.lightingMode;
-      }
-    }
 
     // Store the original config for later reference.
     this.config = config;
@@ -105,13 +92,13 @@ class LightingManager {
         light = new BABYLON.PointLight(name, position, this.scene);
       }
 
-      let presetIndex = 0;
+      let presetIndex = 43;
       let modularValues = this.getColorShiftPresetValuesModular(presetIndex);
       let shift = this.getColorShiftComposite(modularValues);
       // Initialize the light's diffuse color with an HSV-to-RGB conversion.
-      light.diffuse = LightingManager.hsvToRgb(shift.baseHue, 1, 1);
-      light.intensity = shift.diffuse;
       // Store both light and its shift parameters.
+      light.diffuse = LightingManager.hsvToRgb(shift.baseHue, 1, 1);
+
       this.activeLights.push({ light, shift });
     };
 
@@ -171,10 +158,10 @@ class LightingManager {
 
   getColorShiftPresetValuesModular(presetIndex) {
     // baseLightIntensity
-    //colorShiftIntensity
-    //diffuseIntensity,
+    //baseHue
+    //hueShiftVariation
     //intensitySpeed,
-    //hueSpeedBase,
+    //hueIntensitySpeed
     //amplitude,
     //intervalMin,
     //intervalMax
@@ -185,39 +172,40 @@ class LightingManager {
 
     switch (presetIndex) {
       case 0:
-        testValues = [0, 0, 1, 0, 0, 0, 0, 0, 0, 0];
+        testValues = [0, 4, 0, 0, 0, 0, 0, 0, 0];
         break;
       case 1:
-        testValues = [0, 0, 1, 0, 0, 0, 0, 0, 0, 0];
+        testValues = [0, 4, 0, 0, 0, 0, 0, 0, 0];
         break;
       case 2:
-        testValues = [0, 0, 1, 0, 0, 0, 0, 0, 0, 0];
+        testValues = [0, 4, 0, 0, 0, 0, 0, 0, 0];
         break;
       case 3:
-        testValues = [0, 0, 1, 0, 0, 0, 0, 0, 0, 0];
+        testValues = [0, 4, 0, 0, 0, 0, 0, 0, 0];
+        break;
+      case 42: //Blue variation
+        testValues = [0, 4, 0, 0, 0, 0, 0, 0, 0];
+        break;
+      case 43: //Blue variation
+        testValues = [0, 0, 3, 0, 0, 0, 0, 0, 0];
         break;
     }
 
     let valuesPulledModular = {
       baseLightIntensity: this.getBaseLightIntensityByIndex(testValues[0]),
       baseHue: this.getBaseHue(testValues[1]),
-      colorShiftIntensity: this.getColorShiftIntensityByIndex(testValues[2]),
-      diffuseIntensity: this.getDiffuseIntensityByIndex(testValues[3]),
-      intensitySpeed: this.getIntensitySpeedByIndex(testValues[4]),
-      hueSpeed: this.getHueSpeedByIndex(testValues[5]),
-      amplitude: this.getAmplitudeByIndex(testValues[6]),
+      hueVariation: this.getHueShiftVariationByIndex(testValues[2]),
+      intensitySpeed: this.getIntensitySpeedByIndex(testValues[3]),
+      hueSpeed: this.getHueSpeedByIndex(testValues[4]),
+      amplitude: this.getAmplitudeByIndex(testValues[5]),
       shiftInterval:
-        this.getIntervalMinByIndex(testValues[7]) +
-        this.getIntervalMaxByIndex(testValues[8]),
+        this.getIntervalMinByIndex(testValues[6]) +
+        this.getIntervalMaxByIndex(testValues[7]),
     };
 
+    console.log("Preset index: " + presetIndex);
     testValues = valuesPulledModular;
 
-    const intervalMin = this.getIntervalMinByIndex(testValues[7]);
-    const intervalMax = this.getIntervalMaxByIndex(testValues[8]);
-    console.log("intervalMin:", intervalMin, "intervalMax:", intervalMax);
-    const shiftInterval = intervalMin + Math.random() * intervalMax;
-    console.log("Calculated shiftInterval:", shiftInterval);
     return this.getColorShiftComposite(valuesPulledModular);
   }
   // 1.0 to 5
@@ -231,6 +219,8 @@ class LightingManager {
         return 0.5;
       case 3:
         return 0.25;
+      case 4:
+        return 0.66; //base for blue
     }
     return 1;
   }
@@ -249,49 +239,32 @@ class LightingManager {
     return 5;
   }
   // 1.25 to 5
-  getColorShiftIntensityByIndex(shiftTestIndex) {
+  getHueShiftVariationByIndex(shiftTestIndex) {
     switch (shiftTestIndex) {
       case 0:
-        return 1.25;
+        return 0.05; //base for original blue variation
       case 1:
-        return 2.5;
+        return 0.1;
       case 2:
-        return 3.75;
-      case 3:
-        return 5.0;
-    }
-  }
-
-  // 1.25 to 5
-  getDiffuseIntensityByIndex(shiftTestIndex) {
-    switch (shiftTestIndex) {
-      case 0:
-        return 1.0;
-      case 1:
-        return 0.75;
-      case 2:
-        return 0.5;
-      case 3:
-        return 0.25;
-      case 4:
         return 0.15;
+      case 3:
+        return 0.2;
     }
-    return 1;
   }
 
   //suggestion of 0.3 to 0.7
   getIntensitySpeedByIndex(shiftTestIndex) {
     switch (shiftTestIndex) {
       case 0:
-        return 0.3;
+        return 0.05;
       case 1:
-        return 0.45;
+        return 0.1;
       case 2:
-        return 0.6;
+        return 0.15;
       case 3:
-        return 0.7;
+        return 0.2;
     }
-    return 0.45;
+    return 0.05;
   }
 
   //suggestion of 0.05 to 0.15
@@ -351,9 +324,7 @@ class LightingManager {
     // Randomized parameters for evolving light shifts.
     const shift = {
       baseLightIntensity: modularValues.baseLightIntensity,
-      colorShiftIntensity: modularValues.colorShiftIntensity,
-
-      diffuseIntensity: modularValues.diffuseIntensity,
+      hueVariation: modularValues.hueVariation,
       baseHue: modularValues.baseHue,
       hueSpeed: modularValues.hueSpeed + Math.random() * 0.1, // 0.05 - 0.15: hue progression speed
       amplitude: modularValues.amplitude + Math.random() * 0.5, // 0.5 - 1.0: intensity variation amplitude
@@ -362,8 +333,8 @@ class LightingManager {
       lastShiftUpdate: performance.now() * 0.001, // record the current time (seconds)
       shiftInterval: modularValues.shiftInterval * Math.random(), // re-randomize every  8  - 16 seconds
       // Store the type (for use in update loop)
-      lightType: this.lightingMode,
     };
+
     console.log(JSON.stringify(shift, null, 2)); // pretty-print with indentation
 
     return shift;
@@ -457,25 +428,44 @@ class LightingManager {
     }
   }
 
-  /**
-   * Updates active lights: adjusts color (with support for a blue preset), intensity, and light transformation
-   * (directional vs. positional) over time.
-   */
+  //note base hue of 0.66 and variation of 0.05
+  getColorShiftBaseHue(shiftTestIndex) {
+    // --- Color shift update ---
+    switch (shiftTestIndex) {
+      case 0:
+        return 0.66;
+      case 1:
+        return 0.5;
+      case 2:
+        return 0.25;
+      case 3:
+        return 0.75;
+      case 4:
+        return 1.0;
+    }
+    return 0.66;
+  }
+  getColorShiftHueVariation(shiftTestIndex) {
+    // --- Color shift update ---
+    switch (shiftTestIndex) {
+      case 0:
+        return 0.05;
+      case 1:
+        return 0.1;
+      case 2:
+        return 0.15;
+    }
+    return 0.05;
+  }
+
   updateActiveLights() {
     const currentTime = performance.now() * 0.001;
     this.activeLights.forEach(({ light, shift }, i) => {
-      // --- Color shift update ---
-      let newHue;
-      if (this.colorShiftMode === LightingManager.ColorShiftMode.BLUE) {
-        // Lock hue near blue (around 0.66) with slight variation.
-        const baseBlueHue = 0.66;
-        const variation = 0.05;
-        newHue =
-          baseBlueHue + variation * Math.sin(currentTime * shift.hueSpeed);
-      } else {
-        newHue = (shift.baseHue + shift.hueSpeed * currentTime) % 1;
-      }
-      if (light.diffuse) {
+      if (shift.baseHue >= 0) {
+        let newHue =
+          shift.baseHue +
+          shift.hueVariation * Math.sin(currentTime * shift.hueSpeed);
+
         light.diffuse = LightingManager.hsvToRgb(newHue, 1, 1);
       }
 
