@@ -103,6 +103,10 @@ class AssetManifest {
     testVeenaSapphire: "testVeenaSapphire.glb",
     testVailEmerald: "testVailEmerald.glb",
     mechaSphereBronzeLowRes: "mechaSphereBronzeLowRes.glb",
+    mechaSphereLowPolygonBronze: "mechaSphereLowPolygonBronze.glb",
+    mechaSphereLowPolygonPink: "mechaSphereLowPolygonPink.glb",
+    mechaSphereLowPolygonPurple: "mechaSphereLowPolygonPurple.glb",
+
     tile1: "tile1.glb",
     tile2: "tile2.glb",
     tile3: "tile3.glb",

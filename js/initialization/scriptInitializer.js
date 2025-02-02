@@ -1,5 +1,5 @@
 class ScriptInitializer {
-  static runLocally = true;
+  static runLocally = false;
   constructor(canvas, runLocally) {
     this.runLocally = runLocally;
     console.log("STARTED INIT: Running locally: " + runLocally);

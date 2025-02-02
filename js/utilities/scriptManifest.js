@@ -1,7 +1,5 @@
 class ScriptManifest {
-  constructor() {
-    console.log("YES I RAN");
-  }
+  constructor() {}
   static getScriptsToLoad() {
     const scriptsToLoad = [
       "/utilities/config.js",

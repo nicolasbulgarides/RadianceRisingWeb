@@ -8,6 +8,7 @@ class Config {
   // Default values
   static DEFAULT_NAME = "Francisco";
 
+  // static DEFAULT_MODEL = "mechaSphereLowPolygonPurple";
   static DEFAULT_MODEL = "mechaSphereBronzeLowRes";
   static DEMO_WORLD = "testWorld0";
   static DEFAULT_SPEED = 4;
