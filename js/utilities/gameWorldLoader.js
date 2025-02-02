@@ -49,6 +49,11 @@ class GameWorldLoader {
     );
   }
 
+  onFrameEvents() {
+    if (this.lightingManager != null) {
+      this.lightingManager.onFrameCall();
+    }
+  }
   getTileIdsByWorldArchetype(archetype) {
     let tileIds = ["tile1"];
 

@@ -42,6 +42,9 @@ class GameplayManager {
     if (this.movementPathManager != null) {
       this.movementPathManager.processPossiblePlayerModelMovements();
     }
+    if (this.gameWorldLoader != null) {
+      this.gameWorldLoader.onFrameEvents();
+    }
   }
 
   processAttemptedMovementFromUIClick(direction) {
