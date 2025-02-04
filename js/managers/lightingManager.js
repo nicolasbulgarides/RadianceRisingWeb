@@ -11,395 +11,110 @@ class LightingManager {
    */
   constructor(sceneInstance) {
     this.scene = sceneInstance;
-    this.activeLights = []; // Array to hold lights and their shift parameters
-    this.doColorModeOverride = true;
-    this.playerModel = null;
-    this.lightFrameIndex = 0;
-    this.initialLightDirection = null;
-    this.currentLightDirection = null;
-    this.initialLightPreset = null;
-    this.currentLightPreset = null;
-    this.valuableLightPresets = {};
-
-    // Store the original config for later reference.
-
-    let experimentIndex = this.manageExperimentConfigurationPanel();
-    this.initialize(experimentIndex);
+    this.initializeMiscVariables();
+    this.initializeLightingComposite();
   }
-  storeNicksValuableBasicLightPresets() {
-    this.valuableLightPresets.mysticbluegradient = {
-      presetName: "mysticbluegradient",
-      baseLightIntensity: 10,
-      baseLightIntensityAmplitude: 3,
-      baseHue: 11,
-      hueVariation: 1,
-      baseLightIntensitySpeed: 15,
-      hueShiftSpeed: 14,
-    };
-  }
-  //this little section lets you make tweaks very quickly so as to do various expeirments, this is the config panel
-  //There are default values (above), but the override system lets you experiment / change the default values before
-  //they are actually used, to then discover valuable Light combinations
 
-  // The code has been cleaned up and adjusted so that almost ALL time will be spent changing the two following specific methods,\
-  //manageExperimentConfigurationPanel() and adjustLightExperimentSettings()
-  //the former changes what KINDS of light to test, and the second changes specific light properties
-  //both are important
-  //If you create a preset that you are happy with, you will then "store it" by adding it to the storeFrancescasValuableLightPresets() method
-  //Because you put your Light presets in a different method, you wont accidentally delete my presets
-  //please remember that 0 is the default / baseline recommended value - and then moving from 0 - > the highest index value of a setting
-  //increases a setting in exact proportion to the index value multiplied by a specific amount
-  manageExperimentConfigurationPanel() {
-    let runningATest = false; //change me between true and false when game is loading the default light vs specific experiments
-    let experimentIndex = -1;
-
-    this.currentEnvironmentLightArchetype =
-      Config.DEFAULT_ENVIRONMENT_LIGHT_ARCHETYPE;
-    this.currentEnvironmentLightContext = Config.DEFAULT_ENVIRONMENT_CONTEXT;
-
-    this.currentEnvironmentLightPreset =
-      Config.DEFAULT_ENVIRONMENT_LIGHT_PRESET;
-
-    this.currentEnvironmentLightVectorPreset = null;
-
-    this.storeNicksValuableBasicLightPresets();
+  manageExperimentOrPresetConfigurationPanel() {
+    let runningAnExperiment = true; //change me between true and false when game is loading the default light vs specific experiments
+    let experimentIndex = 42;
+    let configurationTemplate = "unused";
 
     //<============================
-    if (runningATest) {
-      let currentLightArchetypeOverride = "directional";
-      let currentEnvironmentLightContextOverride = "standardlevel0";
-      let currentLightPresetOverride = "mysticbluegradient";
-      let currentDirectionalLightVectorOverride = "experiment";
-      let experimentIndexOverride = experimentIndex;
-
-      this.currentEnvironmentLightArchetype = currentLightArchetypeOverride;
-      this.currentEnvironmentLightContext =
-        currentEnvironmentLightContextOverride;
-      this.currentEnvironmentLightPreset = currentLightPresetOverride;
-      this.currentEnvironmentLightVectorPreset =
-        currentDirectionalLightVectorOverride;
-      this.currentEnvironmentLightTestIndex = experimentIndexOverride;
-      experimentIndex = experimentIndexOverride;
-    }
-
-    return experimentIndex;
-  }
-
-  initialize(experimentIndex) {
-    //<============================end of config panel
-
-    //leave this alone - this is the switch system
-    //initial lights are stored so that lights can be reset to default conditions on desire
-    this.initialEnvironmentLightArchetype =
-      this.currentEnvironmentLightArchetype;
-
-    console.log(
-      "Initial: X" +
-        this.initialEnvironmentLightArchetype +
-        ", current Y: " +
-        this.currentEnvironmentLightArchetype
-    );
-    this.initialEnvironmentLightContext = this.currentEnvironmentLightContext;
-    this.initialEnvironmentLightPreset = this.currentEnvironmentLightPreset;
-    this.initialEnvironmentLightVectorPreset =
-      this.currentEnvironmentLightVectorPreset;
-
-    console.log(
-      "Presets: initial " +
-        this.initialEnvironmentLightPreset +
-        ", current " +
-        this.currentEnvironmentLightPreset
-    );
-
-    if (experimentIndex >= 0) {
-      this.setEnvironmentLightExperiment(
-        this.initialEnvironmentLightArchetype,
-        this.initialEnvironmentLightContext,
-        this.initialEnvironmentLightVectorPreset,
-        experimentIndex
-      );
+    if (runningAnExperiment) {
+      this.manageExperimentValueLoader(experimentIndex);
+      return experimentIndex;
     } else {
-      console.log("Loading environment master!");
-      this.setEnvironmentLightMaster(
-        this.initialEnvironmentLightArchetype,
-        this.initialEnvironmentLightContext,
-        this.initialEnvironmentLightPreset,
-        this.initialEnvironmentLightVectorPreset
+      let presetConfiguration = this.getPresetConfigurationByTemplate(
+        configurationTemplate
       );
+      this.storePresetConfigurationOverrideValues(presetConfiguration);
+      return -1;
     }
   }
-  adjustLightExperimentSettings() {
-    let experimentSettings = {
-      currentLightIndexId: 42, //you will change this between different indexes to compare lights
-      currentLightExperimentPresetName: "mysticbluegradient", // you will decide a experiment name per experiment, e.g sunrise1, sunrise2,
-      //and eventually you "settle" on a set of values, and that becomes the finalized name for a preset.
-      //Aka if you do sunrise1... up to sunrise 10, and liek sunrise7 , you might call the final variation sunrise or lovelysunrise (get rid of the experiment index)
-      baseLightIntensity: 0, //the index valeu of 0 corresponds to a intensity value 5.0. Lower light values are too dark.
-      //baseLightIntensity is one of the values for which you might decide to add a drastically different value, because it is very sensitive
-      baseLightIntensityAmplitude: 0,
-      baseLightIntensitySpeed: 0, //
-      //very
-      baseHue: 0,
-      hueVariation: 0,
-      hueShiftSpeed: 0,
-    };
-    return experimentSettings;
+  manageExperimentValueLoader(currentExperimentIndex) {
+    //0 baseLightIntensity
+    //1 baseLightIntensityAmplitude
+    //2 baseHue
+    //3 hueVariation
+    //4 baseLightIntensitySpeed,
+    //5 hueShiftSpeed
+    this.environmentLightPositionLightExperimentIndexHolder = {};
+
+    let currentExperimentValueIndexes = [10, 3, 11, 1, 15, 14];
+
+    // Ensure the object exists before adding properties
+    if (!this.environmentLightDirectionLightExperimentIndexHolder) {
+      this.environmentLightDirectionLightExperimentIndexHolder = {};
+    }
+
+    console.log("Storing in: " + currentExperimentIndex);
+    this.environmentLightDirectionLightExperimentIndexHolder[
+      currentExperimentIndex
+    ] = currentExperimentValueIndexes;
   }
 
-  // if you make a successful preset, store it in the switch statement by adding a complete case
-  //    case "greendream": {
-  // presetPulled = this.valuableLightPresets.greendream
-  //  break;
-  // }
+  getPresetConfigurationByTemplate(configurationTemplate) {
+    let presetConfiguration = {
+      playerLightPresetOverride: "playerpreset0",
+      playerLightOffsetOverride: "standardlevel0",
+      environmentLightArchetypeOverride: "directional",
+      environmentLightPresetOverride: "mysticbluegradient",
+      environmentLightDirectionLightAngleOverride: "standardlevel0",
+      environmentLightPositionLightPositionOverride: "standardlevel0",
+    };
 
-  getLightPresetIndexesVerifiedByName(presetName) {
-    let lightPresetIndexArray = [0, 0, 0, 0, 0, 0];
-
-    let baseLightIntensity = 0;
-    let baseLightIntensityAmplitude = 0;
-    let baseHue = 0;
-    let hueVariation = 0;
-    let baseLightIntensitySpeed = 0;
-    let hueShiftSpeed = 0;
-
-    let presetPulled = null;
-
-    switch (presetName) {
-      case "mysticbluegradient": {
-        presetPulled = this.valuableLightPresets.mysticbluegradient;
-        console.log("Pulling mystic");
-        break;
+    switch (configurationTemplate) {
+      case "experiment": {
+        presetConfiguration = {
+          playerLightPresetOverride: "placeholder",
+          playerLightOffsetOverride: "placeholder",
+          environmentLightArchetypeOverride: "placeholder",
+          environmentLightPresetOverride: "placeholder",
+          environmentLightDirectionLightAngleOverride: "placeholder",
+          environmentLightPositionLightPositionOverride: "placeholder",
+        };
       }
     }
-
-    if (presetPulled == null) {
-      lightPresetIndexArray = [
-        baseLightIntensity,
-        baseLightIntensityAmplitude,
-        baseHue,
-        hueVariation,
-        baseLightIntensitySpeed,
-        hueShiftSpeed,
-      ];
-    } else if (presetPulled != null) {
-      lightPresetIndexArray = [
-        presetPulled.baseLightIntensity,
-        presetPulled.baseLightIntensityAmplitude,
-        presetPulled.baseHue,
-        presetPulled.hueVariation,
-        presetPulled.baseLightIntensitySpeed,
-        presetPulled.hueShiftSpeed,
-      ];
-    }
-
-    return lightPresetIndexArray;
+    return presetConfiguration;
   }
 
-  //this is the master method that can be called with any of a complex set of distinct categories of multiple values which
-  //can, due to their hyper modularity, create a HUGE variety of Light effects
-  //EnvironmentArchetype is directional vs positional
-  //EnvironmentContext is the KIND of game level that environmental lights are being tested / used with (currently just standardlevel0)
-  //EnvironmentLight preset is specific combinations of light traits to load (currently mysticbluegradient)
-  //Environment Light vector is the specific direction / positioning of the lights, which is distinct but related to the preset itself
-  //currently pure directionals
-
-  setEnvironmentLightMaster(
-    environmentLightArchetype,
-    environmentLightContext,
-    environmentLightPreset,
-    environmentLightVectorPreset
-  ) {
-    let lightSettings = null;
-    console.log("Running settings here: " + environmentLightArchetype);
-
-    let lightVectors = null;
-    if (environmentLightArchetype === "directional") {
-      lightSettings = this.getDirectionalEnvironmentLightPresetSettings(
-        environmentLightPreset,
-        environmentLightContext
-      );
-      lightVectors = this.getEnvironmentDirectionalLightPresetVectors(
-        environmentLightVectorPreset
-      );
-
-      console.log(
-        "Pretty-printed object: 44",
-        JSON.stringify(lightSettings, null, 2)
-      );
-
-      this.createFourDirectionalLights(lightSettings, lightVectors);
-    }
-  }
-
-  setEnvironmentLightExperiment(
-    environmentLightArchetype,
-    environmentLightContext,
-    environmentLightVectorPreset,
-    experimentIndex
-  ) {
-    let lightSettings = null;
-    let lightVectors = null;
-    if (environmentLightArchetype === "directional") {
-      lightSettings = this.getDirectionalEnvironmentLightExperimentSettings(
-        experimentIndex,
-        environmentLightContext
-      );
-      lightVectors = this.getEnvironmentDirectionalLightPresetVectors(
-        environmentLightVectorPreset
-      );
-      console.log(
-        "Pretty-printed object: 45",
-        JSON.stringify(lightSettings, null, 2)
-      );
-
-      this.createFourDirectionalLights(lightSettings, lightVectors);
-    }
-  }
-
-  //EnvironmentArchetype is directional vs positional
-  //EnvironmentContext is the KIND of game level that environmental lights are being tested / used with (currently just standardlevel0)
-  //EnvironmentLight preset is specific combinations of light traits to load (currently mysticbluegradient)
-  //Environment Light vector is the specific direction / positioning of the lights, which is distinct but related to the preset itself
-  //currently pure directionals
-
-  /**
-   * Switches the Light mode for active lights.
-   * This method can be used to dynamically toggle between "directional" and "positional" modes.
-   * @param {string} newMode - The new Light mode ('directional' or 'positional').
-   */
-  switchLightModeAndPreset(changeMode, newMode, changePreset, newPreset) {}
-
-  getDirectionalEnvironmentLightExperimentSettings(
-    experimentIndex,
-    environmentLightContext
-  ) {
-    //0 baseLightIntensity
-    //1 baseLightIntensityAmplitude
-    //2 baseHue
-    //3 hueVariation
-    //4 baseLightIntensitySpeed,
-    //5 hueShiftSpeed
-
-    let experimentValueIndexes = [0, 0, 0, 0, 0, 0];
-    console.log(
-      "Experiment Index " +
-        experimentIndex +
-        " , Light context: " +
-        environmentLightContext
-    );
-
-    switch (experimentIndex) {
-      case 0:
-        experimentValueIndexes = [0, 3, 0, 0, 0, 0];
-        break;
-    }
-
-    let experimentValueBag = this.getValuesBag(
-      experimentValueIndexes,
-      environmentLightContext
-    );
-
-    return experimentValueBag;
-  }
-
-  getValuesBag(indexes, environmentLightContext) {
-    let experimentValueBag = {
-      light1: this.convertLightIndexesToRawValues(
-        indexes,
-        environmentLightContext
-      ),
-      light2: this.convertLightIndexesToRawValues(
-        indexes,
-        environmentLightContext
-      ),
-      light3: this.convertLightIndexesToRawValues(
-        indexes,
-        environmentLightContext
-      ),
-      light4: this.convertLightIndexesToRawValues(
-        indexes,
-        environmentLightContext
-      ),
+  storeFrancescasValuableEnvironmentLightDirectionLightPresets() {
+    this.valuableEnvironmentLightDirectionLightPresets.example = {
+      example: "blank",
     };
   }
-
-  getBaseLightIntensityByIndex(shiftIndex) {
-    if (shiftIndex >= 0 && shiftIndex <= 19) {
-      return shiftIndex * 5;
-    }
-
-    if (shiftIndex >= 100) {
-      return shiftIndex / 100;
-    }
-
-    return 5;
-  }
-  getDirectionalEnvironmentLightPresetSettings(
-    directionalEnvironmentPreset,
-    environmentLightContext
-  ) {
-    //0 baseLightIntensity
-    //1 baseLightIntensityAmplitude
-    //2 baseHue
-    //3 hueVariation
-    //4 baseLightIntensitySpeed,
-    //5 hueShiftSpeed
-
-    let presetIndexes = this.getLightPresetIndexesVerifiedByName(
-      directionalEnvironmentPreset
-    );
-
-    let lightPresetValues = {
-      baseLightIntensity: this.getBaseLightIntensityByIndex(presetIndexes[0]),
-      baseLightIntensityAmplitude: this.getBaseLightIntensityAmplitudeByIndex(
-        presetIndexes[1]
-      ),
-      baseHue: this.getBaseHue(presetIndexes[2]),
-      hueVariation: this.getHueShiftVariationByIndex(presetIndexes[3]),
-      baseLightIntensitySpeed: this.getBaseLightIntensitySpeedByIndex(
-        presetIndexes[4]
-      ),
-      hueShiftSpeed: this.getHueShiftSpeedByIndex(presetIndexes[5]),
+  storeNicksValuablePlayerLightPresets() {
+    this.valuablePlayerLightPresets.example = {
+      example: "blank",
     };
-
-    if (environmentLightContext != "") {
-      lightPresetValues.baseLightIntensity =
-        this.getBaseLightIntensityByContext(environmentLightContext);
-    }
-    // Option 2: Print a pretty-printed JSON string
-    console.log(
-      "Light preset values directional environment, pre adjustment for variance:",
-      JSON.stringify(lightPresetValues, null, 2)
-    );
-
-    return lightPresetValues;
   }
-
-  storeFrancescasValuableBasicLightPresets() {
-    this.valuableLightPresets.example = {
+  storeFrancescasValuablePlayerLightPresets() {
+    this.valuablePlayerLightPresets.example = {
       example: "blank",
     };
   }
 
-  createDirectionalLight(shift, directionalLightVector, lightIndex) {
-    console.log("Pretty-printed object: BB", JSON.stringify(shift, null, 2));
-
-    let light = new BABYLON.DirectionalLight(
-      "D-Light: " + lightIndex,
-      directionalLightVector,
-      this.scene
-    );
-
-    light.intensity = shift.baseLightIntensity;
-    // console.log("Intensity set: " + light.intensity);
-
-    light.diffuse = this.hsvToRgb(shift.baseHue, 1, 1);
-    // console.log("Diffuse set: " + light.diffuse);
-
-    this.activeLights.push({ light, shift });
+  storeFrancescasValuableEnvironmentLightPositionLightPresets() {
+    this.valuableEnvironmentLightPositionLightPresets.example = {
+      example: "blank",
+    };
   }
 
-  createPositionalLight(shift, positionVector, orbitalShiftVector, lightIndex) {
+  excludePlayerModelFromLight(playerModel) {
+    this.activeLights.forEach((light) => {
+      // If the light already has an excludedMeshes array, add the player if it's not already added.
+      // Otherwise, initialize the array.
+      if (!light.excludedMeshes) {
+        light.excludedMeshes = [];
+      }
+      if (light.excludedMeshes.indexOf(playerModel) === -1) {
+        light.excludedMeshes.push(playerModel);
+      }
+    });
+  }
+
+  createPositionalLight(shift, positionVector, lightIndex, pathData) {
     let light = new BABYLON.PointLight(
       "P-Light: " + lightIndex,
       positionVector,
@@ -410,6 +125,69 @@ class LightingManager {
     light.diffuse = this.hsvToRgb(shift.baseHue, 1, 1);
 
     this.activeLights.push({ light, shift });
+    this.lightPathData.push({ light, pathData });
+  }
+  getPlayerLightPresetValues(lightPreset, lightOffsetPreset) {
+    let lightColorDefault = this.getPlayerLightColorByPreset(lightPreset);
+    let lightIntensityDefault =
+      this.getPlayerLightIntensityByPreset(lightPreset);
+    let lightOffsetDefault =
+      this.getPlayerLightOffsetByPreset(lightOffsetPreset);
+    let playerLightPreset = {
+      lightOffset: lightOffsetDefault,
+      lightIntensity: lightIntensityDefault,
+      lightColor: lightColorDefault,
+    };
+
+    return playerLightPreset;
+  }
+
+  getPlayerLightIntensityByPreset(lightIntensityPreset) {
+    let intensity = 5;
+    switch (lightIntensityPreset) {
+      case "playerpreset0":
+        intensity = 10;
+        break;
+    }
+    return intensity;
+  }
+  getPlayerLightColorByPreset(lightColorPreset) {
+    let defaultColor = BABYLON.Color3(1, 1, 1);
+    switch (lightColorPreset) {
+      case "playerpreset0":
+        defaultColor = BABYLON.Color3(1, 1, 1);
+        break;
+    }
+    return defaultColor;
+  }
+  getPlayerLightOffsetByPreset(lightOffsetPreset) {
+    let lightOffsetDefault = BABYLON.Vector3(0, 5, 0);
+
+    switch (lightOffsetPreset) {
+      case "playerpreset0":
+        lightOffsetDefault = new BABYLON.Vector3(0, 5, 0);
+        break;
+    }
+    return lightOffsetDefault;
+  }
+  /**
+   *
+   *  * @param {string} namedPreset - A string name of a specific Light context that was useful enough to save for easy access
+   *   @returns {number} The light intensity itself} namedPreset
+   */
+  getEnvironmentLightDirectionLightBaseIntensityByPreset(preset) {
+    switch (preset) {
+      case "standardlevel0":
+        return 5;
+    }
+    return 5;
+  }
+  getEnvironmentLightPositionLightBaseIntensityByPreset(preset) {
+    switch (preset) {
+      case "standardlevel0":
+        return 100;
+    }
+    return 100;
   }
 
   //Determines the RANGE of colors - say Blue to Green, note color hue currently only goes in one direction
@@ -420,30 +198,8 @@ class LightingManager {
   getHueShiftVariation(shiftTestIndex) {
     if (shiftTestIndex >= 0 && shiftTestIndex <= 19) {
       let hueV = 0.05 + shiftTestIndex * 0.05;
-      console.log(hueV + " hue v");
       return hueV;
     }
-  }
-
-  getEnvironmentDirectionalLightPresetVectors(directionalPreset) {
-    let lightVectors = {
-      lightRightDown: new BABYLON.Vector3(1, -1, 0),
-      lightLeftDown: new BABYLON.Vector3(-1, -1, 0),
-      lightRightUp: new BABYLON.Vector3(1, 1, 0),
-      lightLeftUp: new BABYLON.Vector3(-1, 1, 0),
-    };
-
-    switch (directionalPreset) {
-      case "experiment": {
-        lightVectors = {
-          lightRightDown: new BABYLON.Vector3(1, -1, 0),
-          lightLeftDown: new BABYLON.Vector3(-1, -1, 0),
-          lightRightUp: new BABYLON.Vector3(1, 1, 0),
-          lightLeftUp: new BABYLON.Vector3(-1, 1, 0),
-        };
-      }
-    }
-    return lightVectors;
   }
 
   assignDefaultPlayerModelLight(player, LightPreset) {
@@ -459,32 +215,12 @@ class LightingManager {
     this.setPlayerChasingLight(LightPreset);
   }
 
-  getPlayerLightPresetValues(LightPreset) {
-    let lightOffsetDefault = new BABYLON.Vector3(0, 0, 0);
-    let lightIntensityDefault = 1;
-    let lightColorDefault = new BABYLON.Color3(1, 1, 1);
-
-    if (LightPreset != "") {
-      switch (LightPreset) {
-        case "playerpreset0":
-          lightOffsetDefault = new BABYLON.Vector3(0, 5, 0);
-      }
-    }
-
-    let playerLightPreset = {
-      lightOffset: lightOffsetDefault,
-      lightIntensity: lightIntensityDefault,
-      lightColor: lightColorDefault,
-    };
-
-    return playerLightPreset;
-  }
-
-  setPlayerChasingLight(LightPreset) {
-    let playerLightPresetValues = this.getPlayerLightPresetValues(LightPreset);
+  setPlayerChasingLight(lightPreset) {
+    let playerLightPresetValues = this.getPlayerLightPresetValues(lightPreset);
     this.playerLightBasePosition =
       this.positionedObjectForPlayer.getCompositePositionBaseline();
-    this.playerLightBaseOffset = playerLightPresetValues.lightOffset;
+
+    this.playerLightBaseOffset = this.getPlayerLightOffsetByPreset(lightPreset);
 
     let x = this.playerLightBasePosition.x + this.playerLightBaseOffset.x;
     let y = this.playerLightBasePosition.y + this.playerLightBaseOffset.y;
@@ -503,31 +239,6 @@ class LightingManager {
     this.chasingLight = newLight;
     this.chasingLight.diffuse = playerLightPresetValues.lightColor;
     this.chasingLight.intensity = playerLightPresetValues.lightIntensity;
-  }
-  excludePlayerModelFromLight(playerModel) {
-    this.activeLights.forEach((light) => {
-      // If the light already has an excludedMeshes array, add the player if it's not already added.
-      // Otherwise, initialize the array.
-      if (!light.excludedMeshes) {
-        light.excludedMeshes = [];
-      }
-      if (light.excludedMeshes.indexOf(playerModel) === -1) {
-        light.excludedMeshes.push(playerModel);
-      }
-    });
-  }
-
-  // 1.0 to 5
-  getBaseHue(shiftTestIndex) {
-    if (shiftTestIndex >= 0 && shiftTestIndex <= 19) {
-      return 0.05 + shiftTestIndex * 0.05;
-    }
-
-    if (shiftTestIndex >= 100) {
-      return shiftTestIndex / 100;
-    }
-
-    return 0;
   }
 
   /**
@@ -549,10 +260,7 @@ class LightingManager {
   Aka 10,000 / 100 becomes 100. 
  *
    */
-  getBaseLightIntensity(shiftTestIndex, namedContextOverride) {
-    if (namedContextOverride != "") {
-      return this.getBaseLightIntensityByContext(namedContextOverride);
-    }
+  getBaseLightIntensity(shiftTestIndex) {
     switch (shiftTestIndex) {
       case 0:
         return 5;
@@ -570,19 +278,55 @@ class LightingManager {
     return 5;
   }
 
-  /**
-   *
-   *  * @param {string} namedPreset - A string name of a specific Light context that was useful enough to save for easy access
-   *   @returns {number} The light intensity itself} namedPreset
-   */
-  getBaseLightIntensityByContext(namedContext) {
-    switch (namedContext) {
-      case "standardlevel0":
-        return 5;
+  // 1.0 to 5
+  getBaseHue(shiftTestIndex) {
+    if (shiftTestIndex >= 0 && shiftTestIndex <= 19) {
+      return 0.05 + shiftTestIndex * 0.05;
     }
-    return 5;
+
+    if (shiftTestIndex >= 100) {
+      return shiftTestIndex / 100;
+    }
+
+    return 0;
   }
 
+  setEnvironmentLightDirectionLightByPreset(
+    environmentLightPreset,
+    environmentLightVectorPreset
+  ) {
+    let lightSettings = null;
+    let lightVectors = null;
+
+    lightSettings = this.getEnvironmentLightDirectionLightPresetSettings(
+      environmentLightPreset
+    );
+
+    lightVectors = this.getEnvironmentLightDirectionLightPresetVectors(
+      environmentLightVectorPreset
+    );
+
+    this.createFourDirectionalLights(lightSettings, lightVectors);
+  }
+
+  setEnvironmentLightDirectionLightByExperiment(experimentIndex) {
+    let lightSettings = null;
+    let lightVectors = null;
+
+    console.log("Running the experiment: " + experimentIndex);
+    if (experimentIndex != -1) {
+      lightSettings =
+        this.getEnvironmentLightDirectionLightExperimentSettings(
+          experimentIndex
+        );
+      lightVectors =
+        this.getEnvironmentLightDirectionLightExperimentVectors(
+          experimentIndex
+        );
+
+      this.createFourDirectionalLights(lightSettings, lightVectors);
+    }
+  }
   /**
    *  * @param {number} shiftTestIndex - An index representing the desired hue shift intensity
  *   @returns {number} The hue variation range.  Note you will very often want index 0 (0.05 or 5% gradient) or index 1 (0.10 or 10% gradient)
@@ -737,11 +481,11 @@ class LightingManager {
    * @param {number} modularValues.hueShiftSpeed - The base speed at which the hue shifts.
    * @returns {Object} An object containing the computed color shift parameters.
    */
-  getDirectionalEnvironmentValuesAdjusted(modularValues) {
+  getLightShiftValuesAdjusted(modularValues) {
     // Define variance boundaries for subtle random adjustments.
     // Adjust these values to make the resulting offsets more or less pronounced.
-    const lowerVariance = -0.2; // Lower bound for random offset (negative variation)
-    const upperVariance = 0.2; // Upper bound for random offset (positive variation)
+    const lowerVariance = -0.1; // Lower bound for random offset (negative variation)
+    const upperVariance = 0.1; // Upper bound for random offset (positive variation)
 
     // Compute the composite shift object with various randomized color parameters.
     const shift = {
@@ -907,9 +651,18 @@ class LightingManager {
   updateActiveLights(currentTime) {
     this.activeLights.forEach(({ light, shift }, i) => {
       this.updateLightHue(currentTime, light, shift);
-      //this.updateLightIntensity(currentTime, light, shift);
-      //this.updateLightPositionByPath(light, shift);
+      this.updateLightIntensity(currentTime, light, shift);
+
+      if (this.lightPathData[light] != null) {
+        this.updateLightPosition(currentTime, light, this.lightPathData[light]);
+      }
     });
+  }
+
+  updateLightPosition(currentTime, light, pathData) {
+    if (pathData.pathType === "orbital") {
+      this.updateOrbitalMotion(currentTime, light, pathData);
+    }
   }
 
   /**
@@ -921,28 +674,35 @@ class LightingManager {
    *   orbitSpeed, orbitPhase, orbitCenter, and orbitRadius.
    */
 
-  updateOrbitalMotion(currentTime, light) {
+  updateOrbitalMotion(currentTime, light, orbitalPath) {
     // For each light, update its position using an independent orbit.
-    if (light.lightType === "positional") {
-      if (light.lightPath == "orbital") {
-        // Calculate new positions along each axis independently.
-        // For example, you can use sine and cosine on different axes to get a non-circular, 3D orbit.
 
-        let possibleReversal = this.getLightReversal(light);
+    if (orbitalPath.pathType === "orbital") {
+      // Calculate new positions along each axis independently.
+      // For example, you can use sine and cosine on different axes to get a non-circular, 3D orbit.
 
-        let adjustedTime = currentTime * possibleReversal;
-        let orbitSpeed = orbitSpeed;
+      let possibleReversal = this.getLightReversal(orbitalPath);
 
-        const angleX = adjustedTime * light.orbitSpeed.x + light.orbitPhase.x;
-        const x = light.orbitCenter.x + light.orbitRadius.x * Math.cos(angleX);
+      let adjustedTime = currentTime * possibleReversal;
 
-        const angleY = adjustedTime * light.orbitSpeed.y + light.orbitPhase.y;
-        const y = light.orbitCenter.y + light.orbitRadius.y * Math.sin(angleY);
+      const angleX =
+        adjustedTime * orbitalPath.orbitSpeed.x + orbitalPath.orbitPhase.x;
+      const x =
+        orbitalPath.orbitCenter.x +
+        orbitalPath.orbitRadius.x * Math.cos(angleX);
 
-        const angleZ = adjustedTime * light.orbitSpeed.z + light.orbitPhase.z;
-        const z = light.orbitCenter.z + light.orbitRadius.z * Math.cos(angleZ);
-        light.position = new BABYLON.Vector3(x, y, z);
-      }
+      const angleY =
+        adjustedTime * orbitalPath.orbitSpeed.y + orbitalPath.orbitPhase.y;
+      const y =
+        orbitalPath.orbitCenter.y +
+        orbitalPath.orbitRadius.y * Math.sin(angleY);
+
+      const angleZ =
+        adjustedTime * orbitalPath.orbitSpeed.z + orbitalPath.orbitPhase.z;
+      const z =
+        orbitalPath.orbitCenter.z +
+        orbitalPath.orbitRadius.z * Math.cos(angleZ);
+      light.position = new BABYLON.Vector3(x, y, z);
     }
   }
 
@@ -952,8 +712,8 @@ class LightingManager {
    *
    */
 
-  getLightReversal(light) {
-    if (light.reversing) {
+  getLightReversal(path) {
+    if (path.reversing) {
       return -1.0;
     } else {
       return 1.0;
@@ -1086,7 +846,6 @@ class LightingManager {
 
   deleteOldPlayerChasingLight() {
     if (this.chasingLight != null && this.scene != null) {
-      console.log("Lights deleted!");
       this.chasingLight.dispose();
       const index = this.scene.lights.indexOf(this.chasingLight);
       if (index > -1) {
@@ -1095,7 +854,122 @@ class LightingManager {
     }
   }
 
-  convertLightIndexesToRawValues(valueIndexes, environmentLightContext) {
+  createFourDirectionalLights(lightSettings, lightVectors) {
+    this.createDirectionalLight(
+      lightSettings.light1Values,
+      lightVectors.lightLeftDown,
+      1
+    );
+    this.createDirectionalLight(
+      lightSettings.light2Values,
+      lightVectors.lightLeftUp,
+      2
+    );
+    this.createDirectionalLight(
+      lightSettings.light3Values,
+      lightVectors.lightRightDown,
+      3
+    );
+    this.createDirectionalLight(
+      lightSettings.light4Values,
+      lightVectors.lightRightUp,
+      4
+    );
+  }
+
+  storePresetConfigurationOverrideValues(presetConfiguration) {
+    this.currentPlayerLightPreset =
+      presetConfiguration.playerLightPresetOverride;
+    this.currentPlayerLightOffset =
+      presetConfiguration.playerLightOffsetOverride;
+    this.currentEnvironmentLightArchetype =
+      presetConfiguration.environmentLightArchetypeOverride;
+    this.currentEnvironmentLightPreset =
+      presetConfiguration.environmentLightPresetOverride;
+    this.currentEnvironmentLightDirectionLightAngleVectors =
+      presetConfiguration.environmentLightDirectionLightAngleOverride;
+    this.currentEnvironmentLightPositionLightPositionVectors =
+      presetConfiguration.environmentLightPositionLightPositionOverride;
+  }
+  initializeMiscVariables() {
+    this.lightFrameIndex = 0;
+    this.playerModel = null;
+    this.activeLights = []; // Array to hold lights and their shift parameters
+    this.lightPathData = [];
+
+    //properties (color, variance, intensity) of light which chases the player
+    this.initialPlayerLightPreset = Config.DEFAULT_PLAYER_LIGHT_PRESET;
+    this.currentPlayerLightPreset = this.initialPlayerLightPreset;
+
+    // position of light which chases the player
+    this.initialPlayerLightOffset = Config.DEFAULT_PLAYER_LIGHT_OFFSET;
+    this.currentPlayerLightOffset = this.initialPlayerLightOffset;
+
+    //Positional vs directional lights
+    this.initialEnvironmentLightArchetype =
+      Config.DEFAULT_ENVIRONMENT_LIGHT_ARCHETYPE;
+    this.currentEnvironmentLightArchetype =
+      this.initialEnvironmentLightArchetype;
+
+    //light direction vectors (if directional light, otherwise unused)
+    this.initialEnvironmentLightDirectionLightAngleVectors =
+      Config.DEFAULT_ENVIRONMENT_DIRECTION_LIGHT_ANGLE_VECTORS;
+    this.currentEnvironmentLightDirectionLightAngleVectors =
+      this.initialEnvironmentLightDirectionLightAngleVectors;
+
+    //light position vectors (if positional, otherwise unused)
+    this.initialEnvironmentLightPositionLightPositionVectors =
+      Config.DEFAULT_ENVIRONMENT_POSITION_LIGHT_POSITION_VECTORS;
+    this.currentEnvironmentLightPositionLightPositionVectors =
+      this.initialEnvironmentLightPositionLightPositionVectors;
+
+    //environment light preset (color, intensity, variance)
+    this.initialEnvironmentLightPreset =
+      Config.DEFAULT_ENVIRONMENT_LIGHT_PRESET;
+    this.currentEnvironmentLightPreset = this.initialEnvironmentLightPreset;
+
+    this.valuableEnvironmentLightDirectionLightPresets = {};
+    this.valuableEnvironmentLightPositionLightPresets = {};
+    this.valuablePlayerLightPresets = {};
+
+    this.storePresetsComposite();
+  }
+
+  storePresetsComposite() {
+    this.storeNicksValuableEnvironmentLightDirectionLightPresets();
+    this.storeNicksValuableEnvironmentLightPositionLightPresets();
+    this.storeNicksValuablePlayerLightPresets();
+
+    this.storeFrancescasValuableEnvironmentLightDirectionLightPresets();
+    this.storeFrancescasValuableEnvironmentLightPositionLightPresets();
+    this.storeFrancescasValuablePlayerLightPresets();
+  }
+
+  getEnvironmentLightDirectionLightExperimentSettings(experimentIndex) {
+    let experimentValueIndexes = [0, 0, 0, 0, 0, 0];
+
+    console.log("Checking index: " + experimentIndex);
+    if (
+      this.environmentLightDirectionLightExperimentIndexHolder[
+        experimentIndex
+      ] != null
+    ) {
+      experimentValueIndexes =
+        this.environmentLightDirectionLightExperimentIndexHolder[
+          experimentIndex
+        ];
+      console.log("Pulled out experiment values for: " + experimentIndex);
+    } else {
+      console.log("Not found!");
+    }
+
+    let lightExperimentValueBag = this.convertLightIndexesToRawValues(
+      experimentValueIndexes
+    );
+
+    return lightExperimentValueBag;
+  }
+  convertLightIndexesToRawValues(valueIndexes) {
     let values = {
       baseLightIntensity: this.getBaseLightIntensityByIndex(valueIndexes[0]),
       baseLightIntensityAmplitude: this.getBaseLightIntensityAmplitudeByIndex(
@@ -1109,29 +983,217 @@ class LightingManager {
       hueShiftSpeed: this.getHueShiftSpeedByIndex(valueIndexes[5]),
     };
 
-    console.log(hueVariation + " hue v here");
-    let adjustedValues = this.getDirectionalEnvironmentValuesAdjusted(values);
+    let adjustedValues1 = this.getLightShiftValuesAdjusted(values);
+    let adjustedValues2 = this.getLightShiftValuesAdjusted(values);
+    let adjustedValues3 = this.getLightShiftValuesAdjusted(values);
+    let adjustedValues4 = this.getLightShiftValuesAdjusted(values);
+
+    let bagOfAdjustedValues = {
+      light1Values: adjustedValues1,
+      light2Values: adjustedValues2,
+      light3Values: adjustedValues3,
+      light4Values: adjustedValues4,
+    };
+
+    return bagOfAdjustedValues;
+  }
+
+  getEnvironmentLightDirectionLightIndexesByPreset(presetName) {
+    let lightPresetIndexArray = [0, 0, 0, 0, 0, 0];
+
+    let baseLightIntensity = 0;
+    let baseLightIntensityAmplitude = 0;
+    let baseHue = 0;
+    let hueVariation = 0;
+    let baseLightIntensitySpeed = 0;
+    let hueShiftSpeed = 0;
+
+    let presetPulled = null;
+
+    if (this.valuableEnvironmentLightDirectionLightPresets.presetName != null) {
+      presetPulled =
+        this.valuableEnvironmentLightDirectionLightPresets.presetName;
+      console.log("Pulled out preset indexes: " + presetName);
+    }
+
+    if (presetPulled == null) {
+      lightPresetIndexArray = [
+        baseLightIntensity,
+        baseLightIntensityAmplitude,
+        baseHue,
+        hueVariation,
+        baseLightIntensitySpeed,
+        hueShiftSpeed,
+      ];
+    } else if (presetPulled != null) {
+      lightPresetIndexArray = [
+        presetPulled.baseLightIntensity,
+        presetPulled.baseLightIntensityAmplitude,
+        presetPulled.baseHue,
+        presetPulled.hueVariation,
+        presetPulled.baseLightIntensitySpeed,
+        presetPulled.hueShiftSpeed,
+      ];
+    }
+
+    return lightPresetIndexArray;
+  }
+
+  /**
+   * For index value of 0 to 19 light intensity = 5 + 5 * index (5 to 100)
+   * if you wish to do >= 100, do an index of 100 or more so that
+   * index / 100 = a precise light setting, AKA index 100000 => 100K / 100 -> light of 1000
+   */
+  getBaseLightIntensityByIndex(shiftIndex) {
+    if (shiftIndex >= 0 && shiftIndex <= 19) {
+      return shiftIndex + shiftIndex * 5;
+    }
+
+    if (shiftIndex >= 100) {
+      return shiftIndex / 100;
+    }
+
+    return 5;
+  }
+  getEnvironmentLightDirectionLightPresetSettings(colorPreset) {
+    //0 baseLightIntensity
+    //1 baseLightIntensityAmplitude
+    //2 baseHue
+    //3 hueVariation
+    //4 baseLightIntensitySpeed,
+    //5 hueShiftSpeed
+
+    let presetIndexes =
+      this.getEnvironmentLightDirectionLightIndexesByPreset(colorPreset);
+
+    let lightPresetValues = {
+      baseLightIntensity: this.getBaseLightIntensityByIndex(presetIndexes[0]),
+      baseLightIntensityAmplitude: this.getBaseLightIntensityAmplitudeByIndex(
+        presetIndexes[1]
+      ),
+      baseHue: this.getBaseHue(presetIndexes[2]),
+      hueVariation: this.getHueShiftVariationByIndex(presetIndexes[3]),
+      baseLightIntensitySpeed: this.getBaseLightIntensitySpeedByIndex(
+        presetIndexes[4]
+      ),
+      hueShiftSpeed: this.getHueShiftSpeedByIndex(presetIndexes[5]),
+    };
 
     // Option 2: Print a pretty-printed JSON string
     console.log(
-      "Adjusted values light index converted to raw",
-      JSON.stringify(adjustedValues, null, 2)
+      "Light preset values directional environment, pre adjustment for variance:",
+      JSON.stringify(lightPresetValues, null, 2)
     );
 
-    if (environmentLightContext != "") {
-      adjustedValues.baseLightIntensity = this.getBaseLightIntensityByContext(
-        environmentLightContext
-      );
-    }
-
-    return adjustedValues;
+    return lightPresetValues;
   }
-  createFourDirectionalLights(lightSettings, lightVectors) {
-    console.log("Light settings ZZ:", JSON.stringify(lightSettings, null, 2));
 
-    this.createDirectionalLight(lightSettings, lightVectors.lightLeftDown, 1);
-    this.createDirectionalLight(lightSettings, lightVectors.lightLeftUp, 2);
-    this.createDirectionalLight(lightSettings, lightVectors.lightRightDown, 3);
-    this.createDirectionalLight(lightSettings, lightVectors.lightRightUp, 4);
+  createDirectionalLight(shift, directionalLightVector, lightIndex) {
+    let light = new BABYLON.DirectionalLight(
+      "D-Light: " + lightIndex,
+      directionalLightVector,
+      this.scene
+    );
+
+    light.intensity = shift.baseLightIntensity;
+    // console.log("Intensity set: " + light.intensity);
+
+    light.diffuse = this.hsvToRgb(shift.baseHue, 1, 1);
+    // console.log("Diffuse set: " + light.diffuse);
+
+    this.activeLights.push({ light, shift });
+  }
+
+  initializeLightingComposite() {
+    let experimentIndex = this.manageExperimentOrPresetConfigurationPanel();
+
+    if (experimentIndex >= 0) {
+      if (this.currentEnvironmentLightArchetype === "directional") {
+        this.setEnvironmentLightDirectionLightByExperiment(experimentIndex);
+      } else if (this.currentEnvironmentLightArchetype === "position") {
+      }
+    } else {
+      if (this.currentEnvironmentLightArchetype === "directional") {
+        this.setEnvironmentLightDirectionLightByPreset(
+          this.currentEnvironmentLightPreset,
+          this.currentEnvironmentLightDirectionLightAngleVectors
+        );
+      } else if (this.currentEnvironmentLightArchetype === "position") {
+      }
+    }
+  }
+  storeNicksValuableEnvironmentLightDirectionLightPresets() {
+    this.valuableEnvironmentLightDirectionLightPresets.mysticbluegradient = {
+      presetName: "mysticbluegradient",
+      baseLightIntensity: 10,
+      baseLightIntensityAmplitude: 3,
+      baseHue: 11,
+      hueVariation: 1,
+      baseLightIntensitySpeed: 15,
+      hueShiftSpeed: 14,
+    };
+  }
+  storeNicksValuableEnvironmentLightPositionLightPresets() {
+    this.valuableEnvironmentLightPositionLightPresets.mysticbluegradient = {
+      presetName: "mysticbluegradient",
+      baseLightIntensity: 10,
+      baseLightIntensityAmplitude: 3,
+      baseHue: 11,
+      hueVariation: 1,
+      baseLightIntensitySpeed: 15,
+      hueShiftSpeed: 14,
+    };
+  }
+
+  getEnvironmentLightDirectionLightExperimentVectors(experimentIndex) {
+    let lightVectors = {
+      lightRightDown: new BABYLON.Vector3(1, -1, 0),
+      lightLeftDown: new BABYLON.Vector3(-1, -1, 0),
+      lightRightUp: new BABYLON.Vector3(1, 1, 0),
+      lightLeftUp: new BABYLON.Vector3(-1, 1, 0),
+    };
+
+    switch (experimentIndex) {
+      case 42: {
+        lightVectors = {
+          lightRightDown: new BABYLON.Vector3(1, -1, 0),
+          lightLeftDown: new BABYLON.Vector3(-1, -1, 0),
+          lightRightUp: new BABYLON.Vector3(1, 1, 0),
+          lightLeftUp: new BABYLON.Vector3(-1, 1, 0),
+        };
+        break;
+      }
+    }
+    return lightVectors;
+  }
+
+  getEnvironmentLightDirectionLightPresetVectors(directionalPreset) {
+    let lightVectors = {
+      lightRightDown: new BABYLON.Vector3(1, -1, 0),
+      lightLeftDown: new BABYLON.Vector3(-1, -1, 0),
+      lightRightUp: new BABYLON.Vector3(1, 1, 0),
+      lightLeftUp: new BABYLON.Vector3(-1, 1, 0),
+    };
+
+    switch (directionalPreset) {
+      case "standardlevel0": {
+        lightVectors = {
+          lightRightDown: new BABYLON.Vector3(1, -1, 0),
+          lightLeftDown: new BABYLON.Vector3(-1, -1, 0),
+          lightRightUp: new BABYLON.Vector3(1, 1, 0),
+          lightLeftUp: new BABYLON.Vector3(-1, 1, 0),
+        };
+        break;
+      }
+      case "example": {
+        lightVectors = {
+          lightRightDown: new BABYLON.Vector3(1, -1, 0),
+          lightLeftDown: new BABYLON.Vector3(-1, -1, 0),
+          lightRightUp: new BABYLON.Vector3(1, 1, 0),
+          lightLeftUp: new BABYLON.Vector3(-1, 1, 0),
+        };
+      }
+    }
+    return lightVectors;
   }
 }
