@@ -43,7 +43,10 @@ class GameWorldLoader {
       player.getPlayerPositionAndModelManager().getPlayerModelDirectly()
     );
 
-    this.lightingManager.modifyPlayerModelLight(player);
+    this.lightingManager.assignDefaultPlayerModelLight(
+      player,
+      Config.DEFAULT_PLAYER_LIGHT_PRESET
+    );
   }
 
   loadLighting() {

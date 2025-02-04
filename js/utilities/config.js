@@ -10,6 +10,10 @@ class Config {
 
   // static DEFAULT_MODEL = "mechaSphereLowPolygonPurple";
   static DEFAULT_MODEL = "mechaSphereBronzeLowRes";
+  static DEFAULT_ENVIRONMENT_LIGHT_ARCHETYPE = "directional";
+  static DEFAULT_ENVIRONMENT_LIGHT_PRESET = "mysticbluegradient";
+  static DEFAULT_ENVIRONMENT_CONTEXT = "standardlevel0";
+  static DEFAULT_PLAYER_LIGHT_PRESET = "playerpreset0";
   static DEMO_WORLD = "testWorld0";
   static DEFAULT_SPEED = 4;
   static MAX_MOVEMENT = 999;
