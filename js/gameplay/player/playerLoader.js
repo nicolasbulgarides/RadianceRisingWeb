@@ -3,7 +3,7 @@ class PlayerLoader {
     const playerModelObject = PositionedObject.getPositionedObjectQuick(
       Config.DEFAULT_MODEL,
       position,
-      0.25,
+      1.0,
       false,
       false,
       false

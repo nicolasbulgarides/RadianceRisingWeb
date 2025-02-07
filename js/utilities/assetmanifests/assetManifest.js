@@ -131,6 +131,7 @@ class AssetManifest {
     tile4: "tile4Compressed.glb",
     tile5: "tile5Compressed.glb",
     tile6: "tile6Compressed.glb",
+    mechaSphereBlueBase: "mechaSphereBlueBase.glb",
   };
 
   /**

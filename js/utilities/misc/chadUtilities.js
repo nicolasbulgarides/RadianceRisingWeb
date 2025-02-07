@@ -25,4 +25,12 @@ class ChadUtilities {
         object.position.y
     );
   }
+
+  static SmartLogger(classLogFlag, msg) {
+    if (!Config.LOGGING_OMEGA_DISABLED_GET_WRECKED) {
+      if (classLogFlag || Config.LOGGING_FORCEFULLY_ENABLED) {
+        console.log(msg);
+      }
+    }
+  }
 }

@@ -31,9 +31,6 @@ class AssetManifestOverrides {
     mechaSphereBronzeLowRes: {
       offset: { x: 0, y: 0.33, z: 0 },
     },
-    testMountain: {
-      scale: { x: 0.2, y: 0.2, z: 0.2 },
-    },
   };
 
   /**

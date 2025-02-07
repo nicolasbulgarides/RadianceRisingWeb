@@ -13,12 +13,13 @@ class ScriptInitializer {
   async loadScriptManifest(canvas) {
     if (this.runLocally) {
       this.CORE_SCRIPTS = {
-        SCRIPT_MANIFEST: "./utilities/scriptManifest.js",
+        SCRIPT_MANIFEST: "./initialization/scriptManifest.js",
         ENGINE_INITIALIZATION: "./initialization/engineInitialization.js",
       };
     } else {
       this.CORE_SCRIPTS = {
-        SCRIPT_MANIFEST: "https://radiant-rays.com/utilities/scriptManifest.js",
+        SCRIPT_MANIFEST:
+          "https://radiant-rays.com/initialization/scriptManifest.js",
         ENGINE_INITIALIZATION:
           "https://radiant-rays.com/initialization/engineInitialization.js",
       };
