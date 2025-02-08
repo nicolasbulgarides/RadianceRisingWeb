@@ -1,3 +1,10 @@
+/**
+ * LightingFactory Class
+ *
+ * Responsible for creating and initializing lighting objects within a Babylon.js scene.
+ * Uses configuration templates to instantiate lights with specific archetypes, color presets,
+ * and motion presets. It delegates the creation of environment and player lights to modular methods.
+ */
 class LightingFactory {
   constructor(lightingManager) {
     this.lightingManager = lightingManager;
@@ -9,6 +16,13 @@ class LightingFactory {
     this.lightingMotionPresets = new LightingMotionPresets();
     this.lightingTemplateStorage = this.lightingManager.lightingTemplateStorage;
   }
+
+  /**
+   * Creates environment lights based on the provided template configuration.
+   *
+   * @param {BABYLON.Scene} scene - The Babylon.js scene.
+   * @param {Object} configurationTemplate - Lighting configuration data.
+   */
   createEnvironmentLightsFromTemplateComposite(scene, configurationTemplate) {
     let environmentLightTemplateBag =
       this.lightingTemplateStorage.getEnvironmentLightingConfigurationBagFromTemplate(
@@ -56,7 +70,14 @@ class LightingFactory {
     }
   }
 
-  createPlayerLightsFromTemplateComposite(scene, configurationTemplate) {
+  /**
+   * Creates player lights based on a configuration template.
+   *
+   * @param {BABYLON.Scene} scene - The Babylon.js scene. 
+   * @param {Player} player - The player instance.
+   * @param {Object} configurationTemplate - Lighting configuration data for player lights.
+   */
+  createPlayerLightsFromTemplateComposite(scene, player, configurationTemplate) {
     let playerLightTemplateBag =
       this.lightingTemplateStorage.getPlayerLightingConfigurationFromTemplate(
         configurationTemplate
@@ -93,15 +114,24 @@ class LightingFactory {
           "PlayerLight: " + factoryCounter,
           archetype,
           colorPreset,
-          motionPreset
+          motionPreset, 
+          player
         );
         factoryCounter++;
       }
     }
   }
 
-  createPlayerLight(scene, nickname, archetype, colorPreset, motionPreset) {
-    return;
+  /**
+   * (Placeholder) Creates a player light. Actual implementation may differ.
+   *
+   * @param {BABYLON.Scene} scene - The Babylon.js scene.
+   * @param {string} nickname - Light identifier.
+   * @param {string} archetype - The light archetype.
+   * @param {string} colorPreset - Color preset identifier.
+   * @param {string} motionPreset - Motion preset identifier.
+   */
+  createPlayerLight(scene, nickname, archetype, colorPreset, motionPreset, player) {
     if (archetype === "direction") {
       this.createDirectionLight(
         nickname,
@@ -109,7 +139,8 @@ class LightingFactory {
         scene,
         colorPreset,
         motionPreset,
-        true
+        true, 
+        player
       );
     } else if (archetype === "position") {
       this.createPositionLight(
@@ -118,18 +149,20 @@ class LightingFactory {
         scene,
         colorPreset,
         motionPreset,
-        true
+        true, player
       );
     }
   }
+
   createDirectionLight(
     scene,
     nickname,
     archetype,
     colorPreset,
-    motionPreset,
-    doesChasePlayer,
-    index
+    motionPreset,   
+    doesChasePlayer = false,
+    index,
+    playerToChase = null
   ) {
     let colorPresetProfile = null;
     let allMotionProfiles = null;
@@ -154,10 +187,6 @@ class LightingFactory {
 
         motionProfile = allMotionProfiles[index];
 
-        ChadUtilities.displayContents(
-          motionProfile,
-          "Sub child Motion prof sender"
-        );
       } else if (doesChasePlayer) {
         colorPresetProfile =
           this.lightingPropertyCalculator.getPlayerLightDirectionLightPresetSettings(
@@ -178,14 +207,10 @@ class LightingFactory {
         scene
       );
 
-      createdLight.intensity = colorPresetProfile.baseLightIntensity * 100;
-      LoggerOmega.SmartLogger(
-        true,
-        "INTENSITY!: " + createdLight.intensity,
-        "LIGHT BBY"
-      );
+      createdLight.intensity = colorPresetProfile.baseLightIntensity;
+      LoggerOmega.SmartLogger(true, "Intensity: " + createdLight.intensity);
 
-      createdLight.diffuse = new BABYLON.Color3(1, 1, 1);
+      createdLight.diffuse = this.lighti
 
       lightObject = new LightingObject(
         nickname,
@@ -194,23 +219,40 @@ class LightingFactory {
         motionProfile
       );
 
+   
+
       if (!doesChasePlayer) {
         this.lightingManager.registerEnvironmentDirectionLight(lightObject);
-      } else if (doesChasePlayer) {
+      } else if (doesChasePlayer && playerToChase != null) {
+        lightObject.assignPlayerToChase(playerToChase);
         this.lightingManager.registerPlayerChasingLight(lightObject);
       }
     }
-    // this.adjustLightInitialValues(lightObject);
+   // this.adjustLightInitialValues(lightObject);
   }
 
+  /**
+   * Creates a positional light following the configuration template.
+   * Uses index to retrieve the corresponding motion profile.
+   *
+   * @param {BABYLON.Scene} scene - The Babylon.js scene.
+   * @param {string} nickname - Unique identifier for the light.
+   * @param {string} archetype - The light archetype (expected "position").
+   * @param {string} colorPreset - Color preset identifier.
+   * @param {string} motionPreset - Motion preset identifier.
+   * @param {boolean} doesChasePlayer - Differentiates player chasing lights from environment lights.
+   * @param {number} index - Index for selecting the correct motion profile.
+   * @param {Player|null} playerToChase - Optional player reference if chasing.
+   */
   createPositionLight(
     scene,
     nickname,
     archetype,
     colorPreset,
     motionPreset,
-    doesChasePlayer,
-    index
+    doesChasePlayer = false,
+    index,
+    playerToChase = null  
   ) {
     let colorPresetProfile = null;
     let motionProfile = null;
@@ -219,31 +261,38 @@ class LightingFactory {
 
     if (archetype === "position") {
       if (!doesChasePlayer) {
+        // Retrieve environmental lighting settings and motion profiles.
         colorPresetProfile =
           this.lightingPropertyCalculator.getEnvironmentLightPositionLightPresetSettings(
             colorPreset
           );
-        motionProfile =
-          this.lightingMotionPresets.getPositionLightMotionPresetByName(
-            motionPreset
-          );
+        // Get motion preset bag and extract all motion profiles.
+        const motionBag =
+          this.lightingMotionPresets.getPositionLightMotionPresetByName(motionPreset);
+        const allMotionProfiles = motionBag.allMotionProfiles;
+        // Pick the correct motion profile using index.
+        motionProfile = allMotionProfiles[index];
       } else if (doesChasePlayer) {
+        // Retrieve player lighting settings and motion profiles.
         colorPresetProfile =
           this.lightingPropertyCalculator.getPlayerLightPositionLightPresetSettings(
             colorPreset
           );
-        motionProfile =
-          this.lightingMotionPresets.getPlayerPositionLightMotionByPreset(
-            motionPreset
-          );
+        // Get all motion profiles for player position lights.
+        const allMotionProfiles =
+          this.lightingMotionPresets.getPlayerPositionLightMotionByPreset(motionPreset);
+        // Pick the correct motion profile using index.
+        motionProfile = allMotionProfiles[index];
       }
 
+      // Create a Babylon.js PointLight using the computed base position from motion profile.
       createdLight = new BABYLON.PointLight(
         nickname,
         motionProfile.basePosition,
         scene
       );
 
+      // Wrap the created light in a LightingObject for additional properties and update tracking.
       lightObject = new LightingObject(
         nickname,
         createdLight,
@@ -251,12 +300,15 @@ class LightingFactory {
         motionProfile
       );
 
+      // Register the light with the lighting manager based on its type.
       if (!doesChasePlayer) {
         this.lightingManager.registerEnvironmentPositionLight(lightObject);
-      } else if (doesChasePlayer) {
+      } else if (doesChasePlayer && playerToChase != null) {
+        lightObject.assignPlayerToChase(playerToChase);
         this.lightingManager.registerPlayerChasingLight(lightObject);
       }
 
+      // Initialize runtime light properties.
       this.adjustLightInitialValues(lightObject);
     }
   }
@@ -276,7 +328,8 @@ class LightingFactory {
     archetype,
     colorPreset,
     motionPreset,
-    index
+    index,
+    playerToChase = null
   ) {
     if (archetype === "direction") {
       this.createDirectionLight(
@@ -286,7 +339,8 @@ class LightingFactory {
         colorPreset,
         motionPreset,
         false,
-        index
+        index, 
+        playerToChase
       );
     } else if (archetype === "position") {
       this.createPositionLight(
@@ -296,7 +350,8 @@ class LightingFactory {
         colorPreset,
         motionPreset,
         false,
-        index
+        index, 
+        playerToChase
       );
     }
   }

@@ -1,6 +1,17 @@
+/**
+ * ChadUtilities provides helper functions for vector logging and object inspection.
+ * It integrates with LoggerOmega for standardized logging.
+ */
 class ChadUtilities {
+  /**
+   * Logs a detailed description of a BABYLON.Vector3 instance.
+   * @param {string} msg - Custom message to include.
+   * @param {BABYLON.Vector3} vector - The vector to describe.
+   * @param {string} sender - Identifier for the log origin.
+   * @returns {string} - Formatted string describing the vector.
+   */
   static describeVector(msg, vector, sender) {
-    if (!vector instanceof BABYLON.Vector3) {
+    if (!(vector instanceof BABYLON.Vector3)) {
       LoggerOmega.SmartLogger(true, sender);
     } else if (vector instanceof BABYLON.Vector3) {
       LoggerOmega.SmartLogger(true, "Vector!!! " + typeof vector, sender);
@@ -19,10 +30,20 @@ class ChadUtilities {
     return msg;
   }
 
+  /**
+   * Wrapper for LoggerOmega's SmartLogger.
+   * @param {boolean} loggingDecision - Whether logging should occur.
+   * @param {string} msg - The message to log.
+   */
   static SmartLogger(loggingDecision, msg) {
     LoggerOmega.SmartLogger(loggingDecision, msg);
   }
 
+  /**
+   * Initiates display of object contents using a standardized format.
+   * @param {Object} obj - The object to display.
+   * @param {string} sender - Identifier for the source of the log.
+   */
   static displayContents(obj, sender) {
     ChadUtilities.displayObjectContents(
       obj,
@@ -36,79 +57,24 @@ class ChadUtilities {
       sender
     );
   }
-  static displayObjectContents(
-    obj,
-    errorType = "ObjectContentsDisplay",
-    enforceCooldown = false, // Object to be displayed
-    depth = 2,
-    loggingMsg = "-default-object-contents-logging-msg", // Tracks recursion depth for indentation
-    loggingOverride = false, // Force logging override (true/false)
-    loggingImportance = 2, // Importance level for logging decision
-    loggingEnabled = true, // Global logging flag (true/false),
-    sender = "-blank-sender-"
-  ) {
-    // Stores the formatted object properties as a single string
-    let loggingOutput =
-      "Sender: " +
-      sender +
-      " , " +
-      "Logging msg: " +
-      loggingMsg +
-      ", logging properties of error of type: " +
-      errorType +
-      ", cooldown enabled: " +
-      enforceCooldown +
-      " , ";
-
-    // Determine whether logging should be performed based on the logging decision system
-    let absoluteDecision = LoggerOmega.GetFinalizedLoggingDecision(
-      loggingOverride,
-      loggingEnabled,
-      loggingImportance
-    );
-
-    LoggerOmega.SmartLogger(
-      true,
-      "ABsolute decision is: " + absoluteDecision,
-      "Sent decision"
-    );
-
-    let outputFormatted = ChadUtilities.buildObjectString(obj, depth);
-    loggingOutput += outputFormatted;
-
-    if (enforceCooldown) {
-      LoggerOmega.SmartLoggerWithCooldown(
-        absoluteDecision,
-        loggingOutput,
-        errorType
-      );
-    } else {
-      LoggerOmega.SmartLogger(absoluteDecision, loggingOutput, sender);
-    }
-  }
 
   /**
-   * Recursive helper function to construct the formatted object string.
-   * @param {Object} obj - The object being processed.
-   * @param {Number} depth - The current depth level for indentation.
-   * @returns {String} - Formatted string representation of the object.
+   * Recursively displays the contents of an object in a formatted string.
+   * @param {Object} obj - The object to display.
+   * @param {number} depth - Current recursion depth.
+   * @returns {string} - The formatted string representation.
    */
   static buildObjectString(obj, depth) {
-    const indent = "  ".repeat(depth); // Create indentation for readability
+    const indent = "  ".repeat(depth);
     let result = "";
-    // Iterate through all properties of the object
     for (const key in obj) {
       if (obj.hasOwnProperty(key)) {
-        // Ensure it's an object's own property
         const value = obj[key];
-
-        // If the value is an object (but not null), recursively format it
         if (typeof value === "object" && value !== null) {
-          result += `${indent}${key}: {\n`; // Start object block
-          result += ChadUtilities.buildObjectString(value, depth + 1); // Recursively process nested objects
-          result += `${indent}}\n`; // End object block
+          result += `${indent}${key}: {\n`;
+          result += ChadUtilities.buildObjectString(value, depth + 1);
+          result += `${indent}}\n`;
         } else {
-          // Otherwise, format the key-value pair as a simple string
           result += `${indent}${key}: ${value}\n`;
         }
       }
@@ -116,6 +82,17 @@ class ChadUtilities {
     return result;
   }
 
+  /**
+   * Validates the structure of an array and logs any discrepancies.
+   * @param {Array} arrayHolderArray - The array to audit.
+   * @param {number} expectedArrayLength - The expected length for child arrays.
+   * @param {string} arrayNickname - A nickname for identifying the array in logs.
+   * @param {string} loggingMessage - Additional logging context message.
+   * @param {boolean} loggingOverride - Whether to override default logging.
+   * @param {boolean} loggingValue - Explicit logging decision flag.
+   * @param {string|number} loggingImportance - Importance level for logging.
+   * @returns {boolean} - True if the array is valid, false otherwise.
+   */
   static arrayLengthAudit(
     arrayHolderArray,
     expectedArrayLength,
@@ -129,17 +106,14 @@ class ChadUtilities {
     let validArrays = false;
     let foundInvalidArrayByLength = false;
     let foundInvalidArrayByType = false;
-
     let arrayNull = true;
     let arrayIsArray = false;
     let arrayLength = -1;
     let invalidArraysByLengthFound = 0;
     let invalidArraysByTypeFound = 0;
-
     if (arrayHolderArray !== null) {
       arrayNull = false;
     }
-
     if (!arrayNull && Array.isArray(arrayHolderArray)) {
       arrayIsArray = true;
       arrayLength = arrayHolderArray.length;
@@ -182,7 +156,6 @@ class ChadUtilities {
           }
         } else {
           invalidArraysByTypeFound += 1;
-
           if (!foundInvalidArrayByType) {
             arrayStatusMsg +=
               " The array with a nickname: " +
@@ -195,7 +168,6 @@ class ChadUtilities {
         }
       });
     }
-
     if (
       foundInvalidArrayByLength ||
       foundInvalidArrayByType ||
@@ -210,13 +182,11 @@ class ChadUtilities {
     } else {
       validArrays = true;
     }
-
     let loggingDecision = LoggerOmega.GetFinalizedLoggingDecision(
       loggingOverride,
       loggingValue,
       loggingImportance
     );
-
     LoggerOmega.SmartLogger(loggingDecision, arrayStatusMsg);
     return validArrays;
   }

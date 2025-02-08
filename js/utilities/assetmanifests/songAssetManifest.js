@@ -1,3 +1,7 @@
+/**
+ * SongAssetManifest manages the music assets including song URLs and volume configuration.
+ * It facilitates retrieval of song URLs and associated volume settings.
+ */
 class SongAssetManifest {
   static baseUrl =
     "https://raw.githubusercontent.com/nicolasbulgarides/radiancesoundfx/main/";
@@ -9,9 +13,10 @@ class SongAssetManifest {
   };
 
   /**
-   * Retrieves the URL for a given song
-   * @param {string} songName - The name of the song
-   * @returns {string} - The full URL of the song
+   * Retrieves the URL for a given song.
+   * If the song is not found, it defaults to the 'crystalVoyage' song.
+   * @param {string} songName - The name of the song.
+   * @returns {string} - The full URL of the song.
    */
   static getSongUrl(songName) {
     if (this.songs[songName] != null) {
@@ -22,8 +27,9 @@ class SongAssetManifest {
   }
 
   /**
-   * Retrieves the volume for a given sound effect name.
-   * @param {string} songName - The name of the song
+   * Retrieves the volume for a given song.
+   * Note: This method references 'this.sounds', which may be intended to be 'this.songs'.
+   * @param {string} songName - The name of the song.
    * @returns {number} - The volume of the song or 1.0 if not found.
    */
   static getSongVolume(songName) {

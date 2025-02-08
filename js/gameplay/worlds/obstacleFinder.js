@@ -1,16 +1,28 @@
 class ObstacleFinder {
+  /**
+   * Searches for the first obstacle encountered in a given direction from a starting position.
+   *
+   * @param {WorldMap} worldMap - The game world map with board slot data.
+   * @param {BABYLON.Vector3} startingPosition - The starting point of the search.
+   * @param {string} direction - Direction to search ("UP", "DOWN", "LEFT", or "RIGHT").
+   * @returns {Obstacle|null} - The first encountered obstacle or null if none found.
+   */
   static getFirstObstacle(worldMap, startingPosition, direction) {
+    // Initialize search coordinates.
     let x = startingPosition.x;
     let y = startingPosition.y;
     let z = startingPosition.z;
 
-    while (this.isWithinBounds(x, y, z)) {
+    // Continue searching while within grid boundaries.
+    while (this.isWithinBounds(worldMap, x, y, z)) {
+      // Retrieve the board slot at the current coordinates.
       let boardSlot = worldMap.boardSlots[x]?.[z];
       if (boardSlot && boardSlot.hostedObstacle) {
-        return boardSlot.hostedObstacle; // Found an obstacle
+        // Return the obstacle once found.
+        return boardSlot.hostedObstacle;
       }
 
-      // Move in the given direction
+      // Adjust coordinates based on the search direction.
       switch (direction.toUpperCase()) {
         case "UP":
           z += 1;
@@ -30,33 +42,52 @@ class ObstacleFinder {
       }
     }
 
-    return null; // No obstacle found
+    // If no obstacle is found within bounds, return null.
+    return null;
   }
 
+  /**
+   * Checks if the given coordinates lie within the bounds of the world map.
+   * Only X and Z dimensions are considered for the grid.
+   *
+   * @param {WorldMap} worldMap - The world containing grid dimensions.
+   * @param {number} x - X coordinate.
+   * @param {number} y - Y coordinate (unused for grid boundary check).
+   * @param {number} z - Z coordinate.
+   * @returns {boolean} - True if within bounds; false otherwise.
+   */
   static isWithinBounds(worldMap, x, y, z) {
     return x >= 0 && x < worldMap.mapWidth && z >= 0 && z < worldMap.mapDepth;
   }
+  
+  /**
+   * Determines the last valid position on the grid before encountering an obstacle.
+   *
+   * @param {WorldMap} worldMap - The game world map.
+   * @param {BABYLON.Vector3} startPosition - Starting position for the search.
+   * @param {string} direction - Direction to traverse ("UP", "DOWN", "LEFT", "RIGHT").
+   * @returns {BABYLON.Vector3} - The last valid grid position before an obstacle or the farthest in-bound position.
+   */
   static getLastValidPosition(worldMap, startPosition, direction) {
     let x = startPosition.x;
     let y = startPosition.y;
     let z = startPosition.z;
-    let lastValidPosition = new BABYLON.Vector3(
-      startPosition.x,
-      startPosition.y,
-      startPosition.z
-    );
+    // Begin tracking with the starting position.
+    let lastValidPosition = new BABYLON.Vector3(x, y, z);
 
+    // Iterate until reaching an obstacle or out-of-bounds.
     while (this.isWithinBounds(worldMap, x, y, z)) {
       let boardSlot = worldMap.boardSlots[x]?.[z];
 
       if (boardSlot && boardSlot.hostedObstacle) {
-        return lastValidPosition; // Stop at the last valid position before the obstacle
+        // Return the last valid position before the obstacle.
+        return lastValidPosition;
       }
 
-      // Update last valid position before moving
+      // Update the last valid position.
       lastValidPosition = new BABYLON.Vector3(x, y, z);
 
-      // Move in the given direction
+      // Move the coordinates according to the specified direction.
       switch (direction.toUpperCase()) {
         case "UP":
           z += 1;
@@ -76,6 +107,7 @@ class ObstacleFinder {
       }
     }
 
-    return lastValidPosition; // If no obstacle is found, return the farthest valid position
+    // If the loop exits without encountering an obstacle, return the farthest valid position.
+    return lastValidPosition;
   }
 }

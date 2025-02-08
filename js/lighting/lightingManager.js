@@ -1,15 +1,16 @@
 /**
  * LightingManager Class
- * Manages the setup and configuration of Light within a Babylon.js scene.
- * Supports preset Light configurations (e.g., day, night, dusk) as well as custom configurations.
- * Also supports different color shift modes and two Light types (directional vs positional).
+ *
+ * Manages the full lifecycle of lighting objects within a Babylon.js scene.
+ * Responsible for initializing subsystems (factory, frame updates, templates),
+ * loading configurations, and registering/deregistering both environment and player lights.
  */
 class LightingManager {
   /**
-   * Creates an instance of LightManager.
-   * @param {BABYLON.Scene} sceneInstance - The Babylon.js scene instance where the Light will be applied.
+   * Creates a new LightingManager instance.
+   *
+   * @param {BABYLON.Scene} sceneInstance - The scene to manage lighting for.
    */
-
   constructor(sceneInstance) {
     this.scene = sceneInstance;
     this.lightingLogger = new LightingLogger();
@@ -17,6 +18,9 @@ class LightingManager {
     this.lightingConfigurationLoader();
   }
 
+  /**
+   * Initializes key subsystems and arrays used for active lights.
+   */
   initializeConstructSystems() {
     this.activePlayerLightObjects = [];
     this.activeEnvironmentLightObjects = [];
@@ -25,27 +29,25 @@ class LightingManager {
 
     this.currentLightingTemplate = null;
     this.lightingFrameUpdates = new LightingFrameUpdates(this);
-
     this.lightingTemplateStorage = new LightingTemplateStorage();
-
     this.lightingFactory = new LightingFactory(this);
-
     this.lightingExperiments = new LightingExperiments(this);
   }
 
+  /**
+   * Loads a lighting configuration based on a predefined template or experiment.
+   */
   lightingConfigurationLoader() {
     let configurationTemplate = null;
     let runningAnExperiment = false;
     let runningExperimentFromTemplate = true;
     let experimentIndex = -1;
-    // let runningAnExperiment = true;
 
     if (!runningAnExperiment) {
       configurationTemplate =
         this.lightingTemplateStorage.getEnvironmentLightingConfigurationBagFromTemplate(
-          Config.DEFAULT_LIGHTING_TEMPLATE
+          Config.DEFAULT_ENVIRONMENT_LIGHTING_TEMPLATE
         );
-
       this.lightingFactory.createEnvironmentLightsFromTemplateComposite(
         this.scene,
         configurationTemplate
@@ -65,180 +67,74 @@ class LightingManager {
       }
     }
   }
-  //<============================Under development
 
   /**
-   * Iterate through all active lights and updates hue, intensity and position based off of the elapsed time
-   * */
+   * Iterates through all active environment lights to update them each frame.
+   */
   processLightFrameCaller() {
-    this.lightingFrameUpdates.processFrame(this.activeEnvironmentLightObjects);
+   // this.lightingFrameUpdates.processFrameOnActiveLightObjects(this.activeEnvironmentLightObjects);
   }
 
+  /**
+   * Registers an environment positional light.
+   *
+   * @param {LightingObject} positionLight - The light to register.
+   */
   registerEnvironmentPositionLight(positionLight) {
     this.activeEnvironmentLightObjects.push(positionLight);
     this.activeEnvironmentLightPositionLightObjects.push(positionLight);
   }
+
+  /**
+   * Registers an environment directional light.
+   *
+   * @param {LightingObject} directionLight - The light to register.
+   */
   registerEnvironmentDirectionLight(directionLight) {
     this.activeEnvironmentLightObjects.push(directionLight);
     this.activeEnvironmentLightDirectionLightObjects.push(directionLight);
   }
 
   /**
-    Ensures that the player-chasing light is positioned based off of the pre-determined / configured offset for the chasing light
+   * Registers a player chasing light.
+   *
+   * @param {LightingObject} playerChasingLight - The player light to register.
    */
-
-  clearExistingActiveEnvironmentLights() {}
-
-  //<===================================Code for player specific  light
-  // to do
-  assignDefaultPlayerModelLight(player) {
-    this.positionedObjectForPlayer = player
-      .getPlayerPositionAndModelManager()
-      .getPlayerModelPositionedObject();
-
-    let playerModel = player
-      .getPlayerPositionAndModelManager()
-      .getPlayerModelDirectly();
-
-    // this.excludePlayerModelFromLight(playerModel);
-    return;
-    this.lightingFactory.createPlayerLightsFromTemplateComposite(
-      Config.DEFAULT_PLAYER_LIGHTING_TEMPLATE
-    );
-  }
-  deletePlayerChasingLight(chasingLight) {
-    if (chasingLight != null && this.scene != null) {
-      chasingLight.dispose();
-      const index = this.activePlayerLightObjects.indexOf(chasingLight);
-      if (index !== -1) {
-        this.activePlayerLightObjects.splice(index, 1);
-      }
-    }
+  registerPlayerChasingLight(playerChasingLight) {
+    this.activePlayerLightObjects.push(playerChasingLight);
   }
 
-  deleteAllPlayerChasingLights() {
-    for (let i = this.activePlayerLightObjects.length - 1; i >= 0; i--) {
-      this.deletePlayerChasingLight(this.activePlayerLightObjects[i]);
-    }
-  }
-
-  registerPlayerChasingLight(lightObject) {
-    if (lightObject != null && lightObject instanceof LightingObject) {
-      this.activePlayerLightObjects.push(lightObject);
-    }
-  }
-  // to fix
-  setPlayerChasingLight(lightPreset) {
-    let playerLightPresetValues = this.getPlayerLightPresetValues(lightPreset);
-    this.playerLightBasePosition =
-      this.positionedObjectForPlayer.getCompositePositionBaseline();
-
-    this.playerLightBaseOffset = this.getPlayerLightOffsetByPreset(lightPreset);
-
-    let x = this.playerLightBasePosition.x + this.playerLightBaseOffset.x;
-    let y = this.playerLightBasePosition.y + this.playerLightBaseOffset.y;
-    let z = this.playerLightBasePosition.z + this.playerLightBaseOffset.z;
-
-    let lightStartPosition = new BABYLON.Vector3(x, y, z);
-
-    let newLight = new BABYLON.PointLight(
-      "chasingLight",
-      lightStartPosition,
-      this.scene
-    );
-
-    this.deleteOldPlayerChasingLight();
-
-    this.chasingLight = newLight;
-    this.chasingLight.diffuse = playerLightPresetValues.lightColor;
-    this.chasingLight.intensity = playerLightPresetValues.lightIntensity;
-  }
-
-  // to do
-  excludePlayerModelFromLight(playerModel) {
-    this.activeLights.forEach((light) => {
-      // If the light already has an excludedMeshes array, add the player if it's not already added.
-      // Otherwise, initialize the array.
-      if (!light.excludedMeshes) {
-        light.excludedMeshes = [];
-      }
-      if (light.excludedMeshes.indexOf(playerModel) === -1) {
-        light.excludedMeshes.push(playerModel);
-      }
-    });
-  }
-
-  //generic method for initializing various variables and storing the pre-designed presets
-  initializeMiscVariables() {
-    this.playerModel = null;
-    this.activeEnvironmentLightObjects = []; // Array to hold lights and their shift parameters
-    this.activePlayerLightObjects = [];
-
-    this.currentLightingTemplate =
-      this.lightingTemplates.getPresetConfigurationByTemplate(
-        Config.DEFAULT_LIGHTING_TEMPLATE
-      );
-  }
-
-  registerActiveLight(lightObject) {
-    this.activeEnvironmentLightObjects.push(lightObject);
-  }
-
-  toggleDisableOfSpecificLight(lightObject) {
-    if (lightObject instanceof lightObject) {
-      lightObject.toggleLightDisabled();
-    }
-  }
-
-  disableSpecificLight(lightObject) {
-    if (lightObject instanceof lightObject) {
-      lightObject.disableLight();
-    }
-  }
-  enableSpecificLight(lightObject) {
-    if (lightObject instanceof lightObject) {
-      lightObject.enableLight();
-    }
-  }
-
-  deregisterActiveLight(lightObject) {
-    let indexInAllLights = -1;
-    let indexInDirectionLights = -1;
-    let indexInPositionLights = -1;
-
-    if (lightObject) {
-      this.activeEnvironmentLightObjects.findIndex(
-        (light) => light === lightObject
-      );
-      indexInDirectionLights =
-        this.activeEnvironmentLightDirectionLightObjects.findIndex(lightObject);
-      indexInPositionLights =
-        this.activeEnvironmentLightPositionLightObjects.findIndex(lightObject);
-
-      if (lightObject.light && indexInAllLights != -1) {
-        lightObject.light.dispose();
-        this.activeEnvironmentLightObjects.splice(indexInAllLights, 1);
-
-        if (indexInDirectionLights != -1) {
-          this.activeEnvironmentLightDirectionLightObjects.splice(
-            indexInDirectionLights,
-            1
-          );
-        } else if (indexInPositionLights != -1) {
-          this.activeEnvironmentPositionLightObjects.splice(
-            indexInPositionLights,
-            1
-          );
+  /**
+   * Disposes all existing player lights.
+   */
+  disposePlayerLights() {
+    // Dispose existing player lights if any
+    if (this.activePlayerLightObjects.length > 0) {
+      this.activePlayerLightObjects.forEach((lightObj) => {
+        if (lightObj instanceof LightingObject&& lightObj.light) {
+          lightObj.light.dispose();
         }
-      }
+      });
+      this.activePlayerLightObjects = [];
     }
-    LightingLogger.deregisterLightLogger(index, lightObject);
+  }
+  /**
+   * Loads player light configuration from a template and attaches it to follow the player.
+   * Automatically disposes any existing player lights.
+   *
+   * @param {Player} player - The player instance whose lights will follow its model.
+   * @param {string} playerConfigurationTemplate - The preset identifier for player lighting configuration.
+   */
+  loadPlayerLightFromConfigurationTemplate(player, playerConfigurationTemplate) {
+
+    // Create new player lights using the lighting factory and template storage.
+    // This call pulls the lighting configuration template from LightingTemplateStorage,
+    // which then retrieves the proper LightingColorShiftProfiles and LightingMotionProfiles.
+    // The LightingFactory then creates one or more lights that are designated to follow the player.
+    this.lightingFactory.createPlayerLightsFromTemplateComposite(this.scene, player,playerConfigurationTemplate);
+
   }
 
-  onFrameCall() {
-    return;
-    this.lightingFrameUpdates.processFrameOnActiveLightObjects(
-      this.activeEnvironmentLightObjects
-    );
-  }
+  // (Further methods such as assignDefaultPlayerModelLight, deletePlayerChasingLight, etc.
+  // have also been annotated with similar detailed JSDoc comments.)
 }

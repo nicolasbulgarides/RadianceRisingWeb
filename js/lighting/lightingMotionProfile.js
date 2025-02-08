@@ -1,3 +1,9 @@
+/**
+ * LightingMotionProfileBag Class
+ *
+ * Encapsulates a set of motion profiles for a lighting preset.
+ * Validates that internal arrays are consistent before generating individual motion profiles.
+ */
 class LightingMotionProfileBag {
   static LOGGING_ENABLED = true;
   constructor(
@@ -15,7 +21,7 @@ class LightingMotionProfileBag {
     this.primaryProfileId = primaryProfileId;
     this.allMotionProfiles = [];
 
-    // Collect all the arrays for validation
+    // Validate that all input arrays have equal lengths.
     const arraysToCheck = [
       allMotionProfileIds,
       allPathCategories,
@@ -28,7 +34,6 @@ class LightingMotionProfileBag {
       allOnEndInteractions,
     ];
 
-    // Check if all arrays have the same length
     const expectedLength = allMotionProfileIds.length;
     if (!arraysToCheck.every((arr) => arr.length === expectedLength)) {
       ChadUtilities.SmartLogger(
@@ -36,7 +41,7 @@ class LightingMotionProfileBag {
         "All arrays inside of the lighting motion profile bag must have the same length."
       );
     } else {
-      // Store validated arrays in instance variables
+      // Store arrays and generate individual motion profiles.
       this.allMotionProfileIds = allMotionProfileIds;
       this.allPathCategories = allPathCategories;
       this.allBasePositions = allBasePositions;
@@ -47,7 +52,6 @@ class LightingMotionProfileBag {
       this.allTeleportsOrReverses = allTeleportsOrReverses;
       this.allOnEndInteractions = allOnEndInteractions;
 
-      // Generate motion profiles
       for (let i = 0; i < expectedLength; i++) {
         let motionProfile = this.generateMotionProfile(
           primaryProfileId,
@@ -66,6 +70,21 @@ class LightingMotionProfileBag {
     }
   }
 
+  /**
+   * Generates an individual LightingMotionProfile.
+   *
+   * @param {string} primaryId - Primary preset identifier.
+   * @param {string} motionProfileId - Unique identifier for this motion profile.
+   * @param {string} category - Motion category (e.g., "static", "linear").
+   * @param {BABYLON.Vector3} position - Initial position for the light.
+   * @param {BABYLON.Vector3} baseSpeed - Base speed vector.
+   * @param {BABYLON.Vector3} radiusOrDistance - Orbit radius or movement distance.
+   * @param {number} startRatio - Starting phase ratio.
+   * @param {boolean} doesLoop - Whether the motion loops.
+   * @param {string} teleportOrReverse - Behavior at end of motion.
+   * @param {string} onEndInteraction - Additional interaction on motion end.
+   * @returns {LightingMotionProfile} A new motion profile instance.
+   */
   generateMotionProfile(
     primaryId,
     motionProfileId,
@@ -75,7 +94,7 @@ class LightingMotionProfileBag {
     radiusOrDistance,
     startRatio,
     doesLoop,
-    teleportOrReverse,
+    teleportOrReverses,
     onEndInteraction
   ) {
     return new LightingMotionProfile(
@@ -87,12 +106,18 @@ class LightingMotionProfileBag {
       radiusOrDistance,
       startRatio,
       doesLoop,
-      teleportOrReverse,
+      teleportOrReverses,
       onEndInteraction
     );
   }
 }
 
+/**
+ * LightingMotionProfile Class
+ *
+ * Represents a single motion profile for a light, containing parameters such as
+ * path category, base position, movement speed, and looping properties.
+ */
 class LightingMotionProfile {
   constructor(
     parentId,

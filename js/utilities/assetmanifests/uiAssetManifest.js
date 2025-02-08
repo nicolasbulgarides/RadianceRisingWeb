@@ -1,3 +1,7 @@
+/**
+ * UIAssetManifest manages UI asset resources and provides URLs for UI element images.
+ * It supports loading assets based on local or remote environments.
+ */
 class UIAssetManifest {
   static githubUrl =
     "https://raw.githubusercontent.com/nicolasbulgarides/radianceui/main/";
@@ -12,6 +16,7 @@ class UIAssetManifest {
     buttonLeft: "buttonLeft.png",
     buttonLeft144: "buttonLeft144.png",
     buttonLeft256: "buttonLeft256.png",
+    buttonMagic: "buttonMagic1.png",
     buttonMagic1: "buttonMagic1.png",
     buttonMagic2: "buttonMagic2.png",
     buttonRight: "buttonRight.png",
@@ -21,6 +26,8 @@ class UIAssetManifest {
     gamepadBase: "gamepadBase.png",
     stainedSunShield: "stainedSunShield.png",
     uiBasePanel: "uiBasePanel.png",
+    menuBackground: "ascensionNebula.png",
+    mainMenuButton: "stainedSunShield.png",
     experienceBar1: "LevelExperienceBar512_0000_crystal-24.png",
     experienceBar2: "LevelExperienceBar512_0001_crystal-23.png",
     experienceBar3: "LevelExperienceBar512_0002_crystal-22.png",
@@ -59,6 +66,7 @@ class UIAssetManifest {
 
   /**
    * Retrieves the URL for a given UI asset name.
+   * Uses different base URLs depending on whether the loader is in local mode.
    * @param {string} assetName - The name of the UI asset.
    * @returns {string} - The full URL of the UI asset.
    */

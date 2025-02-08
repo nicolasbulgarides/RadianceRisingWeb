@@ -1,3 +1,7 @@
+/**
+ * AssetManifest manages the mapping of asset keys to their file names and provides URLs for loading assets.
+ * It contains base URLs for asset delivery and a collection of asset file mappings.
+ */
 class AssetManifest {
   // Base path to all your models/env files:
   static baseUrl = "https://radianceloader.nicolasbulgarides.workers.dev/";
@@ -136,7 +140,8 @@ class AssetManifest {
 
   /**
    * Retrieves the URL for a given asset name.
-   * @param {string} assetName - The key you used above (e.g. "archway").
+   * Depending on the environment (local or production), it returns the URL from either GitHub or the worker server.
+   * @param {string} assetName - The key used to look up the asset (e.g. "archway").
    * @returns {string|null} - The full URL of the asset, or null if not found.
    */
   static getAssetUrl(assetName) {

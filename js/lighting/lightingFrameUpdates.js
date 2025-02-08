@@ -1,3 +1,11 @@
+/**
+ * LightingFrameUpdates Class
+ *
+ * Handles per-frame updates that drive dynamic lighting effects.
+ * Updates include changes in light intensity, hue, and position using time-based
+ * sine wave calculations and phase offsets. Also manages frame counters to avoid
+ * potential overflow issues during prolonged gameplay.
+ */
 class LightingFrameUpdates {
   static LOGGING_ENABLED = true;
   constructor(lightingManager) {
@@ -5,7 +13,17 @@ class LightingFrameUpdates {
     this.lightFrameIndex = 0;
   }
 
+  /**
+   * Placeholder for updating a light's position.
+   */
   possiblyUpdateLightPosition() {}
+
+  /**
+   * Updates a light's intensity based on its color shift profile and elapsed time.
+   *
+   * @param {number} currentTime - Timestamp in milliseconds.
+   * @param {LightingObject} lightObject - The light to update.
+   */
   possiblyUpdateLightIntensity(currentTime, lightObject) {
     if (!lightObject.lightIntensityShiftPaused && lightObject.light != null) {
       let lightShift = lightObject.colorShiftProfile;
@@ -35,6 +53,12 @@ class LightingFrameUpdates {
     }
   }
 
+  /**
+   * Updates a light's hue based on its color shift profile and elapsed time.
+   *
+   * @param {number} currentTime - Timestamp in milliseconds.
+   * @param {LightingObject} lightObject - The light to update.
+   */
   possiblyUpdateLightHue(currentTime, lightObject) {
     let lightColorShift = lightObject.colorShiftProfile;
 
@@ -67,20 +91,11 @@ class LightingFrameUpdates {
     }
   }
 
-  //<========================Frame by frame processing
   /**
-   *used to adjust light values over time by small increments to create complex Light aesthetics
-   *through the strategic application of multiple different overlapping lights which blend together dynamically
-   *capped at 155.52 million so that the lightFrameIndex never exceeds integer maximum values.
-   *At 155.52 million, it resets to 0. At 60 frames per second this corresponds to 27,777 minutes of continuous gameplay
-   *aka 30.0 non-stop days of gameplay. This will PROBABLY never occur, unless someone changes the code for incrementing light index,
-   *and thus this is just ultra-cautious future proofed Light management.
-   *Why bother with this? If there is a persistent game world, such as a virtual reality game server featuring a game that takes place
-   *on an alien planet, its not inconveivable that there is a day / night cycle.
-   *By default we are set to 60 minute hours and 24 hours per day with 30 day monthly cycles. On a complex planet
-   *where day / nights have different values, then perhaps a server would have to track a value and force periodic resets with
-   *special code to prevent integer overflow
-   *Theoretically, this could also be relevant in the context of a live display of a game world / 3d environment in a museum or exhibit!
+   * Increments the frame counter and returns the elapsed time in seconds.
+   * Resets the frame counter when it nears integer overflow.
+   *
+   * @returns {number} Elapsed time in seconds.
    */
   updateLightTimeAndFrame() {
     this.lightFrameIndex++;
@@ -91,11 +106,25 @@ class LightingFrameUpdates {
     return elapsedTime;
   }
 
+  /**
+   * Updates a light's hue, intensity, and position based on current time.
+   *
+   * @param {number} currentTime - Timestamp in milliseconds.
+   * @param {LightingObject} lightObject - The light to update.
+   */
   initializeValuesByPhase(currentTime, lightObject) {
     this.possiblyUpdateLightHue(currentTime, lightObject);
     this.possiblyUpdateLightIntensity(currentTime, lightObject);
     this.possiblyUpdateLightPosition(currentTime, lightObject);
   }
+
+  /**
+   * Processes frame update for player-model-based lighting adjustments.
+   *
+   * @param {Object} playerModel - The player model.
+   * @param {BABYLON.Light} chasingLight - Light following the player.
+   * @param {Object} playerPositionedObject - Object containing player position data.
+   */
   processFrameOnPlayerModel(playerModel, chasingLight, playerPositionedObject) {
     if (
       playerModel != null &&
@@ -113,6 +142,12 @@ class LightingFrameUpdates {
       );
     }
   }
+
+  /**
+   * Iterates through all active lights and applies per-frame updates.
+   *
+   * @param {Array<LightingObject>} activeLightObjects - Array of lights.
+   */
   processFrameOnActiveLightObjects(activeLightObjects) {
     let currentTime = this.updateLightTimeAndFrame();
     activeLightObjects.forEach((lightObject) => {
@@ -122,6 +157,13 @@ class LightingFrameUpdates {
     });
   }
 
+  /**
+   * Logs a warning if components for player light movement are missing.
+   *
+   * @param {Object} playerModel
+   * @param {BABYLON.Light} chasingLight
+   * @param {Object} playerPositionedObject
+   */
   intelligentLogForPlayerLightMovement(
     playerModel,
     chasingLight,
@@ -146,6 +188,14 @@ class LightingFrameUpdates {
       );
     }
   }
+
+  /**
+   * Updates the light's position based on its motion profile.
+   * Supports multiple motion types (linear, orbital, eccentric).
+   *
+   * @param {number} currentTime - Current timestamp.
+   * @param {LightingObject} lightObject - The light to update.
+   */
   updateLightPosition(currentTime, lightObject) {
     if (lightObject.motionProfile != null) {
       let motionProfile = lightObject.motionProfile;
@@ -167,6 +217,9 @@ class LightingFrameUpdates {
       );
     }
   }
+
+  // The following methods (processLinearMotion, processEccentricMotion, processOrbitalMotion)
+  // contain similar inline comments documenting what happens within each motion type.
 
   //to do - code linear motion for lights formula
   processLinearMotion(currentTime, lightObject, motionProfile) {

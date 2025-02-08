@@ -1,18 +1,30 @@
+/**
+ * MainMenuUI
+ *
+ * This class handles the main menu UI elements including a full-screen background
+ * image and a clickable image-only button. The button click triggers a check on
+ * game initialization before disposing of the main menu.
+ */
 class MainMenuUI {
   /**
-   * @param {BABYLON.Scene} scene - The Babylon.js scene where the UI will be displayed
-   * @param {BABYLON.Engine} engine - (optional) The Babylon.js engine
+   * @param {BABYLON.Scene} scene - The Babylon.js scene where the UI will be displayed.
+   * @param {BABYLON.Engine} engine - (optional) The Babylon.js engine.
    */
   constructor(scene, engine) {
     this.scene = scene;
     this.engine = engine;
-    this.gameInitialization = window.gameInitialization; // Make sure this is set externally
+    // External game initialization control or state must be provided.
+    this.gameInitialization = window.gameInitialization;
     this.advancedTexture = null;
     this.initUI();
   }
 
+  /**
+   * Constructs the main menu UI by creating a full-screen GUI, adding background imagery,
+   * and configuring an interactive image button.
+   */
   initUI() {
-    // 1. Create a full-screen GUI on top of the scene
+    // Create a fullscreen GUI element.
     this.advancedTexture =
       BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
         "MainMenuUI",
@@ -20,40 +32,44 @@ class MainMenuUI {
         this.scene
       );
 
-    // 2. Add a background image
+    // Add a full-screen background image.
     const backgroundImage = new BABYLON.GUI.Image(
-      "menuBackground",
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/ascensionNebula.png"
+      "MainMenuBackground",
+      UIAssetManifest.getAssetUrl("menuBackground")
     );
     backgroundImage.stretch = BABYLON.GUI.Image.STRETCH_FILL;
     backgroundImage.width = "100%";
     backgroundImage.height = "100%";
     this.advancedTexture.addControl(backgroundImage);
 
-    // 3. Create an image-only button
+    // Create an image-only button.
     const imageButton = BABYLON.GUI.Button.CreateImageOnlyButton(
-      "myImageButton",
-      "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/stainedSunShield.png"
+      "StartGameButton",
+      UIAssetManifest.getAssetUrl("mainMenuButton"),
     );
     imageButton.width = "200px";
     imageButton.height = "200px";
     imageButton.color = "transparent";
     imageButton.horizontalAlignment =
       BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-    imageButton.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+    imageButton.verticalAlignment =
+      BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
     imageButton.top = "66%";
 
-    // 4. Add the button
+    // Add the button control to the GUI.
     this.advancedTexture.addControl(imageButton);
 
-    // 5. Handle clicks
+    // Attach an event handler for pointer-up events.
     imageButton.onPointerUpObservable.add(() => {
       console.log("Image button clicked!");
       this.attemptDisposeUI();
     });
   }
 
-  // Poll until the game is loaded
+  /**
+   * Attempts to dispose of the main menu UI by polling until the game
+   * initialization confirms that the game world is loaded.
+   */
   attemptDisposeUI() {
     if (this.gameInitialization && this.gameInitialization.demoWorldLoaded) {
       console.log("Game is loaded, disposing UI now.");
@@ -64,17 +80,24 @@ class MainMenuUI {
     }
   }
 
+  /**
+   * Disposes the main menu UI by initiating a fade-out animation.
+   */
   disposeUI() {
     if (!this.advancedTexture) {
       console.warn("No advancedTexture to dispose/fade out.");
       return;
     }
-    // Fade out the UI instead of immediate dispose
+    // Instead of an abrupt removal, fade out the UI.
     this.fadeOutMainMenuUI();
   }
 
+  /**
+   * Creates and begins a fade-out animation on the main menu UI to gently
+   * remove it from view.
+   */
   fadeOutMainMenuUI() {
-    // Double-check references
+    // Confirm necessary references exist.
     if (!this.scene) {
       console.error("this.scene is undefined! Cannot begin animation.");
       return;
@@ -84,25 +107,25 @@ class MainMenuUI {
       return;
     }
 
-    // 1. Create the fade-out animation
+    // Create an animation for fading out the UI (alpha transition)
     const fadeAnimation = new BABYLON.Animation(
       "fadeOutAnimation",
-      "alpha", // property name
-      30, // fps
+      "alpha", // Target property for alpha transparency.
+      30, // Frames per second
       BABYLON.Animation.ANIMATIONTYPE_FLOAT,
       BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
     );
 
-    // 2. Define keyframes
+    // Set keyframes: from fully visible (frame 0, alpha 1) to fully invisible (frame 30, alpha 0).
     fadeAnimation.setKeys([
-      { frame: 0, value: 1 }, // fully visible
-      { frame: 30, value: 0 }, // fully invisible over 1 second
+      { frame: 0, value: 1 },
+      { frame: 30, value: 0 },
     ]);
 
-    // 3. Attach the animation to the root container
+    // Attach the animation to the root container.
     this.advancedTexture.rootContainer.animations = [fadeAnimation];
 
-    // 4. Begin animation on the same scene that created the GUI
+    // Begin the fade animation on the scene.
     this.scene.beginAnimation(
       this.advancedTexture.rootContainer,
       0,
@@ -110,8 +133,8 @@ class MainMenuUI {
       false,
       1.0,
       () => {
-        console.log("Fade out complete! The menu is invisible now.");
-        // Optional: fully dispose after fade
+        console.log("Fade out complete! The menu is now invisible.");
+        // Optionally, dispose of the advancedTexture if it is no longer needed.
         // this.advancedTexture.dispose();
         // this.advancedTexture = null;
       }
@@ -119,5 +142,5 @@ class MainMenuUI {
   }
 }
 
-// Expose globally if you rely on a global reference
+// Expose the MainMenuUI globally for access from other modules if needed.
 window.MainMenuUI = MainMenuUI;

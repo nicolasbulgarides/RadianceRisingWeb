@@ -1,3 +1,10 @@
+/**
+ * LightingTemplateStorage Class
+ *
+ * Retrieves and builds lighting configuration templates based on a template identifier.
+ * Each template defines the number of lights, their archetypes, color presets,
+ * and motion presets.
+ */
 class LightingTemplateStorage {
   /**
    * Retrieves the environment lighting configuration based on a given template.
@@ -100,14 +107,19 @@ class LightingTemplateStorage {
       templateConfigurationLoaded = templateConfigurationOverride;
     }
     return new PlayerLightingTemplateBag(
-      templateConfigurationLoaded.environmentLightingCount,
-      templateConfigurationLoaded.environmentLightingArchetypes,
-      templateConfigurationLoaded.environmentLightingColorPresets,
-      templateConfigurationLoaded.environmentLightingMotionPresets
+      templateConfigurationLoaded.playerLightingCount,
+      templateConfigurationLoaded.playerLightingArchetypes,
+      templateConfigurationLoaded.playerLightingColorPresets,
+      templateConfigurationLoaded.playerLightingMotionPresets
     );
   }
 }
 
+/**
+ * EnvironmentLightingTemplateBag Class
+ *
+ * Represents a composite container for environment lighting configuration.
+ */
 class EnvironmentLightingTemplateBag {
   /**
    * Creates an instance of EnvironmentLightingTemplateBag.
@@ -195,6 +207,11 @@ class EnvironmentLightingTemplateBag {
   }
 }
 
+/**
+ * EnvironmentLightingTemplate Class
+ *
+ * Represents an environment lighting template.
+ */
 class EnvironmentLightingTemplate {
   /**
    * Represents an environment lighting template.
@@ -210,6 +227,11 @@ class EnvironmentLightingTemplate {
   }
 }
 
+/**
+ * PlayerLightingTemplateBag Class
+ *
+ * Encapsulates configuration specific to player lighting.
+ */
 class PlayerLightingTemplateBag {
   /**
    * Represents a lighting template for a player character.
@@ -287,6 +309,12 @@ class PlayerLightingTemplateBag {
     return templatesObtained;
   }
 }
+
+/**
+ * PlayerLightingTemplate Class
+ *
+ * Represents a lighting template for a player character.
+ */
 class PlayerLightingTemplate {
   /**
    * Represents a lighting template for a player character.

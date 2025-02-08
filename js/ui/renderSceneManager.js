@@ -1,16 +1,29 @@
+/**
+ * RenderSceneManager
+ *
+ * This class manages the registration and rendering of multiple Babylon.js scenes.
+ * It supports dual scenes: one for the game world and one for the UI overlay.
+ * Scene switching is handled by setting corresponding flags for rendering.
+ */
 class RenderSceneManager {
+  /**
+   * @param {BABYLON.Engine} engine - The Babylon.js engine used for rendering.
+   */
   constructor(engine) {
     this.engine = engine;
-    this.scenes = {}; // Stores scenes with their rendering status
+    // Dictionary to store scenes by a unique ID.
+    this.scenes = {};
+    // References to the active UI and game scenes.
     this.activeUIScene = null;
     this.activeGameScene = null;
+    // An optional base game camera reference, if needed.
     this.baseGameCamera = null;
   }
 
   /**
-   * Registers a new scene with a specified ID.
-   * @param {string} sceneId - The unique identifier for the scene.
-   * @param {BABYLON.Scene} scene - The scene instance to be registered.
+   * Registers a new scene with a unique identifier.
+   * @param {string} sceneId - The unique ID for the scene.
+   * @param {BABYLON.Scene} scene - The scene instance to register.
    */
   registerScene(sceneId, scene) {
     if (!this.scenes[sceneId]) {
@@ -21,60 +34,70 @@ class RenderSceneManager {
   }
 
   /**
-   * Sets the game world scene to be rendered.
-   * @param {string} sceneId - The ID of the scene to render as the game world.
+   * Sets the specified scene as the active game world scene and disables rendering
+   * for all other scenes.
+   * @param {string} sceneId - The ID of the scene to use as the game world.
    */
   setActiveGameWorldScene(sceneId) {
+    // Disable rendering on all scenes first.
     Object.keys(this.scenes).forEach((id) => {
       this.scenes[id].isRendering = false;
     });
     if (this.scenes[sceneId]) {
       this.scenes[sceneId].isRendering = true;
       this.activeGameScene = this.scenes[sceneId];
-      //console.log("Set scene to active game world scene: " + sceneId);
+      // Debug log: active game world scene set.
+      // console.log("Set active game world scene: " + sceneId);
     } else {
       console.error(`Scene with ID '${sceneId}' not found.`);
     }
   }
 
   /**
-   * Sets the UI scene to be rendered on top of the game world.
-   * @param {string} sceneId - The ID of the scene to render as the UI scene.
+   * Sets the specified scene as the active UI scene.
+   * @param {string} sceneId - The ID of the scene to use as the UI overlay.
    */
   setActiveUIScene(sceneId) {
     if (this.scenes[sceneId]) {
       this.scenes[sceneId].isRendering = true;
       this.activeUIScene = this.scenes[sceneId];
-      //console.log("UI Scene set");
+      // Debug log: active UI scene set.
+      // console.log("UI Scene set");
     } else {
       console.error(`Scene with ID '${sceneId}' not found.`);
     }
   }
 
   /**
-   * Returns the active game world scene that is currently being rendered.
-   * @returns {BABYLON.Scene | null} - The active game world scene, or null if none is active.
+   * Returns the active game world scene.
+   * @returns {BABYLON.Scene|null} The active game scene or null if none is active.
    */
   getActiveGameWorldScene() {
-    // console.log("ACTIVE!");
+    // Debug log can be enabled for troubleshooting.
+    // console.log("Returning active game world scene");
     return this.activeGameScene;
   }
 
   /**
-   * Returns the active UI scene that is currently being rendered.
-   * @returns {BABYLON.Scene | null} - The active UI scene, or null if none is active.
+   * Returns the active UI scene.
+   * @returns {BABYLON.Scene|null} The active UI scene or null if none is active.
    */
   getActiveUIScene() {
     return this.activeUIScene;
   }
 
+  /**
+   * Renders both the active game and UI scenes. It assumes that
+   * the active game scene uses a specific camera (baseGameCamera).
+   */
   render() {
     if (this.baseGameCamera != null) {
-      //console.log("TRYING!");
+      // Render the game scene.
       this.activeGameScene.render();
     } else {
       console.log("NULL camera!");
     }
+    // Render the UI scene.
     this.activeUIScene.render();
   }
 }

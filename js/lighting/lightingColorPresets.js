@@ -1,10 +1,34 @@
+/**
+ * LightingColorPresets Class
+ *
+ * Manages a collection of preset lighting color profiles for both environment
+ * and player lights within the Babylon.js scene. Integrates with a
+ * LightingPropertyCalculator to dynamically retrieve and store the lighting
+ * preset values. Presets include properties for:
+ *   - light intensity and amplitude
+ *   - hue and hue variation
+ *   - speed of light intensity change and hue shift
+ *   - looping and auto-reverse behaviors
+ *
+ * Supports auto-fallback to default generic (white) presets when a specific
+ * preset cannot be found.
+ */
 class LightingColorPresets {
   constructor(lightingPropertyCalculator) {
     this.lightingPropertyCalculator = lightingPropertyCalculator;
+    // Register this preset storage with the property calculator for retrieval.
     this.lightingPropertyCalculator.registerLightingPresetStorage(this);
     this.storePresetsComposite();
   }
-  //generic method that automagically stores specific named presets
+  
+  /**
+   * Initializes preset storage objects and populates them with preset configurations.
+   * Sets up containers for the following:
+   *  - Environment directional light presets
+   *  - Environment positional light presets
+   *  - Player directional light presets
+   *  - Player positional light presets
+   */
   storePresetsComposite() {
     this.valuableEnvironmentLightDirectionLightPresets = {};
     this.valuableEnvironmentLightPositionLightPresets = {};
@@ -24,6 +48,10 @@ class LightingColorPresets {
     this.storeFrancescasValuablePlayerLightPresets();
   }
 
+  /**
+   * Returns a list of generic keywords representing "white" or placeholder presets.
+   * @returns {Array<string>} List of generic preset keywords.
+   */
   getGenericWhiteAndPlaceholders() {
     let whiteTitles = [
       "null",
@@ -39,12 +67,15 @@ class LightingColorPresets {
       "generic",
       "genericwhite",
     ];
-
     return whiteTitles;
   }
+
+  /**
+   * Fills generic (white) preset slots with baseline preset values.
+   * These generic values are used as a fallback.
+   */
   storeGenericWhiteValuesInGenericSlots() {
     let genericValues = this.getGenericLightColorProfilePreset();
-
     let whiteTitles = this.getGenericWhiteAndPlaceholders();
 
     whiteTitles.forEach((wordForWhite) => {
@@ -52,28 +83,33 @@ class LightingColorPresets {
         this.valuablePlayerLightPositionLightPresets[wordForWhite] =
           genericValues;
       }
-
       if (!this.valuablePlayerLightDirectionLightPresets[wordForWhite]) {
         this.valuablePlayerLightDirectionLightPresets[wordForWhite] =
           genericValues;
       }
-
+      // (NOTE: There is a duplicate check here for player light position; verify as needed.)
       if (!this.valuablePlayerLightPositionLightPresets[wordForWhite]) {
         this.valuablePlayerLightPositionLightPresets[wordForWhite] =
           genericValues;
       }
-
       if (!this.valuableEnvironmentLightDirectionLightPresets[wordForWhite]) {
         this.valuableEnvironmentLightDirectionLightPresets[wordForWhite] =
           genericValues;
       }
-
       if (!this.valuableEnvironmentLightPositionLightPresets[wordForWhite]) {
         this.valuableEnvironmentLightPositionLightPresets[wordForWhite] =
           genericValues;
       }
     });
   }
+
+  /**
+   * Retrieves the lighting color shift profile for an environment directional light,
+   * looking up the preset by name and falling back to the "default" if needed.
+   *
+   * @param {string} presetName - The requested preset identifier.
+   * @returns {LightingColorShiftProfile} Color shift profile instance.
+   */
   getEnvironmentLightDirectionLightColorProfileByPresetName(presetName) {
     if (this.valuableEnvironmentLightDirectionLightPresets[presetName]) {
       let obtainedValues =
@@ -94,6 +130,13 @@ class LightingColorPresets {
     }
   }
 
+  /**
+   * Retrieves the lighting color shift profile for an environment positional light,
+   * looking up the preset by name and falling back to "default" if necessary.
+   *
+   * @param {string} presetName - The requested preset identifier.
+   * @returns {LightingColorShiftProfile} Color shift profile instance.
+   */
   getEnvironmentLightPositionLightColorProfileByPresetName(presetName) {
     if (this.valuableEnvironmentLightPositionLightPresets[presetName]) {
       let obtainedValues =
@@ -114,11 +157,14 @@ class LightingColorPresets {
     }
   }
 
-  //<================================================================Player light presets / storage of values
+  // The following methods for player light presets are placeholders.
   storeNicksValuablePlayerLightPresets() {}
-
   storeFrancescasValuablePlayerLightPresets() {}
 
+  /**
+   * Returns a generic preset object representing the "default" light color profile.
+   * @returns {Object} Generic preset values.
+   */
   getGenericLightColorProfilePreset() {
     let generic = {
       presetName: "default",
@@ -135,8 +181,8 @@ class LightingColorPresets {
     };
     return generic;
   }
-  //<================================================================End of Player light presets / storage of values
 
+  // Store methods for environment presets using different designers' selections.
   storeFrancescasValuableEnvironmentLightDirectionLightPresets() {
     this.valuableEnvironmentLightDirectionLightPresets.example = {
       presetName: "example",
@@ -169,25 +215,31 @@ class LightingColorPresets {
     };
   }
 
-  //<================================================================Environment position ight presets / storage of values
-
+  // Placeholders for storing environment positional light presets.
   storeNicksValuableEnvironmentLightPositionLightPresets() {}
   storeFrancescasValuableEnvironmentLightPositionLightPresets() {}
 
+  /**
+   * Returns the base intensity for an environment positional light given a preset.
+   *
+   * @param {string} preset - Preset identifier.
+   * @returns {number} Base intensity.
+   */
   getEnvironmentLightPositionLightBaseIntensityByPreset(preset) {
     let intensity = 100;
     switch (preset) {
       case "example":
         intensity = 100;
     }
-
     return intensity;
   }
 
-  //<======================================End of presets for positional lights
-
-  //<========================Presets for player lighting (offset, color, intensity)
-
+  /**
+   * Retrieves the player light intensity by its preset key.
+   *
+   * @param {string} lightIntensityPreset - Preset identifier.
+   * @returns {number} Light intensity value.
+   */
   getPlayerLightIntensityByPreset(lightIntensityPreset) {
     let intensity = 5;
     switch (lightIntensityPreset) {
@@ -198,6 +250,13 @@ class LightingColorPresets {
     }
     return intensity;
   }
+
+  /**
+   * Retrieves the base color for a player's light based on a preset.
+   *
+   * @param {string} lightColorPreset - Preset key.
+   * @returns {BABYLON.Color3} Base color.
+   */
   getPlayerLightBaseColorByPreset(lightColorPreset) {
     let defaultColor = BABYLON.Color3(1, 1, 1);
     switch (lightColorPreset) {
@@ -208,6 +267,12 @@ class LightingColorPresets {
     return defaultColor;
   }
 
+  /**
+   * Returns the directional light color shift profile for a player's light.
+   *
+   * @param {string} lightColorPreset - Preset key.
+   * @returns {LightingColorShiftProfile} Player light color shift profile.
+   */
   getPlayerLightDirectionLightColorShiftByPreset(lightColorPreset) {
     if (this.valuablePlayerLightDirectionLightPresets[lightColorPreset]) {
       return new LightingColorShiftProfile(
@@ -226,6 +291,13 @@ class LightingColorPresets {
       }
     }
   }
+
+  /**
+   * Returns the positional light color shift profile for a player's light.
+   *
+   * @param {string} lightColorPreset - Preset key.
+   * @returns {LightingColorShiftProfile} Player light color shift profile.
+   */
   getPlayerLightPositionLightColorShiftByPreset(lightColorPreset) {
     if (this.valuablePlayerLightPositionLightPresets[lightColorPreset]) {
       return new LightingColorShiftProfile(

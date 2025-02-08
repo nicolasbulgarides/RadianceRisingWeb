@@ -1,3 +1,12 @@
+/**
+ * LightingPropertyCalculator Class
+ *
+ * Provides utility methods to calculate and adjust lighting properties
+ * based on index values and apply slight randomized variances. Functions include:
+ * - Converting index data into raw preset values.
+ * - Converting HSV values to RGB.
+ * - Generating phase offsets for cyclic light behavior.
+ */
 class LightingPropertyCalculator {
   constructor() {}
   /**
@@ -257,7 +266,7 @@ class LightingPropertyCalculator {
    *
    * For example, if you pass in 0.7, this function will return a value between 0.7 (70% of base speed)
    * and 1.0 (100% of base speed), ensuring that the intensity speed is never faster than the base speed,
-   * but can be up to 30% slower. If you want to allow speeds that are 50% of base, you’d call this function
+   * but can be up to 30% slower. If you want to allow speeds that are 50% of base, you'd call this function
    * with a value of 0.5.
    *
    * @param {number} minMultiplier - The lower bound multiplier (should be between 0.5 and 1.0).
@@ -381,6 +390,13 @@ class LightingPropertyCalculator {
     return randomFraction * (2 * Math.PI);
   }
 
+  /**
+   * Converts an array of index values into an array of raw light configuration objects.
+   *
+   * @param {Array<number>} valueIndexes - Array of preset index values.
+   * @param {number} bagSize - Number of configuration objects to generate.
+   * @returns {Array<Object>} Array of light configuration objects.
+   */
   convertLightIndexesToRawValuesBag(valueIndexes, bagSize) {
     let values = {
       baseLightIntensity: this.getBaseLightIntensityByIndex(valueIndexes[0]),
@@ -395,11 +411,12 @@ class LightingPropertyCalculator {
       hueShiftSpeed: this.getHueShiftSpeedByIndex(valueIndexes[5]),
     };
 
-    let i = 0;
     let bagOfAdjustedValues = [];
+    let i = 0;
     while (i < bagSize) {
       let adjustedValues = this.getLightShiftValuesAdjusted(values);
       bagOfAdjustedValues.push(adjustedValues);
+      i++;
     }
 
     return bagOfAdjustedValues;
@@ -412,6 +429,11 @@ class LightingPropertyCalculator {
 
     return colorValuesBag;
   }
+  /**
+   * Registers a preset storage so that preset retrieval methods can function.
+   *
+   * @param {Object} presetStorage - An instance providing preset data.
+   */
   registerLightingPresetStorage(presetStorage) {
     this.lightingPresetStorage = presetStorage;
   }

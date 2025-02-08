@@ -1,3 +1,12 @@
+/**
+ * LightingExperiments Class
+ *
+ * Facilitates experimental configurations in the lighting system.
+ * Allows developers to quickly compare different lighting parameter combinations
+ * before finalizing them into templates or presets.
+ *
+ * The class manages temporary experiment profiles and provides fallback values.
+ */
 class LightingExperiments {
   constructor(lightingManager) {
     this.lightingManager = lightingManager;
@@ -7,6 +16,10 @@ class LightingExperiments {
     this.currentExperimentId = null;
   }
 
+  /**
+   * Configures the current experimental lighting profile.
+   * Sets a unique experiment identifier and assigns preset indexes.
+   */
   currentExperimentConfiguration() {
     //0 baseLightIntensity
     //1 baseLightIntensityAmplitude
@@ -21,24 +34,28 @@ class LightingExperiments {
       currentExperimentValueIndexes;
   }
 
-  /*
-    Add combinations of values to this method below so that you can quickly compare different lighting profiles/
-
-    When you are satisfied with a given experiment, then you can store it in "lightingPresets.js", therefore the process is conduct experiments - > finalize and name choice - > store in preset - > be able to load presets at will
-  **/
+  /**
+   * Loads various experimental lighting configurations.
+   * Developers can extend this method with additional experiment profiles.
+   */
   loadVariousExperimentProfiles() {
     //Example
     //this.experimentProfiles[69] = [0][1][0][2][4][3];
   }
 
+  /**
+   * Retrieves the current experiment profile. Falls back to a blank profile if none found.
+   *
+   * @returns {Array<number>} Array of preset indexes.
+   */
   getCurrentExperimentProfile() {
     if (
       this.experimentProfiles[this.currentExperimentId] &&
-      Array.isArray(experimentProfiles[this.currentExperimentId])
+      Array.isArray(this.experimentProfiles[this.currentExperimentId])
     ) {
       return this.experimentProfiles[this.currentExperimentId];
     } else {
-      if (this.experimentProfiles[0] && Array.isArray(experimentProfiles[0])) {
+      if (this.experimentProfiles[0] && Array.isArray(this.experimentProfiles[0])) {
         return this.experimentProfiles[0];
       }
     }
@@ -51,6 +68,12 @@ class LightingExperiments {
     }
   }
 
+  /**
+   * Returns preset directional vectors for lights for a given experiment.
+   *
+   * @param {number} experimentIndex - The experiment identifier.
+   * @returns {Object} Dictionary containing direction vectors.
+   */
   getExperimentalLightProfiles(experimentIndex) {
     let lightVectors = {
       lightRightDown: new BABYLON.Vector3(1, -1, 0),
@@ -73,6 +96,9 @@ class LightingExperiments {
     return lightVectors;
   }
 
+  /**
+   * Loads a blank placeholder experiment profile.
+   */
   loadBlankPlaceholderValues() {
     this.experimentProfiles[0] = [0, 0, 0, 0, 0, 0];
   }

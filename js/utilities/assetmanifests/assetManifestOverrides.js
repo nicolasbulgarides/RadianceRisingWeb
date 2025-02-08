@@ -1,17 +1,25 @@
+/**
+ * AssetConfig class holds configuration for asset transformation overrides.
+ * It merges default settings with any provided override values.
+ */
 class AssetConfig {
   constructor(overrides = {}) {
+    // Merge default position settings with provided overrides
     this.position = {
       ...AssetManifestOverrides.defaults.position,
       ...overrides.position,
     };
+    // Merge default offset settings with provided overrides
     this.offset = {
       ...AssetManifestOverrides.defaults.offset,
       ...overrides.offset,
     };
+    // Merge default rotation settings with provided overrides
     this.rotation = {
       ...AssetManifestOverrides.defaults.rotation,
       ...overrides.rotation,
     };
+    // Merge default scale settings with provided overrides
     this.scale = {
       ...AssetManifestOverrides.defaults.scale,
       ...overrides.scale,
@@ -19,6 +27,10 @@ class AssetConfig {
   }
 }
 
+/**
+ * AssetManifestOverrides provides default configuration values and asset-specific overrides.
+ * It offers methods to retrieve merged configurations for assets and to initialize models with these settings.
+ */
 class AssetManifestOverrides {
   static defaults = {
     position: { x: 0, y: 0, z: 0 },
@@ -34,7 +46,7 @@ class AssetManifestOverrides {
   };
 
   /**
-   * Retrieves the configuration for a given asset name.
+   * Retrieves the merged configuration for a given asset based on defaults and specific overrides.
    * @param {string} assetName - The name of the asset.
    * @returns {AssetConfig} - An instance of AssetConfig with merged defaults and overrides.
    */
@@ -44,7 +56,8 @@ class AssetManifestOverrides {
   }
 
   /**
-   * Initializes models with unique configurations.
+   * Initializes models with unique configurations based on asset overrides.
+   * Iterates over the provided models object and replaces each entry with its corresponding AssetConfig.
    * @param {Object} models - An object where each key is a model name and the value is the model's configuration.
    */
   static initializeModels(models) {

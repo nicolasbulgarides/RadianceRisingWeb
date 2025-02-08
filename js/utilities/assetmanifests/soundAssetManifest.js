@@ -1,3 +1,7 @@
+/**
+ * SoundAssetManifest manages sound effect assets, including their URLs and volume settings.
+ * It supports loading sounds from a local base URL or a remote worker URL.
+ */
 class SoundAssetManifest {
   static baseUrl =
     "https://raw.githubusercontent.com/nicolasbulgarides/radiancesoundfx/main/";
@@ -114,6 +118,7 @@ class SoundAssetManifest {
 
   /**
    * Retrieves the URL for a given sound effect name.
+   * Depending on the environment, it loads the sound from either the base URL or the worker URL.
    * @param {string} soundName - The name of the sound effect (without .wav).
    * @returns {string} - The full URL of the sound effect.
    */
@@ -126,7 +131,7 @@ class SoundAssetManifest {
   }
 
   /**
-   * Retrieves the volume for a given sound effect name.
+   * Retrieves the volume for a given sound effect.
    * @param {string} soundName - The name of the sound effect.
    * @returns {number} - The volume of the sound effect, or 1.0 if not found.
    */

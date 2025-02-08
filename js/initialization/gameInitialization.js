@@ -1,6 +1,20 @@
+/**
+ * GameInitialization Class
+ *
+ * This class is responsible for setting up the initial game environment.
+ * It loads all necessary scripts, constructs scenes (game world, base UI, experience bar UI),
+ * sets up the render loop, and delegates gameplay initialization to GameplayManager.
+ *
+ * The initialization sequence includes:
+ *  1. Loading external dependencies/scripts.
+ *  2. Creating and configuring the main scenes.
+ *  3. Registering scenes with RenderSceneManager.
+ *  4. Initiating gameplay and benchmark testing (if configured).
+ *  5. Starting the render loop.
+ */
 class GameInitialization {
   /**
-   * Constructor that initializes Babylon.js engine.
+   * Constructor that initializes game settings for Babylon.js.
    * @param {BABYLON.Engine} engineInstance - The Babylon.js engine instance.
    */
   constructor(engineInstance) {
@@ -17,12 +31,14 @@ class GameInitialization {
     this.scene.clearColor = new BABYLON.Color4(0, 0, 0, 0);
     this.baseUIScene = null;
 
-    // this.performanceMonitor = new this.performanceMonitor();
     // Unlock audio on first user interaction.
     this.addAudioUnlock();
     this.setupResizeHandler();
   }
 
+  /**
+   * Sets up audio unlocking on first user click.
+   */
   addAudioUnlock() {
     BABYLON.Engine.audioEngine.useCustomUnlockedButton = true;
 
@@ -36,6 +52,11 @@ class GameInitialization {
       { once: true }
     );
   }
+
+  /**
+   * Retrieves an array of external scripts to load.
+   * @returns {Array<string>} List of script URLs.
+   */
   getScriptsToLoad() {
     const scriptsToLoad = [
       "./js/managers/benchmarkManager.js",
@@ -76,10 +97,11 @@ class GameInitialization {
 
     return scriptsToLoad;
   }
-  /**
-   * Initializes the game by loading all necessary scripts and setting up the scene.
-   */
 
+  /**
+   * Sets up the render process for the game.
+   * Initializes RenderSceneManager, BaseGameUI, ExperienceBarUI, and registers the scenes.
+   */
   sceneRenderProcess() {
     this.sceneRenderManager = new RenderSceneManager(this.engine);
     window.sceneRenderManager = this.sceneRenderManager;
@@ -98,6 +120,11 @@ class GameInitialization {
     this.sceneRenderManager.setActiveGameWorldScene("GameWorldScene");
     this.sceneRenderManager.setActiveUIScene("BaseUIScene");
   }
+
+  /**
+   * Starts the game initialization sequence.
+   * Loads external scripts, constructs the scene, and begins the render loop.
+   */
   initialize() {
     const scriptsToLoad = this.getScriptsToLoad();
 
@@ -113,22 +140,31 @@ class GameInitialization {
       cameraExp.setTarget(BABYLON.Vector3.Zero());
 
       this.benchmarkTest();
-      // Start the render loop
+      // Start the render loop.
       this.engine.runRenderLoop(() => {
         this.sceneRenderManager.render();
-        //this.onFrameRenderUpdates();
+        // this.onFrameRenderUpdates();
       });
     });
   }
 
+  /**
+   * Handles per-frame updates.
+   * This method should process gameplay events and benchmark updates.
+   */
   onFrameRenderUpdates() {
     this.gameplayManager.processEndOfFrameEvents();
 
     if (this.benchmark != null) {
-      //this.benchmark.coreBenchmarksUpdate();
-      //this.benchmarks.nonCoreBenchmarksUpdate();
+      // Process core and non-core benchmark updates if implemented.
+      // this.benchmark.coreBenchmarksUpdate();
+      // this.benchmarks.nonCoreBenchmarksUpdate();
     }
   }
+
+  /**
+   * Performs basic benchmark tests if enabled.
+   */
   benchmarkTest() {
     this.benchmark = new BenchmarkManager(
       this.engine,
@@ -136,13 +172,15 @@ class GameInitialization {
       this.sceneRenderManager.activeUIScene.advancedTexture
     );
     this.benchmark.loadBenchmarksBasic();
-    //this.benchmark.loadBenchmarksFull();
+    // this.benchmark.loadBenchmarksFull();
   }
+
   /**
-   * Sets up the SceneBuilder, applies background color, and loads specified assets into the scene.
+   * Builds the game scene by initializing model loaders and SceneBuilder.
+   * Also initiates gameplay loading.
    */
   async buildScene() {
-    // Initialize ModelLoader and SceneBuilder
+    // Initialize ModelLoader and SceneBuilder for asset management.
     this.modelLoader = new ModelLoader();
     this.animatedModelLoader = new AnimatedModelLoader(this.scene);
     this.sceneBuilder = new SceneBuilder(
@@ -151,23 +189,30 @@ class GameInitialization {
       this.animatedModelLoader
     );
 
+    // Load gameplay elements (player, world, etc.) asynchronously.
     await this.loadGameplay();
 
+    // Optional: Add any pre-render logic here.
     this.scene.onBeforeRenderObservable.add(() => {});
   }
 
+  /**
+   * Loads external scripts sequentially and invokes a callback upon completion.
+   * @param {Array<string>} scripts - List of script URLs.
+   * @param {Function} callback - Callback to execute when all scripts are loaded.
+   */
   loadScripts(scripts, callback) {
     const loadedScripts = new Set();
 
     const loadScript = (index) => {
       if (index >= scripts.length) {
-        callback(); // All scripts are loaded, execute the callback
+        callback(); // All scripts are loaded, execute the callback.
         return;
       }
 
       const src = scripts[index];
 
-      // If script is already loaded, move to the next script
+      // If script is already loaded, move to the next script.
       if (document.querySelector(`script[src="${src}"]`)) {
         loadedScripts.add(src);
         loadScript(index + 1);
@@ -177,12 +222,12 @@ class GameInitialization {
 
         script.onload = () => {
           // window.Logger.log(`GameInitialization: Loaded script: ${src}`);
-          loadedScripts.add(src); // Add the script to the loaded list
-          loadScript(index + 1); // Load the next script
+          loadedScripts.add(src);
+          loadScript(index + 1);
         };
 
         script.onerror = () => {
-          // Continue even if a script fails to load
+          // Continue loading even if a script fails.
           loadScript(index + 1);
         };
 
@@ -190,9 +235,13 @@ class GameInitialization {
       }
     };
 
-    loadScript(0); // Start loading the first script
+    loadScript(0); // Start loading the first script.
   }
 
+  /**
+   * Initializes gameplay systems by instantiating GameplayManager.
+   * Registers the gameplay manager with the base UI scene.
+   */
   loadGameplay() {
     this.gameplayManager = new GameplayManager(
       this.sceneBuilder,
@@ -204,7 +253,7 @@ class GameInitialization {
   }
 
   /**
-   * Sets up the window resize handler.
+   * Sets up the window resize handler to accommodate engine resizing.
    */
   setupResizeHandler() {
     window.addEventListener("resize", () => {

@@ -1,5 +1,23 @@
+/**
+ * ScriptManifest Class
+ *
+ * Defines a manifest of scripts required for the application.
+ * Organizes script paths by functional components including:
+ * - Initialization utilities.
+ * - Asset management.
+ * - Gameplay systems.
+ * - UI overlays.
+ * - Lighting and camera configuration.
+ *
+ * This manifest is loaded by ScriptInitializer to dynamically load the necessary scripts.
+ */
 class ScriptManifest {
   constructor() {}
+  
+  /**
+   * Returns an array of script URLs to load for full application initialization.
+   * @returns {Array<string>} Array of script URLs.
+   */
   static getScriptsToLoad() {
     const scriptsToLoad = [];
 
@@ -17,25 +35,52 @@ class ScriptManifest {
     return scriptsToLoad;
   }
 
+  /**
+   * Loads gameplay related scripts into the manifest array.
+   * @param {Array<string>} scriptArray - The array to load script paths into.
+   */
   static loadGameplayScripts(scriptArray) {
     scriptArray.push("/gameplay/gameplayManager.js");
     this.loadPlayerScripts(scriptArray);
     this.loadGameInteractions(scriptArray);
     this.loadGameWorldScripts(scriptArray);
   }
+  
+  /**
+   * Loads game interactions script paths.
+   * @param {Array<string>} scriptArray - The array to load script paths into.
+   */
   static loadGameInteractions(scriptArray) {
     scriptArray.push("/gameplay/interactions/movementPathManager.js");
   }
+  
+  /**
+   * Loads sound system scripts.
+   * @param {Array<string>} scriptArray - The array to load script paths into.
+   */
   static loadSoundSystems(scriptArray) {
     scriptArray.push(
       "/utilities/sound/soundEffectsManager.js",
       "/utilities/sound/musicManager.js"
     );
   }
-  static loadInputScripts(scriptArray) {}
+  
+  static loadInputScripts(scriptArray) {
+    // Input handling scripts can be added here.
+  }
+  
+  /**
+   * Loads additional utility scripts.
+   * @param {Array<string>} scriptArray - The array to load script paths into.
+   */
   static loadMinorUtilityScripts(scriptArray) {
     scriptArray.push("/utilities/misc/chadUtilities.js");
   }
+  
+  /**
+   * Loads player-related scripts.
+   * @param {Array<string>} scriptArray - The array to load script paths into.
+   */
   static loadPlayerScripts(scriptArray) {
     scriptArray.push(
       "/gameplay/player/playerStatus.js",
@@ -45,6 +90,11 @@ class ScriptManifest {
       "/gameplay/player/playerLoader.js"
     );
   }
+  
+  /**
+   * Loads game world related scripts.
+   * @param {Array<string>} scriptArray - The array to load script paths into.
+   */
   static loadGameWorldScripts(scriptArray) {
     scriptArray.push(
       "/gameplay/worlds/worldData.js",
@@ -57,6 +107,11 @@ class ScriptManifest {
       "/gameplay/worlds/obstacleFinder.js"
     );
   }
+  
+  /**
+   * Loads essential initialization utility scripts.
+   * @param {Array<string>} scriptArray - The array to load script paths into.
+   */
   static loadEssentialInitializationUtilityScripts(scriptArray) {
     scriptArray.push(
       "/utilities/diagnostics/loggerOmega.js",
@@ -64,6 +119,11 @@ class ScriptManifest {
       "/utilities/diagnostics/benchmarkManager.js"
     );
   }
+  
+  /**
+   * Loads asset manifest related scripts.
+   * @param {Array<string>} scriptArray - The array to load script paths into.
+   */
   static loadAssetManifestScripts(scriptArray) {
     scriptArray.push(
       "/utilities/assetmanifests/assetManifest.js",
@@ -73,6 +133,11 @@ class ScriptManifest {
       "/utilities/assetmanifests/songAssetManifest.js"
     );
   }
+  
+  /**
+   * Loads asset loaders and managers.
+   * @param {Array<string>} scriptArray - The array to load script paths into.
+   */
   static loadAssetLoadersAndManagersScripts(scriptArray) {
     scriptArray.push(
       "/utilities/loaders/positionedObject.js",
@@ -82,17 +147,33 @@ class ScriptManifest {
       "/utilities/loaders/sceneBuilder.js"
     );
   }
+  
+  /**
+   * Loads UI related scripts.
+   * @param {Array<string>} scriptArray - The array to load script paths into.
+   */
   static loadUIScripts(scriptArray) {
     scriptArray.push(
+      "/ui/buttonFactory.js",
       "/ui/renderSceneManager.js",
       "/ui/baseGameUI.js",
       "/ui/mainMenuUI.js",
-      "/ui/experienceBarUI.js"
+      "/ui/experienceBarUI.js",
     );
   }
+  
+  /**
+   * Loads camera related scripts.
+   * @param {Array<string>} scriptArray - The array to load script paths into.
+   */
   static loadCameraScripts(scriptArray) {
     scriptArray.push("/camera/cameraManager.js");
   }
+  
+  /**
+   * Loads lighting related scripts.
+   * @param {Array<string>} scriptArray - The array to load script paths into.
+   */
   static loadLightingScripts(scriptArray) {
     scriptArray.push(
       "/lighting/lightingLogger.js",

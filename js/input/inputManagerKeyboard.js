@@ -1,85 +1,136 @@
+/**
+ * Class InputManager
+ * ------------------
+ * Manages keyboard input to control movement in a BabylonJS-based puzzle game.
+ * Listens for key events and emits a normalized movement direction via an observable.
+ * 
+ * Movement flags:
+ * - forward/backward: "W" and "S"
+ * - left/right: "A" and "D"
+ * - up/down: Space (up) and Shift (down)
+ * 
+ * Additional functionality:
+ * - Pressing "C" sets a flag to reset the object's velocity.
+ */
 class InputManager {
+    /**
+     * Creates an instance of InputManager.
+     * @param {BABYLON.Observable} onMoveObservable - Observable that notifies subscribers with movement data.
+     */
     constructor(onMoveObservable) {
+        // Observable used to dispatch updated movement vectors and reset flags.
         this.onMoveObservable = onMoveObservable;
+
+        // Object storing current movement state for each direction.
         this.movement = {
             forward: false,
             backward: false,
             left: false,
             right: false,
-            up: false,    // For Space key (up on Y-axis)
-            down: false   // For Shift key (down on Y-axis)
+            up: false,    // Space key: move up on Y-axis.
+            down: false   // Shift key: move down on Y-axis.
         };
-        this.resetVelocity = false; // Flag for clearing velocity
+
+        // Flag indicating that velocity reset was triggered by key press.
+        this.resetVelocity = false;
+
+        // Initialize keyboard input listeners.
         this.setupInputListeners();
     }
 
-    // Setup keydown and keyup listeners for movement
+    /**
+     * Registers event listeners for keydown and keyup events.
+     * Calls onKeyChange to update movement flags and emit changes.
+     */
     setupInputListeners() {
+        // Listen for key press events.
         window.addEventListener("keydown", (event) => this.onKeyChange(event, true));
+        // Listen for key release events.
         window.addEventListener("keyup", (event) => this.onKeyChange(event, false));
     }
 
-    // Handle key changes and calculate direction
+    /**
+     * Handles updates to the movement state when a key is pressed or released.
+     * Sets the velocity reset flag when "C" is pressed.
+     *
+     * @param {KeyboardEvent} event - The keyboard event.
+     * @param {boolean} isKeyDown - True if the key is pressed; false if released.
+     */
     onKeyChange(event, isKeyDown) {
-        switch (event.key.toLowerCase()) {
+        const key = event.key.toLowerCase();
+        switch (key) {
             case "w":
+                // Toggle forward movement.
                 this.movement.forward = isKeyDown;
                 break;
             case "s":
+                // Toggle backward movement.
                 this.movement.backward = isKeyDown;
                 break;
             case "a":
+                // Toggle left movement.
                 this.movement.left = isKeyDown;
                 break;
             case "d":
+                // Toggle right movement.
                 this.movement.right = isKeyDown;
                 break;
             case " ":
-                this.movement.up = isKeyDown;  // Space key for moving up on Y-axis
+                // Toggle upward movement (Y-axis) with Space.
+                this.movement.up = isKeyDown;
                 break;
             case "shift":
-                this.movement.down = isKeyDown; // Shift key for moving down on Y-axis
+                // Toggle downward movement (Y-axis) with Shift.
+                this.movement.down = isKeyDown;
                 break;
             case "c":
-                if (isKeyDown) {
-                    this.resetVelocity = true;  // Set reset flag when "C" is pressed
-                }
+                // Set the reset flag on pressing "C".
+                if (isKeyDown) this.resetVelocity = true;
                 break;
         }
 
-        // Emit the movement direction to the observable
+        // Emit the updated movement direction.
         this.emitMovementDirection();
     }
 
+    /**
+     * Computes a normalized vector based on current movement flags and emits it to observers.
+     * Includes a velocity reset flag to enable precise control in the game logic.
+     */
     emitMovementDirection() {
-        // Initialize direction vector components
-        let x = 0;
-        let y = 0;
-        let z = 0;
+        // Initialize vector components.
+        let x = 0,
+            y = 0,
+            z = 0;
 
-        // Determine horizontal movement
+        // Determine horizontal movement.
         if (this.movement.right) x += 1;
         if (this.movement.left) x -= 1;
 
-        // Determine forward/backward movement
+        // Determine forward/backward movement.
         if (this.movement.forward) z += 1;
         if (this.movement.backward) z -= 1;
 
-        // Determine up/down movement
+        // Determine vertical movement.
         if (this.movement.up) y += 1;
         if (this.movement.down) y -= 1;
 
-        // Create a direction vector from the calculated x, y, and z components
-        // Normalize the direction vector to ensure consistent speed
-          const direction = new BABYLON.Vector3(x, y, z);
-          if (direction && typeof direction.length() === "function" && direction.length() > 0) {
-              direction.normalize();
-              window.Logger.log("Normalizing!");
-          }
-        // Notify observers with the calculated direction vector and reset flag
-        this.onMoveObservable.notifyObservers({ direction, resetVelocity: this.resetVelocity });
+        // Build a BabylonJS vector from the computed components.
+        const direction = new BABYLON.Vector3(x, y, z);
 
-        // Reset the resetVelocity flag after notifying observers
+        // Normalize the vector if it has a non-zero length.
+        if (typeof direction.length === "function" && direction.length() > 0) {
+            direction.normalize();
+            window.Logger.log("Normalizing!");
+        }
+
+        // Notify subscribed observers with the current movement direction and velocity reset flag.
+        this.onMoveObservable.notifyObservers({
+            direction,
+            resetVelocity: this.resetVelocity
+        });
+
+        // Reset the velocity flag after notifying observers.
         this.resetVelocity = false;
     }
 }
