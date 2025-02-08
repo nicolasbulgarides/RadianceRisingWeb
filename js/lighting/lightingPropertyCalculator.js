@@ -384,7 +384,7 @@ class LightingPropertyCalculator {
     return randomFraction * (2 * Math.PI);
   }
 
-  convertLightIndexesToRawValuesBag(valueIndexes) {
+  convertLightIndexesToRawValuesBag(valueIndexes, bagSize) {
     let values = {
       baseLightIntensity: this.getBaseLightIntensityByIndex(valueIndexes[0]),
       baseLightIntensityAmplitude: this.getBaseLightIntensityAmplitudeByIndex(
@@ -398,21 +398,23 @@ class LightingPropertyCalculator {
       hueShiftSpeed: this.getHueShiftSpeedByIndex(valueIndexes[5]),
     };
 
-    let adjustedValues1 = this.getLightShiftValuesAdjusted(values);
-    let adjustedValues2 = this.getLightShiftValuesAdjusted(values);
-    let adjustedValues3 = this.getLightShiftValuesAdjusted(values);
-    let adjustedValues4 = this.getLightShiftValuesAdjusted(values);
-
-    let bagOfAdjustedValues = {
-      light1Values: adjustedValues1,
-      light2Values: adjustedValues2,
-      light3Values: adjustedValues3,
-      light4Values: adjustedValues4,
-    };
+    let i = 0;
+    let bagOfAdjustedValues = [];
+    while (i < bagSize) {
+      let adjustedValues = this.getLightShiftValuesAdjusted(values);
+      bagOfAdjustedValues.push(adjustedValues);
+    }
 
     return bagOfAdjustedValues;
   }
 
+  getEnvironmentLightDirectionLightBagByPresetComposite(colorPreset) {
+    let colorIndexes =
+      this.getEnvironmentLightDirectionLightPresetSettings(colorPreset);
+    let colorValuesBag = this.convertLightIndexesToRawValuesBag(colorIndexes);
+
+    return colorValuesBag;
+  }
   registerLightingPresetStorage(presetStorage) {
     this.lightingPresetStorage = presetStorage;
   }

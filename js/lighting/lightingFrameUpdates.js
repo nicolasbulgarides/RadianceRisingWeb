@@ -157,22 +157,22 @@ class LightingFrameUpdates {
     }
   }
 
+  //to do - code linear motion for lights formula
   processLinearMotion(currentTime, lightObject, motionProfile) {
-    if (motionProfile.pathCategory === "linear") {
+    if (motionProfile.pathCategory === "linear" && lightObject.light) {
       let light = lightObject.light;
 
-      // Time step calculation (assuming time in seconds)
-      let deltaTime = currentTime - (lightObject.lastUpdateTime || 0);
-      lightObject.lastUpdateTime = currentTime;
-
+      /** 
+      let adjustedDirection = this.getReversalSwitch(lightObject.motionInReverse);
       // Speed per second
-      let speed = motionProfile.speed; // units per second
+      let speed = * motionInReverse motionProfile.speed; // units per second
 
       // Compute movement vector (normalized direction * speed * time)
-      let moveVector = motionProfile.direction.scale(speed * deltaTime);
+      let moveVector = motionProfile.direction.scale(speed * currentTime);
 
       // Update position
       light.position.addInPlace(moveVector);
+      */
     }
   }
 

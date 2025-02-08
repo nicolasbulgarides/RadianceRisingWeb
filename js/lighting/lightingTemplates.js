@@ -5,13 +5,28 @@ class LightingTemplateStorage {
   the player light offset, the environment light archetype (directional vs positional), and the directional angles or positional values corresponding to each type of light
 
    */
-  getPresetConfigurationByTemplate(configurationTemplate) {
+  getEnvironmentLightingPresetConfigurationByTemplate(configurationTemplate) {
     let templateConfigurationDefault = {
-      playerLightingPreset: "standardlevel0",
-      playerLightingOffset: "standardlevel0",
-      environmentLightingArchetype: "directional",
-      environmentLightingColorPreset: "standardwhite",
-      environmentLightingMotionPreset: "standardlevel0",
+      environmentLightingCount: 4,
+
+      environmentLightingArchetypes: [
+        "direction",
+        "direction",
+        "direction",
+        "direction",
+      ],
+      environmentLightingColorPresets: [
+        "standard",
+        "standard",
+        "standard",
+        "standard",
+      ],
+      environmentLightingMotionPresets: [
+        "standard",
+        "standard",
+        "standard",
+        "standard",
+      ],
     };
 
     let doTemplateOverride = false;
@@ -21,11 +36,25 @@ class LightingTemplateStorage {
     switch (configurationTemplate) {
       case "CURRENT_EXPERIMENT": {
         templateConfigurationOverride = {
-          playerLightingPreset: "CURRENT_EXPERIMENT",
-          playerLightingOffset: "CURRENT_EXPERIMENT",
-          environmentLightingArchetype: "CURRENT_EXPERIMENT",
-          environmentLightingColorPreset: "CURRENT_EXPERIMENT",
-          environmentLightingMotionPreset: "CURRENT_EXPERIMENT",
+          environmentLightingCount: 4,
+          environmentLightingArchetypes: [
+            "CURRENT_EXPERIMENT",
+            "CURRENT_EXPERIMENT",
+            "CURRENT_EXPERIMENT",
+            "CURRENT_EXPERIMENT",
+          ],
+          environmentLightingColorPresets: [
+            "CURRENT_EXPERIMENT",
+            "CURRENT_EXPERIMENT",
+            "CURRENT_EXPERIMENT",
+            "CURRENT_EXPERIMENT",
+          ],
+          environmentLightingMotionPresets: [
+            "CURRENT_EXPERIMENT",
+            "CURRENT_EXPERIMENT",
+            "CURRENT_EXPERIMENT",
+            "CURRENT_EXPERIMENT",
+          ],
         };
         doTemplateOverride = true;
       }
@@ -33,28 +62,39 @@ class LightingTemplateStorage {
     if (doTemplateOverride) {
       templateConfigurationLoaded = templateConfigurationOverride;
     }
-    return new LightingTemplate(
-      templateConfigurationLoaded.playerLightingPreset,
-      templateConfigurationLoaded.playerLightingOffset,
-      templateConfigurationLoaded.environmentLightingArchetype,
-      templateConfigurationLoaded.environmentLightingColorPreset,
-      templateConfigurationLoaded.environmentLightingMotionPreset
+    return new EnvironmentLightingTemplate(
+      templateConfigurationLoaded.environmentLightingCount,
+      templateConfigurationLoaded.environmentLightingArchetypes,
+      templateConfigurationLoaded.environmentLightingColorPresets,
+      templateConfigurationLoaded.environmentLightingMotionPresets
     );
   }
 }
 
-class LightingTemplate {
+class EnvironmentLightingTemplate {
   constructor(
-    playerLightingColorPreset,
-    playerLightingOffsetPreset,
-    environmentLightingArchetype,
-    environmentLightingColorPreset,
-    environmentLightingMotionPreset
+    environmentLightingCount,
+    environmentLightingArchetypes,
+    environmentLightingColorPresets,
+    environmentLightingMotionPresets
   ) {
-    this.playerLightingColorPreset = playerLightingColorPreset;
-    this.playerLightingOffsetPreset = playerLightingOffsetPreset;
-    this.environmentLightingArchetype = environmentLightingArchetype;
-    this.environmentLightingColorPreset = environmentLightingColorPreset;
-    this.environmentLightingPositionPreset = environmentLightingMotionPreset;
+    this.environmentLightingCount = environmentLightingCount;
+    this.environmentLightingArchetypes = environmentLightingArchetypes;
+    this.environmentLightingColorPresets = environmentLightingColorPresets;
+    this.environmentLightingPositionPresets = environmentLightingMotionPresets;
+  }
+}
+
+class PlayerLightingTemplate {
+  constructor(
+    playerLightingCount,
+    playerLightingArchetypes,
+    playerLightingColorPresets,
+    playerLightingMotionPreset
+  ) {
+    this.playerLightingCount = playerLightingCount;
+    this.playerLightingArchetypes = playerLightingArchetypes;
+    this.playerLightingColorPresets = playerLightingColorPresets;
+    this.playerLightingMotionPreset = playerLightingMotionPreset;
   }
 }

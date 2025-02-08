@@ -3,7 +3,10 @@ class LightingFactory {
     this.lightingManager = lightingManger;
     this.scene = this.lightingManager.scene;
     this.lightingPropertyCalculator = new LightingPropertyCalculator();
-    this.lightingPresets = new LightingPresets();
+    this.lightingColorPresets = new LightingColorPresets(
+      this.lightingPropertyCalculator
+    );
+    this.lightingPathPresets = new LightingPathPresets();
   }
   createPositionalLight(shift, positionVector, lightIndex, pathData) {
     let light = new BABYLON.PointLight(
@@ -21,6 +24,24 @@ class LightingFactory {
 
     this.lightingManager.registerPositionalLight(light, shift, pathData);
   }
+
+  createEnvironmentPositionLightsFromTemplate(configurationTemplate) {
+    let lightingPreset =
+      this.lightingColorPresets.getEnvironmentLightPositionLightColorProfileByPresetName(
+        configurationTemplate.environmentLightingColorPreset
+      );
+
+    let colorLightingBag =
+      this.lightingPropertyCalculator.getEnvironmentLightDirectionLightBagByPresetComposite(
+        lightingPreset
+      );
+  }
+
+  createEnvironmentLightsFromTemplateComposite(configurationTemplate) {}
+
+  createEnvironmentLightsFromExperimentIndexComposite(experimentIndex) {}
+
+  createEnvironmentDirectionLightsFromTemplate(configurationTemplate) {}
 
   /**
    * factory method for a directional light that takes in a shift object with various settings
@@ -70,47 +91,5 @@ class LightingFactory {
       lightVectors.lightRightUp,
       4
     );
-  }
-
-  convertLightIndexesToRawValues(valueIndexes) {
-    let values = {
-      baseLightIntensity:
-        this.lightingPropertyCalculator.getBaseLightIntensityByIndex(
-          valueIndexes[0]
-        ),
-      baseLightIntensityAmplitude:
-        this.lightingPropertyCalculator.getBaseLightIntensityAmplitudeByIndex(
-          valueIndexes[1]
-        ),
-      baseHue: this.lightingPropertyCalculator.getBaseHue(valueIndexes[2]),
-      hueVariation: this.lightingPropertyCalculator.getHueShiftVariationByIndex(
-        valueIndexes[3]
-      ),
-      baseLightIntensitySpeed:
-        this.lightingPropertyCalculator.getBaseLightIntensitySpeedByIndex(
-          valueIndexes[4]
-        ),
-      hueShiftSpeed: this.lightingPropertyCalculator.getHueShiftSpeedByIndex(
-        valueIndexes[5]
-      ),
-    };
-
-    let adjustedValues1 =
-      this.lightingPropertyCalculator.getLightShiftValuesAdjusted(values);
-    let adjustedValues2 =
-      this.lightingPropertyCalculator.getLightShiftValuesAdjusted(values);
-    let adjustedValues3 =
-      this.lightingPropertyCalculator.getLightShiftValuesAdjusted(values);
-    let adjustedValues4 =
-      this.lightingPropertyCalculator.getLightShiftValuesAdjusted(values);
-
-    let bagOfAdjustedValues = {
-      light1Values: adjustedValues1,
-      light2Values: adjustedValues2,
-      light3Values: adjustedValues3,
-      light4Values: adjustedValues4,
-    };
-
-    return bagOfAdjustedValues;
   }
 }

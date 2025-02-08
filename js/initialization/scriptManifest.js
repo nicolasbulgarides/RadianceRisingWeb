@@ -56,8 +56,8 @@ class ScriptManifest {
   }
   static loadEssentialInitializationUtilityScripts(scriptArray) {
     scriptArray.push(
+      "/utilities/diagnostics/loggerOmega.js",
       "/initialization/config.js",
-      "/initialization/logger.js",
       "/initialization/benchmarkManager.js"
     );
   }
@@ -74,6 +74,7 @@ class ScriptManifest {
     scriptArray.push(
       "/utilities/loaders/positionedObject.js",
       "/utilities/loaders/modelLoader.js",
+      "/utilities/loaders/modelLoadingLogger.js",
       "/utilities/loaders/animatedModelLoader.js",
       "/utilities/loaders/sceneBuilder.js"
     );
@@ -86,8 +87,12 @@ class ScriptManifest {
       "/ui/experienceBarUI.js"
     );
   }
+  static loadCameraScripts(scriptArray) {
+    scriptArray.push("/camera/cameraManager.js");
+  }
   static loadLightingScripts(scriptArray) {
     scriptArray.push(
+      "/lighting/lightingLogger.js",
       "/lighting/lightingColorShiftProfile.js",
       "/lighting/lightMotionProfile.js",
       "/lighting/lightingMotionPresets.js",
@@ -98,8 +103,7 @@ class ScriptManifest {
       "/lighting/lightingExperiments.js",
       "/lighting/lightingFactory.js",
       "/lighting/lightingFrameUpdates.js",
-      "/lighting/lightingManager.js",
-      "/lighting/cameraManager.js"
+      "/lighting/lightingManager.js"
     );
   }
 }

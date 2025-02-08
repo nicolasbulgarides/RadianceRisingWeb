@@ -32,12 +32,15 @@ class Config {
   static CAMERA_PRESET = "gameworldtest"; // Options: 'ISOMETRIC', 'ORTHOGRAPHIC', 'PERSPECTIVE', etc.
 
   //logging and benchmark utilities
-  static LOGGING_ENABLED = true;
+  static BENCHMARK_PRESET = 1;
+
   static LOGGING_FORCEFULLY_ENABLED = false;
   static LOGGING_OMEGA_DISABLED_GET_WRECKED = false;
-  static LOGGING_LEVEL = "UNUSED";
-  static BENCHMARK_PRESET = 1;
-}
+  static LOGGING_ENABLED = true;
 
-// Expose Config globally
-window.Config = Config;
+  static LOGGING_COOLDOWNS_FALLBACK_DEFAULT = 10; // Default cooldown of 10s for unlisted error types
+  static LOGGING_COOLDOWNS_ABSOLUTE_OVERRIDE = 0; // 0 means no cooldown override
+  static LOGGING_COOLDOWNS_ABSOLUTE_OVERRIDE_ACTIVE = false; // If true, override all cooldowns
+
+  static CURRENT_LOGGING_LEVEL = 0;
+}

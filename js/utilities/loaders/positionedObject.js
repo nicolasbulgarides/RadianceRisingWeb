@@ -36,6 +36,8 @@ class PositionedObject {
     this.cloneBase = cloneBase;
     this.baseMesh = null;
 
+    this.importance = "secondary";
+    this.loggingOverride = false;
     // Retrieve the default configuration
     const config = AssetManifestOverrides.getConfig(modelId);
     // Apply default values and augmentations
@@ -85,6 +87,17 @@ class PositionedObject {
     this.model = null;
   }
 
+  /**
+   * Convenient factory method for Positioned Objects which assumes 0 rotation, NO animations, and NO offset
+   * @param {string} modelId - Unique identifier for the model (used to look up URL in AssetManifest).
+   * @param {number} position 
+   *  @param {number} scale - scale in the scene.
+   * @param {boolean} freeze - if the model is frozen / doesn't move for performance
+  * @param {boolean} interactive - if the model is interactive for performance
+   * @param {boolean} cloneBase - if the model is a base model to be cloned for performance
+
+   */
+
   static getPositionedObjectQuick(
     modelId,
     position,
@@ -119,9 +132,13 @@ class PositionedObject {
    */
   setModel(model) {
     this.model = model;
-    //console.log("Model set! ", name);
   }
 
+  /**
+   * 
+   * @returns {number} - Returns a BABYLON Vector 3 which conveniently combines the objects position and offset
+
+   */
   getCompositePositionBaseline() {
     let adjustedX = this.offset.x + this.position.x;
     let adjustedY = this.offset.y + this.position.y;
@@ -136,30 +153,29 @@ class PositionedObject {
   }
 
   /**
-   * Updates the position of the object.
-   * @param {number} x - New X position.
-   * @param {number} y - New Y position.
-   * @param {number} z - New Z position.
+   * Updates the position of the object but adjusts by offset
+   * @param {number} positionVector - New position as BABYLON Vector3
    */
   setPosition(positionVector) {
+    let adjustedX = this.offset.x + positionVector.x;
+    let adjustedY = this.offset.y + positionVector.y;
+    let adjustedZ = this.offset.z + positionVector.z;
+
+    this.position = positionVector;
+
+    this.finalizedPosition = new BABYLON.Vector3(
+      adjustedX,
+      adjustedY,
+      adjustedZ
+    );
     if (!this.model) {
       return;
     } else {
-      let adjustedX = this.offset.x + positionVector.x;
-      let adjustedY = this.offset.y + positionVector.y;
-      let adjustedZ = this.offset.z + positionVector.z;
-
-      this.position = positionVector;
-
-      this.finalizedPosition = new BABYLON.Vector3(
-        adjustedX,
-        adjustedY,
-        adjustedZ
-      );
       this.model.position = this.finalizedPosition;
     }
   }
 
+  setOffset(offsetVector) {}
   /**
    * Updates the rotation of the object.
    * @param {number} pitch - New pitch rotation angle (in degrees).
@@ -223,21 +239,5 @@ class PositionedObject {
         `PositionedObject: Model for '${this.modelId}' has been disposed.`
       );
     }
-  }
-
-  /**
-   * Retrieves the full set of object properties.
-   * @returns {Object} - All properties of the positioned object.
-   */
-  getObjectProperties() {
-    return {
-      modelId: this.modelId,
-      modelUrl: this.modelUrl,
-      position: this.position,
-      offset: this.offset,
-      rotation: this.rotation,
-      animationIDs: this.animationIDs,
-      scaling: this.scaling,
-    };
   }
 }

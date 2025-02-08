@@ -10,33 +10,30 @@ class LightingManager {
    * @param {BABYLON.Scene} sceneInstance - The Babylon.js scene instance where the Light will be applied.
    */
 
-  static lightingLoggingEnabled = true;
-
   constructor(sceneInstance) {
     this.scene = sceneInstance;
-    this.conductLoggingOverrideCheck();
+    this.lightingLogger = new LightingLogger();
     this.initializeConstructSystems();
     this.lightingConfigurationLoader();
   }
 
   initializeConstructSystems() {
-    this.activeLightObjects = [];
+    this.activeEnvironmentLightObjects = [];
+    this.activeEnvironmentPositionLightObjects = [];
+    this.activeEnvironmentLightDirectionLightObjects = [];
+
     this.currentLightingTemplate = null;
     this.lightingTemplates = new LightingTemplates();
     this.lightingFactory = new LightingFactory(this);
     this.lightingExperiments = new LightingExperiments(this);
     this.lightingFrameUpdates = new LightingFrameUpdates(this);
   }
-  conductLoggingOverrideCheck() {
-    if (Config.LOGGING_FORCEFULLY_ENABLED) {
-      this.lightingLoggingEnabled = true;
-    }
-  }
 
   lightingConfigurationLoader() {
     let configurationTemplate = null;
-
     let runningAnExperiment = false;
+    let runningExperimentFromTemplate = true;
+    let experimentIndex = -1;
     // let runningAnExperiment = true;
 
     if (!runningAnExperiment) {
@@ -44,81 +41,52 @@ class LightingManager {
         this.lightingTemplates.getPresetConfigurationByTemplate(
           Config.DEFAULT_LIGHTING_TEMPLATE
         );
-    } else {
-      configurationTemplate = "CURRENT_EXPERIMENT";
+      this.lightingFactory.processLightingTemplateEnvironment(
+        configurationTemplate
+      );
+    } else if (
+      runningAnExperiment &&
+      (runningExperimentFromTemplate || experimentIndex >= 0)
+    ) {
+      if (runningExperimentFromTemplate) {
+        this.lightingFactory.processLightingTemplateEnvironment(
+          configurationTemplate
+        );
+      } else if (experimentIndex >= 0) {
+        this.lightingFactory.processLightingExperimentFromIndex(
+          experimentIndex
+        );
+      }
     }
-
-    this.currentLightingTemplate = configurationTemplate;
-    this.processLightingTemplateCommposite(configurationTemplate);
   }
-
-  processLightingTemplateCommposite(configurationTemplate) {}
-
   //<============================Under development
 
   /**
    * Iterate through all active lights and updates hue, intensity and position based off of the elapsed time
    * */
   processLightFrameCaller() {
-    this.lightingFrameUpdates.processFrame(this.activeLights);
+    this.lightingFrameUpdates.processFrame(this.activeEnvironmentLightObjects);
   }
 
-  /**
-   * Updates the orbital motion for a given light.
-   *
-   * @param {number} currentTime - The current time in seconds.
-   * @param {object} light - The light object to update. Should include properties lightType and lightPath:
-   * if lightType = "positional" and lightPath = orbital, then and only then will this method process
-   *   orbitSpeed, orbitPhase, orbitCenter, and orbitRadius.
-   */
-
-  registerPositionalLight(light, shift, pathData) {
-    this.activeLights.push({ light, shift });
-    this.lightPathData.push({ light, pathData });
+  registerEnvironmentPositionLight(positionLight) {
+    this.activeEnvironmentLightObjects.push(positionLight);
+    this.activeEnvironmentLightPositionLightObjects.push(positionLight);
   }
+  registerEnvironmentDirectionLight(directionLight) {
+    this.activeEnvironmentLightObjects.push(directionLight);
+    this.activeEnvironmentLightDirectionLightObjects.push(directionLight);
+  }
+
   /**
     Ensures that the player-chasing light is positioned based off of the pre-determined / configured offset for the chasing light
    */
 
-  updatePlayerLight() {
-    if (
-      this.playerModel != null &&
-      this.chasingLight != null &&
-      this.positionedObjectForPlayer != null
-    ) {
-      let copyMe =
-        this.positionedObjectForPlayer.getCompositePositionBaseline();
-
-      let positionVector = new BABYLON.Vector3(copyMe.x, copyMe.y, copyMe.z);
-      this.chasingLight.position = positionVector;
-    }
-  }
   clearExistingActiveEnvironmentLights() {}
 
-  /**
-   * Still needs code for positional light system
-   */
-  initializeLightingComposite() {
-    let experimentIndex = this.manageExperimentOrPresetConfigurationPanel();
-
-    if (experimentIndex >= 0) {
-      if (this.currentEnvironmentLightArchetype === "directional") {
-        this.setEnvironmentLightDirectionLightByExperiment(experimentIndex);
-      } else if (this.currentEnvironmentLightArchetype === "position") {
-      }
-    } else {
-      if (this.currentEnvironmentLightArchetype === "directional") {
-        this.setEnvironmentLightDirectionLightByPreset(
-          this.currentEnvironmentLightPreset,
-          this.currentEnvironmentLightDirectionLightAngleVectors
-        );
-      } else if (this.currentEnvironmentLightArchetype === "position") {
-      }
-    }
-  }
-
   //<===================================Code for player specific  light
+  // to do
   assignDefaultPlayerModelLight(player, LightPreset) {
+    return;
     this.positionedObjectForPlayer = player
       .getPlayerPositionAndModelManager()
       .getPlayerModelPositionedObject();
@@ -140,6 +108,7 @@ class LightingManager {
     }
   }
 
+  // to fix
   setPlayerChasingLight(lightPreset) {
     let playerLightPresetValues = this.getPlayerLightPresetValues(lightPreset);
     this.playerLightBasePosition =
@@ -166,6 +135,7 @@ class LightingManager {
     this.chasingLight.intensity = playerLightPresetValues.lightIntensity;
   }
 
+  // to do
   excludePlayerModelFromLight(playerModel) {
     this.activeLights.forEach((light) => {
       // If the light already has an excludedMeshes array, add the player if it's not already added.
@@ -178,140 +148,75 @@ class LightingManager {
       }
     });
   }
-  //<===================================Code for player light
-
-  getPlayerLightPresetValues(lightPreset, lightOffsetPreset) {
-    let lightColorDefault = this.getPlayerLightColorByPreset(lightPreset);
-    let lightIntensityDefault =
-      this.getPlayerLightIntensityByPreset(lightPreset);
-    let lightOffsetDefault =
-      this.getPlayerLightOffsetByPreset(lightOffsetPreset);
-    let playerLightPreset = {
-      lightOffset: lightOffsetDefault,
-      lightIntensity: lightIntensityDefault,
-      lightColor: lightColorDefault,
-    };
-
-    return playerLightPreset;
-  }
-
-  //<==================End of under development
-
-  //<=-------------------------------Experiment index values for directional lights
 
   //generic method for initializing various variables and storing the pre-designed presets
   initializeMiscVariables() {
     this.playerModel = null;
-    this.activeLightObjects = []; // Array to hold lights and their shift parameters
+    this.activeEnvironmentLightObjects = []; // Array to hold lights and their shift parameters
+    this.activePlayerLightObjects = [];
+
     this.currentLightingTemplate =
       this.lightingTemplates.getPresetConfigurationByTemplate(
         Config.DEFAULT_LIGHTING_TEMPLATE
       );
   }
 
-  //<========================Factory methods
-
-  //generic factory method for retrieving experimental values for a specific experiment index for directional lights
-  getEnvironmentLightDirectionLightExperimentSettings(experimentIndex) {
-    let experimentValueIndexes = [0, 0, 0, 0, 0, 0];
-
-    if (this.lightingLoggingEnabled) {
-      console.log(
-        "Checking environment light direction light experiment index: " +
-          experimentIndex
-      );
-    }
-    if (
-      this.environmentLightDirectionLightExperimentIndexHolder[
-        experimentIndex
-      ] != null
-    ) {
-      experimentValueIndexes =
-        this.environmentLightDirectionLightExperimentIndexHolder[
-          experimentIndex
-        ];
-
-      if (this.lightingLoggingEnabled) {
-        console.log(
-          "Sucessfully Pulled out environment light direction light experiment values for experiment index: " +
-            experimentIndex
-        );
-      }
-    } else {
-      console.log(
-        "UnSucessfully Pulled out environment light direction light experiment values for experiment index: " +
-          experimentIndex
-      );
-    }
-
-    let lightExperimentValueBag = this.convertLightIndexesToRawValues(
-      experimentValueIndexes
-    );
-
-    return lightExperimentValueBag;
-  }
-
-  //factory method for setting an environmental direction light based off of a preset
-  setEnvironmentLightDirectionLightByPreset(
-    environmentLightPreset,
-    environmentLightVectorPreset
-  ) {
-    let lightSettings = null;
-    let lightVectors = null;
-
-    lightSettings = this.getEnvironmentLightDirectionLightPresetSettings(
-      environmentLightPreset
-    );
-
-    lightVectors = this.getEnvironmentLightDirectionLightPresetVectors(
-      environmentLightVectorPreset
-    );
-
-    this.clearExistingActiveEnvironmentLights();
-    this.createFourDirectionalLights(lightSettings, lightVectors);
-  }
-
   registerActiveLight(lightObject) {
-    this.activeLightObjects.push(lightObject);
+    this.activeEnvironmentLightObjects.push(lightObject);
+  }
+
+  toggleDisableOfSpecificLight(lightObject) {
+    if (lightObject instanceof lightObject) {
+      lightObject.toggleLightDisabled();
+    }
+  }
+
+  disableSpecificLight(lightObject) {
+    if (lightObject instanceof lightObject) {
+      lightObject.disableLight();
+    }
+  }
+  enableSpecificLight(lightObject) {
+    if (lightObject instanceof lightObject) {
+      lightObject.enableLight();
+    }
   }
 
   deregisterActiveLight(lightObject) {
-    if (lightObject) {
-      let index = this.activeLightObjects.findIndex(lightObject);
+    let indexInAllLights = -1;
+    let indexInDirectionLights = -1;
+    let indexInPositionLights = -1;
 
-      if (lightObject.light && index != -1) {
+    if (lightObject) {
+      indexInAllLights =
+        this.activeEnvironmentLightObjects.findIndex(lightObject);
+      indexInDirectionLights =
+        this.activeEnvironmentLightDirectionLightObjects.findIndex(lightObject);
+      indexInPositionLights =
+        this.activeEnvironmentLightPositionLightObjects.findIndex(lightObject);
+
+      if (lightObject.light && indexInAllLights != -1) {
         lightObject.light.dispose();
-        ChadUtilities.classContainedSmartLogger(
-          this.lightingLoggingEnabled,
-          "Sucessfully disposed of light: " + lightObject.lightNickname
-        );
-      } else {
-        if (this.lightingLoggingEnabled) {
-          if (index == -1 && lightObject.light) {
-            ChadUtilities.classContainedSmartLogger(
-              this.lightingLoggingEnabled,
-              "Light object not in arrayt of light objects, but light object contains a light " +
-                lightObject.lightNickname
-            );
-          } else if (index == -1 && !lightObject.light) {
-            ChadUtilities.classContainedSmartLogger(
-              this.lightingLoggingEnabled,
-              "Light object not in array of light objects AND light object does not contain a light " +
-                lightObject.lightNickname
-            );
-          }
+        this.activeEnvironmentLightObjects.splice(indexInAllLights, 1);
+
+        if (indexInDirectionLights != -1) {
+          this.activeEnvironmentLightDirectionLightObjects.splice(
+            indexInDirectionLights,
+            1
+          );
+        } else if (indexInPositionLights != -1) {
+          this.activeEnvironmentPositionLightObjects.splice(
+            indexInPositionLights
+          );
         }
       }
-      this.activeLightObjects.splice(index, 1);
-    } else {
-      ChadUtilities.classContainedSmartLogger(
-        this.lightingLoggingEnabled,
-        "No light object to deregister, the pass in to deregister was null!"
-      );
     }
+    this.lightingLogger.deregisterLightLogger(index, lightObject);
   }
 
   onFrameCall() {
-    this.lightingFrameUpdates.processFrame(this.activeLightObjects);
+    this.lightingFrameUpdates.processFrameOnActiveLightObjects(
+      this.activeEnvironmentLightObjects
+    );
   }
 }
