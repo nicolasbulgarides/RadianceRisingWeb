@@ -102,7 +102,6 @@ class EngineInitialization {
         document.head.appendChild(script);
 
         script.onload = () => {
-          // window.Logger.log(`GameInitialization: Loaded script: ${src}`);
           loadedScripts.add(src); // Add the script to the loaded list
 
           if (index < scripts.length - 1) {
@@ -127,8 +126,6 @@ class EngineInitialization {
    * Sets up the window resize handler.
    */
   setupResizeHandler() {
-    let logger = new Logger();
-    window.Logger = logger;
     window.addEventListener("resize", () => {
       this.engine.resize();
     });

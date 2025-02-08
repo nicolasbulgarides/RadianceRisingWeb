@@ -9,8 +9,8 @@ class LightingColorShiftProfile {
     this.baseLightIntensitySpeed = colorProfileData.baseLightIntensitySpeed;
     this.hueShiftSpeed = colorProfileData.hueShiftSpeed;
     this.loops = colorProfileData.loops;
-    this.autoReverse = colorProfileData.loops;
+    this.autoReverse = colorProfileData.autoReverse;
     this.lightIntensityPhaseRatio = colorProfileData.lightIntensityPhaseRatio;
-    this.colorPhaseRatio = colorProfileData.colorPhaseRatio;
+    this.colorShiftPhaseRatio = colorProfileData.colorShiftPhaseRatio;
   }
 }

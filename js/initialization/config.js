@@ -27,6 +27,7 @@ class Config {
   //default values (lighting, camera)
 
   static DEFAULT_LIGHTING_TEMPLATE = "standardlevel0";
+  static DEFAULT_PLAYER_LIGHTING_TEMPLATE = "default";
 
   // Presets for testing different setups
   static CAMERA_PRESET = "gameworldtest"; // Options: 'ISOMETRIC', 'ORTHOGRAPHIC', 'PERSPECTIVE', etc.
@@ -34,7 +35,7 @@ class Config {
   //logging and benchmark utilities
   static BENCHMARK_PRESET = 1;
 
-  static LOGGING_FORCEFULLY_ENABLED = false;
+  static LOGGING_FORCEFULLY_ENABLED = true;
   static LOGGING_OMEGA_DISABLED_GET_WRECKED = false;
   static LOGGING_ENABLED = true;
 
@@ -42,5 +43,5 @@ class Config {
   static LOGGING_COOLDOWNS_ABSOLUTE_OVERRIDE = 0; // 0 means no cooldown override
   static LOGGING_COOLDOWNS_ABSOLUTE_OVERRIDE_ACTIVE = false; // If true, override all cooldowns
 
-  static CURRENT_LOGGING_LEVEL = 0;
+  static CURRENT_LOGGING_LEVEL = 5;
 }

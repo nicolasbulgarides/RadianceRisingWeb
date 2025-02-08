@@ -99,15 +99,11 @@ class GameInitialization {
     this.sceneRenderManager.setActiveUIScene("BaseUIScene");
   }
   initialize() {
-    window.Logger.log("GameInitialization: Starting initialization.");
-
     const scriptsToLoad = this.getScriptsToLoad();
 
     this.loadScripts(scriptsToLoad, () => {
       this.soundEffectsManager = new SoundEffectsManager(this.scene);
       this.sceneRenderProcess();
-
-      window.Logger.log("GameInitialization: All manager scripts loaded.");
 
       var cameraExp = new BABYLON.FreeCamera(
         "camera",
@@ -146,8 +142,6 @@ class GameInitialization {
    * Sets up the SceneBuilder, applies background color, and loads specified assets into the scene.
    */
   async buildScene() {
-    window.Logger.log("GameInitialization: Creating game scene.");
-
     // Initialize ModelLoader and SceneBuilder
     this.modelLoader = new ModelLoader();
     this.animatedModelLoader = new AnimatedModelLoader(this.scene);
@@ -167,11 +161,6 @@ class GameInitialization {
 
     const loadScript = (index) => {
       if (index >= scripts.length) {
-        window.Logger.log(
-          `GameInitialization: All scripts loaded: ${Array.from(
-            loadedScripts
-          ).join(", ")}`
-        );
         callback(); // All scripts are loaded, execute the callback
         return;
       }
@@ -180,7 +169,6 @@ class GameInitialization {
 
       // If script is already loaded, move to the next script
       if (document.querySelector(`script[src="${src}"]`)) {
-        window.Logger.log(`GameInitialization: Script already loaded: ${src}`);
         loadedScripts.add(src);
         loadScript(index + 1);
       } else {
@@ -194,7 +182,6 @@ class GameInitialization {
         };
 
         script.onerror = () => {
-          window.Logger.error(`Failed to load script: ${src}`);
           // Continue even if a script fails to load
           loadScript(index + 1);
         };
@@ -222,7 +209,6 @@ class GameInitialization {
   setupResizeHandler() {
     window.addEventListener("resize", () => {
       this.engine.resize();
-      window.Logger.log("GameInitialization: Engine resized.");
     });
   }
 }

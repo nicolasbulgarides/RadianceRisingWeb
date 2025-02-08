@@ -18,15 +18,19 @@ class LightingManager {
   }
 
   initializeConstructSystems() {
+    this.activePlayerLightObjects = [];
     this.activeEnvironmentLightObjects = [];
     this.activeEnvironmentPositionLightObjects = [];
     this.activeEnvironmentLightDirectionLightObjects = [];
 
     this.currentLightingTemplate = null;
-    this.lightingTemplates = new LightingTemplates();
-    this.lightingFactory = new LightingFactory(this);
-    this.lightingExperiments = new LightingExperiments(this);
     this.lightingFrameUpdates = new LightingFrameUpdates(this);
+
+    this.lightingTemplateStorage = new LightingTemplateStorage();
+
+    this.lightingFactory = new LightingFactory(this);
+
+    this.lightingExperiments = new LightingExperiments(this);
   }
 
   lightingConfigurationLoader() {
@@ -38,10 +42,12 @@ class LightingManager {
 
     if (!runningAnExperiment) {
       configurationTemplate =
-        this.lightingTemplates.getPresetConfigurationByTemplate(
+        this.lightingTemplateStorage.getEnvironmentLightingConfigurationBagFromTemplate(
           Config.DEFAULT_LIGHTING_TEMPLATE
         );
-      this.lightingFactory.processLightingTemplateEnvironment(
+
+      this.lightingFactory.createEnvironmentLightsFromTemplateComposite(
+        this.scene,
         configurationTemplate
       );
     } else if (
@@ -85,8 +91,7 @@ class LightingManager {
 
   //<===================================Code for player specific  light
   // to do
-  assignDefaultPlayerModelLight(player, LightPreset) {
-    return;
+  assignDefaultPlayerModelLight(player) {
     this.positionedObjectForPlayer = player
       .getPlayerPositionAndModelManager()
       .getPlayerModelPositionedObject();
@@ -95,19 +100,33 @@ class LightingManager {
       .getPlayerPositionAndModelManager()
       .getPlayerModelDirectly();
 
-    this.excludePlayerModelFromLight(playerModel);
-    this.setPlayerChasingLight(LightPreset);
+    // this.excludePlayerModelFromLight(playerModel);
+    return;
+    this.lightingFactory.createPlayerLightsFromTemplateComposite(
+      Config.DEFAULT_PLAYER_LIGHTING_TEMPLATE
+    );
   }
-  deleteOldPlayerChasingLight() {
-    if (this.chasingLight != null && this.scene != null) {
-      this.chasingLight.dispose();
-      const index = this.scene.lights.indexOf(this.chasingLight);
-      if (index > -1) {
-        this.scene.lights.splice(index, 1);
+  deletePlayerChasingLight(chasingLight) {
+    if (chasingLight != null && this.scene != null) {
+      chasingLight.dispose();
+      const index = this.activePlayerLightObjects.indexOf(chasingLight);
+      if (index !== -1) {
+        this.activePlayerLightObjects.splice(index, 1);
       }
     }
   }
 
+  deleteAllPlayerChasingLights() {
+    for (let i = this.activePlayerLightObjects.length - 1; i >= 0; i--) {
+      this.deletePlayerChasingLight(this.activePlayerLightObjects[i]);
+    }
+  }
+
+  registerPlayerChasingLight(lightObject) {
+    if (lightObject != null && lightObject instanceof LightingObject) {
+      this.activePlayerLightObjects.push(lightObject);
+    }
+  }
   // to fix
   setPlayerChasingLight(lightPreset) {
     let playerLightPresetValues = this.getPlayerLightPresetValues(lightPreset);
@@ -188,8 +207,9 @@ class LightingManager {
     let indexInPositionLights = -1;
 
     if (lightObject) {
-      indexInAllLights =
-        this.activeEnvironmentLightObjects.findIndex(lightObject);
+      this.activeEnvironmentLightObjects.findIndex(
+        (light) => light === lightObject
+      );
       indexInDirectionLights =
         this.activeEnvironmentLightDirectionLightObjects.findIndex(lightObject);
       indexInPositionLights =
@@ -206,15 +226,17 @@ class LightingManager {
           );
         } else if (indexInPositionLights != -1) {
           this.activeEnvironmentPositionLightObjects.splice(
-            indexInPositionLights
+            indexInPositionLights,
+            1
           );
         }
       }
     }
-    this.lightingLogger.deregisterLightLogger(index, lightObject);
+    LightingLogger.deregisterLightLogger(index, lightObject);
   }
 
   onFrameCall() {
+    return;
     this.lightingFrameUpdates.processFrameOnActiveLightObjects(
       this.activeEnvironmentLightObjects
     );

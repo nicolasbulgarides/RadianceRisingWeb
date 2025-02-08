@@ -10,7 +10,8 @@ class LightingColorPresets {
     this.valuableEnvironmentLightPositionLightPresets = {};
     this.valuableEnvironmentLightDirectionMotionProfilePresets = {};
     this.valuableEnvironmentLightPositionMotionProfilePresets = {};
-    this.valuablePlayerLightPresets = {};
+    this.valuablePlayerLightDirectionLightPresets = {};
+    this.valuablePlayerLightPositionLightPresets = {};
 
     this.storeGenericWhiteValuesInGenericSlots();
     this.storeNicksValuableEnvironmentLightDirectionLightPresets();
@@ -47,11 +48,30 @@ class LightingColorPresets {
     let whiteTitles = this.getGenericWhiteAndPlaceholders();
 
     whiteTitles.forEach((wordForWhite) => {
-      this.valuablePlayerLightPresets[wordForWhite] = genericValues;
-      this.valuableEnvironmentLightDirectionLightPresets[wordForWhite] =
-        genericValues;
-      this.valuableEnvironmentLightPositionLightPreset[wordForWhite] =
-        genericValues;
+      if (!this.valuablePlayerLightPositionLightPresets[wordForWhite]) {
+        this.valuablePlayerLightPositionLightPresets[wordForWhite] =
+          genericValues;
+      }
+
+      if (!this.valuablePlayerLightDirectionLightPresets[wordForWhite]) {
+        this.valuablePlayerLightDirectionLightPresets[wordForWhite] =
+          genericValues;
+      }
+
+      if (!this.valuablePlayerLightPositionLightPresets[wordForWhite]) {
+        this.valuablePlayerLightPositionLightPresets[wordForWhite] =
+          genericValues;
+      }
+
+      if (!this.valuableEnvironmentLightDirectionLightPresets[wordForWhite]) {
+        this.valuableEnvironmentLightDirectionLightPresets[wordForWhite] =
+          genericValues;
+      }
+
+      if (!this.valuableEnvironmentLightPositionLightPresets[wordForWhite]) {
+        this.valuableEnvironmentLightPositionLightPresets[wordForWhite] =
+          genericValues;
+      }
     });
   }
   getEnvironmentLightDirectionLightColorProfileByPresetName(presetName) {
@@ -62,10 +82,14 @@ class LightingColorPresets {
       return colorShiftProfile;
     } else {
       if (this.valuableEnvironmentLightDirectionLightPresets["default"]) {
-        return new LightingColorShiftProfile(samplePreset);
+        return new LightingColorShiftProfile(
+          this.valuableEnvironmentLightDirectionLightPresets["default"]
+        );
       } else {
         this.storeGenericWhiteValuesInGenericSlots();
-        return new LightingColorShiftProfile(generic);
+        return new LightingColorShiftProfile(
+          this.valuableEnvironmentLightDirectionLightPresets["default"]
+        );
       }
     }
   }
@@ -83,7 +107,9 @@ class LightingColorPresets {
         return new LightingColorShiftProfile(genericValues);
       } else {
         this.storeGenericWhiteValuesInGenericSlots();
-        return new LightingColorShiftProfile(genericValues);
+        return new LightingColorShiftProfile(
+          this.valuableEnvironmentLightPositionLightPresets["default"]
+        );
       }
     }
   }
@@ -182,20 +208,38 @@ class LightingColorPresets {
     return defaultColor;
   }
 
-  getPlayerLightColorShiftByPreset(lightColorPreset) {
-    if (this.valuablePlayerLightPresets[lightColorPreset]) {
+  getPlayerLightDirectionLightColorShiftByPreset(lightColorPreset) {
+    if (this.valuablePlayerLightDirectionLightPresets[lightColorPreset]) {
       return new LightingColorShiftProfile(
-        this.valuablePlayerLightPresets[lightColorPreset]
+        this.valuablePlayerLightDirectionLightPresets[lightColorPreset]
       );
     } else {
-      if (this.valuablePlayerLightPresets["default"]) {
+      if (this.valuablePlayerLightDirectionLightPresets["default"]) {
         return new LightingColorShiftProfile(
-          this.valuablePlayerLightPresets["default"]
+          this.valuablePlayerLightDirectionLightPresets["default"]
         );
       } else {
         this.storeGenericWhiteValuesInGenericSlots();
         return new LightingColorShiftProfile(
-          this.valuablePlayerLightPresets["default"]
+          this.valuablePlayerLightDirectionLightPresets["default"]
+        );
+      }
+    }
+  }
+  getPlayerLightPositionLightColorShiftByPreset(lightColorPreset) {
+    if (this.valuablePlayerLightPositionLightPresets[lightColorPreset]) {
+      return new LightingColorShiftProfile(
+        this.valuablePlayerLightPositionLightPresets[lightColorPreset]
+      );
+    } else {
+      if (this.valuablePlayerLightPositionLightPresets["default"]) {
+        return new LightingColorShiftProfile(
+          this.valuablePlayerLightPositionLightPresets["default"]
+        );
+      } else {
+        this.storeGenericWhiteValuesInGenericSlots();
+        return new LightingColorShiftProfile(
+          this.valuablePlayerLightPositionLightPresets["default"]
         );
       }
     }

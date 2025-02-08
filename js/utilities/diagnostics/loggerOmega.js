@@ -101,14 +101,21 @@ class LoggerOmega {
   static SmartLoggerWithCooldown(
     loggingDecision,
     msg,
-    errorType = "UnspecifiedError"
+    errorType = "UnspecifiedError",
+    sender = "blank-sender"
   ) {
-    if (Config.LOGGING_OMEGA_DISABLED_GET_WRECKED || !loggingDecision) return;
+    if (Config.LOGGING_OMEGA_DISABLED_GET_WRECKED) return;
 
-    if (Config.LOGGING_COOLDOWNS_ABSOLUTE_OVERRIDE == 0) {
-      this.SmartLogger(loggingDecision, msg);
-    } else if (this.canLogError(errorType)) {
-      this.SmartLogger(loggingDecision, msg);
+    if (
+      Config.LOGGING_COOLDOWNS_ABSOLUTE_OVERRIDE == 0 ||
+      Config.LOGGING_FORCEFULLY_ENABLED
+    ) {
+      this.SmartLogger(loggingDecision, msg, sender);
+    } else if (
+      this.canLogError(errorType) ||
+      Config.LOGGING_FORCEFULLY_ENABLED
+    ) {
+      this.SmartLogger(loggingDecision, msg, sender);
     }
   }
 
@@ -230,14 +237,15 @@ class LoggerOmega {
 
   /**
    @param {boolean} loggingDecision - The explicit logging decision from the calling logger (`true` = enable logging, `false` = disable).
-   @param {boolean} msg -  the total msg to be displayed by the SmartLogger
+   @param {string} msg -  the total msg to be displayed by the SmartLogger
+  @param {string} sender - Help specify where something is messing you up 
    * Note the "LOGGING_OMEGA_DISABLED_GET_WRECKED" ALWAYS, ALWAYS overrwrites all logging decisions, and such allows for logging code
    * to be in deployment without risking comment output performance issues
   */
-  static SmartLogger(loggingDecision, msg) {
+  static SmartLogger(loggingDecision, msg, sender = "-sender-blank-") {
     if (!Config.LOGGING_OMEGA_DISABLED_GET_WRECKED) {
-      if (loggingDecision) {
-        console.log(msg);
+      if (loggingDecision || Config.LOGGING_FORCEFULLY_ENABLED) {
+        console.log("Sender: " + sender + ", msg: " + msg);
       }
     }
   }

@@ -11,7 +11,6 @@ class GameWorldLoader {
     this.cameraManager = new CameraManager(
       this.sceneBuilder.getGameWorldScene()
     );
-    console.log("Default camera loaded!");
   }
 
   async loadDemoWorldTest() {

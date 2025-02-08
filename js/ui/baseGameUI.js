@@ -152,7 +152,6 @@ class BaseGameUI extends BABYLON.Scene {
 
   setBackgroundColor(color) {
     this.clearColor = color;
-    window.Logger.log("SceneBuilder: Background color set.");
   }
 
   registerGameplayManager(gameplayManager) {

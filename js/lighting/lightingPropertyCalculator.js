@@ -43,9 +43,7 @@ class LightingPropertyCalculator {
    * index / 100 = a precise light setting, AKA index 100000 => 100K / 100 -> light of 1000
    */
   getBaseLightIntensityByIndex(shiftIndex) {
-    if (shiftIndex <= 0) {
-      return 5;
-    } else if (shiftIndex >= 1 && shiftIndex < 99) {
+    if (shiftIndex >= 0 && shiftIndex < 99) {
       return 5 + shiftIndex * 5;
     } else if (shiftIndex >= 100) {
       return shiftIndex / 100;
@@ -82,8 +80,8 @@ class LightingPropertyCalculator {
     defaults to five if not between 0 and 20 or >= 100
      */
   getBaseLightIntensity(shiftTestIndex) {
-    if (shiftTestIndex >= 0 || shiftTestIndex <= 20) {
-      return shiftTestIndex * 5;
+    if (shiftTestIndex >= 0 && shiftTestIndex <= 20) {
+      return 5 + shiftTestIndex * 5;
     }
     if (shiftTestIndex > 100) {
       return shiftTestIndex / 100;
@@ -244,13 +242,12 @@ class LightingPropertyCalculator {
       // Compute a phase offset for the sine wave that drives cyclic variations.
       // This random value (scaled by 2π) ensures the starting point of the sine wave varies,
       // with additional variance applied to further randomize the phase.
-      phaseOffset: Math.random() * 2 * Math.PI * this.getMicroVariance(0.33, 1), // phase offset for the sine wave
-
-      // Generate timing offsets to desynchronize hue and intensity variations.
-      // This can create a more dynamic and natural animation effect.
-      timingOffsetHue: this.getTimingOffset(0.25, 0.9),
-      timingOffsetIntensity: this.getTimingOffset(0.35, 0.84),
-      //<================================= AUTO MAGIC VARIANCE FOR CYLICAL TIMING, NO NEED TO TOUCH IN MOST CASES, NOT WORTH PARAMATERIZING =====>
+      colorShiftPhaseRatio:
+        modularValues.colorShiftPhaseRatio *
+        this.getMicroVariance(lowerVariance, upperVariance), // phase offset for the sine wave
+      lightIntensityPhaseRatio:
+        modularValues.lightIntensityPhaseRatio *
+        this.getMicroVariance(lowerVariance, upperVariance),
     };
     return shift;
   }
@@ -432,25 +429,41 @@ class LightingPropertyCalculator {
         colorPreset
       );
 
-    let lightPresetValues = {
-      baseLightIntensity: this.getBaseLightIntensityByIndex(presetIndexes[0]),
-      baseLightIntensityAmplitude: this.getBaseLightIntensityAmplitudeByIndex(
-        presetIndexes[1]
-      ),
-      baseHue: this.getBaseHue(presetIndexes[2]),
-      hueVariation: this.getHueShiftVariationByIndex(presetIndexes[3]),
-      baseLightIntensitySpeed: this.getBaseLightIntensitySpeedByIndex(
-        presetIndexes[4]
-      ),
-      hueShiftSpeed: this.getHueShiftSpeedByIndex(presetIndexes[5]),
-    };
+    let lightPresetValues = this.wrapPresetValuesIntoObject(presetIndexes);
 
-    if (LightingManager.lightingLoggingEnabled) {
-      console.log(
-        "Light preset values directional environment, pre adjustment for variance:",
-        JSON.stringify(lightPresetValues, null, 2)
+    LightingLogger.describeLightingPresetValues(
+      "-Environment-Light-Direction-",
+      lightPresetValues
+    );
+
+    return lightPresetValues;
+  }
+
+  getPlayerLightDirectionLightPresetSettings(colorPreset) {
+    let presetIndexes =
+      this.lightingPresetStorage.getPlayerLightDirectionLightColorShiftByPreset(
+        colorPreset
       );
-    }
+
+    let lightPresetValues = this.wrapPresetValuesIntoObject(presetIndexes);
+
+    LightingLogger.describeLightingPresetValues(
+      "-Player-Light-Position-",
+      lightPresetValues
+    );
+
+    return lightPresetValues;
+  }
+  getPlayerLightPositionLightPresetSettings(colorPreset) {
+    let presetIndexes =
+      this.lightingPresetStorage.getPlayerLightColorShiftByPreset(colorPreset);
+
+    let lightPresetValues = this.wrapPresetValuesIntoObject(presetIndexes);
+
+    LightingLogger.describeLightingPresetValues(
+      "-Player-Light-Position-",
+      lightPresetValues
+    );
 
     return lightPresetValues;
   }
@@ -467,6 +480,17 @@ class LightingPropertyCalculator {
         colorPreset
       );
 
+    let lightPresetValues = this.wrapPresetValuesIntoObject(presetIndexes);
+
+    LightingLogger.describeLightingPresetValues(
+      "-Environment-Light-Position-",
+      lightPresetValues
+    );
+
+    return lightPresetValues;
+  }
+
+  wrapPresetValuesIntoObject(presetIndexes) {
     let lightPresetValues = {
       baseLightIntensity: this.getBaseLightIntensityByIndex(presetIndexes[0]),
       baseLightIntensityAmplitude: this.getBaseLightIntensityAmplitudeByIndex(
@@ -479,14 +503,6 @@ class LightingPropertyCalculator {
       ),
       hueShiftSpeed: this.getHueShiftSpeedByIndex(presetIndexes[5]),
     };
-
-    if (LightingManager.lightingLoggingEnabled) {
-      console.log(
-        "Light preset values directional environment, pre adjustment for variance:",
-        JSON.stringify(lightPresetValues, null, 2)
-      );
-    }
-
     return lightPresetValues;
   }
 }

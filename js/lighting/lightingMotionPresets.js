@@ -1,41 +1,108 @@
-class LightingPathPresets {
+class LightingMotionPresets {
   constructor() {
     this.directionLightMotionPresets = {};
     this.positionLightMotionPresets = {};
-    this.playerPositionLightPresets = {};
+    this.playerPositionLightMotionPresets = {};
+    this.playerDirectionLightMotionPresets = {};
 
     this.loadDefaultPathPresets();
-    this.loadDirectionLightPathPresets();
-    this.loadPositionLightPathPresets();
-    this.loadPlayerPositionLightPresets();
+    this.loadAllDesignedPresets();
   }
-
-  getPlayerLightBasicOffsetByPreset(lightOffsetPreset) {
-    switch (lightOffsetPreset) {
-      case "updateme":
-        return new BABYLON.Vector3(0, 5, 0);
-    }
-
-    if (this.playerPositionLightPresets["default"]) {
-      return this.playerPositionLightPresets["default"];
-    } else {
-      this.loadDefaultPathPresets();
-      return this.playerPositionLightPresets["default"];
-    }
+  loadAllDesignedPresets() {
+    this.loadDirectionLightMotionPresets();
+    this.loadPositionLightMotionPresets();
+    this.loadPlayerPositionLightMotionPresets();
+    this.loadPlayerDirectionLightMotionPresets();
   }
+  loadDirectionLightMotionPresets() {}
+  loadPositionLightMotionPresets() {}
+  loadPlayerDirectionLightMotionPresets() {}
+  loadPlayerPositionLightMotionPresets() {}
 
   loadDefaultPathPresets() {
     let defaultDirectionLightMotionStatic =
       this.getGenericDirectionLightMotion();
     let defaultPositionLightMotionStatic = this.getGenericPositionLightMotion();
+    let defaultPlayerPositionLightMotionStatic =
+      this.getGenericPlayerPositionLightMotion();
 
     let placeholders = this.getPlaceholderFillerArray();
     placeholders.forEach((key) => {
+      this.playerDirectionLightMotionPresets[key] =
+        defaultDirectionLightMotionStatic;
+      this.playerPositionLightMotionPresets[key] =
+        defaultPlayerPositionLightMotionStatic;
       this.directionLightMotionPresets[key] = defaultDirectionLightMotionStatic;
       this.positionLightMotionPresets[key] = defaultPositionLightMotionStatic;
     });
   }
+  // TO DO
+  getPlaceholderFillerArray() {
+    let placeholders = [
+      "null",
+      "basic",
+      "test",
+      "placeholder",
+      "default",
+      "blank",
+      "empty",
+      "standard",
+      "standardlevel0",
+      "defaultstatic",
+      "static",
+    ];
 
+    return placeholders;
+  }
+  getPlayerDirectionLightMotionByPreset(motionPreset) {
+    if (this.playerDirectionLightMotionPresets[motionPreset]) {
+      return this.playerDirectionLightMotionPresets[motionPreset];
+    } else {
+      let playerMotionGeneric = this.getGenericDirectionLightMotion();
+      this.playerDirectionLightMotionPresets["default"] = playerMotionGeneric;
+      return this.playerDirectionLightMotionPresets["default"];
+    }
+  }
+
+  getPlayerPositionLightMotionByPreset(motionPreset) {
+    if (this.playerPositionLightMotionPresets[motionPreset]) {
+      return this.playerPositionLightMotionPresets[motionPreset];
+    } else {
+      let playerMotionGeneric = this.getGenericPlayerPositionLightMotion();
+      this.playerPositionLightMotionPresets["default"] = playerMotionGeneric;
+      return this.playerPositionLightMotionPresets["default"];
+    }
+  }
+  getGenericPlayerPositionLightMotion() {
+    let positionGeneric = new BABYLON.Vector3(0, 0, 0);
+
+    let presetId = "default";
+    let ids = ["default"];
+    let pathCategories = ["static"];
+    let allPositions = [positionGeneric];
+    let blankSpeed = new BABYLON.Vector3(0, 0, 0);
+    let allBaseSpeeds = [blankSpeed];
+
+    let blankDistance = new BABYLON.Vector3(0, 0, 0);
+    let allDistances = [blankDistance];
+    let allStartMomentRatios = [0];
+    let allDoesLoop = [false];
+    let allTeleportsOrReverses = ["static"];
+    let allOnEndInteractions = ["none"];
+
+    return new LightingMotionProfileBag(
+      presetId,
+      ids,
+      pathCategories,
+      allPositions,
+      allBaseSpeeds,
+      allDistances,
+      allStartMomentRatios,
+      allDoesLoop,
+      allTeleportsOrReverses,
+      allOnEndInteractions
+    );
+  }
   getGenericDirectionLightMotion() {
     let lightRightDown = new BABYLON.Vector3(1, -1, 0);
     let lightLeftDown = new BABYLON.Vector3(-1, -1, 0);
@@ -67,7 +134,7 @@ class LightingPathPresets {
     let allTeleportsOrReverses = ["static", "static", "static", "static"];
     let allOnEndInteractions = ["none", "none", "none", "none"];
 
-    return new LightingMotionProfileBag(
+    let bag = new LightingMotionProfileBag(
       presetId,
       ids,
       pathCategories,
@@ -79,6 +146,8 @@ class LightingPathPresets {
       allTeleportsOrReverses,
       allOnEndInteractions
     );
+
+    return bag;
   }
 
   getGenericPositionLightMotion() {
@@ -145,7 +214,7 @@ class LightingPathPresets {
     if (this.positionLightMotionPresets[presetName]) {
       return this.positionLightMotionPresets[presetName];
     } else if (this.positionLightMotionPresets["default"]) {
-      return this.positionLightPresets["default"];
+      return this.positionLightMotionPresets["default"];
     } else {
       this.loadDefaultPathPresets();
       return this.positionLightMotionPresets["default"];

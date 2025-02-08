@@ -7,8 +7,10 @@ class ScriptManifest {
     this.loadAssetManifestScripts(scriptsToLoad);
     this.loadAssetLoadersAndManagersScripts(scriptsToLoad);
     this.loadUIScripts(scriptsToLoad);
-    this.loadLightingAndCameraScripts(scriptsToLoad);
-    this.loadGameInteractions(scriptsToLoad);
+    this.loadLightingScripts(scriptsToLoad);
+    this.loadCameraScripts(scriptsToLoad);
+    this.loadInputScripts(scriptsToLoad);
+    this.loadGameplayScripts(scriptsToLoad);
     this.loadSoundSystems(scriptsToLoad);
     this.loadMinorUtilityScripts(scriptsToLoad);
 
@@ -19,6 +21,7 @@ class ScriptManifest {
     scriptArray.push("/gameplay/gameplayManager.js");
     this.loadPlayerScripts(scriptArray);
     this.loadGameInteractions(scriptArray);
+    this.loadGameWorldScripts(scriptArray);
   }
   static loadGameInteractions(scriptArray) {
     scriptArray.push("/gameplay/interactions/movementPathManager.js");
@@ -58,7 +61,7 @@ class ScriptManifest {
     scriptArray.push(
       "/utilities/diagnostics/loggerOmega.js",
       "/initialization/config.js",
-      "/initialization/benchmarkManager.js"
+      "/utilities/diagnostics/benchmarkManager.js"
     );
   }
   static loadAssetManifestScripts(scriptArray) {
@@ -94,7 +97,7 @@ class ScriptManifest {
     scriptArray.push(
       "/lighting/lightingLogger.js",
       "/lighting/lightingColorShiftProfile.js",
-      "/lighting/lightMotionProfile.js",
+      "/lighting/lightingMotionProfile.js",
       "/lighting/lightingMotionPresets.js",
       "/lighting/lightingColorPresets.js",
       "/lighting/lightingPropertyCalculator.js",

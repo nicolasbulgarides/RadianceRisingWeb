@@ -67,7 +67,7 @@ class LightingObject {
   toggleLightDisabled() {
     this.lightIsEnabled = !this.lightIsEnabled;
 
-    if (this.lightIsEnabled && this.light) {
+    if (this.light) {
       this.light.isEnabled = this.lightIsEnabled;
     }
 
@@ -83,7 +83,7 @@ class LightingObject {
   forcefullyAdjustLight(intensity, hue) {
     if (this.light) {
       this.light.intensity = intensity;
-      if (hue instanceof BABYLON.Color) {
+      if (hue instanceof BABYLON.Color3) {
         this.light.hue = hue;
       }
     }

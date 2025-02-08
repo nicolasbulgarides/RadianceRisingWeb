@@ -5,11 +5,30 @@ class LightingLogger {
   constructor(lightingManager) {
     this.lightingManager = lightingManager;
   }
-  deregisterLightingLogger(index, lightObject) {
+
+  static describeLightingPresetValues(nickname, presetValues) {
+    let loggingAbsoluteDecision = LoggerOmega.GetFinalizedLoggingDecision(
+      this.forcefullyOverrideLoggingConfig,
+      this.lightingLoggingEnabled,
+      "secondary"
+    );
+
+    if (loggingAbsoluteDecision) {
+      let msg = "";
+
+      if (presetValues == null) {
+        msg = "Preset: " + nickname + " null!";
+      } else {
+        msg = "-display-of-light-preset-values-" + nickname;
+      }
+      LoggerOmega.SmartLogger(true, "I was called: ", "A1");
+    }
+  }
+  static deregisterLightingLogger(index, lightObject) {
     let deregisterMessage = "";
     let loggingAbsoluteDecision = LoggerOmega.GetFinalizedLoggingDecision(
-      forcefullyOverrideLoggingConfig,
-      lightingLoggingEnabled,
+      this.forcefullyOverrideLoggingConfig,
+      this.lightingLoggingEnabled,
       "secondary"
     );
 

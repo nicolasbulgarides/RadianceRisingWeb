@@ -49,7 +49,7 @@ class LightingMotionProfileBag {
 
       // Generate motion profiles
       for (let i = 0; i < expectedLength; i++) {
-        let motionProfile = this.generateALightingMotionProfile(
+        let motionProfile = this.generateMotionProfile(
           primaryProfileId,
           allMotionProfileIds[i],
           allPathCategories[i],
@@ -66,7 +66,7 @@ class LightingMotionProfileBag {
     }
   }
 
-  generateALightingMotionProfile(
+  generateMotionProfile(
     primaryId,
     motionProfileId,
     category,

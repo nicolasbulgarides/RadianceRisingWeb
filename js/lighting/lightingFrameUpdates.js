@@ -5,6 +5,7 @@ class LightingFrameUpdates {
     this.lightFrameIndex = 0;
   }
 
+  possiblyUpdateLightPosition() {}
   possiblyUpdateLightIntensity(currentTime, lightObject) {
     if (!lightObject.lightIntensityShiftPaused && lightObject.light != null) {
       let lightShift = lightObject.colorShiftProfile;
@@ -38,7 +39,7 @@ class LightingFrameUpdates {
     let lightColorShift = lightObject.colorShiftProfile;
 
     if (!lightColorShift.colorShiftPaused) {
-      let directionModifier = this.getLightReversal(
+      let directionModifier = this.getReversalSwitch(
         lightObject.colorShiftInReverse
       );
       let timeModified = currentTime * directionModifier;
@@ -49,7 +50,12 @@ class LightingFrameUpdates {
           lightColorShift.baseHue +
           lightColorShift.hueVariation *
             Math.sin(timeModified * lightColorShift.hueShiftSpeed);
-        light.diffuse = this.hsvToRgb(newHue, 1, 1);
+        light.diffuse =
+          this.lightingManager.lightingFactory.lightingPropertyCalculator.hsvToRgb(
+            newHue,
+            1,
+            1
+          );
 
         if (
           newHue >= lightColorShift.baseHue + lightColorShift.hueVariation ||
@@ -85,13 +91,18 @@ class LightingFrameUpdates {
     return elapsedTime;
   }
 
+  initializeValuesByPhase(currentTime, lightObject) {
+    this.possiblyUpdateLightHue(currentTime, lightObject);
+    this.possiblyUpdateLightIntensity(currentTime, lightObject);
+    this.possiblyUpdateLightPosition(currentTime, lightObject);
+  }
   processFrameOnPlayerModel(playerModel, chasingLight, playerPositionedObject) {
     if (
       playerModel != null &&
       chasingLight != null &&
       playerPositionedObject != null
     ) {
-      let copyMe = playerPositionedObjec.getCompositePositionBaseline();
+      let copyMe = playerPositionedObject.getCompositePositionBaseline();
       let positionVector = new BABYLON.Vector3(copyMe.x, copyMe.y, copyMe.z);
       chasingLight.position = positionVector;
     } else {
@@ -213,7 +224,6 @@ class LightingFrameUpdates {
   }
 
   // TO DO
-  processEccentricMotion(currentTime, lightObject, motionProfile) {}
   getPlaceholderMotionFillerArray() {
     let placeholders = [
       "null",
