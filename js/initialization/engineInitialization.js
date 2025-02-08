@@ -19,13 +19,12 @@ class EngineInitialization {
    * @param {BABYLON.Engine} engineInstance - The Babylon.js engine instance.
    */
   constructor(engineInstance) {
-    console.log("Started custom engine init");
     this.engine = engineInstance;
     this.baseUIScene = null;
     try {
       this.loadEngineSettings();
     } catch (err) {
-      console.log("Error here: " + err);
+      LoggerOmega.SmartLogger(true,"Failed engine initialization!","EngineInitializationErrorHandler");
     }
   }
 

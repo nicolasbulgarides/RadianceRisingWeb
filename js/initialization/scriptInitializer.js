@@ -36,6 +36,7 @@ class ScriptInitializer {
   async loadScriptManifest(canvas) {
     if (this.runLocally) {
       this.CORE_SCRIPTS = {
+
         SCRIPT_MANIFEST: "./initialization/scriptManifest.js",
         ENGINE_INITIALIZATION: "./initialization/engineInitialization.js",
       };
@@ -53,15 +54,16 @@ class ScriptInitializer {
 
     manifest.onload = () => {
       if (typeof ScriptManifest === "undefined") {
+         //to do - add a redirect to an error page with log submission
         console.error("ScriptManifest class not found. Check script import.");
         return;
       }
-      let scriptManifest = new ScriptManifest();
       this.loadEngine(canvas);
     };
 
     manifest.onerror = () => {
-      console.error("Failed to load ScriptManifest.");
+      //to do - add a redirect to an error page with log submission
+      console.error("ScriptManifest class failed to load. Check script import.");
     };
   }
 
@@ -70,37 +72,41 @@ class ScriptInitializer {
    * @param {HTMLCanvasElement} canvas - The canvas element used for creating the Babylon.js engine.
    */
   async loadEngine(canvas) {
-    let engineInit = await this.loadScript(
-      this.CORE_SCRIPTS.ENGINE_INITIALIZATION
-    );
+    try {
+      let engineInit = await this.loadScript(
+        this.CORE_SCRIPTS.ENGINE_INITIALIZATION
+      );
 
-    // Define onload before appending.
-    engineInit.onload = () => {
-      console.log("Engine initialization script loaded");
+      // Define onload before appending.
+      engineInit.onload = () => {
+        try {
 
-      if (typeof BABYLON === "undefined") {
-        console.error("BABYLON engine not loaded. Check script import.");
-        return;
-      }
+          if (typeof BABYLON === "undefined") {
+            InitializationDiagnosticsLogger.logPhaseError("EngineInitialization-A", "BABYLON engine not loaded. Check script import.");
+            return;
+          }
 
-      // Create Babylon engine with stencil buffer enabled.
-      const engine = new BABYLON.Engine(canvas, true, { stencil: true });
-      console.log("Loaded Babylon engine");
+          // Create Babylon engine with stencil buffer enabled.
+          const engine = new BABYLON.Engine(canvas, true, { stencil: true });
 
-      if (typeof EngineInitialization === "undefined") {
-        console.error(
-          "EngineInitialization class not found. Check script import."
-        );
-        return;
-      }
+          if (typeof EngineInitialization === "undefined") {
+            InitializationDiagnosticsLogger.logPhaseError("EngineInitialization-B", "EngineInitialization class not found. Check script import.");
+            return;
+          }
 
-      // Instantiate EngineInitialization and start the engine sequence.
-      const engineInitialization = new EngineInitialization(engine);
-      engineInitialization.initializeEngine(this.runLocally);
-    };
+          // Instantiate EngineInitialization and start the engine sequence.
+          const engineInitialization = new EngineInitialization(engine);
+          engineInitialization.initializeEngine(this.runLocally);
+        } catch (error) {
+          InitializationDiagnosticsLogger.logPhaseError("EngineInitialization-C", error.message);
+        }
+      };
 
-    // Append the script only after onload is set.
-    document.head.appendChild(engineInit);
+      // Append the script only after onload is set.
+      document.head.appendChild(engineInit);
+    } catch (error) {
+      InitializationDiagnosticsLogger.logPhaseError("EngineInitializationLoad-CatchAll", error.message);
+    }
   }
 
   /**

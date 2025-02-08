@@ -1,12 +1,13 @@
+
+/**
+ * LoggerOmega
+ *
+ * This class provides advanced logging functionality with built-in cooldowns for various error types.
+ * It leverages LoggerCooldownRegistry to determine the cooldown period associated with each error type.
+ * If an error type is not found in the registry, the cooldown defaults to 0 (i.e., no cooldown).
+ */
 class LoggerOmega {
   static logCooldowns = new Map(); // Stores last logged timestamps for error types
-
-  static LOGGING_COOLDOWNS_DEFAULTS = {
-    ModelLoading: 4,
-    ModelLoader: 4,
-    LightingLoader: 0,
-    LightingLoading: 0,
-  };
 
   static importanceShortcuts = new Set([
     "importance",
@@ -90,6 +91,9 @@ class LoggerOmega {
     INFO: 2,
     DEBUG: 3,
   };
+
+  // Logger cooldown registry: maps error types to their cooldown durations (in seconds).
+  static cooldownRegistry = new Map(Object.entries(LoggerCooldownRegistry.LOGGING_COOLDOWNS_DEFAULTS));
 
   /**
    * Logs a message with a cooldown system.
@@ -324,14 +328,22 @@ class LoggerOmega {
     return lowestNumericValue === Infinity ? null : lowestNumericValue;
   }
 
+  /**
+   * Retrieves the logging cooldown duration for a specific error type.
+   *
+   * Checks if an absolute override is active; if not, it looks up the error type in the
+   * LoggerCooldownRegistry. If the error type is not found, it defaults to 0 (no cooldown).
+   *
+   * @param {string} loggingType - The error type whose cooldown is being queried.
+   * @returns {number} The cooldown duration in seconds.
+   */
   static getLoggingCooldownByType(loggingType) {
     if (Config.LOGGING_COOLDOWNS_ABSOLUTE_OVERRIDE_ACTIVE) {
       return Config.LOGGING_COOLDOWNS_ABSOLUTE_OVERRIDE;
     }
 
-    return (
-      this.LOGGING_COOLDOWNS[loggingType] ??
-      Config.LOGGING_COOLDOWNS_FALLBACK_DEFAULT
-    );
+    // Use LoggerCooldownRegistry to get the cooldown for the error type;
+    // if not found, default to 0 (no cooldown).
+    return LoggerCooldownRegistry.LOGGING_COOLDOWNS_DEFAULTS[loggingType] ?? 0;
   }
 }

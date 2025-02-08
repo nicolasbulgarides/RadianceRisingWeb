@@ -453,11 +453,6 @@ class LightingPropertyCalculator {
 
     let lightPresetValues = this.wrapPresetValuesIntoObject(presetIndexes);
 
-    LightingLogger.describeLightingPresetValues(
-      "-Environment-Light-Direction-",
-      lightPresetValues
-    );
-
     return lightPresetValues;
   }
 
@@ -469,11 +464,6 @@ class LightingPropertyCalculator {
 
     let lightPresetValues = this.wrapPresetValuesIntoObject(presetIndexes);
 
-    LightingLogger.describeLightingPresetValues(
-      "-Player-Light-Position-",
-      lightPresetValues
-    );
-
     return lightPresetValues;
   }
   getPlayerLightPositionLightPresetSettings(colorPreset) {
@@ -481,11 +471,6 @@ class LightingPropertyCalculator {
       this.lightingPresetStorage.getPlayerLightColorShiftByPreset(colorPreset);
 
     let lightPresetValues = this.wrapPresetValuesIntoObject(presetIndexes);
-
-    LightingLogger.describeLightingPresetValues(
-      "-Player-Light-Position-",
-      lightPresetValues
-    );
 
     return lightPresetValues;
   }
@@ -503,11 +488,6 @@ class LightingPropertyCalculator {
       );
 
     let lightPresetValues = this.wrapPresetValuesIntoObject(presetIndexes);
-
-    LightingLogger.describeLightingPresetValues(
-      "-Environment-Light-Position-",
-      lightPresetValues
-    );
 
     return lightPresetValues;
   }

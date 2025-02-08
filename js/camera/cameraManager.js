@@ -113,7 +113,6 @@ class CameraManager {
       console.error("Model to chase is not a valid AbstractMesh");
       return;
     }
-    // console.log("Model to chase is an abstract mesh");
 
     // Dispose of the old camera before creating a new one
     if (this.currentCamera) {
@@ -127,10 +126,6 @@ class CameraManager {
       new BABYLON.Vector3(0, 0, 0),
       this.scene
     );
-
-    if (this.scene == null) {
-      console.log("Camera scene null");
-    }
 
     // Set the target mesh
     this.targetMesh = modelToChase;

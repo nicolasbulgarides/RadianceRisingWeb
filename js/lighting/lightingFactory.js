@@ -154,6 +154,44 @@ class LightingFactory {
     }
   }
 
+  /**
+   * Immediately initializes the light's intensity and hue based on its color shift profile.
+   *
+   * This replaces the placeholder call to initialize values and directly computes the initial
+   * intensity (using a sine function, phase, and speed) and hue (converted into a BABYLON.Color3 via hsvToRgb).
+   *
+   * @param {LightingObject} lightObject - The light to initialize.
+   */
+  adjustLightInitialValues(lightObject) {
+    const currentTime = performance.now();
+    const profile = lightObject.colorShiftProfile;
+
+    // Safely parse numeric values with defaults to 0 to prevent NaN calculations.
+    const baseIntensity = Number(profile.baseLightIntensity) || 0;
+    const amplitude = Number(profile.baseLightIntensityAmplitude) || 0;
+    const speed = Number(profile.baseLightIntensitySpeed) || 0;
+    const phaseIntensity = Number(profile.lightIntensityPhaseRatio) || 0;
+
+    const baseHue = Number(profile.baseHue) || 0;
+    const hueVariation = Number(profile.hueVariation) || 0;
+    const hueSpeed = Number(profile.hueShiftSpeed) || 0;
+    const phaseHue = Number(profile.colorShiftPhaseRatio) || 0;
+
+    // Compute new intensity: baseIntensity + amplitude * sin( time * speed + phaseIntensity )
+    const newIntensity = baseIntensity + amplitude * Math.sin(currentTime * speed + phaseIntensity);
+    lightObject.light.intensity = newIntensity;
+
+    if (baseHue != 0) {
+      let newHue = baseHue + hueVariation * Math.sin(currentTime * hueSpeed + phaseHue);
+      lightObject.light.diffuse = this.lightingPropertyCalculator.hsvToRgb(newHue, 1, 1);
+    }
+
+    if (LightingLogger.lightingLoggingEnabled) {
+      LightingLogger.assessOriginalLightValues(lightObject);
+    }
+
+  }
+
   createDirectionLight(
     scene,
     nickname,
@@ -169,7 +207,7 @@ class LightingFactory {
     let motionBag = null;
     let motionProfile = null;
     let lightObject = null;
-    var createdLight;
+    let createdLight;
 
     if (archetype === "direction") {
       if (!doesChasePlayer) {
@@ -177,27 +215,21 @@ class LightingFactory {
           this.lightingPropertyCalculator.getEnvironmentLightDirectionLightPresetSettings(
             colorPreset
           );
-
         motionBag =
           this.lightingMotionPresets.getDirectionLightMotionPresetByName(
             motionPreset
           );
         allMotionProfiles = motionBag.allMotionProfiles;
-        motionBag = allMotionProfiles[index];
-
         motionProfile = allMotionProfiles[index];
-
       } else if (doesChasePlayer) {
         colorPresetProfile =
           this.lightingPropertyCalculator.getPlayerLightDirectionLightPresetSettings(
             colorPreset
           );
-
         allMotionProfiles =
           this.lightingMotionPresets.getPlayerDirectionLightMotionByPreset(
             motionPreset
           );
-
         motionProfile = allMotionProfiles[index];
       }
 
@@ -210,8 +242,6 @@ class LightingFactory {
       createdLight.intensity = colorPresetProfile.baseLightIntensity;
       LoggerOmega.SmartLogger(true, "Intensity: " + createdLight.intensity);
 
-      createdLight.diffuse = this.lighti
-
       lightObject = new LightingObject(
         nickname,
         createdLight,
@@ -219,16 +249,15 @@ class LightingFactory {
         motionProfile
       );
 
-   
-
       if (!doesChasePlayer) {
         this.lightingManager.registerEnvironmentDirectionLight(lightObject);
       } else if (doesChasePlayer && playerToChase != null) {
         lightObject.assignPlayerToChase(playerToChase);
         this.lightingManager.registerPlayerChasingLight(lightObject);
       }
+
+      this.adjustLightInitialValues(lightObject);
     }
-   // this.adjustLightInitialValues(lightObject);
   }
 
   /**
@@ -313,15 +342,6 @@ class LightingFactory {
     }
   }
 
-  adjustLightInitialValues(lightObject) {
-    if (lightObject != null && this.lightingFrameUpdates != null) {
-      let currentTime = performance.now();
-      this.lightingFrameUpdates.initializeValuesByPhase(
-        currentTime,
-        lightObject
-      );
-    }
-  }
   createEnvironmentLight(
     scene,
     nickname,

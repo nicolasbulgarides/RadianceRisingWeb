@@ -12,7 +12,6 @@
  * This manifest is loaded by ScriptInitializer to dynamically load the necessary scripts.
  */
 class ScriptManifest {
-  constructor() {}
   
   /**
    * Returns an array of script URLs to load for full application initialization.
@@ -41,6 +40,7 @@ class ScriptManifest {
    */
   static loadGameplayScripts(scriptArray) {
     scriptArray.push("/gameplay/gameplayManager.js");
+    scriptArray.push("/gameplay/gameplayLogger.js");
     this.loadPlayerScripts(scriptArray);
     this.loadGameInteractions(scriptArray);
     this.loadGameWorldScripts(scriptArray);
@@ -114,10 +114,13 @@ class ScriptManifest {
    */
   static loadEssentialInitializationUtilityScripts(scriptArray) {
     scriptArray.push(
+      "/utilities/diagnostics/loggerCooldownRegistry.js",
       "/utilities/diagnostics/loggerOmega.js",
+      "/initialization/initializationDiagnosticsLogger.js",
       "/initialization/config.js",
       "/utilities/diagnostics/benchmarkManager.js"
     );
+    
   }
   
   /**

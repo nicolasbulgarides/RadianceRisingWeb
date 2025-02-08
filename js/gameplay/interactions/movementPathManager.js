@@ -243,19 +243,15 @@ class MovementPathManager {
     currentPositionVector,
     destinationVector
   ) {
-    console.log(
-      "Current position: X" +
-        currentPositionVector.x +
-        ", " +
-        currentPositionVector.y +
-        " , " +
-        currentPositionVector.z +
-        " destination of: X" +
-        destinationVector.x +
-        " , Y: " +
-        destinationVector.y +
-        " , " +
-        destinationVector.z
-    );
+
+ 
+    let logMessage = "Current position: X" + currentPositionVector.x + ", " + currentPositionVector.y + " , " 
+    + currentPositionVector.z + " destination of: X" + destinationVector.x + " , Y: " + destinationVector.y + " , " + destinationVector.z;
+
+
+
+    
+    LoggerOmega.SmartLogger(true, logMessage, "MovementPathManager-DisplayCurrentPositionAndDestination");
+
   }
 }

@@ -33,7 +33,7 @@ class LightingLogger {
       } else {
         msg = "-display-of-light-preset-values-" + nickname;
       }
-      LoggerOmega.SmartLogger(true, "I was called: ", "A1");
+      LoggerOmega.SmartLogger(true, "I was called: ", " Description of Lighting Preset Values");
     }
   }
 
@@ -78,5 +78,40 @@ class LightingLogger {
         "LightDeregistration"
       );
     }
+  }
+
+  /**
+   * Assess and logs all original preset values from a light object's color shift profile.
+   *
+   * @param {LightingObject} lightObject - The light object containing color shift profile data.
+   */
+  static assessOriginalLightValues(lightObject) {
+    if (!lightObject || !lightObject.colorShiftProfile) {
+      LoggerOmega.SmartLogger(true, "Invalid light object or missing color shift profile", "LightingLogger");
+      return;
+    }
+
+    const profile = lightObject.colorShiftProfile;
+
+    // Extract and safely parse numerical configuration values.
+    const baseIntensity = Number(profile.baseLightIntensity) || 0;
+    const amplitude = Number(profile.baseLightIntensityAmplitude) || 0;
+    const intensitySpeed = Number(profile.baseLightIntensitySpeed) || 0;
+    const intensityPhase = Number(profile.lightIntensityPhaseRatio) || 0;
+
+    const baseHue = Number(profile.baseHue) || 0;
+    const hueVariation = Number(profile.hueVariation) || 0;
+    const hueSpeed = Number(profile.hueShiftSpeed) || 0;
+    const huePhase = Number(profile.colorShiftPhaseRatio) || 0;
+
+    // Compose a detailed log message encompassing all original preset values.
+    const logMessage =
+      `Original preset values for ${lightObject.lightNickname}: ` +
+      `baseIntensity=${baseIntensity}, amplitude=${amplitude}, ` +
+      `intensitySpeed=${intensitySpeed}, intensityPhase=${intensityPhase}, ` +
+      `baseHue=${baseHue}, hueVariation=${hueVariation}, ` +
+      `hueSpeed=${hueSpeed}, huePhase=${huePhase}`;
+
+    LoggerOmega.SmartLogger(true, logMessage, "LightingLogger-AssessingOriginalLightValues");
   }
 }
