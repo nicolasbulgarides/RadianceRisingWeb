@@ -13,6 +13,26 @@ class LightingLogger {
   }
 
   /**
+   * Logs details of a failed lighting template
+   *
+   * @param {string} nickname - The preset identifier.
+   */
+  static informOfFailedLightingTemplateBag(nickname) {
+    let loggingAbsoluteDecision = LoggerOmega.GetFinalizedLoggingDecision(
+      this.forcefullyOverrideLoggingConfig,
+      this.lightingLoggingEnabled,
+      "secondary"
+    );
+
+    if (loggingAbsoluteDecision) {
+      let msg = "Failed template bag:" + nickname + " null!";
+
+      LoggerOmega.SmartLogger(true, msg, " Description of template bag failure");
+    }
+  }
+
+
+  /**
    * Logs details of a lighting preset.
    *
    * @param {string} nickname - The preset identifier.

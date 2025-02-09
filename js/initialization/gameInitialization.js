@@ -23,7 +23,6 @@ class GameInitialization {
 
     this.animatedModelLoader = null;
     this.demoWorldLoaded = false;
-    window.Logger.log("Finished constructor of Game Init");
 
     this.scene = new BABYLON.Scene(this.engine);
     // this.scene.showFps();
@@ -126,7 +125,7 @@ class GameInitialization {
    * Loads external scripts, constructs the scene, and begins the render loop.
    */
   initialize() {
-    const scriptsToLoad = this.getScriptsToLoad();
+    const scriptsToLoad = ScriptManifest.getScriptsToLoad();
 
     this.loadScripts(scriptsToLoad, () => {
       this.soundEffectsManager = new SoundEffectsManager(this.scene);

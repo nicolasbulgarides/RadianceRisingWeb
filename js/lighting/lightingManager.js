@@ -14,8 +14,8 @@ class LightingManager {
   constructor(sceneInstance) {
     this.scene = sceneInstance;
     this.lightingLogger = new LightingLogger();
+    this.loadLightingExperiments = true;
     this.initializeConstructSystems();
-    this.lightingConfigurationLoader();
   }
 
   /**
@@ -30,41 +30,17 @@ class LightingManager {
     this.currentLightingTemplate = null;
     this.lightingFrameUpdates = new LightingFrameUpdates(this);
     this.lightingTemplateStorage = new LightingTemplateStorage();
-    this.lightingFactory = new LightingFactory(this);
-    this.lightingExperiments = new LightingExperiments(this);
-  }
 
-  /**
-   * Loads a lighting configuration based on a predefined template or experiment.
-   */
-  lightingConfigurationLoader() {
-    let configurationTemplate = null;
-    let runningAnExperiment = false;
-    let runningExperimentFromTemplate = true;
-    let experimentIndex = -1;
+    if (!this.loadLightingExperiments) {
+      this.lightingFactory = new LightingFactory(this);
+      this.loadIntialLightingConfiguration();
+    } else {
+      this.lightingFactory = new LightingFactory(this);
+      this.lightingExperiments = new LightingExperiments(this);
+      let currentExperimentIndex = this.lightingExperiments.test;
+      let currentExperimentBag = this.lightingExperiments.convertSingleExperimentIdToValidEnvironmentTemplateBag(currentExperimentIndex);
 
-    if (!runningAnExperiment) {
-      configurationTemplate =
-        this.lightingTemplateStorage.getEnvironmentLightingConfigurationBagFromTemplate(
-          Config.DEFAULT_ENVIRONMENT_LIGHTING_TEMPLATE
-        );
-      this.lightingFactory.createEnvironmentLightsFromTemplateComposite(
-        this.scene,
-        configurationTemplate
-      );
-    } else if (
-      runningAnExperiment &&
-      (runningExperimentFromTemplate || experimentIndex >= 0)
-    ) {
-      if (runningExperimentFromTemplate) {
-        this.lightingFactory.processLightingTemplateEnvironment(
-          configurationTemplate
-        );
-      } else if (experimentIndex >= 0) {
-        this.lightingFactory.processLightingExperimentFromIndex(
-          experimentIndex
-        );
-      }
+      this.lightingFactory.createEnvironmentLightsFromExperimentalValues(this.scene,currentExperimentBag);
     }
   }
 
@@ -131,10 +107,22 @@ class LightingManager {
     // This call pulls the lighting configuration template from LightingTemplateStorage,
     // which then retrieves the proper LightingColorShiftProfiles and LightingMotionProfiles.
     // The LightingFactory then creates one or more lights that are designated to follow the player.
-    this.lightingFactory.createPlayerLightsFromTemplateComposite(this.scene, player,playerConfigurationTemplate);
+    //this.lightingFactory.createPlayerLightsFromTemplateComposite(this.scene, player,playerConfigurationTemplate);
 
   }
 
   // (Further methods such as assignDefaultPlayerModelLight, deletePlayerChasingLight, etc.
   // have also been annotated with similar detailed JSDoc comments.)
+  loadIntialLightingConfiguration() {
+    let  configurationTemplate =
+    this.lightingTemplateStorage.getEnvironmentLightingConfigurationBagFromTemplate(
+      Config.DEFAULT_ENVIRONMENT_LIGHTING_TEMPLATE
+    );
+
+    this.lightingFactory.createEnvironmentLightsFromTemplateComposite(
+        this.scene,
+        configurationTemplate
+      );
+  }
 }
+

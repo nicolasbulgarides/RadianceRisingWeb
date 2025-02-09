@@ -44,18 +44,20 @@ class ChadUtilities {
    * @param {Object} obj - The object to display.
    * @param {string} sender - Identifier for the source of the log.
    */
-  static displayContents(obj, sender) {
-    ChadUtilities.displayObjectContents(
-      obj,
-      "blank-error",
-      false,
-      2,
-      "-forced-display-object-contents-",
-      false,
-      2,
-      true,
-      sender
-    );
+  static displayContents(obj, sender, depth = 2) {
+    ChadUtilities.displayObjectContents(obj, sender, depth);
+  }
+
+  /**
+   * Initiates display of object contents using a standardized format.
+   * @param {Object} obj - The object to display.
+   * @param {string} sender - Identifier for the source of the log.
+   */
+  static displayObjectContents(obj, sender, depth = 2) {
+
+    let contents = ChadUtilities.buildObjectString(obj, depth);
+
+    LoggerOmega.SmartLogger(true, contents, sender);
   }
 
   /**

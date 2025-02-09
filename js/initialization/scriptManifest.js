@@ -101,7 +101,7 @@ class ScriptManifest {
       "/gameplay/worlds/obstacle.js",
       "/gameplay/worlds/boardSlot.js",
       "/gameplay/worlds/worldMap.js",
-      "/gameplay/worlds//gameGridGenerator.js",
+      "/gameplay/worlds/gameGridGenerator.js",
       "/gameplay/worlds/worldMapObstacleGenerator.js",
       "/gameplay/worlds/gameWorldLoader.js",
       "/gameplay/worlds/obstacleFinder.js"

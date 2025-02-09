@@ -8,6 +8,7 @@
 class LightingFactory {
   constructor(lightingManager) {
     this.lightingManager = lightingManager;
+    this.lightingExperiments = null;
     this.lightingFrameUpdates = this.lightingManager.lightingFrameUpdates;
     this.lightingPropertyCalculator = new LightingPropertyCalculator();
     this.lightingColorPresets = new LightingColorPresets(
@@ -24,13 +25,17 @@ class LightingFactory {
    * @param {Object} configurationTemplate - Lighting configuration data.
    */
   createEnvironmentLightsFromTemplateComposite(scene, configurationTemplate) {
+
     let environmentLightTemplateBag =
       this.lightingTemplateStorage.getEnvironmentLightingConfigurationBagFromTemplate(
         configurationTemplate
       );
+  
+
     let bagPropertiesArray =
       environmentLightTemplateBag.encapsulatePresetArrays();
 
+      ChadUtilities.displayContents(bagPropertiesArray, "Bag Properties Array CHECKED!");
     let validArrays = ChadUtilities.arrayLengthAudit(
       bagPropertiesArray,
       environmentLightTemplateBag.environmentLightingCount,
@@ -68,6 +73,115 @@ class LightingFactory {
         factoryCounter++;
       }
     }
+  }
+  createEnvironmentLightsFromExperimentalValues(scene, environmentLightExperimentBag) {
+
+
+
+      let factoryCounter = 0;
+
+      while (
+        factoryCounter < environmentLightExperimentBag.environmentLightingCount
+      ) {
+        let archetype = environmentLightExperimentBag.environmentLightingArchetypes[factoryCounter];
+        let colorIndexes = environmentLightExperimentBag.environmentLightingColorPresets[factoryCounter];
+
+        let colorValues = this.lightingPropertyCalculator.convertLightIndexesToRawValuesBag(colorIndexes,1);
+        ChadUtilities.displayContents(colorValues, "Color Values Pre adjustment");
+        let motionPreset = environmentLightExperimentBag.environmentLightingMotionPresets[factoryCounter];
+
+        this.createEnvironmentLightFromRawValues(
+          scene,
+          "Env Light: " + factoryCounter,
+          archetype,
+          colorValues,
+          motionPreset,
+          factoryCounter
+        );
+
+        factoryCounter++;
+      
+    }
+  }
+
+  /**
+   * Creates an environment light (directional or positional) using directly provided experimental raw values,
+   * bypassing the preset system.
+   *
+   * @param {BABYLON.Scene} scene - The Babylon.js scene.
+   * @param {string} nickname - Unique identifier for the light.
+   * @param {string} archetype - The light archetype ("direction" or "position").
+   * @param {Object} colorValues - Pre-stored experimental color values (e.g., baseLightIntensity).
+   * @param {Object} motionValues - Pre-stored experimental motion values (e.g., basePosition).
+   * @param {number} factoryCounter - Index counter for registration or logging purposes.
+   */
+  createEnvironmentLightFromRawValues(scene, nickname, archetype, colorValues, motionValues, factoryCounter) {
+    let createdLight;
+    let lightObject;
+    let finalizedPosition = null;
+
+    let zero = new BABYLON.Vector3(0, 1, 20);
+    let one = new BABYLON.Vector3(0, 1, 0);
+    let two= new BABYLON.Vector3(10, 1, 20);
+    let three = new BABYLON.Vector3(0, 1, 20);
+
+
+
+
+
+    if (factoryCounter == 0) {
+      finalizedPosition = zero;
+    } else if (factoryCounter == 1) {
+      finalizedPosition = one;
+    } else if (factoryCounter == 2) {
+      finalizedPosition = two;
+    } else if (factoryCounter == 3) {
+      finalizedPosition = three;
+    }
+
+
+
+
+    if (archetype === "direction") {
+      // Create a directional light using the experimental motion and color values.
+
+
+      ChadUtilities.displayContents(finalizedPosition,"FINALIZED POSITION: " + factoryCounter);
+
+      createdLight = new BABYLON.DirectionalLight(nickname, finalizedPosition, scene);
+
+      //createdLight = new BABYLON.DirectionalLight(nickname, motionValues.basePosition, scene);
+      createdLight.intensity = 3;
+
+      //createdLight.intensity = colorValues.baseLightIntensity;
+     // createdLight.diffuse = new BABYLON.Color3(1,1,1);
+      lightObject = new LightingObject(nickname, createdLight, colorValues, motionValues);
+      // Register as an environment directional light.
+      this.lightingManager.registerEnvironmentDirectionLight(lightObject);
+
+     // ChadUtilities.displayContents(colorValues,"COLOR VALUES");
+      //ChadUtilities.displayContents(motionValues,"MOTION VALUES");
+
+
+
+
+    } else if (archetype === "position") {
+      // Create a positional light using the experimental raw values.
+      createdLight = new BABYLON.PointLight(nickname, motionValues.basePosition, scene);
+      createdLight.intensity = colorValues.baseLightIntensity;
+      lightObject = new LightingObject(nickname, createdLight, colorValues, motionValues);
+      createdLight.diffuse = new BABYLON.Color3(1,1,1);
+
+      // Register as an environment positional light.
+      this.lightingManager.registerEnvironmentPositionLight(lightObject);
+    } else {
+      // Log an error if the archetype is unknown.
+      LoggerOmega.SmartLogger(true, "Unknown archetype in createEnvironmentLightFromRawValues: " + archetype, "LightingFactory");
+      return;
+    }
+
+    // Apply initial adjustments to set up intensity, hue, etc.
+  // this.adjustLightInitialValues(lightObject);
   }
 
   /**
@@ -121,6 +235,8 @@ class LightingFactory {
       }
     }
   }
+
+
 
   /**
    * (Placeholder) Creates a player light. Actual implementation may differ.
@@ -240,7 +356,6 @@ class LightingFactory {
       );
 
       createdLight.intensity = colorPresetProfile.baseLightIntensity;
-      LoggerOmega.SmartLogger(true, "Intensity: " + createdLight.intensity);
 
       lightObject = new LightingObject(
         nickname,
@@ -258,6 +373,29 @@ class LightingFactory {
 
       this.adjustLightInitialValues(lightObject);
     }
+  }
+
+  processCurrentLightingExperiment(scene, experimentIndex) {
+    LoggerOmega.SmartLogger(true, "Experiment Index: " + experimentIndex, "light log A2");
+    this.processEnvironmentLightingFromExperimentIndex(scene,experimentIndex);
+  }
+
+  processEnvironmentLightingFromExperimentIndex(scene, experimentIndex) {
+
+    LoggerOmega.SmartLogger(true, "Experiment Index: " + experimentIndex, "light log A3");
+
+    let experimentValueBag = this.lightingExperiments.convertSingleExperimentIdToValidEnvironmentTemplateBag(experimentIndex);
+    this.createEnvironmentLightsFromExperimentalValues(scene,experimentValueBag);
+
+
+
+
+
+
+
+
+
+
   }
 
   /**

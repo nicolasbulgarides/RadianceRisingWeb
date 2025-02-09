@@ -36,7 +36,6 @@ class ScriptInitializer {
   async loadScriptManifest(canvas) {
     if (this.runLocally) {
       this.CORE_SCRIPTS = {
-
         SCRIPT_MANIFEST: "./initialization/scriptManifest.js",
         ENGINE_INITIALIZATION: "./initialization/engineInitialization.js",
       };
