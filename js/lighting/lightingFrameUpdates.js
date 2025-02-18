@@ -172,19 +172,22 @@ class LightingFrameUpdates {
     if (playerModel == null) {
       ChadUtilities.SmartLogger(
         LightingManager.lightingLoggingEnabled,
-        "Player model null - Lighting frame updates!"
+        "Player model null - Lighting frame updates!",
+        "LightingFrameUpdates-A"
       );
     }
     if (chasingLight == null) {
       ChadUtilities.SmartLogger(
         LightingManager.lightingLoggingEnabled,
-        "Player chasing light null - Lighting frame updates!"
+        "Player chasing light null - Lighting frame updates!",
+        "LightingFrameUpdates-B"
       );
     }
     if (playerPositionedObject == null) {
       ChadUtilities.SmartLogger(
         LightingManager.lightingLoggingEnabled,
-        "Player positioend object null - lighting frame updates!"
+        "Player positioend object null - lighting frame updates!",
+        "LightingFrameUpdates-C"
       );
     }
   }
@@ -213,7 +216,8 @@ class LightingFrameUpdates {
     } else {
       ChadUtilities.SmartLogger(
         this.LOGGING_ENABLED,
-        "Light object's motion profile was null!"
+        "Light object's motion profile was null!",
+        "LightingFrameUpdates-D"
       );
     }
   }

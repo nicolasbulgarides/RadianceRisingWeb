@@ -71,7 +71,7 @@ class UIAssetManifest {
    * @returns {string} - The full URL of the UI asset.
    */
   static getAssetUrl(assetName) {
-    if (ScriptInitializer.getIfLocal("UI loader, " + assetName)) {
+    if (Config.RUN_LOCALLY_DETERMINED) {
       return `${this.githubUrl}${this.assets[assetName] || ""}`;
     } else {
       return `${this.workerUrl}${this.assets[assetName] || ""}`;

@@ -9,7 +9,6 @@ class LightingColorShiftProfile {
   /**
    * Constructs a new LightingColorShiftProfile instance.
    *
-   * @param {Object} colorProfileData - An object containing preset lighting properties.
    * @param {string} colorProfileData.presetName - Unique preset identifier.
    * @param {number} colorProfileData.baseLightIntensity - Base intensity value.
    * @param {number} colorProfileData.baseLightIntensityAmplitude - Amplitude for intensity variations.

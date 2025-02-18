@@ -38,7 +38,8 @@ class LightingMotionProfileBag {
     if (!arraysToCheck.every((arr) => arr.length === expectedLength)) {
       ChadUtilities.SmartLogger(
         this.LOGGING_ENABLED,
-        "All arrays inside of the lighting motion profile bag must have the same length."
+        "All arrays inside of the lighting motion profile bag must have the same length.",
+        "LightingMotionProfileBag"
       );
     } else {
       // Store arrays and generate individual motion profiles.

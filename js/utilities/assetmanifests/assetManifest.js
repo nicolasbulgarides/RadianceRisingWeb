@@ -141,12 +141,15 @@ class AssetManifest {
   /**
    * Retrieves the URL for a given asset name.
    * Depending on the environment (local or production), it returns the URL from either GitHub or the worker server.
+   * Now, if the asset file name contains "test", it prepends "test/" to the filename.
    * @param {string} assetName - The key used to look up the asset (e.g. "archway").
    * @returns {string|null} - The full URL of the asset, or null if not found.
    */
   static getAssetUrl(assetName) {
     let fileName = this.assets[assetName];
-    if (ScriptInitializer.getIfLocal("MODELS")) {
+    // If the asset file name contains "test", prepend "test/"
+    if (fileName && fileName.includes("test")) fileName = "test/" + fileName;
+    if (Config.finalizeLocalDetermination) {
       return fileName ? `${this.githubUrl}${fileName}` : null;
     } else {
       return fileName ? `${this.baseUrl}${fileName}` : null;

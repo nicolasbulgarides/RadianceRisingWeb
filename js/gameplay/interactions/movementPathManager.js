@@ -1,19 +1,21 @@
 /**
  * MovementPathManager class
  *
- * This class is responsible for calculating and managing movement paths for a player in the game world.
- * It integrates player movement with the game world boundaries, obstacles, and animations, ensuring 
+ * This class is responsible for calculating and managing movement paths for a player in the game level.
+ * It integrates player movement with the game level boundaries, obstacles, and animations, ensuring
  * that movement follows the game rules. All movement vectors are constructed using BabylonJS conventions.
  */
+
 class MovementPathManager {
   /**
    * Creates an instance of MovementPathManager.
    * @param {Object} player - The player entity controlled by this manager.
-   * @param {Object} world - The game world in which the movement is processed.
+   * @param {Object} level - The game level in which the movement is processed.
    */
-  constructor(player, world) {
-    // Store the active world and player references.
-    this.activeWorld = world;
+
+  constructor(player, level) {
+    // Store the active level and player references.
+    this.activeLevel = level;
     this.activePlayer = player;
     // Initialize the player's model movement manager which handles model animations.
     this.playerModelMovementManager = new PlayerModelMovementManager(
@@ -22,11 +24,11 @@ class MovementPathManager {
   }
 
   /**
-   * Sets or updates the active game world.
-   * @param {Object} worldToSet - A new world object to be used as the active world.
+   * Sets or updates the active game level.
+   * @param {Object} levelToSet - A new level object to be used as the active level.
    */
-  setActiveWorld(worldToSet) {
-    this.activeWorld = worldToSet;
+  setActiveLevel(levelToSet) {
+    this.activeLevel = levelToSet;
   }
 
   /**
@@ -106,17 +108,17 @@ class MovementPathManager {
   }
 
   /**
-   * Determines the boundaries of the game world.
-   * @returns {Object} An object containing minX, minY, minZ, maxX, maxY, and maxZ values defining the world boundaries.
+   * Determines the boundaries of the game level.
+   * @returns {Object} An object containing minX, minY, minZ, maxX, maxY, and maxZ values defining the level boundaries.
    */
-  getGameWorldBoundary() {
+  getGameLevelBoundary() {
     let boundary = {
       minX: 0,
-      minY: 0, // Assuming the game world has constant Y-level movement.
+      minY: 0, // Assuming the game level has constant Y-level movement.
       minZ: 0,
-      maxX: this.activeWorld.mapWidth - 1,
+      maxX: this.activeLevel.mapWidth - 1,
       maxY: 0,
-      maxZ: this.activeWorld.mapDepth - 1,
+      maxZ: this.activeLevel.mapDepth - 1,
     };
 
     return boundary;
@@ -124,17 +126,18 @@ class MovementPathManager {
 
   /**
    * Processes player movement when the boundaries are not enforced (unbounded movement).
-   * If obstacles are ignored, movement goes to the world edge; else, stops at the last valid position.
+   * If obstacles are ignored, movement goes to the level edge; else, stops at the last valid position.
    * @param {string} direction - The required movement direction ("LEFT", "RIGHT", "UP", "DOWN").
    * @param {boolean} ignoreObstacles - Indicates whether obstacles should be ignored during movement.
    */
+
   processUnboundedMovement(direction, ignoreObstacles) {
     // Retrieve the current player's position.
     let currentPositionVector =
       this.activePlayer.getPlayerPositionAndModelManager().currentPosition;
 
-    // Retrieve game world boundaries to constrain movement if necessary.
-    let boundary = this.getGameWorldBoundary();
+    // Retrieve game level boundaries to constrain movement if necessary.
+    let boundary = this.getGameLevelBoundary();
     let destinationVector = null;
 
     // If obstacles are to be ignored, compute the destination slightly differently.
@@ -169,7 +172,7 @@ class MovementPathManager {
     } else if (!ignoreObstacles) {
       // If obstacles are considered, get the last valid position until an obstacle is encountered.
       let stoppingPosition = ObstacleFinder.getLastValidPosition(
-        this.activeWorld,
+        this.activeLevel,
         this.activePlayer.getPlayerPositionAndModelManager().currentPosition,
         direction
       );
@@ -180,7 +183,7 @@ class MovementPathManager {
   }
 
   /**
-   * Directs the player's movement towards a specified destination 
+   * Directs the player's movement towards a specified destination
    * and initializes the movement animation using a predefined speed.
    * @param {BABYLON.Vector3} destinationVector - The target destination vector.
    */
@@ -243,15 +246,24 @@ class MovementPathManager {
     currentPositionVector,
     destinationVector
   ) {
+    let logMessage =
+      "Current position: X" +
+      currentPositionVector.x +
+      ", " +
+      currentPositionVector.y +
+      " , " +
+      currentPositionVector.z +
+      " destination of: X" +
+      destinationVector.x +
+      " , Y: " +
+      destinationVector.y +
+      " , " +
+      destinationVector.z;
 
- 
-    let logMessage = "Current position: X" + currentPositionVector.x + ", " + currentPositionVector.y + " , " 
-    + currentPositionVector.z + " destination of: X" + destinationVector.x + " , Y: " + destinationVector.y + " , " + destinationVector.z;
-
-
-
-    
-    LoggerOmega.SmartLogger(true, logMessage, "MovementPathManager-DisplayCurrentPositionAndDestination");
-
+    LoggerOmega.SmartLogger(
+      true,
+      logMessage,
+      "MovementPathManager-DisplayCurrentPositionAndDestination"
+    );
   }
 }

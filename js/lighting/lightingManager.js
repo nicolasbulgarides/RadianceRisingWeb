@@ -14,7 +14,7 @@ class LightingManager {
   constructor(sceneInstance) {
     this.scene = sceneInstance;
     this.lightingLogger = new LightingLogger();
-    this.loadLightingExperiments = true;
+    this.loadLightingExperiments = false;
     this.initializeConstructSystems();
   }
 

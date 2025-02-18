@@ -27,10 +27,13 @@ class LightingLogger {
     if (loggingAbsoluteDecision) {
       let msg = "Failed template bag:" + nickname + " null!";
 
-      LoggerOmega.SmartLogger(true, msg, " Description of template bag failure");
+      LoggerOmega.SmartLogger(
+        true,
+        msg,
+        " Description of template bag failure"
+      );
     }
   }
-
 
   /**
    * Logs details of a lighting preset.
@@ -53,7 +56,11 @@ class LightingLogger {
       } else {
         msg = "-display-of-light-preset-values-" + nickname;
       }
-      LoggerOmega.SmartLogger(true, "I was called: ", " Description of Lighting Preset Values");
+      LoggerOmega.SmartLogger(
+        true,
+        "I was called: ",
+        " Description of Lighting Preset Values"
+      );
     }
   }
 
@@ -77,8 +84,7 @@ class LightingLogger {
         lightObject != null &&
         lightObject instanceof LightingObject
       ) {
-        deregisterMessage =
-          "Light object found and is a valid LightingObject.";
+        deregisterMessage = "Light object found and is a valid LightingObject.";
       } else if (index == -1) {
         deregisterMessage =
           "Light object not found in the array to remove from.";
@@ -88,8 +94,7 @@ class LightingLogger {
         lightObject != null &&
         !(lightObject instanceof LightingObject)
       ) {
-        deregisterMessage =
-          "Light object is not a LightingObject.";
+        deregisterMessage = "Light object is not a LightingObject.";
       }
 
       LoggerOmega.SmartLoggerWithCooldown(
@@ -107,7 +112,11 @@ class LightingLogger {
    */
   static assessOriginalLightValues(lightObject) {
     if (!lightObject || !lightObject.colorShiftProfile) {
-      LoggerOmega.SmartLogger(true, "Invalid light object or missing color shift profile", "LightingLogger");
+      LoggerOmega.SmartLogger(
+        true,
+        "Invalid light object or missing color shift profile",
+        "LightingLogger"
+      );
       return;
     }
 
@@ -131,7 +140,5 @@ class LightingLogger {
       `intensitySpeed=${intensitySpeed}, intensityPhase=${intensityPhase}, ` +
       `baseHue=${baseHue}, hueVariation=${hueVariation}, ` +
       `hueSpeed=${hueSpeed}, huePhase=${huePhase}`;
-
-    LoggerOmega.SmartLogger(true, logMessage, "LightingLogger-AssessingOriginalLightValues");
   }
 }

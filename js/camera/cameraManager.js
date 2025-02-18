@@ -29,8 +29,8 @@ class CameraManager {
       case CameraPreset.DEFAULT:
         this.currentCamera = this.setupDefaultCamera();
         break;
-      case CameraPreset.GAMEWORLDTEST:
-        this.currentCamera = this.setupGameWorldTestCamera();
+      case CameraPreset.GAMELEVELTEST:
+        this.currentCamera = this.setupGameLevelTestCamera();
         break;
       case CameraPreset.ORTHOGRAPHIC:
         this.currentCamera = this.setupOrthographicCamera();
@@ -69,8 +69,8 @@ class CameraManager {
    * Sets up a default camera.
    * @returns {BABYLON.ArcRotateCamera} The configured default camera.
    */
-  setupGameWorldTestCamera() {
-    // Define the center of the game world
+  setupGameLevelTestCamera() {
+    // Define the center of the game level
     const centerX = 0; // Center of the X-axis
     const centerZ = 0; // Center of the Z-axis
 
@@ -78,11 +78,11 @@ class CameraManager {
     ///const centerZ = 0;
     // Create an ArcRotateCamera
     const camera = new BABYLON.ArcRotateCamera(
-      "gameWorldTestCamera",
+      "gameLevelTestCamera",
       Math.PI / 2, // Angle around the Y-axis (horizontal rotation)
       Math.PI / 4, // Angle above the ground (vertical rotation)
       30, // Distance from the target (radius)
-      new BABYLON.Vector3(centerX, 0, centerZ), // Target position (center of the game world)
+      new BABYLON.Vector3(centerX, 0, centerZ), // Target position (center of the game level)
       this.scene // The scene
     );
 
@@ -102,7 +102,6 @@ class CameraManager {
       BABYLON.Vector3.Zero(),
       scene
     );
-    window.RenderSceneManager.baseGameCamera = camera;
   }
 
   setCameraToChase(modelToChase) {
@@ -149,8 +148,6 @@ class CameraManager {
     if (this.scene == null) {
       console.log("NULL SCENE!");
     }
-
-    window.RenderSceneManager.baseGameCamera = this.currentCamera;
   }
 
   /**

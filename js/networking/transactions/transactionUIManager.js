@@ -1,0 +1,3 @@
+class TransactionUIManager {
+  constructor() {}
+}

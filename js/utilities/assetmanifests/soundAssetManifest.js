@@ -123,7 +123,7 @@ class SoundAssetManifest {
    * @returns {string} - The full URL of the sound effect.
    */
   static getSoundUrl(soundName) {
-    if (ScriptInitializer.getIfLocal("Sound loader")) {
+    if (Config.RUN_LOCALLY_DETERMINED) {
       return `${this.baseUrl}${soundName}.wav`;
     } else {
       return `${this.workerUrl}${soundName}.wav`;

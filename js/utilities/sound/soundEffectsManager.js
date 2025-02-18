@@ -46,7 +46,7 @@ class SoundEffectsManager {
    * Plays a sound effect by name.
    * @param {string} soundName - The name of the sound to play.
    */
-  playSound(soundName) {
+  static playSound(soundName) {
     const sound = this.sounds.get(soundName);
     if (sound) {
       sound.play();
@@ -65,7 +65,9 @@ class SoundEffectsManager {
       const soundName = soundNames[this.soundIndex];
       this.playSound(soundName);
       console.log(
-        `Playing sound ${this.soundIndex + 1}/${soundNames.length}: ${soundName}`
+        `Playing sound ${this.soundIndex + 1}/${
+          soundNames.length
+        }: ${soundName}`
       );
       this.soundIndex++;
     } else {

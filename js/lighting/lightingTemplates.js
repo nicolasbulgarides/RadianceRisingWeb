@@ -199,7 +199,8 @@ class EnvironmentLightingTemplateBag {
       if (finalizedDecision) {
         LoggerOmega.SmartLogger(
           finalizedDecision,
-          "Attempt to convert a template configuration to a set of preset individual templates was unsuccessful! Returning a blank array, expect darkness somewhere / everywhere."
+          "Attempt to convert a template configuration to a set of preset individual templates was unsuccessful! Returning a blank array, expect darkness somewhere / everywhere.",
+          "LightingTemplates-B"
         );
       }
     }
@@ -302,7 +303,8 @@ class PlayerLightingTemplateBag {
       if (finalizedDecision) {
         LoggerOmega.SmartLogger(
           finalizedDecision,
-          "Attempt to convert a template configuration to a set of preset individual player templates was unsuccessful! Returning a blank array, expect darkness somewhere / everywhere."
+          "Attempt to convert a template configuration to a set of preset individual player templates was unsuccessful! Returning a blank array, expect darkness somewhere / everywhere.",
+          "LightingTemplates-A"
         );
       }
     }

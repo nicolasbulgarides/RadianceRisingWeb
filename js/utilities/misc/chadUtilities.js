@@ -35,8 +35,12 @@ class ChadUtilities {
    * @param {boolean} loggingDecision - Whether logging should occur.
    * @param {string} msg - The message to log.
    */
-  static SmartLogger(loggingDecision, msg) {
-    LoggerOmega.SmartLogger(loggingDecision, msg);
+  static SmartLogger(
+    loggingDecision,
+    msg,
+    sender = "-blank-sender-chad-override"
+  ) {
+    LoggerOmega.SmartLogger(loggingDecision, msg, sender);
   }
 
   /**
@@ -54,7 +58,6 @@ class ChadUtilities {
    * @param {string} sender - Identifier for the source of the log.
    */
   static displayObjectContents(obj, sender, depth = 2) {
-
     let contents = ChadUtilities.buildObjectString(obj, depth);
 
     LoggerOmega.SmartLogger(true, contents, sender);
@@ -189,7 +192,6 @@ class ChadUtilities {
       loggingValue,
       loggingImportance
     );
-    LoggerOmega.SmartLogger(loggingDecision, arrayStatusMsg);
     return validArrays;
   }
 }

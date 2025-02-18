@@ -20,7 +20,7 @@ class SceneBuilder {
    * Retrieves the Babylon.js scene managed by the SceneBuilder.
    * @returns {BABYLON.Scene} - The managed scene.
    */
-  getGameWorldScene() {
+  getGameLevelScene() {
     return this.scene;
   }
 
@@ -50,7 +50,9 @@ class SceneBuilder {
    */
   async loadAnimatedModel(positionedObject) {
     try {
-      const positionedModel = await this.animatedModelLoader.loadModel(positionedObject);
+      const positionedModel = await this.animatedModelLoader.loadModel(
+        positionedObject
+      );
       if (positionedModel) {
         this.loadedModels.push(positionedModel);
       }
@@ -70,7 +72,9 @@ class SceneBuilder {
     const loadedModels = [];
     for (const positionedObject of positionedObjects) {
       if (!(positionedObject instanceof PositionedObject)) {
-        throw new Error("SceneBuilder: Only instances of PositionedObject are allowed.");
+        throw new Error(
+          "SceneBuilder: Only instances of PositionedObject are allowed."
+        );
       }
       // Retrieve model URL from AssetManifest
       const modelUrl = AssetManifest.getAssetUrl(positionedObject.modelId);
@@ -99,11 +103,16 @@ class SceneBuilder {
    */
   async loadModel(positionedObject) {
     if (!(positionedObject instanceof PositionedObject)) {
-      throw new Error("SceneBuilder: Only instances of PositionedObject are allowed.");
+      throw new Error(
+        "SceneBuilder: Only instances of PositionedObject are allowed."
+      );
     }
     try {
       const modelUrl = AssetManifest.getAssetUrl(positionedObject.modelId);
-      const loadedModel = await this.modelLoader.loadModelFromUrl(this.scene, modelUrl);
+      const loadedModel = await this.modelLoader.loadModelFromUrl(
+        this.scene,
+        modelUrl
+      );
       if (loadedModel) {
         positionedObject.setModel(loadedModel, positionedObject.modelId);
         if (positionedObject.cloneBase) {
@@ -114,7 +123,8 @@ class SceneBuilder {
           });
         }
         // Apply position, rotation, and scaling based on PositionedObject
-        loadedModel.meshes[0].position = positionedObject.getCompositePositionBaseline();
+        loadedModel.meshes[0].position =
+          positionedObject.getCompositePositionBaseline();
         if (positionedObject.freeze) {
           loadedModel.meshes[0].freezeWorldMatrix();
           loadedModel.meshes[0].convertToUnIndexedMesh();
@@ -147,8 +157,13 @@ class SceneBuilder {
    * @param {BABYLON.Vector3} position - The new position.
    */
   moveModelTo(positionedObject, position) {
-    if (!(positionedObject instanceof PositionedObject) || !positionedObject.model) {
-      console.error("SceneBuilder: Invalid PositionedObject or model reference.");
+    if (
+      !(positionedObject instanceof PositionedObject) ||
+      !positionedObject.model
+    ) {
+      console.error(
+        "SceneBuilder: Invalid PositionedObject or model reference."
+      );
       return;
     }
     positionedObject.model.position = position;
@@ -161,8 +176,13 @@ class SceneBuilder {
    * @param {BABYLON.Vector3} delta - The delta movement vector.
    */
   moveModelBy(positionedObject, delta) {
-    if (!(positionedObject instanceof PositionedObject) || !positionedObject.model) {
-      console.error("SceneBuilder: Invalid PositionedObject or model reference.");
+    if (
+      !(positionedObject instanceof PositionedObject) ||
+      !positionedObject.model
+    ) {
+      console.error(
+        "SceneBuilder: Invalid PositionedObject or model reference."
+      );
       return;
     }
     positionedObject.model.position.addInPlace(delta);

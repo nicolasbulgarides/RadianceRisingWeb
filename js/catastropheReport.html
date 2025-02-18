@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Catastrophe Report</title>
+    <script src="./initialization/catastropheManager.js"></script> <!-- Load Catastrophe Manager First -->
+    <style>
+        :root {
+            --glow-color: #ff5555;
+            --bg-color: #1a1a1a;
+            --text-color: #e0e0e0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+
+        .error-container {
+            max-width: 800px;
+            width: 90%;
+            border: 2px solid var(--glow-color);
+            padding: 2rem;
+            position: relative;
+            background: #000;
+            box-shadow: 0 0 20px var(--glow-color);
+            animation: containerGlow 2s infinite alternate;
+        }
+
+        .error-gif {
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 2rem;
+            border: 2px solid var(--glow-color);
+            filter: grayscale(100%);
+            display: block;
+        }
+
+        .error-list {
+            list-style: none;
+            counter-reset: error-counter;
+        }
+
+        .error-item {
+            padding: 1rem;
+            margin: 1rem 0;
+            border-left: 3px solid var(--glow-color);
+            position: relative;
+            transition: transform 0.3s ease;
+        }
+
+        .error-item:hover {
+            transform: translateX(10px);
+        }
+
+        .error-item::before {
+            counter-increment: error-counter;
+            content: "ERROR #" counter(error-counter, decimal-leading-zero);
+            position: absolute;
+            top: -10px;
+            left: -20px;
+            background: var(--bg-color);
+            padding: 0 5px;
+            font-size: 0.8em;
+            color: var(--glow-color);
+        }
+
+        .reload-button {
+            background: none;
+            border: 1px solid var(--glow-color);
+            color: var(--glow-color);
+            padding: 0.8rem 2rem;
+            margin-top: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            font-family: inherit;
+        }
+
+        .reload-button:hover {
+            background: var(--glow-color);
+            color: #000;
+        }
+
+        @keyframes containerGlow {
+            from { box-shadow: 0 0 10px var(--glow-color); }
+            to { box-shadow: 0 0 30px var(--glow-color); }
+        }
+
+        @media (max-width: 768px) {
+            .error-container {
+                padding: 1rem;
+            }
+            
+            .error-gif {
+                width: 100px;
+                height: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <img src="https://gifdb.com/images/high/error-404-emoji-spicy-face-votwnanltpiyidhq.gif" alt="Error animation" class="error-gif">
+        
+        <h1 id="MainTitle">Catastrophic Errors: UNPROCESSED</h1>
+        <ul class="error-list" id="errorList"></ul>
+        <button class="reload-button" onclick="window.location.reload()">REPORT TO DEVELOPER</button>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            try {
+                const errors = CatastropheManager.getCatastrophicErrors();
+                const errorList = document.getElementById("errorList");
+
+                if (errors.length !== 0) {
+                    errors.forEach(error => {
+                        const li = document.createElement('li');
+                        li.className = 'error-item';
+                        li.innerHTML = `
+                            <span class="error-code">${randomHexCode()}</span><br>
+                            ${error}
+                        `;
+                        errorList.appendChild(li);
+                    });
+
+                    document.getElementById("MainTitle").innerText = "Catastrophic Errors: PROCESSED";
+                } else {
+                    document.getElementById("MainTitle").innerText = "No catastrophic errors found.";
+                }
+            } catch (error) {
+                document.getElementById("MainTitle").innerText = "Catastrophic Errors: CatastropheManagerError!";
+            }
+        });
+
+        function randomHexCode() {
+            return '0x' + Array(4).fill().map(() => 
+                Math.floor(Math.random() * 16).toString(16).toUpperCase()
+            ).join('');
+        }
+    </script>
+</body>
+</html>

@@ -7,16 +7,36 @@
       name="viewport"
       content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
     />
-    <script src="./babylon/babylon.js"></script>
-    <script src="./babylon/babylon.gui.js"></script>
-    <script src="./babylon/babylonloader.js"></script>
-    <script
-      src="https://cdn.jsdelivr.net/npm/dexie@3.2.2/dist/dexie.min.js"
-      integrity="sha384-D1EPhGu60LkLW0g2DV66ckzE+nwjJTtghbG+iytCZ2T4sCFmngEqBJ/9GcZ+iiM8"
-      crossorigin="anonymous"
-    ></script>
+    <script src="./libraries/babylon.js"></script>
+    <script src="./libraries/babylon.gui.js"></script>
+    <script src="./libraries/babylonloader.js"></script>
 
-    <script src="./initialization/scriptInitializer.js"></script>
+
+    <script src="./launch/diagnostics/catastropheManager.js"></script>
+    <script src="./launch/diagnostics/loggerCooldownRegistry.js"></script>
+    <script src="./launch/diagnostics/loggerOmega.js"></script>
+    <script src="./launch/diagnostics/initializationDiagnosticsLogger.js"></script>
+    <script src="./launch/diagnostics/benchmarkManager.js"></script>
+
+    <script src="./launch/regional/regionalAdapationAccessCredentials.js"></script>
+    <script src="./launch/regional/regionalAdapationGameDataComposite.js"></script>
+    <script src="./launch/regional/regionalAdaptionRouter.js"></script>
+    <script src="./launch/regional/regionalAdaptionProfile.js"></script>
+
+
+
+    <script src="./launch/launchsequence/config.js"></script>
+    <script src="./launch/launchsequence/scriptInitializer.js"></script>
+    <script src="./launch/launchsequence/fundamentalSystemBridge.js"></script>
+    <script src="./launch/launchsequence/sequenceManager.js"></script>
+    <script src="./launch/launchsequence/radiantEngineManager.js"></script>
+
+
+
+
+
+    <script src ="https://cdnjs.cloudflare.com/ajax/libs/platform/1.3.6/platform.min.js"></script>
+
 
     <style>
       html,
@@ -44,7 +64,17 @@
     <script>
       var canvas = document.getElementById("renderCanvas");
 
-      let runLocally = true;
+      let runLocally = false;
+
+      if (Config.STATUS_ENVIRONMENT.toUpperCase() === "PRODUCTION" 
+      && Config.STATUS_IN_DEPLOYMENT == true && Config.STATUS_IN_DEVELOPMENT == false) {
+        runLocally = false;
+        Config.finalizeLocalDetermination(runLocally);
+      } else {
+        runLocally = true;
+      }
+      Config.finalizeLocalDetermination(runLocally);
+
 
       var scriptInitializer = new ScriptInitializer(canvas, runLocally);
     </script>

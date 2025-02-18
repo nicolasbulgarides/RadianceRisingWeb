@@ -1,0 +1,3 @@
+class AreaUnlockValidator extends ValidatorGeneral {
+  //
+}
