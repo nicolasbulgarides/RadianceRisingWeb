@@ -23,6 +23,7 @@ class PlayerCurrentActionStatus {
    */
   initializeStatusTrakers() {
     // Motion states
+    this.currentlyInMotion = false;
     this.currentlyInDirectionalMotion = false; // True when the player is moving in a specific direction.
     this.currentlyInBouncingMotion = false; // True when the player is in a bouncing motion.
 
@@ -120,7 +121,26 @@ class PlayerCurrentActionStatus {
   setChannelingArtifact(status) {
     this.currentlyChannelingArtifact = status;
   }
-
+  /**
+   * Determines if the player can act (i.e. move) based on their current action statuses.
+   * All relevant state flags must be false for the player to be free to move.
+   * @return {boolean} True if the player can act; otherwise false.
+   */
+  canAct() {
+    return (
+      !this.currentlyInMotion &&
+      !this.currentlyInDirectionalMotion &&
+      !this.currentlyInBouncingMotion &&
+      !this.currentlyTeleporting &&
+      !this.currentlyInteractingWithObstacle &&
+      !this.currentlyInteractingWithSwitch &&
+      !this.currentlyChannelingMagic &&
+      !this.currentlyChannelingArtifact &&
+      !this.currentlyUsingMagic &&
+      !this.currentlyUsingArtifact &&
+      !this.currentlyAffectedByEnvironment
+    );
+  }
   /**
    * Sets the magic usage state.
    * @param {boolean} status - True if the player is in the act of using magic; otherwise false.
@@ -175,6 +195,7 @@ class PlayerCurrentActionStatus {
    */
   setInDirectionalMotion(status) {
     this.currentlyInDirectionalMotion = status;
+    this.currentlyInMotion = status;
   }
 
   /**
@@ -183,6 +204,13 @@ class PlayerCurrentActionStatus {
    */
   setInBouncingMotion(status) {
     this.currentlyInBouncingMotion = status;
+    this.currentlyInMotion = status;
+  }
+
+  setMotionHasEnded() {
+    this.currentlyInMotion = false;
+    this.currentlyInDirectionalMotion = false;
+    this.currentlyInBouncingMotion = false;
   }
 
   /**

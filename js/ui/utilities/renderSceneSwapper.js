@@ -11,12 +11,69 @@ class RenderSceneSwapper {
    * @param {BABYLON.Engine} babylonEngine - The Babylon.js engine used for rendering.
    */
   constructor(babylonEngine) {
+    FundamentalSystemBridge.registerRenderSceneSwapper(this);
     this.initializeStorage();
     if (babylonEngine instanceof BABYLON.Engine) {
       this.babylonEngine = babylonEngine;
     } else {
       this.catastropicConstruction();
     }
+  }
+  /**
+   * Retrieves the SceneBuilder associated with the given scene instance.
+   * @param {BABYLON.Scene} scene - The Babylon.js scene instance.
+   * @returns {SceneBuilder|null} The corresponding SceneBuilder instance, or null if not found.
+   */
+  getSceneBuilderByScene(scene) {
+    // Iterate through stored SceneBuilders and return the one with the matching scene.
+    for (const key in this.sceneBuilders) {
+      if (this.sceneBuilders[key].scene === scene) {
+        return this.sceneBuilders[key];
+      }
+    }
+    console.warn("SceneBuilder for the provided scene reference not found.");
+    return null;
+  }
+  /**
+   * Creates and registers a SceneBuilder for a specific scene.
+   * @param {string} sceneId - The unique identifier for the scene.
+   * @param {BABYLON.Scene} scene - The scene instance for which to build.
+   */
+  loadSceneBuilderForScene(sceneId, scene) {
+    if (scene && sceneId) {
+      this.sceneBuilders[sceneId] = new SceneBuilder(scene);
+    } else {
+      console.error(
+        "Invalid scene or sceneId provided to loadSceneBuilderForScene"
+      );
+    }
+  }
+  /**
+   * Loads the basic scenes and sets them up.
+   * Creates and assigns separate SceneBuilders for each scene.
+   */
+  loadBasicScenes() {
+    // Initialize the game scene.
+    this.baseGameScene = new BABYLON.Scene(this.babylonEngine);
+    this.baseGameScene.clearColor = new BABYLON.Color3(255, 0, 0);
+    // Initialize the UI scene.
+    this.baseUIScene = new BaseGameUI(this.babylonEngine);
+
+    // Create separate SceneBuilders for each scene.
+    this.loadSceneBuilderForScene("BaseGameScene", this.baseGameScene);
+    this.loadSceneBuilderForScene("BaseUIScene", this.baseUIScene);
+
+    // Register scenes with a unique identifier.
+    this.registerScene("BaseUIScene", this.baseUIScene);
+    this.registerScene("BaseGameScene", this.baseGameScene);
+
+    // Set active scenes.
+    this.setActiveGameLevelScene("BaseGameScene");
+    this.setActiveUIScene("BaseUIScene");
+
+    this.allStoredCameras[this.baseGameScene] =
+      CameraManager.setAndGetPlaceholderCamera(this.baseGameScene);
+    // Set the placeholder camera (typically for debugging or an initial view).
   }
 
   catastropicConstruction() {
@@ -29,10 +86,21 @@ class RenderSceneSwapper {
     );
     CatastropheManager.displayCatastrophePage();
   }
-
+  /**
+   * Returns the SceneBuilder associated with the given scene ID.
+   * @param {string} sceneId - The unique identifier for the scene.
+   * @returns {SceneBuilder|null} The corresponding SceneBuilder instance, or null if not found.
+   */
+  getSceneBuilderForScene(sceneId) {
+    if (this.sceneBuilders[sceneId]) return this.sceneBuilders[sceneId];
+    console.warn(`SceneBuilder with ID '${sceneId}' not found.`);
+    return null;
+  }
   initializeStorage() {
     // Dictionary to store scenes by a unique ID.
     this.allStoredScenes = {};
+    this.sceneBuilders = {};
+    this.allStoredCameras = {};
 
     this.fundamentalTestingScene = null;
     // References to the active UI and game scenes.
@@ -115,6 +183,10 @@ class RenderSceneSwapper {
    */
   getActiveUIScene() {
     return this.activeUIScene;
+  }
+
+  getSceneByName(sceneName) {
+    return this.allStoredScenes[sceneName];
   }
 
   /**

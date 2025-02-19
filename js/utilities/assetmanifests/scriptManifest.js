@@ -192,10 +192,11 @@ class ScriptManifest {
     "/gameplay/areas/interactions/obstacleFinder.js",
     "/gameplay/areas/generation/levelData.js",
     "/gameplay/areas/generation/boardSlot.js",
-    "/gameplay/areas/generation/levelMap.js",
+    "/gameplay/areas/generation/activeGameplayLevel.js",
+    "/gameplay/areas/generation/levelFactoryComposite.js",
     "/gameplay/areas/generation/gameGridGenerator.js",
     "/gameplay/areas/generation/levelMapObstacleGenerator.js",
-    "/gameplay/areas/generation/levelLoader.js",
+    "/gameplay/areas/generation/levelMap.js",
   ];
 
   static progressionScriptsRadiantRays = [

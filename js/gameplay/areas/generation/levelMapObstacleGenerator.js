@@ -1,23 +1,12 @@
 class LevelMapObstacleGenerator {
   /**
-   * Generates and initializes obstacles on the game  level
-   * Handles both predefined obstacles (from configuration) and dynamically generated edge obstacles.
-   *
-   * @param {SceneBuilder} sceneBuilder - Instance used to load models into the scene.
-   */
-  constructor(sceneBuilder) {
-    // Save the scene builder for model loading.
-    this.sceneBuilder = sceneBuilder;
-  }
-
-  /**
    * Initializes obstacles on the level map.
    * Reads obstacle configurations from the level and creates corresponding obstacle instances.
    *
    * @param {LevelMap} level - The level map to populate with obstacles.
    */
 
-  initializeObstacles(level) {
+  initializeObstacles(level, relevantSceneBuilder) {
     if (!level.obstacles) return;
 
     for (const obstacleData of level.obstacles) {
@@ -50,7 +39,7 @@ class LevelMapObstacleGenerator {
         boardSlot.hostObstacle(obstacle);
 
         // Load the obstacle's model into the scene.
-        this.sceneBuilder.loadModel(obstacle.positionedObject);
+        relevantSceneBuilder.loadModel(obstacle.positionedObject);
       } else {
         console.warn(`LevelMap: No BoardSlot at ${position.x}, ${position.z}`);
       }

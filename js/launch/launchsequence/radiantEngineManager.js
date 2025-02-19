@@ -8,7 +8,7 @@
  *  1. Load engine settings (hardware scaling, scene setup, audio unlock).
  *  2. Construct main scenes (Game Level, Base UI, Experience Bar UI).
  *  3. Register scenes with RenderSceneManager and setup active scenes.
- *  4. Initialize gameplay via GameplayManager.
+ *  4. Initialize gameplay via GameplayManagerComposite.
  *  5. Start the render loop to process frame updates.
  *
  * This class is instantiated by ScriptInitializer after necessary scripts are loaded.
@@ -29,33 +29,35 @@ class RadiantEngineManager {
       );
     }
   }
-
-  initializeCriticalGraphicsSettings() {
-    this.babylonEngine.setHardwareScalingLevel(
-      1 / (window.devicePixelRatio || 1)
-    );
-  }
-  async initializeCoreSystems() {
+  /**
+   * Initializes the core systems of the engine.
+   */
+  initializeCoreSystems() {
     this.addAudioUnlock();
     this.loadEngineSettings();
-
-    // Wait for the scripts to load before proceeding
-
-    // Now that the scripts are loaded, continue with initialization
     this.sceneRenderProcess();
-    this.loadGameplay();
+    this.loadSoundManagers();
+    this.loadGameplayManager();
+    this.startRenderLoop();
+  }
 
-    // Start the render loop.
+  startRenderLoop() {
     this.babylonEngine.runRenderLoop(() => {
       this.onFrameRenderUpdates();
       this.renderSceneSwapper.render();
     });
   }
-
-  loadGameplayInitializationManager() {
-    this.gameplayInitializationManager = new GameplayInitializationManager();
+  /**
+   * Loads the sound managers and registers them with the fundamental system bridge.
+   */
+  loadSoundManagers() {
+    let musicManager = new MusicManager();
+    let soundEffectsManager = new SoundEffectsManager();
+    FundamentalSystemBridge.registerSoundManagers(
+      musicManager,
+      soundEffectsManager
+    );
   }
-
   /**
    * Adds support for custom audio unlocking.
    * Sets up an event listener for the first user click to unlock the audio engine.
@@ -86,34 +88,19 @@ class RadiantEngineManager {
    * clear color, and audio unlocking.
    */
   loadEngineSettings() {
-    this.autoClearDepthAndStencil = false;
+    this.babylonEngine.autoClearDepthAndStencil = false;
+    this.babylonEngine.setHardwareScalingLevel(
+      1 / (window.devicePixelRatio || 1)
+    );
   }
 
   /**
    * Processes the initial render setup.
-   * Builds the scene, creates and registers UI scenes and the game level scene.
    * Sets up camera and scene management.
    */
   sceneRenderProcess() {
     this.renderSceneSwapper = new RenderSceneSwapper(this.babylonEngine);
-    // Initialize SceneBuilder for asset handling and scene construction.
-
-    this.baseGameScene = new BABYLON.Scene(this.babylonEngine);
-    this.baseGameScene.clearColor = new BABYLON.Color3(255, 0, 0);
-    this.baseUIScene = new BaseGameUI(this.babylonEngine);
-
-    this.sceneBuilder = new SceneBuilder(this.baseGameScene);
-    this.sceneBuilder = new SceneBuilder(this.baseUIScene);
-
-    // Initialize base UI for the game.
-    // Setup and configure RenderSceneManager to manage various scene overlays.
-    this.renderSceneSwapper.registerScene("BaseUIScene", this.baseUIScene);
-    this.renderSceneSwapper.registerScene("BaseGameScene", this.baseGameScene);
-    this.renderSceneSwapper.setActiveGameLevelScene("BaseGameScene");
-    this.renderSceneSwapper.setActiveUIScene("BaseUIScene");
-
-    // Set the placeholder camera, potentially for debugging or initial view.
-    CameraManager.setPlaceholderCamera(this.baseGameScene);
+    this.renderSceneSwapper.loadBasicScenes();
   }
 
   /**
@@ -121,18 +108,15 @@ class RadiantEngineManager {
    * Updates gameplay and other per-frame processes.
    */
   onFrameRenderUpdates() {
-    this.gameplayManager.processEndOfFrameEvents();
-    // Potentially include benchmark frame updates here.
+    this.gameplayManagerComposite.processEndOfFrameEvents();
   }
 
   /**
    * Loads the gameplay systems by creating an instance of GameplayManager.
    * Registers the gameplay manager with the base UI scene.
    */
-  loadGameplay() {
-    this.gameplayManager = new GameplayManagerComposite(this.sceneBuilder);
-    this.baseUIScene.registerGameplayManager(this.gameplayManager);
-    this.gameplayManager.initializeGameplay();
+  loadGameplayManager() {
+    this.gameplayManagerComposite = new GameplayManagerComposite();
   }
 
   /**

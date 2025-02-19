@@ -8,61 +8,18 @@ class CameraManager {
    * @param {String} initialPreset - The initial camera preset.
    * @param {BABYLON.Mesh} targetMesh - The mesh the camera should follow (e.g., the player).
    */
-  constructor(scene) {
-    this.scene = scene;
+  constructor() {
     this.targetMesh = null;
   }
 
-  /**
-   * Applies a camera preset to the scene.
-   * @param {String} presetName - The name of the camera preset.
-   */
-  applyPresetCamera(presetName) {
-    // Dispose of any existing camera and remove it from the scene
-    if (this.currentCamera) {
-      this.currentCamera.detachControl();
-      this.currentCamera.dispose();
-    }
+  registerPrimaryGameScene(scene) {
+    this.scene = scene;
+  }
 
-    // Set up the camera based on the preset name
-    switch (presetName) {
-      case CameraPreset.DEFAULT:
-        this.currentCamera = this.setupDefaultCamera();
-        break;
-      case CameraPreset.GAMELEVELTEST:
-        this.currentCamera = this.setupGameLevelTestCamera();
-        break;
-      case CameraPreset.ORTHOGRAPHIC:
-        this.currentCamera = this.setupOrthographicCamera();
-        break;
-      case CameraPreset.PERSPECTIVE:
-        this.currentCamera = this.setupPerspectiveCamera();
-        break;
-      case CameraPreset.ISOMETRIC:
-        this.currentCamera = this.setupIsometricCamera();
-        break;
-      case CameraPreset.HELICOPTER:
-        this.currentCamera = this.setupHelicopterFollowCamera();
-        break;
-      default:
-        window.Logger.warn(
-          `CameraManager: Unknown or unused camera preset '${presetName}'. Reverting to DEFAULT.`
-        );
-        this.currentCamera = this.setupDefaultCamera();
-    }
-
-    // Set the new camera as active and attach control to it
-    if (this.currentCamera) {
-      this.scene.activeCamera = this.currentCamera;
-      //this.currentCamera.inputs.addDeviceOrientation();
-
-      this.currentCamera.attachControl(
-        this.scene.getEngine().getRenderingCanvas(),
-        true
-      );
-
-      window.Logger.log(`CameraManager: Applied preset '${presetName}'.`);
-    }
+  utilizeDefaultGameSceneForCamera() {
+    this.registerPrimaryGameScene(
+      FundamentalSystemBridge.renderSceneSwapper.getActiveGameLevelScene()
+    );
   }
 
   /**
@@ -93,7 +50,7 @@ class CameraManager {
     return camera;
   }
 
-  static setPlaceholderCamera(scene) {
+  static setAndGetPlaceholderCamera(scene) {
     const camera = new BABYLON.ArcRotateCamera(
       "defaultCamera",
       Math.PI / 2,
@@ -102,9 +59,10 @@ class CameraManager {
       BABYLON.Vector3.Zero(),
       scene
     );
+    return camera;
   }
 
-  setCameraToChase(modelToChase) {
+  setCameraToChase(relevantScene, modelToChase) {
     if (!modelToChase) {
       console.error("Model to chase null");
       return;
@@ -123,7 +81,7 @@ class CameraManager {
     const followCamera = new BABYLON.FollowCamera(
       "helicopterFollowCamera",
       new BABYLON.Vector3(0, 0, 0),
-      this.scene
+      relevantScene
     );
 
     // Set the target mesh
@@ -143,10 +101,9 @@ class CameraManager {
     followCamera.rotationOffset = 180;
     // Assign the new camera and activate it
     this.currentCamera = followCamera;
-    this.scene.activeCamera = this.currentCamera;
 
-    if (this.scene == null) {
-      console.log("NULL SCENE!");
+    if (relevantScene == null) {
+      console.log("NULL REELVANT CHASE SCENE!");
     }
   }
 
@@ -209,7 +166,6 @@ class CameraManager {
    * @param {String} presetName - The name of the new camera preset to apply.
    */
   switchCameraPreset(presetName) {
-    window.Logger.log(`CameraManager: Switching to preset '${presetName}'.`);
     this.applyPresetCamera(presetName);
   }
 

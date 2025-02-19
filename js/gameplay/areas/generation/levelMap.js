@@ -46,13 +46,6 @@ class LevelMap {
       levelToLoad.playerStartY,
       levelToLoad.playerStartZ
     );
-    // Debug logging can be enabled here if needed.
-    /**
-    console.log(
-      "Starting position of map:" + this.startingPosition.x + " , " +
-      this.startingPosition.y + ", " + this.startingPosition.z
-    );
-    */
   }
 
   /**
@@ -62,9 +55,16 @@ class LevelMap {
    * @param {LevelMapObstacleGenerator} generator - The generator instance for obstacles.
    */
 
-  levelObstacleTest(generator) {
-    generator.generateEdgeMountains(this);
-    generator.initializeObstacles(this);
+  levelObstacleTest() {
+    let relevantSceneBuilder =
+      FundamentalSystemBridge.renderSceneSwapper.getSceneBuilderForScene(
+        "BaseGameScene"
+      );
+
+    let obstacleGenerator =
+      FundamentalSystemBridge.levelFactoryComposite.levelMapObstacleGeneator;
+
+    obstacleGenerator.generateEdgeMountains(this, relevantSceneBuilder);
   }
 
   /**

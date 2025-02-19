@@ -1,29 +1,51 @@
 class GameGridGenerator {
-  /**
-   * Manages grid generation by loading and instancing tile models.
-   * @param {SceneBuilder} sceneBuilder - SceneBuilder instance responsible for asset loading and scene management.
-   */
-  constructor(sceneBuilder) {
-    // Save reference to scene builder to use its loading functions.
-    this.sceneBuilder = sceneBuilder;
-    // Cache for loaded tile meshes to reuse in grid instancing.
-    this.loadedTiles = [];
+  constructor() {
+    this.initializeStorage();
   }
 
+  initializeStorage() {
+    this.loadedTiles = [];
+  }
+  /**
+   *
+   * Returns an array of tile IDs based on the given level archetype.
+   *
+   * @param {string} archetype - The level preset identifier (e.g., "testLevel0").
+   * @returns {Array<string>} - The list of tile IDs relevant to the level.
+   * To do - if and when we make other tiles, modify
+   */
+
+  static getTileIdsByLevelArchetype(archetype = Config.DEMO_LEVEL) {
+    // Default tile set.
+    let tileIds = ["tile1", "tile2", "tile3", "tile4", "tile5", "tile6"];
+    return tileIds;
+  }
+
+  async loadTilesModelsDefault() {
+    let relevantSceneBuilder =
+      FundamentalSystemBridge.renderSceneSwapper.getSceneBuilderForScene(
+        "BaseGameScene"
+      );
+    return this.loadTilesModels(
+      relevantSceneBuilder,
+      GameGridGenerator.getTileIdsByLevelArchetype(),
+      1
+    );
+  }
   /**
    * Loads all tile models into memory based on provided tile IDs.
    * Generates base tile objects to be instanced for the game grid.
    *
    * @param {Array<string>} tileIds - Array of tile IDs identifying models to load.
    * @param {number} tileSize - Scale/size used for each tile.
-   * @returns {Promise<boolean>} - Resolves to true if at least one tile was loaded; false otherwise.
+   * @returns {Promise<boolean>} - Resolves to true if all tiles were loaded; false otherwise.
    */
-  async loadTilesThenGenerateGrid(tileIds, tileSize) {
+  async loadTilesModels(relevantSceneBuilder, tileIds, tileSize) {
     // Use a zero vector position as a temporary placeholder during loading.
-    let position = new BABYLON.Vector3(0, 0, 0);
+    const position = new BABYLON.Vector3(0, 0, 0);
 
-    // Loop through each tile ID and attempt to load the corresponding model.
-    for (const tileId of tileIds) {
+    // Map each tile to a promise that loads its model.
+    const tileLoadPromises = tileIds.map(async (tileId) => {
       // Generate the configuration for a positioned tile.
       const positionedObject = PositionedObject.getPositionedObjectQuick(
         tileId,
@@ -34,7 +56,7 @@ class GameGridGenerator {
         true // clone the base model for instancing if needed
       );
       // Asynchronously load the tile model using the scene builder.
-      const baseTile = await this.sceneBuilder.loadModel(positionedObject);
+      const baseTile = await relevantSceneBuilder.loadModel(positionedObject);
 
       if (baseTile) {
         // Cache the loaded tile.
@@ -42,25 +64,19 @@ class GameGridGenerator {
       } else {
         console.error(`GridGenerator: Failed to load tile '${tileId}'.`);
       }
-    }
+    });
 
-    if (this.loadedTiles.length === 0) {
-      console.error("GridGenerator: No tiles were successfully loaded.");
+    // Wait until all tile load operations have completed.
+    await Promise.all(tileLoadPromises);
+
+    // Ensure all expected tiles were loaded.
+    if (this.loadedTiles.length !== tileIds.length) {
+      console.error(
+        `GridGenerator: Only loaded ${this.loadedTiles.length} out of ${tileIds.length} tiles.`
+      );
       return false;
     }
 
-    return true;
-  }
-
-  /**
-   * Validates that tiles are loaded.
-   * @returns {boolean} - True if tiles exist; false otherwise.
-   */
-  cancelIfNoTilesToDisplay() {
-    if (this.loadedTiles.length === 0) {
-      window.Logger.log("NO tiles loaded! Cannot generate grid!");
-      return false;
-    }
     return true;
   }
 
@@ -72,13 +88,9 @@ class GameGridGenerator {
    * @param {number} [tileSize=1] - Size of each tile for spacing.
    */
   async generateGrid(mapToLoad, tileSize = 1) {
-    // Abort if no tile assets have been loaded.
-    if (!this.cancelIfNoTilesToDisplay()) return;
-
     // Extract grid dimensions from the level map.
     let width = mapToLoad.mapWidth;
     let depth = mapToLoad.mapDepth;
-
     // Iterate over every grid cell position.
     for (let x = 0; x < width; x++) {
       for (let z = 0; z < depth; z++) {

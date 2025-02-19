@@ -9,19 +9,17 @@ class LightingManager {
   /**
    * Creates a new LightingManager instance.
    *
-   * @param {BABYLON.Scene} sceneInstance - The scene to manage lighting for.
    */
-  constructor(sceneInstance) {
-    this.scene = sceneInstance;
+  constructor() {
     this.lightingLogger = new LightingLogger();
-    this.loadLightingExperiments = false;
-    this.initializeConstructSystems();
   }
 
   /**
    * Initializes key subsystems and arrays used for active lights.
    */
-  initializeConstructSystems() {
+  initializeConstructSystems(conductLightingExperiments, sceneToAddLightsTo) {
+    this.loadLightingExperiments = conductLightingExperiments;
+    this.sceneToAddLightsTo = sceneToAddLightsTo;
     this.activePlayerLightObjects = [];
     this.activeEnvironmentLightObjects = [];
     this.activeEnvironmentPositionLightObjects = [];
@@ -38,9 +36,15 @@ class LightingManager {
       this.lightingFactory = new LightingFactory(this);
       this.lightingExperiments = new LightingExperiments(this);
       let currentExperimentIndex = this.lightingExperiments.test;
-      let currentExperimentBag = this.lightingExperiments.convertSingleExperimentIdToValidEnvironmentTemplateBag(currentExperimentIndex);
+      let currentExperimentBag =
+        this.lightingExperiments.convertSingleExperimentIdToValidEnvironmentTemplateBag(
+          currentExperimentIndex
+        );
 
-      this.lightingFactory.createEnvironmentLightsFromExperimentalValues(this.scene,currentExperimentBag);
+      this.lightingFactory.createEnvironmentLightsFromExperimentalValues(
+        this.sceneToAddLightsTo,
+        currentExperimentBag
+      );
     }
   }
 
@@ -48,7 +52,7 @@ class LightingManager {
    * Iterates through all active environment lights to update them each frame.
    */
   processLightFrameCaller() {
-   // this.lightingFrameUpdates.processFrameOnActiveLightObjects(this.activeEnvironmentLightObjects);
+    // this.lightingFrameUpdates.processFrameOnActiveLightObjects(this.activeEnvironmentLightObjects);
   }
 
   /**
@@ -87,7 +91,7 @@ class LightingManager {
     // Dispose existing player lights if any
     if (this.activePlayerLightObjects.length > 0) {
       this.activePlayerLightObjects.forEach((lightObj) => {
-        if (lightObj instanceof LightingObject&& lightObj.light) {
+        if (lightObj instanceof LightingObject && lightObj.light) {
           lightObj.light.dispose();
         }
       });
@@ -101,28 +105,28 @@ class LightingManager {
    * @param {Player} player - The player instance whose lights will follow its model.
    * @param {string} playerConfigurationTemplate - The preset identifier for player lighting configuration.
    */
-  loadPlayerLightFromConfigurationTemplate(player, playerConfigurationTemplate) {
-
+  loadPlayerLightFromConfigurationTemplate(
+    player,
+    playerConfigurationTemplate
+  ) {
     // Create new player lights using the lighting factory and template storage.
     // This call pulls the lighting configuration template from LightingTemplateStorage,
     // which then retrieves the proper LightingColorShiftProfiles and LightingMotionProfiles.
     // The LightingFactory then creates one or more lights that are designated to follow the player.
     //this.lightingFactory.createPlayerLightsFromTemplateComposite(this.scene, player,playerConfigurationTemplate);
-
   }
 
   // (Further methods such as assignDefaultPlayerModelLight, deletePlayerChasingLight, etc.
   // have also been annotated with similar detailed JSDoc comments.)
   loadIntialLightingConfiguration() {
-    let  configurationTemplate =
-    this.lightingTemplateStorage.getEnvironmentLightingConfigurationBagFromTemplate(
-      Config.DEFAULT_ENVIRONMENT_LIGHTING_TEMPLATE
-    );
+    let configurationTemplate =
+      this.lightingTemplateStorage.getEnvironmentLightingConfigurationBagFromTemplate(
+        Config.DEFAULT_ENVIRONMENT_LIGHTING_TEMPLATE
+      );
 
     this.lightingFactory.createEnvironmentLightsFromTemplateComposite(
-        this.scene,
-        configurationTemplate
-      );
+      this.sceneToAddLightsTo,
+      configurationTemplate
+    );
   }
 }
-

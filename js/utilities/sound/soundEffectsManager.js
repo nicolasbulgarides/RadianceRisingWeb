@@ -7,7 +7,6 @@ class SoundEffectsManager {
     this.soundIndex = 0;
     this.sounds = new Map(); // Map to store BABYLON.Sound instances
     this.loadAllSounds();
-    window.SoundEffectsManager = this;
   }
 
   /**

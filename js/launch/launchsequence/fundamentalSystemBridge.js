@@ -7,11 +7,6 @@
  */
 class FundamentalSystemBridge {
   // Static fields for system references (singletons).
-  static babylonEngine = null;
-  static radiantEngineManager = null;
-  static networkingManager = null;
-  static gameplayManager = null;
-  static lightingManager = null;
 
   /**
    * Constructor for FundamentalSystemBridge.
@@ -19,9 +14,16 @@ class FundamentalSystemBridge {
    * constructor has been provided for potential future instance-level logic.
    */
   constructor() {
+    this.initializeStorage();
     // Instance-level initialization (currently unused).
   }
 
+  initializeStorage() {
+    FundamentalSystemBridge.babylonEngine = null;
+    FundamentalSystemBridge.radiantEngineManager = null;
+    FundamentalSystemBridge.networkingManager = null;
+    FundamentalSystemBridge.gameplayManagerComposite = null;
+  }
   /**
    * Registers the Babylon Engine instance.
    * @param {BABYLON.Engine} engine - The Babylon engine instance.
@@ -36,6 +38,30 @@ class FundamentalSystemBridge {
         providedType
       );
     }
+  }
+
+  static registerPrimaryGameplayCameraManager(primaryCameraManager) {
+    if (primaryCameraManager instanceof CameraManager) {
+      FundamentalSystemBridge.primaryGameplayCameraManager =
+        primaryCameraManager;
+    }
+  }
+
+  static registerSecondaryGameplayCameraManager(secondaryCameraManager) {
+    if (secondaryCameraManager instanceof CameraManager) {
+      FundamentalSystemBridge.secondaryGameplayCameraManager =
+        secondaryCameraManager;
+    }
+  }
+
+  /**
+   * Registers the Sound Managers instances.
+   * @param {MusicManager} musicManager - The music manager instance.
+   * @param {SoundEffectsManager} soundEffectsManager - The sound effects manager instance.
+   */
+  static registerSoundManagers(musicManager, soundEffectsManager) {
+    FundamentalSystemBridge.musicManager = musicManager;
+    FundamentalSystemBridge.soundEffectsManager = soundEffectsManager;
   }
 
   /**
@@ -98,6 +124,12 @@ class FundamentalSystemBridge {
     }
   }
 
+  static registerLevelFactoryComposite(levelFactoryComposite) {
+    if (levelFactoryComposite instanceof LevelFactoryComposite) {
+      FundamentalSystemBridge.levelFactoryComposite = levelFactoryComposite;
+    }
+  }
+
   static registerUIConstructionGrandManager(uiConstructionGrandManager) {
     if (uiConstructionGrandManager instanceof UIConstructionGrandManager) {
       FundamentalSystemBridge.uiConstructionGrandManager =
@@ -154,16 +186,27 @@ class FundamentalSystemBridge {
   }
 
   /**
-   * Registers the Gameplay Manager.
-   * @param {GameplayManager} gameplayManager - The gameplay manager instance.
+   * Registers the Render Scene Swapper.
+   * @param {RenderSceneSwapper} renderSceneSwapper - The render scene swapper instance.
    */
-  static registerGameplayManager(gameplayManager) {
-    if (gameplayManager instanceof GameplayManager) {
-      FundamentalSystemBridge.gameplayManager = gameplayManager;
+  static registerRenderSceneSwapper(renderSceneSwapper) {
+    if (renderSceneSwapper instanceof RenderSceneSwapper) {
+      FundamentalSystemBridge.renderSceneSwapper = renderSceneSwapper;
+    }
+  }
+
+  /**
+   * Registers the Gameplay Manager.
+   * @param {GameplayManagerComposite} gameplayManagerComposite - The gameplay manager instance.
+   */
+  static registerGameplayManagerComposite(gameplayManagerComposite) {
+    if (gameplayManagerComposite instanceof GameplayManagerComposite) {
+      FundamentalSystemBridge.gameplayManagerComposite =
+        gameplayManagerComposite;
     } else {
-      const providedType = typeof gameplayManager;
+      const providedType = typeof gameplayManagerComposite;
       FundamentalSystemBridge.logCatastrophicRegistration(
-        "GameplayManager",
+        "GameplayManagerComposite",
         providedType
       );
     }
@@ -171,20 +214,40 @@ class FundamentalSystemBridge {
 
   /**
    * Registers the Lighting Manager.
-   * @param {LightingManager} lightingManager - The lighting manager instance.
+   * @param {LightingManager} primaryGameplayLightingManager - The primary gameplay lighting manager instance.
    */
-  static registerLightingManager(lightingManager) {
-    if (lightingManager instanceof LightingManager) {
-      FundamentalSystemBridge.lightingManager = lightingManager;
+  static registerPrimaryGameplayLightingManager(
+    primaryGameplayLightingManager
+  ) {
+    if (primaryGameplayLightingManager instanceof LightingManager) {
+      FundamentalSystemBridge.primaryGameplayLightingManager =
+        primaryGameplayLightingManager;
     } else {
-      const providedType = typeof lightingManager;
+      const providedType = typeof primaryGameplayLightingManager;
       FundamentalSystemBridge.logCatastrophicRegistration(
-        "LightingManager",
+        "PrimaryGameplayLightingManager",
         providedType
       );
     }
   }
-
+  /**
+   * Registers the Lighting Manager.
+   * @param {LightingManager} lightingManager - The lighting manager instance.
+   */
+  static registerSecondaryGameplayLightingManager(
+    secondaryGameplayLightingManager
+  ) {
+    if (secondaryGameplayLightingManager instanceof LightingManager) {
+      FundamentalSystemBridge.secondaryGameplayLightingManager =
+        secondaryGameplayLightingManager;
+    } else {
+      const providedType = typeof secondaryGameplayLightingManager;
+      FundamentalSystemBridge.logCatastrophicRegistration(
+        "SecondaryGameplayLightingManager",
+        providedType
+      );
+    }
+  }
   /**
    * Logs a catastrophic registration error.
    * @param {string} systemName - The name of the system being registered.

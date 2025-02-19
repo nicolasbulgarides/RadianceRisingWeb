@@ -268,10 +268,10 @@ class BaseGameUI extends BABYLON.Scene {
       this.processMovementClick(buttonFunctionKey);
     } else if (buttonFunctionKey === "MAGIC") {
       // Example: play a sound effect for magic action.
-      window.SoundEffectsManager.playSound("magicalSpellCastNeutral");
+      SoundEffectsManager.playSound("magicalSpellCastNeutral");
     } else if (buttonFunctionKey === "ARTIFACT") {
       // Example: play sound effect for artifact usage.
-      window.SoundEffectsManager.playSound("artifactUsage");
+      SoundEffectsManager.playSound("artifactUsage");
     }
   }
 
@@ -284,14 +284,6 @@ class BaseGameUI extends BABYLON.Scene {
   }
 
   /**
-   * Registers the gameplay manager to enable communication from UI to game logic.
-   * @param {object} gameplayManager - The gameplay manager that handles game state.
-   */
-  registerGameplayManager(gameplayManager) {
-    this.gameplayManager = gameplayManager;
-  }
-
-  /**
    * Processes movement button events and forwards the movement direction to the gameplay manager.
    * @param {string} buttonFunction - The function key representing the movement.
    */
@@ -300,7 +292,7 @@ class BaseGameUI extends BABYLON.Scene {
     if (this.gameplayManager != null) {
       let playerDirection = null;
       // Play a sound for UI movement feedback.
-      window.SoundEffectsManager.playSound("menuMovement");
+      SoundEffectsManager.playSound("menuMovement");
 
       if (buttonFunctionKey === "LEFTCLICK") {
         playerDirection = "LEFT";
@@ -311,9 +303,11 @@ class BaseGameUI extends BABYLON.Scene {
       } else if (buttonFunctionKey === "DOWNCLICK") {
         playerDirection = "DOWN";
       }
-
       // Send the movement direction to the game's logic manager.
-      this.gameplayManager.processAttemptedMovementFromUIClick(playerDirection);
+
+      FundamentalSystemBridge.gameplayManagerComposite.processAttemptedMovementFromUIClick(
+        playerDirection
+      );
     }
   }
 }
