@@ -3,9 +3,10 @@
  * It maintains a map of sound names to BABYLON.Sound instances and provides methods to play sounds.
  */
 class SoundEffectsManager {
+  static sounds = new Map();
+  static soundIndex = 0;
+  static allSoundsLoaded = false;
   constructor() {
-    this.soundIndex = 0;
-    this.sounds = new Map(); // Map to store BABYLON.Sound instances
     this.loadAllSounds();
   }
 
@@ -27,7 +28,7 @@ class SoundEffectsManager {
             scene,
             () => {
               sound.setVolume(volume);
-              this.sounds.set(soundName, sound);
+              SoundEffectsManager.sounds.set(soundName, sound);
               resolve();
             },
             (error) => {
@@ -39,6 +40,7 @@ class SoundEffectsManager {
       }
     );
     await Promise.all(promises);
+    SoundEffectsManager.allSoundsLoaded = true;
   }
 
   /**
@@ -46,7 +48,11 @@ class SoundEffectsManager {
    * @param {string} soundName - The name of the sound to play.
    */
   static playSound(soundName) {
-    const sound = this.sounds.get(soundName);
+    if (!SoundEffectsManager.allSoundsLoaded) {
+      console.warn("Sounds are not loaded yet.");
+      return;
+    }
+    const sound = SoundEffectsManager.sounds.get(soundName);
     if (sound) {
       sound.play();
     } else {

@@ -1,5 +1,5 @@
 class GameWorldSceneGeneralized extends BABYLON.Scene {
-  constructor(engine) {
-    super(engine);
+  constructor() {
+    super(FundamentalSystemBridge.babylonEngine);
   }
 }

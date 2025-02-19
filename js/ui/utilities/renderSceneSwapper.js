@@ -8,6 +8,7 @@
 
 class RenderSceneSwapper {
   constructor() {
+    FundamentalSystemBridge.register;
     this.initializeStorage();
   }
   /**
@@ -46,14 +47,11 @@ class RenderSceneSwapper {
    */
   loadBasicScenes() {
     // Create separate SceneBuilders for each scene.
-    this.loadSceneAndBuilder(
-      "BaseGameScene",
-      new BaseGameWorldScene(FundamentalSystemBridge.babylonEngine)
-    );
-    this.loadSceneAndBuilder(
-      "BaseUIScene",
-      new BaseGameUIScene(FundamentalSystemBridge.babylonEngine)
-    );
+    this.loadSceneAndBuilder("BaseGameScene", new BaseGameWorldScene());
+
+    let baseUIScene =
+      ResponsiveUIManager.assembleUIScreenAsInstructed("BaseGameUI");
+    this.loadSceneAndBuilder("BaseUIScene", baseUIScene);
 
     // Set active scenes.
     this.setActiveGameLevelScene("BaseGameScene");
@@ -187,6 +185,6 @@ class RenderSceneSwapper {
 
   resizeUIDynamically() {
     //this.activeGameScene.resize();
-    this.activeUIScene.resizeUIDynamically();
+    this.activeUIScene.scaleUIElements();
   }
 }

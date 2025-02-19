@@ -5,162 +5,201 @@
  * such as the full-screen GUI overlay, game pad, and directional/magic buttons.
  */
 
+/**
+ * BaseGameUI
+ *
+ * This class represents the base UI for the game. It creates interactive GUI components
+ * such as the full-screen GUI overlay, game pad, and directional/magic buttons.
+ */
+
 class BaseGameUIScene extends UISceneGeneralized {
-  /**
-   * Constructs the BaseGameUI scene and initializes its UI.
-   * @param {BABYLON.Engine} engine - The BabylonJS engine instance.
-   */
-  constructor(engine) {
-    super(engine);
+  constructor() {
+    super();
+  }
+
+  assembleUIGeneralized(aspectRatioPreset) {
+    this.currentAspectRatioPreset = aspectRatioPreset;
+    this.assembleUIBaseGameUI();
+  }
+
+  assembleUIBaseGameUI() {
+    // 1) Create the bottom panel background
+    this.assembleBackBasePanel();
+
+    // 2) Create the container that holds all base UI elements
+    this.assembleUIControlsComposite();
   }
 
   /**
-   * Initializes the UI by delegating tasks to helper methods.
+   * Creates the bottom panel image that spans 100% width and 24% height.
    */
-  assembleUI() {
-    this.createUIControls();
-  }
-
-  /**
-   * Creates and arranges all UI controls including panels, game pad, and buttons.
-   */
-  createUIControls() {
-    // Create the bottom base panel (background image for the menu)
-    // This image stretches to fill 100% of width and 24% of height
+  assembleBackBasePanel() {
     const bottomBasePanel = new BABYLON.GUI.Image(
       "menuBackground",
       UIAssetManifest.getAssetUrl("uiBasePanel")
     );
     bottomBasePanel.stretch = BABYLON.GUI.Image.STRETCH_FILL;
     bottomBasePanel.width = "100%";
-    bottomBasePanel.height = "24%";
+    bottomBasePanel.height = Config.IDEAL_UI_HEIGHT * 0.2 + "px";
     bottomBasePanel.verticalAlignment =
       BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+    // Add the panel to the advancedTexture so it appears behind everything else.
     this.advancedTexture.addControl(bottomBasePanel);
-
-    // Container for centering the game base pad and directional buttons
-    // This container uses fixed dimensions so that its contents scale uniformly
-    const baseContainer = new BABYLON.GUI.Container("BaseContainer");
-    // Fixed ideal dimensions
-    baseContainer.width = "1000px";
-    baseContainer.height = "480px";
-    baseContainer.horizontalAlignment =
-      BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-    baseContainer.verticalAlignment =
-      BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
-    this.advancedTexture.addControl(baseContainer);
-
-    // Add the central game pad
-    this.createGamePad(baseContainer);
-
-    this.addDirectionalButtons(baseContainer);
-
-    // Create additional action buttons.
-    this.addActionButtons(baseContainer);
   }
 
   /**
-   * Creates and adds the central game pad to the provided container.
-   * @param {BABYLON.GUI.Container} container - The container to which the game pad is added.
+   * Assembles the container for the UI controls and adds the D-Pad and other buttons.
    */
-  createGamePad(container) {
+  assembleUIControlsComposite() {
+    this.createUIControlsContainer();
+
+    // Add the central game pad
+    const dPadContainer = this.createDirectionalGamePadContainer();
+    this.addDirectionalButtons(dPadContainer);
+    this.addActionButtons(dPadContainer);
+
+    // Optionally handle extra UI per aspect ratio
+    this.augmentUIDueToAspectRatioPreset();
+  }
+
+  /**
+   * Creates a container at the bottom 24% of the screen, over the bottom panel.
+   */
+  createUIControlsContainer() {
+    // This container overlays exactly the bottom 24% of the screen
+    this.baseUIControlsContainer = new BABYLON.GUI.Container(
+      "BaseUIControlsContainer"
+    );
+    this.baseUIControlsContainer.width = Config.IDEAL_UI_WIDTH + "px";
+    this.baseUIControlsContainer.height = Config.IDEAL_UI_HEIGHT * 0.2 + "px";
+
+    // Place this container at the bottom (matching the bottom panel)
+    this.baseUIControlsContainer.verticalAlignment =
+      BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+    this.baseUIControlsContainer.horizontalAlignment =
+      BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+
+    this.advancedTexture.addControl(this.baseUIControlsContainer);
+  }
+
+  /**
+   * Creates the D-Pad container, centers it within the bottom container, and adds the pad image.
+   */
+  createDirectionalGamePadContainer() {
+    const dPadContainer = new BABYLON.GUI.Container("dPadContainer");
+
+    // Give the D-Pad container a fixed "ideal" size and center it.
+    dPadContainer.width = Config.IDEAL_UI_WIDTH + "px";
+    dPadContainer.height = Config.IDEAL_UI_HEIGHT * 0.2 + "px";
+    dPadContainer.horizontalAlignment =
+      BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+    dPadContainer.verticalAlignment =
+      BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+
+    // Add it to the bottom container
+    this.baseUIControlsContainer.addControl(dPadContainer);
+
+    // Add the D-Pad base image
     const gameBasePad = new BABYLON.GUI.Image(
       "gameBasePad",
       UIAssetManifest.getAssetUrl("gamepadBase")
     );
-    gameBasePad.width = "360px"; // Relative scale (e.g., 320px at 1000px ideal width)
-    gameBasePad.height = "360px"; // Maintains aspect ratio (circle)
-    gameBasePad.horizontalAlignment =
-      BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-    gameBasePad.verticalAlignment =
-      BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
-    container.addControl(gameBasePad);
+    gameBasePad.width = Config.IDEAL_UI_WIDTH * 0.15 + "px";
+    gameBasePad.height = Config.IDEAL_UI_WIDTH * 0.15 + "px";
+    gameBasePad.stretch = BABYLON.GUI.Image.STRETCH_NONE;
+    dPadContainer.addControl(gameBasePad);
+
+    return dPadContainer;
   }
 
   /**
-   * Adds directional buttons to the provided container.
-   * @param {BABYLON.GUI.Container} container - The container to which the buttons are added.
+   * Adds directional buttons to the provided container with center alignment + manual offset.
    */
-  addDirectionalButtons(container) {
-    const buttonSize = 140;
-    const symmetricalOffset = 160;
+  addDirectionalButtons(dPadContainer) {
+    const buttonSize = Config.IDEAL_UI_WIDTH * 0.125;
+    const symmetricalOffset = Config.IDEAL_UI_WIDTH * 0.1;
     const thickness = 0;
+
+    // We want these to be centered in the container, then offset manually.
     const horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
     const verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
 
-    container.addControl(
+    dPadContainer.addControl(
       ButtonFactory.createImageButton(
         "buttonLeft",
         buttonSize,
         buttonSize,
         thickness,
-        -symmetricalOffset, // Left of center
-        0, // Vertically centered
+        -symmetricalOffset, // Shift left of center
+        0, // No vertical shift
         horizontalAlignment,
         verticalAlignment,
         this.buttonFunction.bind(this),
-        "LEFTCLICK"
+        "LEFTCLICK",
+        "directionalPadTap"
       )
     );
 
-    container.addControl(
+    dPadContainer.addControl(
       ButtonFactory.createImageButton(
         "buttonRight",
         buttonSize,
         buttonSize,
         thickness,
-        symmetricalOffset,
-        0, // Vertically centered
+        symmetricalOffset, // Shift right of center
+        0,
         horizontalAlignment,
         verticalAlignment,
         this.buttonFunction.bind(this),
-        "RIGHTCLICK"
+        "RIGHTCLICK",
+        "directionalPadTap"
       )
     );
 
-    container.addControl(
+    dPadContainer.addControl(
       ButtonFactory.createImageButton(
         "buttonUp",
         buttonSize,
         buttonSize,
         thickness,
         0,
-        -symmetricalOffset, // Above center
+        -symmetricalOffset, // Shift above center
         horizontalAlignment,
         verticalAlignment,
         this.buttonFunction.bind(this),
-        "UPCLICK"
+        "UPCLICK",
+        "directionalPadTap"
       )
     );
 
-    container.addControl(
+    dPadContainer.addControl(
       ButtonFactory.createImageButton(
         "buttonDown",
         buttonSize,
         buttonSize,
         thickness,
         0,
-        symmetricalOffset, // Below center
+        symmetricalOffset, // Shift below center
         horizontalAlignment,
         verticalAlignment,
         this.buttonFunction.bind(this),
-        "DOWNCLICK"
+        "DOWNCLICK",
+        "directionalPadTap"
       )
     );
   }
 
   /**
    * Adds special action buttons (e.g., magic and artifact) to the provided container.
-   * @param {BABYLON.GUI.Container} container - The container to which the buttons are added.
    */
-  addActionButtons(container) {
-    const specialButtonSize = 180;
-    const specialButtonXOffset = 360;
+  addActionButtons(dPadContainer) {
+    const specialButtonSize = Config.IDEAL_UI_WIDTH * 0.15;
+    const specialButtonXOffset = Config.IDEAL_UI_WIDTH * 0.3;
     const thickness = 0;
     const horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
     const verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
 
-    container.addControl(
+    dPadContainer.addControl(
       ButtonFactory.createImageButton(
         "buttonMagic",
         specialButtonSize,
@@ -175,7 +214,7 @@ class BaseGameUIScene extends UISceneGeneralized {
       )
     );
 
-    container.addControl(
+    dPadContainer.addControl(
       ButtonFactory.createImageButton(
         "buttonArtifact",
         specialButtonSize,
@@ -190,7 +229,6 @@ class BaseGameUIScene extends UISceneGeneralized {
       )
     );
   }
-
   /**
    * Handles a button click by routing to the appropriate functionality.
    * @param {string} buttonFunctionKey - The key representing the function of the button.
@@ -204,6 +242,7 @@ class BaseGameUIScene extends UISceneGeneralized {
       buttonFunctionKey === "DOWNCLICK"
     ) {
       this.processMovementClick(buttonFunctionKey);
+      SoundEffectsManager.playSound("directionalPadTap");
     } else if (buttonFunctionKey === "MAGIC") {
       // Example: play a sound effect for magic action.
       SoundEffectsManager.playSound("magicalSpellCastNeutral");
@@ -219,10 +258,8 @@ class BaseGameUIScene extends UISceneGeneralized {
    */
   processMovementClick(buttonFunction) {
     const buttonFunctionKey = String(buttonFunction);
-    if (this.gameplayManager != null) {
+    if (FundamentalSystemBridge.gameplayManagerComposite != null) {
       let playerDirection = null;
-      // Play a sound for UI movement feedback.
-      SoundEffectsManager.playSound("menuMovement");
 
       if (buttonFunctionKey === "LEFTCLICK") {
         playerDirection = "LEFT";
@@ -233,6 +270,7 @@ class BaseGameUIScene extends UISceneGeneralized {
       } else if (buttonFunctionKey === "DOWNCLICK") {
         playerDirection = "DOWN";
       }
+
       // Send the movement direction to the game's logic manager.
 
       FundamentalSystemBridge.gameplayManagerComposite.processAttemptedMovementFromUIClick(

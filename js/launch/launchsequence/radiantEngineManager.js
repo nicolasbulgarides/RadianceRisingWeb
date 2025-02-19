@@ -124,6 +124,7 @@ class RadiantEngineManager {
   setupResizeHandler() {
     window.addEventListener("resize", () => {
       FundamentalSystemBridge.babylonEngine.resize();
+      ResponsiveUIManager.handleResizeOfActiveUIScene();
     });
   }
 }

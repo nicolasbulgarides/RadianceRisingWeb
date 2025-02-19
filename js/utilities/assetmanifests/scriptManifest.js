@@ -78,6 +78,7 @@ class ScriptManifest {
   static uiSpecialFunctionScripts = [];
 
   static uiUtilityScripts = [
+    "/ui/utilities/responsiveUIManager.js",
     "/ui/utilities/renderSceneSwapper.js",
     "/ui/utilities/uiConstructionLogger.js",
     "/ui/utilities/uiErrorLogger.js",

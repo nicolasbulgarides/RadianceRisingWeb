@@ -43,10 +43,8 @@ class ButtonFactory {
     button.horizontalAlignment = horizontalAlignment;
     button.verticalAlignment = verticalAlignment;
     button.thickness = thickness;
+    button.stretch = BABYLON.GUI.Image.STRETCH_NONE;
     button.onPointerUpObservable.add(() => {
-      if (soundEffectNickname !== "") {
-        SoundEffectsManager.playSound(soundEffectNickname);
-      }
       onClick(clickParameter);
     });
     return button;
