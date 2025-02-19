@@ -115,6 +115,8 @@ class ScriptInitializer {
    */
   async coreInitializeSequence() {
     try {
+      this.fundamentalSystemBridge = new FundamentalSystemBridge();
+
       let criticalLoggingSequenceSuccess =
         await this.loadCriticalLoggingSequenceScripts();
 
@@ -130,14 +132,12 @@ class ScriptInitializer {
 
       // If Babylon engine loaded successfully, try to load the Radiant engine manager
       if (babylonEngineSuccess) {
+        FundamentalSystemBridge.registerBabylonEngine(this.babylonEngineLoaded);
         radiantEngineSuccess = await this.loadRadiantEngine();
       }
 
       // If both engines are successfully loaded, register them with the fundamental system bridge
       if (babylonEngineSuccess && radiantEngineSuccess) {
-        this.fundamentalSystemBridge = new FundamentalSystemBridge();
-        FundamentalSystemBridge.registerBabylonEngine(this.babylonEngineLoaded);
-
         FundamentalSystemBridge.registerRadiantEngineManager(
           this.radiantEngineManager
         );
@@ -164,9 +164,7 @@ class ScriptInitializer {
         this.babylonEngineLoaded instanceof BABYLON.Engine &&
         this.canvas != null
       ) {
-        this.radiantEngineManager = new RadiantEngineManager(
-          this.babylonEngineLoaded
-        );
+        this.radiantEngineManager = new RadiantEngineManager();
         successfulInstantiation = true;
         return successfulInstantiation;
       } else {

@@ -71,4 +71,7 @@ class Config {
   static finalizeLocalDetermination(runLocally) {
     this.RUN_LOCALLY_DETERMINED = runLocally;
   }
+
+  static IDEAL_UI_WIDTH = 1000;
+  static IDEAL_UI_HEIGHT = 2000;
 }

@@ -91,8 +91,11 @@ class ScriptManifest {
   ];
 
   static uiSceneScriptsImplemented = [
-    "/ui/uiscenes/implemented/baseGameUI.js",
-    "/ui/uiscenes/implemented/experienceBarUI.js",
+    "/ui/scenes/implemented/uiSceneGeneralized.js",
+    "/ui/scenes/implemented/baseGameUIScene.js",
+    "/ui/scenes/implemented/gameWorldSceneGeneralized.js",
+    "/ui/scenes/implemented/baseGameWorldScene.js",
+    "/ui/scenes/implemented/experienceBarUIScene.js",
   ];
 
   static cheatPreventionScripts = [
@@ -104,15 +107,15 @@ class ScriptManifest {
     "/cheatprevention/validatorGeneral.js",
   ];
   static uiSceneScriptsNotImplemented = [
-    "/ui/uiscenes/placeholder/playerInventoryUI.js",
-    "/ui/uiscenes/placeholder/loreBookUI.js",
-    "/ui/uiscenes/placeholder/levelCompleteUI.js",
-    "/ui/uiscenes/placeholder/levelUpUI.js",
-    "/ui/s/placeholder/mainMenuUI.js",
-    "/ui/uiscenes/placeholder/gameStoreUI.js",
-    "/ui/uiscenes/placeholder/achievementsCatalogueUI.js",
-    "/ui/uiscenes/placeholder/achievementsRemarkableUI.js",
-    "/ui/uiscenes/placeholder/cheatWarningUI.js",
+    "/ui/scenes/placeholder/playerInventoryUI.js",
+    "/ui/scenes/placeholder/loreBookUI.js",
+    "/ui/scenes/placeholder/levelCompleteUI.js",
+    "/ui/scenes/placeholder/levelUpUI.js",
+    "/ui/scenes/placeholder/mainMenuUI.js",
+    "/ui/scenes/placeholder/gameStoreUI.js",
+    "/ui/scenes/placeholder/achievementsCatalogueUI.js",
+    "/ui/scenes/placeholder/achievementsRemarkableUI.js",
+    "/ui/scenes/placeholder/cheatWarningUI.js",
   ];
   static lightingScripts = [
     "/lighting/lightingLogger.js",
@@ -129,7 +132,10 @@ class ScriptManifest {
     "/lighting/lightingManager.js",
   ];
 
-  static cameraScripts = ["/camera/cameraManager.js"];
+  static cameraScripts = [
+    "/camera/cameraManager.js",
+    "/camera/cameraInstructions.js",
+  ];
 
   static inputScripts = [
     // Add input related scripts when available

@@ -14,12 +14,7 @@
  * This class is instantiated by ScriptInitializer after necessary scripts are loaded.
  */
 class RadiantEngineManager {
-  /**
-   * Constructor that initializes Babylon.js engine.
-   * @param {BABYLON.Engine} engineInstance - The Babylon.js engine instance.
-   */
-  constructor(engineInstance) {
-    this.babylonEngine = engineInstance;
+  constructor() {
     try {
       this.initializeCoreSystems();
     } catch (err) {
@@ -42,9 +37,8 @@ class RadiantEngineManager {
   }
 
   startRenderLoop() {
-    this.babylonEngine.runRenderLoop(() => {
+    FundamentalSystemBridge.babylonEngine.runRenderLoop(() => {
       this.onFrameRenderUpdates();
-      this.renderSceneSwapper.render();
     });
   }
   /**
@@ -88,8 +82,8 @@ class RadiantEngineManager {
    * clear color, and audio unlocking.
    */
   loadEngineSettings() {
-    this.babylonEngine.autoClearDepthAndStencil = false;
-    this.babylonEngine.setHardwareScalingLevel(
+    FundamentalSystemBridge.babylonEngine.autoClearDepthAndStencil = false;
+    FundamentalSystemBridge.babylonEngine.setHardwareScalingLevel(
       1 / (window.devicePixelRatio || 1)
     );
   }
@@ -99,8 +93,10 @@ class RadiantEngineManager {
    * Sets up camera and scene management.
    */
   sceneRenderProcess() {
-    this.renderSceneSwapper = new RenderSceneSwapper(this.babylonEngine);
-    this.renderSceneSwapper.loadBasicScenes();
+    FundamentalSystemBridge.registerRenderSceneSwapper(
+      new RenderSceneSwapper(FundamentalSystemBridge.babylonEngine)
+    );
+    FundamentalSystemBridge.renderSceneSwapper.loadBasicScenes();
   }
 
   /**
@@ -108,7 +104,8 @@ class RadiantEngineManager {
    * Updates gameplay and other per-frame processes.
    */
   onFrameRenderUpdates() {
-    this.gameplayManagerComposite.processEndOfFrameEvents();
+    FundamentalSystemBridge.gameplayManagerComposite.processEndOfFrameEvents();
+    FundamentalSystemBridge.renderSceneSwapper.render();
   }
 
   /**
@@ -116,7 +113,9 @@ class RadiantEngineManager {
    * Registers the gameplay manager with the base UI scene.
    */
   loadGameplayManager() {
-    this.gameplayManagerComposite = new GameplayManagerComposite();
+    FundamentalSystemBridge.registerGameplayManagerComposite(
+      new GameplayManagerComposite()
+    );
   }
 
   /**
@@ -124,7 +123,7 @@ class RadiantEngineManager {
    */
   setupResizeHandler() {
     window.addEventListener("resize", () => {
-      this.babylonEngine.resize();
+      FundamentalSystemBridge.babylonEngine.resize();
     });
   }
 }

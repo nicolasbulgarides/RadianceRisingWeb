@@ -7,7 +7,7 @@
  * The experience bar is initialized as a full-screen overlay with a base image
  * and a series of segments that can be toggled visible to indicate experience.
  */
-class ExperienceBarUI extends BABYLON.Scene {
+class ExperienceBarUIScene extends UISceneGeneralized {
   constructor() {
     super();
     // Array to hold GUI controls for each experience segment.

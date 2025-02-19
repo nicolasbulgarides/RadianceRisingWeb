@@ -7,17 +7,8 @@
  */
 
 class RenderSceneSwapper {
-  /**
-   * @param {BABYLON.Engine} babylonEngine - The Babylon.js engine used for rendering.
-   */
-  constructor(babylonEngine) {
-    FundamentalSystemBridge.registerRenderSceneSwapper(this);
+  constructor() {
     this.initializeStorage();
-    if (babylonEngine instanceof BABYLON.Engine) {
-      this.babylonEngine = babylonEngine;
-    } else {
-      this.catastropicConstruction();
-    }
   }
   /**
    * Retrieves the SceneBuilder associated with the given scene instance.
@@ -39,9 +30,10 @@ class RenderSceneSwapper {
    * @param {string} sceneId - The unique identifier for the scene.
    * @param {BABYLON.Scene} scene - The scene instance for which to build.
    */
-  loadSceneBuilderForScene(sceneId, scene) {
+  loadSceneAndBuilder(sceneId, scene) {
     if (scene && sceneId) {
       this.sceneBuilders[sceneId] = new SceneBuilder(scene);
+      this.registerScene(sceneId, scene);
     } else {
       console.error(
         "Invalid scene or sceneId provided to loadSceneBuilderForScene"
@@ -53,27 +45,19 @@ class RenderSceneSwapper {
    * Creates and assigns separate SceneBuilders for each scene.
    */
   loadBasicScenes() {
-    // Initialize the game scene.
-    this.baseGameScene = new BABYLON.Scene(this.babylonEngine);
-    this.baseGameScene.clearColor = new BABYLON.Color3(255, 0, 0);
-    // Initialize the UI scene.
-    this.baseUIScene = new BaseGameUI(this.babylonEngine);
-
     // Create separate SceneBuilders for each scene.
-    this.loadSceneBuilderForScene("BaseGameScene", this.baseGameScene);
-    this.loadSceneBuilderForScene("BaseUIScene", this.baseUIScene);
-
-    // Register scenes with a unique identifier.
-    this.registerScene("BaseUIScene", this.baseUIScene);
-    this.registerScene("BaseGameScene", this.baseGameScene);
+    this.loadSceneAndBuilder(
+      "BaseGameScene",
+      new BaseGameWorldScene(FundamentalSystemBridge.babylonEngine)
+    );
+    this.loadSceneAndBuilder(
+      "BaseUIScene",
+      new BaseGameUIScene(FundamentalSystemBridge.babylonEngine)
+    );
 
     // Set active scenes.
     this.setActiveGameLevelScene("BaseGameScene");
     this.setActiveUIScene("BaseUIScene");
-
-    this.allStoredCameras[this.baseGameScene] =
-      CameraManager.setAndGetPlaceholderCamera(this.baseGameScene);
-    // Set the placeholder camera (typically for debugging or an initial view).
   }
 
   catastropicConstruction() {
@@ -111,13 +95,6 @@ class RenderSceneSwapper {
   }
 
   /**
-   * Initializes the fundamental testing scene, used for diagnostics or experimental purposes.
-   */
-  initializeFundamentalTestingScene() {
-    this.fundamentalTestingScene = new BABYLON.Scene(this.babylonEngine);
-  }
-
-  /**
    * Registers a new scene with a unique identifier.
    * @param {string} sceneId - The unique ID for the scene.
    * @param {BABYLON.Scene} scene - The scene instance to register.
@@ -144,6 +121,9 @@ class RenderSceneSwapper {
     if (this.allStoredScenes[sceneId]) {
       this.allStoredScenes[sceneId].isRendering = true;
       this.activeGameScene = this.allStoredScenes[sceneId];
+
+      this.allStoredCameras[this.activeGameScene] =
+        CameraManager.setAndGetPlaceholderCamera(this.activeGameScene);
       // Debug log: active game level scene set.
       // console.log("Set active game level scene: " + sceneId);
     } else {
@@ -203,5 +183,10 @@ class RenderSceneSwapper {
     }
     // Render the UI scene.
     this.activeUIScene.render();
+  }
+
+  resizeUIDynamically() {
+    //this.activeGameScene.resize();
+    this.activeUIScene.resizeUIDynamically();
   }
 }

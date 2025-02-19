@@ -5,87 +5,20 @@
  * such as the full-screen GUI overlay, game pad, and directional/magic buttons.
  */
 
-class BaseGameUI extends BABYLON.Scene {
+class BaseGameUIScene extends UISceneGeneralized {
   /**
    * Constructs the BaseGameUI scene and initializes its UI.
    * @param {BABYLON.Engine} engine - The BabylonJS engine instance.
    */
   constructor(engine) {
     super(engine);
-    this.setBackgroundColor(new BABYLON.Color4(0.1, 0.1, 0.3, 1));
-
-    // Initialize UI components upon scene creation.
-    this.assembleUI();
-  }
-  /**
-   * Creates the full-screen advanced UI overlay.
-   */
-  initAdvancedTexture() {
-    // Create a full-screen advanced UI overlay over the scene
-    this.advancedTexture =
-      BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
-        "BaseGameUI",
-        true,
-        this
-      );
-    // Set ideal width/height and scaling options for resolution independence
-    this.advancedTexture.idealHeight = 2000;
-    this.advancedTexture.idealWidth = 1000;
-    this.advancedTexture.useSmallestIdeal = true;
-    this.advancedTexture.renderScale = 2;
-  }
-  /**
-   * Initializes the camera for the UI scene.
-   */
-  initCamera() {
-    // Create and set up the primary camera for the UI scene
-    const cameraBase = new BABYLON.FreeCamera(
-      "camera",
-      new BABYLON.Vector3(0, 0, 0),
-      this
-    );
-    cameraBase.setTarget(BABYLON.Vector3.Zero());
-  }
-
-  /**
-   * Initializes the camera for the UI scene.
-   */
-  initCamera() {
-    // Create and set up the primary camera for the UI scene
-    const cameraBase = new BABYLON.FreeCamera(
-      "camera",
-      new BABYLON.Vector3(0, 0, 0),
-      this
-    );
-    cameraBase.setTarget(BABYLON.Vector3.Zero());
   }
 
   /**
    * Initializes the UI by delegating tasks to helper methods.
    */
   assembleUI() {
-    // Disable automatic clearing for custom render behavior
-    this.autoClear = false;
-
-    // Set up camera, advanced UI texture, and UI controls.
-    this.initCamera();
-    this.initAdvancedTexture();
     this.createUIControls();
-
-    // Set initial background color.
-  }
-
-  /**
-   * Initializes the camera for the UI scene.
-   */
-  initCamera() {
-    // Create and set up the primary camera for the UI scene
-    const cameraBase = new BABYLON.FreeCamera(
-      "camera",
-      new BABYLON.Vector3(0, 0, 0),
-      this
-    );
-    cameraBase.setTarget(BABYLON.Vector3.Zero());
   }
 
   /**
@@ -93,21 +26,26 @@ class BaseGameUI extends BABYLON.Scene {
    */
   createUIControls() {
     // Create the bottom base panel (background image for the menu)
+    // This image stretches to fill 100% of width and 24% of height
     const bottomBasePanel = new BABYLON.GUI.Image(
       "menuBackground",
       UIAssetManifest.getAssetUrl("uiBasePanel")
     );
     bottomBasePanel.stretch = BABYLON.GUI.Image.STRETCH_FILL;
-    bottomBasePanel.width = "1000px";
-    bottomBasePanel.height = "480px";
+    bottomBasePanel.width = "100%";
+    bottomBasePanel.height = "24%";
     bottomBasePanel.verticalAlignment =
       BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
     this.advancedTexture.addControl(bottomBasePanel);
 
     // Container for centering the game base pad and directional buttons
+    // This container uses fixed dimensions so that its contents scale uniformly
     const baseContainer = new BABYLON.GUI.Container("BaseContainer");
+    // Fixed ideal dimensions
     baseContainer.width = "1000px";
-    baseContainer.height = "480px"; // Matches the bottom panel height
+    baseContainer.height = "480px";
+    baseContainer.horizontalAlignment =
+      BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
     baseContainer.verticalAlignment =
       BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
     this.advancedTexture.addControl(baseContainer);
@@ -273,14 +211,6 @@ class BaseGameUI extends BABYLON.Scene {
       // Example: play sound effect for artifact usage.
       SoundEffectsManager.playSound("artifactUsage");
     }
-  }
-
-  /**
-   * Sets the background color for the scene.
-   * @param {BABYLON.Color4} color - The new background color.
-   */
-  setBackgroundColor(color) {
-    this.clearColor = color;
   }
 
   /**
