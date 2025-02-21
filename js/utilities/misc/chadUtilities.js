@@ -27,7 +27,7 @@ class ChadUtilities {
       vector.y +
       " , Z: " +
       vector.z;
-    return msg;
+    LoggerOmega.SmartLogger(true, "Output: " + msg, sender);
   }
 
   /**

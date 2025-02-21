@@ -24,6 +24,12 @@ class FundamentalSystemBridge {
     FundamentalSystemBridge.networkingManager = null;
     FundamentalSystemBridge.gameplayManagerComposite = null;
   }
+
+  static registerGamemodeManager(gamemodeManager) {
+    if (gamemodeManager instanceof GamemodeManager) {
+      FundamentalSystemBridge.gamemodeManager = gamemodeManager;
+    }
+  }
   /**
    * Registers the Babylon Engine instance.
    * @param {BABYLON.Engine} engine - The Babylon engine instance.
@@ -44,6 +50,31 @@ class FundamentalSystemBridge {
     if (primaryCameraManager instanceof CameraManager) {
       FundamentalSystemBridge.primaryGameplayCameraManager =
         primaryCameraManager;
+    }
+  }
+
+  static registerTestManager(testManager) {
+    if (testManager instanceof TestManager) {
+      FundamentalSystemBridge.testManager = testManager;
+    }
+  }
+
+  static registerProgrammaticAnimationManager(programmaticAnimationManager) {
+    if (programmaticAnimationManager instanceof ProgrammaticAnimationManager) {
+      FundamentalSystemBridge.programmaticAnimationManager =
+        programmaticAnimationManager;
+    }
+  }
+
+  static registerActiveTriggerManager(activeTriggerManager) {
+    if (activeTriggerManager instanceof ActiveTriggerManager) {
+      FundamentalSystemBridge.activeTriggerManager = activeTriggerManager;
+    }
+  }
+
+  static registerSpecialOccurenceManager(specialOccurenceManager) {
+    if (specialOccurenceManager instanceof SpecialOccurenceManager) {
+      FundamentalSystemBridge.specialOccurenceManager = specialOccurenceManager;
     }
   }
 

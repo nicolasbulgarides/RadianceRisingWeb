@@ -35,6 +35,8 @@ class Config {
   static STARTING_LEVEL = 1;
   static STARTING_EXP = 0;
 
+  static DEFAULT_GAME_MODE = "test";
+
   // Default values (level properties) & Collision/level properties.
   static DEMO_LEVEL = "testLevel0";
   static MAX_MOVEMENT = 999;

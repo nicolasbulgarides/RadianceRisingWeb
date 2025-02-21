@@ -10,10 +10,7 @@
  */
 class GameplayManagerComposite {
   /**
-   * Creates an instance of GameplayManagerComposite.
-   *
-   * @param {SceneBuilder} sceneBuilder - An instance of the SceneBuilder that handles loading
-   *                                      and managing Babylon.js scenes and assets.
+   * Creates an instance of GameplayManagerComposite
    */
   constructor() {
     // Instead of calling systems initialization consecutively,
@@ -23,6 +20,9 @@ class GameplayManagerComposite {
 
   // NEW: Composite initializer method.
   async initializeComposite() {
+    FundamentalSystemBridge.registerGamemodeManager(
+      new GamemodeManager(Config.DEFAULT_GAME_MODE)
+    );
     // Wait for support systems (including grid tile loading) to finish.
     await this.initializeGameplaySupportSystems();
     // Now that all support systems including tile loading are ready, initialize gameplay.
@@ -44,8 +44,9 @@ class GameplayManagerComposite {
     const areTilesLoaded =
       await this.gameGridGenerator.loadTilesModelsDefault();
     if (!areTilesLoaded) {
-      console.error(
-        "GameplaySupportSystems: Failed to load all grid tile models."
+      GameplayLogger.lazyLog(
+        "GameplaySupportSystems: Failed to load all grid tile models.",
+        "GameplayManagerComposite"
       );
       // Optionally, handle errors (e.g. retry or prevent further initialization).
     }
@@ -108,11 +109,19 @@ class GameplayManagerComposite {
    * @param {string} direction - The direction input from the UI click.
    */
   processAttemptedMovementFromUIClick(direction) {
+    let gamemodeRules =
+      FundamentalSystemBridge.gamemodeManager.CURRENT_GAMEMODE;
+
     this.movementPathManager.processMovementByDirection(
       direction,
-      Config.UNBOUNDED_MOVEMENT,
-      Config.MAX_MOVEMENT,
-      Config.IGNORE_OBSTACLES
+      gamemodeRules.MOVEMENT_IS_BOUNDED,
+      gamemodeRules.MAX_MOVEMENT_DISTANCE,
+      gamemodeRules.OBSTACLES_ARE_IGNORED
+    );
+    GameplayLogger.lazyLog(
+      "Movement: " + direction,
+      "GameplayManagerComposite",
+      0
     );
   }
 

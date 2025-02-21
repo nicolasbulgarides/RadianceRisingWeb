@@ -33,6 +33,7 @@ class RadiantEngineManager {
     this.sceneRenderProcess();
     this.loadSoundManagers();
     this.loadGameplayManager();
+    this.loadAuxillaryManagers();
     this.startRenderLoop();
   }
 
@@ -86,8 +87,19 @@ class RadiantEngineManager {
     FundamentalSystemBridge.babylonEngine.setHardwareScalingLevel(
       1 / (window.devicePixelRatio || 1)
     );
+
+    this.setupResizeHandler();
   }
 
+  loadAuxillaryManagers() {
+    FundamentalSystemBridge.registerProgrammaticAnimationManager(
+      new ProgrammaticAnimationManager()
+    );
+    FundamentalSystemBridge.registerActiveTriggerManager(
+      new ActiveTriggerManager()
+    );
+    FundamentalSystemBridge.registerTestManager(new TestManager());
+  }
   /**
    * Processes the initial render setup.
    * Sets up camera and scene management.
@@ -124,7 +136,6 @@ class RadiantEngineManager {
   setupResizeHandler() {
     window.addEventListener("resize", () => {
       FundamentalSystemBridge.babylonEngine.resize();
-      ResponsiveUIManager.handleResizeOfActiveUIScene();
     });
   }
 }

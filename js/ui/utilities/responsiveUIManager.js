@@ -51,6 +51,10 @@ class ResponsiveUIManager {
   static handleResizeOfActiveUIScene() {
     let activeScene =
       FundamentalSystemBridge.renderSceneSwapper.getActiveUIScene();
+
+    // activeScene.rebuildUICompletely();
+
+    return;
     const newAspectRatioPreset = ResponsiveUIManager.detectPreset();
 
     if (newAspectRatioPreset !== activeScene.currentAspectRatioPreset) {

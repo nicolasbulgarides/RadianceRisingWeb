@@ -12,6 +12,9 @@ class UISceneGeneralized extends BABYLON.Scene {
     this.currentAspectRatioPreset = aspectRatioPreset;
   }
 
+  rebuildUICompletely() {
+    this.advancedTexture.clear();
+  }
   augmentUIDueToAspectRatioPreset(aspectRatioPreset) {}
   rebuildUIDueToResize(newAspectRatioPreset) {
     this.currentAspectRatioPreset = newAspectRatioPreset;

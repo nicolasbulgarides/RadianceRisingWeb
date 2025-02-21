@@ -223,9 +223,17 @@ class MovementPathManager {
   ) {
     if (unbounded) {
       // Process unbounded movement logic.
+      GameplayLogger.lazyLog(
+        "Movement: " + direction + " (unbounded)",
+        "MovementPathManager"
+      );
       this.processUnboundedMovement(direction, ignoreObstacles);
     } else if (!unbounded) {
       // Process bounded movement logic according to provided constraints.
+      GameplayLogger.lazyLog(
+        "Movement: " + direction + " (bounded)",
+        "MovementPathManager"
+      );
       this.processBoundedMovement(direction, ignoreObstacles, maxDistance);
     }
   }

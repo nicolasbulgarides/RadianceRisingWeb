@@ -45,6 +45,52 @@
  * - PlayerSaveScripts
  */
 class ScriptManifest {
+  static animationScripts = [
+    "/animations/datastructures/programmaticAnimation.js",
+    "/animations/datastructures/programmaticAnimationHeader.js",
+    "/animations/datastructures/programmaticAnimationPlaybackStatus.js",
+    "/animations/datastructures/programmaticAnimationSequence.js",
+    "/animations/datastructures/programmaticAnimationTriggerEvent.js",
+    "/animations/datastructures/programmaticAnimationValues.js",
+    "/animations/datastructures/programmaticFrameShift.js",
+
+    "/animations/utilities/programmaticAnimationFrameShiftCalculator.js",
+    "/animations/utilities/programmaticFactoryForAnimations.js",
+    "/animations/utilities/programmaticAnimationInterpolator.js",
+    "/animations/programmaticAnimationManager.js",
+  ];
+
+  static gamemodeScripts = [
+    "/gameplay/gamemodes/gamemodeManager.js",
+    "/gameplay/gamemodes/specificmodes/gamemodeGeneric.js",
+    "/gameplay/gamemodes/specificmodes/gamemodeStandard.js",
+    "/gameplay/gamemodes/specificmodes/gamemodeTestAssist.js",
+  ];
+  static occurrenceScripts = [
+    "/gameplay/interactions/occurrences/specialOccurrenceComposite.js",
+    "/gameplay/interactions/occurrences/specialOccurrenceManager.js",
+    "/gameplay/interactions/occurrences/occurrenceFactory.js",
+
+    "/gameplay/interactions/datastructures/specialOccurrenceBasicData.js",
+    "/gameplay/interactions/datastructures/specialOccurrenceHeader.js",
+    "/gameplay/interactions/datastructures/specialOccurrenceStatus.js",
+    "/gameplay/interactions/datastructures/specialOccurrenceHyperspecificOtherData.js",
+    "/gameplay/interactions/datastructures/specialOccurrenceItemData.js",
+    "/gameplay/interactions/datastructures/specialOccurrencePetData.js",
+    "/gameplay/interactions/datastructures/specialOccurrenceProgressData.js",
+    "/gameplay/interactions/datastructures/specialOccurrenceCompetitiveData.js",
+    "/gameplay/interactions/datastructures/specialOccurrenceSocialData.js",
+    "/gameplay/interactions/datastructures/specialOccurrenceSpecialEventData.js",
+    "/gameplay/interactions/datastructures/specialOccurrenceUnlockData.js",
+  ];
+
+  static triggerScripts = [
+    "/gameplay/interactions/triggers/triggerReadyCheck.js",
+    "/gameplay/interactions/triggers/triggerEvent.js",
+    "/gameplay/interactions/triggers/activeTriggerManager.js",
+    "/gameplay/interactions/triggers/triggerFactory.js",
+  ];
+
   static platformTransactionScripts = [
     "/networking/transactions/platforms/transactionArchetype.js",
     "/networking/transactions/platforms/platformDetectionChecker.js",
@@ -58,6 +104,7 @@ class ScriptManifest {
     "/networking/transactions/platforms/transactionSteam.js",
   ];
 
+  static testToolScripts = ["/gameplay/testtools/testManager.js"];
   static assetManifestScripts = [
     "/utilities/assetmanifests/assetManifest.js",
     "/utilities/assetmanifests/assetManifestOverrides.js",
@@ -192,7 +239,8 @@ class ScriptManifest {
   ];
 
   static gameInteractionsScripts = [
-    "/gameplay/interactions/movementPathManager.js",
+    "/gameplay/action/movement/movementPathManager.js",
+    "/gameplay/action/utilities/validActionChecker.js",
   ];
   static gameAreaScripts = [
     "/gameplay/areas/interactions/obstacle.js",
@@ -287,17 +335,21 @@ class ScriptManifest {
     "/saving/batching/batchmanagers/batchTracker.js",
     "/saving/batching/batchmanagers/batchMergeFactory.js",
   ];
-
   static getGeneralItemScripts() {
     return this.itemGeneralScripts;
+  }
+  static getTestToolScripts() {
+    return this.testToolScripts;
   }
 
   static getItemVerificationScripts() {
     return this.itemVerificationScripts;
   }
-
   static getRegionalAdaptationScripts() {
     return this.regionalAdaptationScripts;
+  }
+  static getGamemodeScripts() {
+    return this.gamemodeScripts;
   }
   // Getter methods for each script category
 
@@ -355,6 +407,9 @@ class ScriptManifest {
     return this.soundSystemsScripts;
   }
 
+  static getTriggerScripts() {
+    return this.triggerScripts;
+  }
   static getCheatPreventionScripts() {
     return this.cheatPreventionScripts;
   }
@@ -382,7 +437,15 @@ class ScriptManifest {
   static getRadiantRaysProgressionScripts() {
     return this.progressionScriptsRadiantRays;
   }
-
+  static getRadiantRaysAnimationScripts() {
+    return this.animationScripts;
+  }
+  static getRadiantRaysTriggerScripts() {
+    return this.triggerScripts;
+  }
+  static getRadiantRaysOccurenceScripts() {
+    return this.occurenceScripts;
+  }
   /**
    * Reports a failure during the loading of a specific script category.
    * Uses InitializationDiagnosticsLogger to log a phase error and registers the catastrophe.
@@ -437,9 +500,23 @@ class ScriptManifest {
       }
     })();
   }
+  static loadGamemodeScriptsPromise() {
+    return this.loadScriptsArray(this.getGamemodeScripts(), "Gamemode");
+  }
 
   static loadGeneralItemScriptsPromise() {
     return this.loadScriptsArray(this.getGeneralItemScripts(), "GeneralItem");
+  }
+  static loadTestToolScriptsPromise() {
+    return this.loadScriptsArray(this.getTestToolScripts(), "TestTool");
+  }
+
+  static loadTriggerScriptsPromise() {
+    return this.loadScriptsArray(this.getTriggerScripts(), "Trigger");
+  }
+
+  static loadOccurenceScriptsPromise() {
+    return this.loadScriptsArray(this.getOccurenceScripts(), "Occurence");
   }
 
   static loadAssetManifestScriptsPromise() {
@@ -527,7 +604,12 @@ class ScriptManifest {
       "GameInteractions"
     );
   }
-
+  static loadRadiantRaysAnimationScriptsPromise() {
+    return this.loadScriptsArray(
+      this.getRadiantRaysAnimationScripts(),
+      "RadiantRaysAnimation"
+    );
+  }
   static loadPlatformTransactionScriptsPromise() {
     return this.loadScriptsArray(
       this.getPlatformTransactionScripts(),
@@ -578,6 +660,9 @@ class ScriptManifest {
       .then(() => this.loadLightingScriptsPromise())
       .then(() => this.loadCameraScriptsPromise())
       .then(() => this.loadInputScriptsPromise())
+      .then(() => this.loadTriggerScriptsPromise())
+      .then(() => this.loadRadiantRaysAnimationScriptsPromise())
+      .then(() => this.loadGamemodeScriptsPromise())
       .then(() => this.loadGameplayScriptsPromise())
       .then(() => this.loadPlayerScriptsPromise())
       .then(() => this.loadGeneralProgressionScriptsPromise())
@@ -586,6 +671,8 @@ class ScriptManifest {
       .then(() => this.loadRadiantRaysProgressionScriptsPromise())
       .then(() => this.loadSoundSystemsScriptsPromise())
       .then(() => this.loadMinorUtilityScriptsPromise())
+      .then(() => this.loadTestToolScriptsPromise())
+
       .catch((error) => {
         console.error("Failed to load all scripts:", error);
         CatastropheManager.displayCatastrophePage();

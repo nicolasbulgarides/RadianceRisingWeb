@@ -30,6 +30,10 @@ class BaseGameUIScene extends UISceneGeneralized {
     this.assembleUIControlsComposite();
   }
 
+  rebuildUICompletely() {
+    this.advancedTexture.clear();
+    // this.assembleUIBaseGameUI();
+  }
   /**
    * Creates the bottom panel image that spans 100% width and 24% height.
    */

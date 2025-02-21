@@ -35,6 +35,7 @@ class PlayerModelMovementManager {
     // Retrieve the starting position from the player's position manager.
     this.startPosition =
       this.currentPlayer.getPlayerPositionAndModelManager().currentPosition;
+    ChadUtilities.describeVector("Start: ", this.startPosition, "Movement");
     // Retrieve the destination position defined for the player's pathing.
     this.endPosition =
       this.currentPlayer.getPlayerPositionAndModelManager().pathingDestination;
@@ -43,6 +44,8 @@ class PlayerModelMovementManager {
       this.startPosition,
       this.endPosition
     );
+    ChadUtilities.describeVector("End: ", this.endPosition, "Movement");
+    ChadUtilities.describeVector("Path: ", this.startPosition, "Movement");
 
     if (this.totalDistance > 0) {
       // Calculate a normalized vector representing the direction of movement.
@@ -82,9 +85,11 @@ class PlayerModelMovementManager {
   describeMovement() {
     // Log movement parameters including duration and frame count.
     console.log(
-      `Movement initialized: Speed = ${/* speed variable missing here */ "N/A"}, Duration = ${this.durationInSeconds.toFixed(
-        2
-      )}s, Frames = ${this.totalFrames}`
+      `Movement initialized: Speed = ${
+        /* speed variable missing here */ "N/A"
+      }, Duration = ${this.durationInSeconds.toFixed(2)}s, Frames = ${
+        this.totalFrames
+      }`
     );
   }
 
