@@ -141,6 +141,32 @@ class PlayerCurrentActionStatus {
       !this.currentlyAffectedByEnvironment
     );
   }
+
+  assembleReasonCannotMoveOrAct() {
+    const reasons = [];
+    if (this.currentlyInMotion) reasons.push("in basic motion");
+    if (this.currentlyInDirectionalMotion)
+      reasons.push("in directional motion");
+    if (this.currentlyInBouncingMotion) reasons.push("in bouncing motion");
+    if (this.currentlyTeleporting) reasons.push("teleporting");
+    if (this.currentlyInteractingWithObstacle)
+      reasons.push("interacting with an obstacle");
+    if (this.currentlyInteractingWithSwitch)
+      reasons.push("interacting with a switch");
+    if (this.currentlyChannelingMagic) reasons.push("channeling magic");
+    if (this.currentlyChannelingArtifact)
+      reasons.push("channeling an artifact");
+    if (this.currentlyUsingMagic) reasons.push("actively using magic");
+    if (this.currentlyUsingArtifact) reasons.push("actively using an artifact");
+    if (this.currentlyAffectedByEnvironment)
+      reasons.push("affected by the environment");
+
+    // Return a combined message
+    return reasons.length
+      ? `Movement prohibited because player is currently ${reasons.join(", ")}.`
+      : "";
+  }
+
   /**
    * Sets the magic usage state.
    * @param {boolean} status - True if the player is in the act of using magic; otherwise false.

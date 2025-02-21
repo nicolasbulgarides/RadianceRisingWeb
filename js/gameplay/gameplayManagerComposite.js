@@ -57,6 +57,7 @@ class GameplayManagerComposite {
    * Loads the demo level, sets up obstacles, players, sound, music, and movement management.
    */
   async initializeGameplayTestA() {
+    this.validActionChecker = new ValidActionChecker();
     this.activeGameplayLevel =
       await this.levelFactoryComposite.loadDemoLevelTest();
     this.levelFactoryComposite.renderActiveDemoGameplayLevel(
@@ -109,20 +110,32 @@ class GameplayManagerComposite {
    * @param {string} direction - The direction input from the UI click.
    */
   processAttemptedMovementFromUIClick(direction) {
+    if (!this.checkIfPlayerCanMove(this.activeGameplayLevel.player)) return;
+
     let gamemodeRules =
       FundamentalSystemBridge.gamemodeManager.CURRENT_GAMEMODE;
 
-    this.movementPathManager.processMovementByDirection(
+    let destinationVector = this.movementPathManager.processMovementByDirection(
       direction,
       gamemodeRules.MOVEMENT_IS_BOUNDED,
       gamemodeRules.MAX_MOVEMENT_DISTANCE,
-      gamemodeRules.OBSTACLES_ARE_IGNORED
+      gamemodeRules.OBSTACLES_ARE_IGNORED,
+      this.activeGameplayLevel
     );
-    GameplayLogger.lazyLog(
-      "Movement: " + direction,
-      "GameplayManagerComposite",
-      0
-    );
+
+    if (
+      destinationVector != null &&
+      destinationVector !=
+        this.activeGameplayLevel.player.getPlayerPositionAndModelManager()
+          .currentPosition
+    ) {
+    } else {
+      GameplayLogger.lazyLog(
+        "Destination vector is the same as the current position vector or is null",
+        "GameplayManagerComposite",
+        0
+      );
+    }
   }
 
   registerActiveGameplayLevel(activeGameplayLevel) {
@@ -133,5 +146,17 @@ class GameplayManagerComposite {
     if (this.activeGameplayLevel != null) {
       this.activeGameplayLevel.processFrameEvents();
     }
+  }
+
+  checkIfPlayerCanMove(player) {
+    let canMove = this.validActionChecker.checkIfAllowedToMove(player);
+
+    if (!canMove) {
+      this.validActionChecker.logInvalidMovementAttempt(
+        direction,
+        this.activeGameplayLevel.player
+      );
+    }
+    return canMove;
   }
 }

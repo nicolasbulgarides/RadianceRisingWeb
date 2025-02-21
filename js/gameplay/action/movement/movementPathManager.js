@@ -13,6 +13,8 @@ class MovementPathManager {
    * @param {Object} level - The game level in which the movement is processed.
    */
 
+  //to do / TODO - refactor for multiplayer
+
   constructor(player, level) {
     // Store the active level and player references.
     this.activeLevel = level;
@@ -107,94 +109,89 @@ class MovementPathManager {
     return finalPosition;
   }
 
-  /**
-   * Determines the boundaries of the game level.
-   * @returns {Object} An object containing minX, minY, minZ, maxX, maxY, and maxZ values defining the level boundaries.
-   */
-  getGameLevelBoundary() {
-    let boundary = {
-      minX: 0,
-      minY: 0, // Assuming the game level has constant Y-level movement.
-      minZ: 0,
-      maxX: this.activeLevel.mapWidth - 1,
-      maxY: 0,
-      maxZ: this.activeLevel.mapDepth - 1,
-    };
+  getBoundaryDestinationVectorByDirection(
+    activeGameLevelPlane,
+    direction,
+    currentPositionVector
+  ) {
+    // Retrieve game level boundaries to constrain movement if necessary.
+    let boundary = activeGameLevelPlane.getActiveGameLevelBoundary();
+    let destinationVector = null;
 
-    return boundary;
+    // If obstacles are to be ignored, compute the destination slightly differently.
+    if (direction === "LEFT") {
+      destinationVector = new BABYLON.Vector3(
+        boundary.minX,
+        0,
+        currentPositionVector.z
+      );
+    } else if (direction === "RIGHT") {
+      destinationVector = new BABYLON.Vector3(
+        boundary.maxX,
+        0,
+        currentPositionVector.z
+      );
+    } else if (direction == "UP") {
+      destinationVector = new BABYLON.Vector3(
+        currentPositionVector.x,
+        0,
+        boundary.maxZ
+      );
+    } else if (direction == "DOWN") {
+      destinationVector = new BABYLON.Vector3(
+        currentPositionVector.x,
+        0,
+        boundary.minZ
+      );
+    }
+
+    ChadUtilities.describeVector(
+      "Destination Vector: ",
+      destinationVector,
+      "MovementPathManager destination vector determined"
+    );
+    return destinationVector;
   }
 
-  /**
-   * Processes player movement when the boundaries are not enforced (unbounded movement).
-   * If obstacles are ignored, movement goes to the level edge; else, stops at the last valid position.
-   * @param {string} direction - The required movement direction ("LEFT", "RIGHT", "UP", "DOWN").
-   * @param {boolean} ignoreObstacles - Indicates whether obstacles should be ignored during movement.
-   */
-
-  processUnboundedMovement(direction, ignoreObstacles) {
+  getDestinationVectorForUnboundedMovement(
+    direction,
+    ignoreObstacles,
+    activeGameLevelPlane
+  ) {
     // Retrieve the current player's position.
     let currentPositionVector =
       this.activePlayer.getPlayerPositionAndModelManager().currentPosition;
 
-    // Retrieve game level boundaries to constrain movement if necessary.
-    let boundary = this.getGameLevelBoundary();
     let destinationVector = null;
-
-    // If obstacles are to be ignored, compute the destination slightly differently.
     if (ignoreObstacles) {
-      if (direction === "LEFT") {
-        destinationVector = new BABYLON.Vector3(
-          boundary.minX,
-          0,
-          currentPositionVector.z
-        );
-      } else if (direction === "RIGHT") {
-        destinationVector = new BABYLON.Vector3(
-          boundary.maxX,
-          0,
-          currentPositionVector.z
-        );
-      } else if (direction == "UP") {
-        destinationVector = new BABYLON.Vector3(
-          currentPositionVector.x,
-          0,
-          boundary.maxZ
-        );
-      } else if (direction == "DOWN") {
-        destinationVector = new BABYLON.Vector3(
-          currentPositionVector.x,
-          0,
-          boundary.minZ
-        );
-      }
+      destinationVector = this.getBoundaryDestinationVectorByDirection(
+        activeGameLevelPlane,
+        direction,
+        currentPositionVector
+      );
+
+      return destinationVector;
       // Initiate movement to the computed edge destination.
-      this.setDestinationAndBeginMovement(destinationVector);
     } else if (!ignoreObstacles) {
       // If obstacles are considered, get the last valid position until an obstacle is encountered.
-      let stoppingPosition = ObstacleFinder.getLastValidPosition(
+      destinationVector = ObstacleFinder.getLastValidPosition(
         this.activeLevel,
         this.activePlayer.getPlayerPositionAndModelManager().currentPosition,
         direction
       );
-
-      // Begin movement toward the determined valid stopping position.
-      this.setDestinationAndBeginMovement(stoppingPosition);
     }
+
+    return destinationVector;
   }
 
-  /**
-   * Directs the player's movement towards a specified destination
-   * and initializes the movement animation using a predefined speed.
-   * @param {BABYLON.Vector3} destinationVector - The target destination vector.
-   */
   setDestinationAndBeginMovement(destinationVector) {
     // Set the player's destination in the position/model manager.
     this.activePlayer
       .getPlayerPositionAndModelManager()
       .setCurrentPathingDestination(destinationVector);
 
-    // Initiate the player model movement with the configuration default speed.
-    this.playerModelMovementManager.initMovement(Config.DEFAULT_SPEED);
+    this.this.playerModelMovementManager // Initiate the player model movement with the configuration default speed.
+      .initMovement(Config.DEFAULT_SPEED);
   }
 
   /**
@@ -204,7 +201,11 @@ class MovementPathManager {
    * @param {boolean} ignoreObstacles - Flag indicating if obstacles can be bypassed.
    * @param {number} maxDistance - The maximum distance allowed for the movement.
    */
-  processBoundedMovement(direction, ignoreObstacles, maxDistance) {
+  getDestinationVectorForBoundedMovement(
+    direction,
+    ignoreObstacles,
+    maxDistance
+  ) {
     // TODO: Implement movement restrictions based on maxDistance and obstacle collisions.
   }
 
@@ -219,23 +220,30 @@ class MovementPathManager {
     direction,
     unbounded,
     maxDistance,
-    ignoreObstacles
+    ignoreObstacles,
+    activeGameLevelPlane
   ) {
+    let destinationVector = null;
     if (unbounded) {
       // Process unbounded movement logic.
-      GameplayLogger.lazyLog(
-        "Movement: " + direction + " (unbounded)",
-        "MovementPathManager"
+
+      destinationVector = this.getDestinationVectorForUnboundedMovement(
+        direction,
+        ignoreObstacles,
+        activeGameLevelPlane
       );
-      this.processUnboundedMovement(direction, ignoreObstacles);
     } else if (!unbounded) {
       // Process bounded movement logic according to provided constraints.
-      GameplayLogger.lazyLog(
-        "Movement: " + direction + " (bounded)",
-        "MovementPathManager"
+
+      destinationVector = this.getDestinationVectorForBoundedMovement(
+        direction,
+        ignoreObstacles,
+        maxDistance,
+        activeGameLevelPlane
       );
-      this.processBoundedMovement(direction, ignoreObstacles, maxDistance);
     }
+
+    return destinationVector;
   }
 
   /**

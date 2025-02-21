@@ -10,6 +10,7 @@ class FundamentalSystemBridge {
 
   /**
    * Constructor for FundamentalSystemBridge.
+   * Initializes the static storage for system references.
    * Although system references are stored statically, an instance
    * constructor has been provided for potential future instance-level logic.
    */
@@ -18,21 +19,34 @@ class FundamentalSystemBridge {
     // Instance-level initialization (currently unused).
   }
 
+  /**
+   * Initializes static storage fields to null.
+   * This method is called during construction to ensure all static fields
+   * are reset to their default state.
+   */
   initializeStorage() {
-    FundamentalSystemBridge.babylonEngine = null;
-    FundamentalSystemBridge.radiantEngineManager = null;
-    FundamentalSystemBridge.networkingManager = null;
-    FundamentalSystemBridge.gameplayManagerComposite = null;
+    FundamentalSystemBridge.babylonEngine = null; // Babylon engine reference
+    FundamentalSystemBridge.radiantEngineManager = null; // Radiant engine manager reference
+    FundamentalSystemBridge.networkingManager = null; // Networking manager reference
+    FundamentalSystemBridge.gameplayManagerComposite = null; // Composite gameplay manager reference
   }
 
+  /**
+   * Registers a GamemodeManager instance.
+   * @param {GamemodeManager} gamemodeManager - The gamemode manager instance.
+   * This method checks if the provided instance is of the correct type
+   * and assigns it to the static field.
+   */
   static registerGamemodeManager(gamemodeManager) {
     if (gamemodeManager instanceof GamemodeManager) {
       FundamentalSystemBridge.gamemodeManager = gamemodeManager;
     }
   }
+
   /**
    * Registers the Babylon Engine instance.
    * @param {BABYLON.Engine} engine - The Babylon engine instance.
+   * Validates the type of the provided engine before assignment.
    */
   static registerBabylonEngine(engine) {
     if (engine instanceof BABYLON.Engine) {
@@ -43,6 +57,12 @@ class FundamentalSystemBridge {
         "BabylonEngine",
         providedType
       );
+    }
+  }
+
+  static registerHistoryManager(historyManager) {
+    if (historyManager instanceof HistoryManager) {
+      FundamentalSystemBridge.historyManager = historyManager;
     }
   }
 
@@ -283,6 +303,8 @@ class FundamentalSystemBridge {
    * Logs a catastrophic registration error.
    * @param {string} systemName - The name of the system being registered.
    * @param {string} providedType - The type of object that was provided.
+   * This method attempts to log the error via the CatastropheManager and LoggerOmega.
+   * If logging services are missing, it falls back to console logging.
    */
   static logCatastrophicRegistration(systemName, providedType) {
     // Build the error message with proper spacing.

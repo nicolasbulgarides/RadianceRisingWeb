@@ -13,10 +13,6 @@ class ChadUtilities {
   static describeVector(msg, vector, sender) {
     if (!(vector instanceof BABYLON.Vector3)) {
       LoggerOmega.SmartLogger(true, sender);
-    } else if (vector instanceof BABYLON.Vector3) {
-      LoggerOmega.SmartLogger(true, "Vector!!! " + typeof vector, sender);
-    } else {
-      LoggerOmega.SmartLogger(true, "WEIRD " + typeof vector, sender);
     }
     msg =
       "MSG: " +

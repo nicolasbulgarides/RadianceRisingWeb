@@ -1,9 +1,9 @@
 class GamemodeTestAssist extends GamemodeGeneric {
   constructor() {
     super();
+
     // Specify test mode values and initialize the gamemode
     this.specifyTestModeAssistValues();
-    this.initializeGamemode();
   }
 
   specifyTestModeAssistValues() {

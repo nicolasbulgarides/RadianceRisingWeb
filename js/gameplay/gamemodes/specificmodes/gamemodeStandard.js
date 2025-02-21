@@ -2,7 +2,6 @@ class GamemodeStandard extends GamemodeGeneric {
   constructor() {
     super();
     // Initialize the standard gamemode settings
-    this.initializeGamemode();
   }
 
   initializeGamemode() {

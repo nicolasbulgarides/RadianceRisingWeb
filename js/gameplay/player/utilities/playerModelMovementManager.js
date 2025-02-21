@@ -27,55 +27,59 @@ class PlayerModelMovementManager {
    */
   initMovement(speed) {
     if (!this.currentPlayer) {
-      // Ensure a valid player exists.
       console.error("No player to move!");
       return;
     }
 
-    // Retrieve the starting position from the player's position manager.
+    // Check if speed is valid.
+    if (speed <= 0) {
+      console.error("Invalid speed provided. Speed must be greater than zero.");
+      return;
+    }
+
+    // Retrieve positions from the player's position manager.
     this.startPosition =
       this.currentPlayer.getPlayerPositionAndModelManager().currentPosition;
-    ChadUtilities.describeVector("Start: ", this.startPosition, "Movement");
-    // Retrieve the destination position defined for the player's pathing.
     this.endPosition =
       this.currentPlayer.getPlayerPositionAndModelManager().pathingDestination;
+
     // Compute the total distance to travel.
     this.totalDistance = BABYLON.Vector3.Distance(
       this.startPosition,
       this.endPosition
     );
-    ChadUtilities.describeVector("End: ", this.endPosition, "Movement");
-    ChadUtilities.describeVector("Path: ", this.startPosition, "Movement");
 
+    // Compute the movement direction only if there is a non-zero distance.
     if (this.totalDistance > 0) {
-      // Calculate a normalized vector representing the direction of movement.
       this.direction = this.endPosition
         .subtract(this.startPosition)
         .normalize();
+
+      // Calculate the duration of the movement.
+      this.durationInSeconds = this.totalDistance / speed;
+
+      // Calculate total frames; ensure there is at least 1 frame to avoid division by zero.
+      this.totalFrames = Math.max(
+        1,
+        Math.ceil(this.durationInSeconds * Config.FPS)
+      );
+      this.currentFrame = 0;
+
+      // Calculate the movement vector that should be applied each frame.
+      this.movementPerFrame = this.direction.scale(
+        this.totalDistance / this.totalFrames
+      );
+
+      // Mark the movement as active.
+      this.movementActive = true;
     } else {
-      // If no movement is required, warn and assign a zero vector to prevent errors.
       console.warn(
         "Warning: No movement required, start and end positions are the same."
       );
       this.direction = BABYLON.Vector3.Zero(); // Prevent potential NaN values.
+      this.movementActive = false;
+      return;
     }
-    // Determine the duration of the movement based on the provided speed.
-    this.durationInSeconds = this.totalDistance / speed;
-    // Calculate the total number of frames using the game's FPS configuration.
-    this.totalFrames = Math.ceil(this.durationInSeconds * Config.FPS);
-    // Reset the current frame counter.
-    this.currentFrame = 0;
-
-    // Recompute the movement direction for consistency.
-    this.direction = this.endPosition.subtract(this.startPosition).normalize();
-
-    // Calculate the movement vector that should be applied on each frame.
-    this.movementPerFrame = this.direction.scale(
-      this.totalDistance / this.totalFrames
-    );
-
-    // Mark the movement as active.
-    this.movementActive = true;
   }
 
   /**

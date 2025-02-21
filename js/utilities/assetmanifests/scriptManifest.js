@@ -28,9 +28,7 @@
  * GameplayScripts - Hints
  * GameplayScripts - Interactions
  * GameplayScripts - Items - General
- * GameplayScripts - Items - Verificiation & Item Requirements
- *
- *
+ * GameplayScripts - Items - Verification & Item Requirements
  *
  * - PlayerScripts
  * - GameInteractionsScripts
@@ -38,7 +36,7 @@
  * - SoundSystemsScripts
  * - MinorUtilityScripts
  *  Networking- General + Utilities
- * - NetworkingScripts - Transcaction
+ * - NetworkingScripts - Transaction
  *  Networking Scripts - Platform Compatibility
  *  Achievements
  * - TransactionScripts
@@ -60,11 +58,29 @@ class ScriptManifest {
     "/animations/programmaticAnimationManager.js",
   ];
 
+  static historyScripts = [
+    "/history/historyManager.js",
+    "/history/historyFactory.js",
+    "/history/datastructures/conflict/historyGuildStatement.js",
+    "/history/datastructures/conflict/historyOfGuildWarComposite.js",
+    "/history/datastructures/conflict/historyOfRivalryComposite.js",
+    "/history/datastructures/conflict/historyOfNeutralCommentary.js",
+    "/history/datastructures/conflict/historyStatementNotorietyData.js",
+    "/history/datastructures/general/historyAcquisitionData.js",
+    "/history/datastructures/general/historyActionData.js",
+    "/history/datastructures/general/historyCompetitiveAffectData.js",
+    "/history/datastructures/general/historyCompetitiveData.js",
+    "/history/datastructures/general/historyEntryComposite.js",
+    "/history/datastructures/general/historyEventGroup.js",
+    "/history/datastructures/general/historyOtherSpecialData.js",
+    "/history/datastructures/general/historyProgressData.js",
+  ];
   static gamemodeScripts = [
     "/gameplay/gamemodes/gamemodeManager.js",
     "/gameplay/gamemodes/specificmodes/gamemodeGeneric.js",
     "/gameplay/gamemodes/specificmodes/gamemodeStandard.js",
     "/gameplay/gamemodes/specificmodes/gamemodeTestAssist.js",
+    "/gameplay/gamemodes/gamemodeCurrentEnforcings.js",
   ];
   static occurrenceScripts = [
     "/gameplay/interactions/occurrences/specialOccurrenceComposite.js",
@@ -335,117 +351,254 @@ class ScriptManifest {
     "/saving/batching/batchmanagers/batchTracker.js",
     "/saving/batching/batchmanagers/batchMergeFactory.js",
   ];
+  /**
+   * Retrieves the general item scripts.
+   * @returns {Array<string>} Array of general item script URLs.
+   */
   static getGeneralItemScripts() {
     return this.itemGeneralScripts;
   }
+
+  /**
+   * Retrieves the test tool scripts.
+   * @returns {Array<string>} Array of test tool script URLs.
+   */
   static getTestToolScripts() {
     return this.testToolScripts;
   }
 
+  /**
+   * Retrieves the item verification scripts.
+   * @returns {Array<string>} Array of item verification script URLs.
+   */
   static getItemVerificationScripts() {
     return this.itemVerificationScripts;
   }
+
+  /**
+   * Retrieves the regional adaptation scripts.
+   * @returns {Array<string>} Array of regional adaptation script URLs.
+   */
   static getRegionalAdaptationScripts() {
     return this.regionalAdaptationScripts;
   }
+
+  /**
+   * Retrieves the gamemode scripts.
+   * @returns {Array<string>} Array of gamemode script URLs.
+   */
   static getGamemodeScripts() {
     return this.gamemodeScripts;
   }
-  // Getter methods for each script category
 
+  /**
+   * Retrieves the asset manifest scripts.
+   * @returns {Array<string>} Array of asset manifest script URLs.
+   */
   static getAssetManifestScripts() {
     return this.assetManifestScripts;
   }
 
+  /**
+   * Retrieves the asset loaders and managers scripts.
+   * @returns {Array<string>} Array of asset loaders and managers script URLs.
+   */
   static getAssetLoadersAndManagersScripts() {
     return this.assetLoadersAndManagersScripts;
   }
 
+  /**
+   * Retrieves the implemented UI scene scripts.
+   * @returns {Array<string>} Array of implemented UI scene script URLs.
+   */
   static getUISceneScriptsImplemented() {
     return this.uiSceneScriptsImplemented;
   }
+
+  /**
+   * Retrieves the UI utility scripts.
+   * @returns {Array<string>} Array of UI utility script URLs.
+   */
   static getUIUtilityScripts() {
     return this.uiUtilityScripts;
   }
+
+  /**
+   * Retrieves the platform transaction scripts.
+   * @returns {Array<string>} Array of platform transaction script URLs.
+   */
   static getPlatformTransactionScripts() {
     return this.platformTransactionScripts;
   }
 
+  /**
+   * Retrieves the item requirements scripts.
+   * @returns {Array<string>} Array of item requirements script URLs.
+   */
   static getItemRequirementsScripts() {
     return this.itemRequirementsScripts;
   }
 
+  /**
+   * Retrieves the history scripts.
+   * @returns {Array<string>} Array of history script URLs.
+   */
+  static getHistoryScripts() {
+    return this.historyScripts;
+  }
+
+  /**
+   * Retrieves the lighting scripts.
+   * @returns {Array<string>} Array of lighting script URLs.
+   */
   static getLightingScripts() {
     return this.lightingScripts;
   }
 
+  /**
+   * Retrieves the camera scripts.
+   * @returns {Array<string>} Array of camera script URLs.
+   */
   static getCameraScripts() {
     return this.cameraScripts;
   }
 
+  /**
+   * Retrieves the input scripts.
+   * @returns {Array<string>} Array of input script URLs.
+   */
   static getInputScripts() {
     return this.inputScripts;
   }
 
+  /**
+   * Retrieves the gameplay scripts.
+   * @returns {Array<string>} Array of gameplay script URLs.
+   */
   static getGameplayScripts() {
     return this.gameplayScripts;
   }
 
+  /**
+   * Retrieves the player scripts.
+   * @returns {Array<string>} Array of player script URLs.
+   */
   static getPlayerScripts() {
     return this.playerScripts;
   }
 
+  /**
+   * Retrieves the game interactions scripts.
+   * @returns {Array<string>} Array of game interactions script URLs.
+   */
   static getGameInteractionsScripts() {
     return this.gameInteractionsScripts;
   }
 
+  /**
+   * Retrieves the game area scripts.
+   * @returns {Array<string>} Array of game area script URLs.
+   */
   static getGameAreaScripts() {
     return this.gameAreaScripts;
   }
 
+  /**
+   * Retrieves the sound systems scripts.
+   * @returns {Array<string>} Array of sound systems script URLs.
+   */
   static getSoundSystemsScripts() {
     return this.soundSystemsScripts;
   }
 
+  /**
+   * Retrieves the trigger scripts.
+   * @returns {Array<string>} Array of trigger script URLs.
+   */
   static getTriggerScripts() {
     return this.triggerScripts;
   }
+
+  /**
+   * Retrieves the cheat prevention scripts.
+   * @returns {Array<string>} Array of cheat prevention script URLs.
+   */
   static getCheatPreventionScripts() {
     return this.cheatPreventionScripts;
   }
 
+  /**
+   * Retrieves the minor utility scripts.
+   * @returns {Array<string>} Array of minor utility script URLs.
+   */
   static getMinorUtilityScripts() {
     return this.minorUtilityScripts;
   }
 
+  /**
+   * Retrieves the networking scripts.
+   * @returns {Array<string>} Array of networking script URLs.
+   */
   static getNetworkingScripts() {
     return this.networkingScripts;
   }
 
+  /**
+   * Retrieves the transaction scripts.
+   * @returns {Array<string>} Array of transaction script URLs.
+   */
   static getTransactionScripts() {
     return this.transactionScripts;
   }
 
+  /**
+   * Retrieves the player save scripts.
+   * @returns {Array<string>} Array of player save script URLs.
+   */
   static getPlayerSaveScripts() {
     return this.playerSaveScripts;
   }
 
+  /**
+   * Retrieves the general progression scripts.
+   * @returns {Array<string>} Array of general progression script URLs.
+   */
   static getGeneralProgressionScripts() {
     return this.progressionScriptsGeneral;
   }
 
+  /**
+   * Retrieves the radiant rays progression scripts.
+   * @returns {Array<string>} Array of radiant rays progression script URLs.
+   */
   static getRadiantRaysProgressionScripts() {
     return this.progressionScriptsRadiantRays;
   }
+
+  /**
+   * Retrieves the radiant rays animation scripts.
+   * @returns {Array<string>} Array of radiant rays animation script URLs.
+   */
   static getRadiantRaysAnimationScripts() {
     return this.animationScripts;
   }
+
+  /**
+   * Retrieves the radiant rays trigger scripts.
+   * @returns {Array<string>} Array of radiant rays trigger script URLs.
+   */
   static getRadiantRaysTriggerScripts() {
     return this.triggerScripts;
   }
+
+  /**
+   * Retrieves the radiant rays occurrence scripts.
+   * @returns {Array<string>} Array of radiant rays occurrence script URLs.
+   */
   static getRadiantRaysOccurenceScripts() {
     return this.occurenceScripts;
   }
+
   /**
    * Reports a failure during the loading of a specific script category.
    * Uses InitializationDiagnosticsLogger to log a phase error and registers the catastrophe.
@@ -500,37 +653,73 @@ class ScriptManifest {
       }
     })();
   }
+
+  /**
+   * Loads the gamemode scripts and returns a promise.
+   * @returns {Promise} Resolves when gamemode scripts are loaded.
+   */
   static loadGamemodeScriptsPromise() {
     return this.loadScriptsArray(this.getGamemodeScripts(), "Gamemode");
   }
 
+  /**
+   * Loads the general item scripts and returns a promise.
+   * @returns {Promise} Resolves when general item scripts are loaded.
+   */
   static loadGeneralItemScriptsPromise() {
     return this.loadScriptsArray(this.getGeneralItemScripts(), "GeneralItem");
   }
+
+  /**
+   * Loads the test tool scripts and returns a promise.
+   * @returns {Promise} Resolves when test tool scripts are loaded.
+   */
   static loadTestToolScriptsPromise() {
     return this.loadScriptsArray(this.getTestToolScripts(), "TestTool");
   }
 
+  /**
+   * Loads the trigger scripts and returns a promise.
+   * @returns {Promise} Resolves when trigger scripts are loaded.
+   */
   static loadTriggerScriptsPromise() {
     return this.loadScriptsArray(this.getTriggerScripts(), "Trigger");
   }
 
+  /**
+   * Loads the occurrence scripts and returns a promise.
+   * @returns {Promise} Resolves when occurrence scripts are loaded.
+   */
   static loadOccurenceScriptsPromise() {
     return this.loadScriptsArray(this.getOccurenceScripts(), "Occurence");
   }
 
+  /**
+   * Loads the asset manifest scripts and returns a promise.
+   * @returns {Promise} Resolves when asset manifest scripts are loaded.
+   */
   static loadAssetManifestScriptsPromise() {
     return this.loadScriptsArray(
       this.getAssetManifestScripts(),
       "AssetManifest"
     );
   }
+
+  /**
+   * Loads the general progression scripts and returns a promise.
+   * @returns {Promise} Resolves when general progression scripts are loaded.
+   */
   static loadGeneralProgressionScriptsPromise() {
     return this.loadScriptsArray(
       this.getGeneralProgressionScripts(),
       "GeneralProgression"
     );
   }
+
+  /**
+   * Loads the regional adaptation scripts and returns a promise.
+   * @returns {Promise} Resolves when regional adaptation scripts are loaded.
+   */
   static loadRegionalAdaptationScriptsPromise() {
     return this.loadScriptsArray(
       this.getRegionalAdaptationScripts(),
@@ -538,12 +727,21 @@ class ScriptManifest {
     );
   }
 
+  /**
+   * Loads the radiant rays progression scripts and returns a promise.
+   * @returns {Promise} Resolves when radiant rays progression scripts are loaded.
+   */
   static loadRadiantRaysProgressionScriptsPromise() {
     return this.loadScriptsArray(
       this.getRadiantRaysProgressionScripts(),
       "RadiantRaysProgression"
     );
   }
+
+  /**
+   * Loads the asset loaders and managers scripts and returns a promise.
+   * @returns {Promise} Resolves when asset loaders and managers scripts are loaded.
+   */
   static loadAssetLoadersAndManagersScriptsPromise() {
     return this.loadScriptsArray(
       this.getAssetLoadersAndManagersScripts(),
@@ -551,6 +749,10 @@ class ScriptManifest {
     );
   }
 
+  /**
+   * Loads the item requirements scripts and returns a promise.
+   * @returns {Promise} Resolves when item requirements scripts are loaded.
+   */
   static loadItemRequirementsScriptsPromise() {
     return this.loadScriptsArray(
       this.getItemRequirementsScripts(),
@@ -558,6 +760,10 @@ class ScriptManifest {
     );
   }
 
+  /**
+   * Loads the implemented UI scene scripts and returns a promise.
+   * @returns {Promise} Resolves when implemented UI scene scripts are loaded.
+   */
   static loadUISceneScriptsImplementedPromise() {
     return this.loadScriptsArray(
       this.getUISceneScriptsImplemented(),
@@ -565,18 +771,42 @@ class ScriptManifest {
     );
   }
 
+  /**
+   * Loads the lighting scripts and returns a promise.
+   * @returns {Promise} Resolves when lighting scripts are loaded.
+   */
   static loadLightingScriptsPromise() {
     return this.loadScriptsArray(this.getLightingScripts(), "Lighting");
   }
 
+  /**
+   * Loads the camera scripts and returns a promise.
+   * @returns {Promise} Resolves when camera scripts are loaded.
+   */
   static loadCameraScriptsPromise() {
     return this.loadScriptsArray(this.getCameraScripts(), "Camera");
   }
 
+  /**
+   * Loads the input scripts and returns a promise.
+   * @returns {Promise} Resolves when input scripts are loaded.
+   */
   static loadInputScriptsPromise() {
     return this.loadScriptsArray(this.getInputScripts(), "Input");
   }
 
+  /**
+   * Loads the history scripts and returns a promise.
+   * @returns {Promise} Resolves when history scripts are loaded.
+   */
+  static loadHistoryScriptsPromise() {
+    return this.loadScriptsArray(this.getHistoryScripts(), "History");
+  }
+
+  /**
+   * Loads the item verification scripts and returns a promise.
+   * @returns {Promise} Resolves when item verification scripts are loaded.
+   */
   static loadItemVerificationScriptsPromise() {
     return this.loadScriptsArray(
       this.getItemVerificationScripts(),
@@ -584,32 +814,59 @@ class ScriptManifest {
     );
   }
 
+  /**
+   * Loads the cheat prevention scripts and returns a promise.
+   * @returns {Promise} Resolves when cheat prevention scripts are loaded.
+   */
   static loadCheatPreventionScriptsPromise() {
     return this.loadScriptsArray(
       this.getCheatPreventionScripts(),
       "CheatPrevention"
     );
   }
+
+  /**
+   * Loads the gameplay scripts and returns a promise.
+   * @returns {Promise} Resolves when gameplay scripts are loaded.
+   */
   static loadGameplayScriptsPromise() {
     return this.loadScriptsArray(this.getGameplayScripts(), "Gameplay");
   }
 
+  /**
+   * Loads the player scripts and returns a promise.
+   * @returns {Promise} Resolves when player scripts are loaded.
+   */
   static loadPlayerScriptsPromise() {
     return this.loadScriptsArray(this.getPlayerScripts(), "Player");
   }
 
+  /**
+   * Loads the game interactions scripts and returns a promise.
+   * @returns {Promise} Resolves when game interactions scripts are loaded.
+   */
   static loadGameInteractionsScriptsPromise() {
     return this.loadScriptsArray(
       this.getGameInteractionsScripts(),
       "GameInteractions"
     );
   }
+
+  /**
+   * Loads the radiant rays animation scripts and returns a promise.
+   * @returns {Promise} Resolves when radiant rays animation scripts are loaded.
+   */
   static loadRadiantRaysAnimationScriptsPromise() {
     return this.loadScriptsArray(
       this.getRadiantRaysAnimationScripts(),
       "RadiantRaysAnimation"
     );
   }
+
+  /**
+   * Loads the platform transaction scripts and returns a promise.
+   * @returns {Promise} Resolves when platform transaction scripts are loaded.
+   */
   static loadPlatformTransactionScriptsPromise() {
     return this.loadScriptsArray(
       this.getPlatformTransactionScripts(),
@@ -617,30 +874,58 @@ class ScriptManifest {
     );
   }
 
+  /**
+   * Loads the game area scripts and returns a promise.
+   * @returns {Promise} Resolves when game area scripts are loaded.
+   */
   static loadGameAreaScriptsPromise() {
     return this.loadScriptsArray(this.getGameAreaScripts(), "GameArea");
   }
 
+  /**
+   * Loads the sound systems scripts and returns a promise.
+   * @returns {Promise} Resolves when sound systems scripts are loaded.
+   */
   static loadSoundSystemsScriptsPromise() {
     return this.loadScriptsArray(this.getSoundSystemsScripts(), "SoundSystems");
   }
 
+  /**
+   * Loads the minor utility scripts and returns a promise.
+   * @returns {Promise} Resolves when minor utility scripts are loaded.
+   */
   static loadMinorUtilityScriptsPromise() {
     return this.loadScriptsArray(this.getMinorUtilityScripts(), "MinorUtility");
   }
 
+  /**
+   * Loads the networking scripts and returns a promise.
+   * @returns {Promise} Resolves when networking scripts are loaded.
+   */
   static loadNetworkingScriptsPromise() {
     return this.loadScriptsArray(this.getNetworkingScripts(), "Networking");
   }
 
+  /**
+   * Loads the transaction scripts and returns a promise.
+   * @returns {Promise} Resolves when transaction scripts are loaded.
+   */
   static loadTransactionScriptsPromise() {
     return this.loadScriptsArray(this.getTransactionScripts(), "Transaction");
   }
 
+  /**
+   * Loads the player save scripts and returns a promise.
+   * @returns {Promise} Resolves when player save scripts are loaded.
+   */
   static loadPlayerSaveScriptsPromise() {
     return this.loadScriptsArray(this.getPlayerSaveScripts(), "PlayerSave");
   }
 
+  /**
+   * Loads the UI utility scripts and returns a promise.
+   * @returns {Promise} Resolves when UI utility scripts are loaded.
+   */
   static loadUIUtilityScriptsPromise() {
     return this.loadScriptsArray(this.getUIUtilityScripts(), "UIUtility");
   }
@@ -672,7 +957,6 @@ class ScriptManifest {
       .then(() => this.loadSoundSystemsScriptsPromise())
       .then(() => this.loadMinorUtilityScriptsPromise())
       .then(() => this.loadTestToolScriptsPromise())
-
       .catch((error) => {
         console.error("Failed to load all scripts:", error);
         CatastropheManager.displayCatastrophePage();

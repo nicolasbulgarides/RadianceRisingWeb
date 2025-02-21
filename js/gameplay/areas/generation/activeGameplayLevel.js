@@ -26,6 +26,18 @@ class ActiveGameplayLevel {
     }
   }
 
+  getActiveGameLevelBoundary() {
+    let boundary = {
+      minX: 0,
+      minY: 0, // Assuming the game level has constant Y-level movement.
+      minZ: 0,
+      maxX: this.levelMap.mapWidth - 1,
+      maxY: 0,
+      maxZ: this.levelMap.mapDepth - 1,
+    };
+
+    return boundary;
+  }
   registerPlayer(playerToRegister) {
     this.player = playerToRegister;
   }
