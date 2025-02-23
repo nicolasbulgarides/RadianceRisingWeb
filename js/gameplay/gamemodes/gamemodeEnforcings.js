@@ -14,6 +14,9 @@ class GamemodeEnforcings {
   }
 
   setMaximumMovementDistance(newMaximumMovementDistance) {
+    GameplayLogger.lazyLog(
+      "Setting maximum movement distance to: " + newMaximumMovementDistance
+    );
     this.maximumMovementDistance = newMaximumMovementDistance;
   }
 

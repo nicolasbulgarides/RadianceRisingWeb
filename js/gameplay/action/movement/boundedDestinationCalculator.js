@@ -74,25 +74,40 @@ class BoundedDestinationCalculator {
   static determineTheoreticalStopPosition(
     direction,
     maxDistance,
-    relevantPlayer
+    relevantPlayer,
+    activeGameLevelPlane
   ) {
     let currentPosition = relevantPlayer.playerMovementManager.currentPosition;
+    let effectiveMaxDistance = maxDistance;
+
+    let gameModeRules = activeGameLevelPlane.gameModeRules;
+    // If player's gamemode uses player movement distance, use the lower value
+    if (gameModeRules.USE_PLAYER_MOVEMENT_DISTANCE) {
+      const playerMaxDistance =
+        relevantPlayer.playerMovementManager.maxMovementDistance;
+      effectiveMaxDistance = Math.min(maxDistance, playerMaxDistance);
+    } else {
+      const playerMaxDistance =
+        gameModeRules.currentEnforcings.MAX_MOVEMENT_DISTANCE;
+      effectiveMaxDistance = Math.min(maxDistance, playerMaxDistance);
+    }
+
     let xShift = 0;
     let yShift = 0;
     let zShift = 0;
 
     switch (String(direction)) {
       case "UP":
-        zShift = maxDistance;
+        zShift = effectiveMaxDistance;
         break;
       case "DOWN":
-        zShift = -maxDistance;
+        zShift = -effectiveMaxDistance;
         break;
       case "LEFT":
-        xShift = -maxDistance;
+        xShift = -effectiveMaxDistance;
         break;
       case "RIGHT":
-        xShift = maxDistance;
+        xShift = effectiveMaxDistance;
         break;
     }
 

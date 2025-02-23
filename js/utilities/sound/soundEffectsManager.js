@@ -69,14 +69,9 @@ class SoundEffectsManager {
     if (this.soundIndex < soundNames.length) {
       const soundName = soundNames[this.soundIndex];
       this.playSound(soundName);
-      console.log(
-        `Playing sound ${this.soundIndex + 1}/${
-          soundNames.length
-        }: ${soundName}`
-      );
+
       this.soundIndex++;
     } else {
-      console.log("All sounds have been played.");
       this.soundIndex = 0;
     }
   }

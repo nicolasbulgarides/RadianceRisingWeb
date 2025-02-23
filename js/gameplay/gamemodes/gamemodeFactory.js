@@ -8,7 +8,11 @@ class GamemodeFactory {
       case "standard":
         return GamemodeFactory.getStandardGamemode(uniqueId, enforcings);
       case "test":
-        return GamemodeFactory.getTestGamemode(uniqueId, enforcings);
+        return GamemodeFactory.getTestGamemode(
+          uniqueId,
+          categoryToLoad,
+          enforcings
+        );
       default:
         return GamemodeFactory.getStandardGamemode(uniqueId, enforcings);
     }
@@ -29,7 +33,7 @@ class GamemodeFactory {
   }
   static getTestGamemode(uniqueId, category, enforcings) {
     let ignoreObstacles = false;
-    let movementBounded = false;
+    let movementBounded = true;
     let usePlayerMovementDistance = false;
     return new GamemodeTestAssist(
       uniqueId,
@@ -40,6 +44,7 @@ class GamemodeFactory {
       usePlayerMovementDistance
     );
   }
+
   static getEnforcings(category) {
     switch (category) {
       case "standard":
@@ -57,7 +62,7 @@ class GamemodeFactory {
   }
   static getTestEnforcings() {
     let enforcings = new GamemodeEnforcings();
-    enforcings.setMaximumMovementDistance(3);
+    enforcings.setMaximumMovementDistance(2);
     return enforcings;
   }
 }

@@ -6,14 +6,11 @@ class RegionalAdapationDataComposite {
 
   // Asynchronously loads regional game data from a given URL.
   async loadGameData(url) {
-    console.log("Loading regional game data from:", url);
     try {
       const response = await fetch(url);
       const data = await response.json();
       this.parseGameData(data);
-      console.log("Regional game data loaded successfully");
     } catch (error) {
-      console.error("Failed to load regional game data:", error);
       // TODO: Implement error handling (fallbacks or error reporting)
     }
   }

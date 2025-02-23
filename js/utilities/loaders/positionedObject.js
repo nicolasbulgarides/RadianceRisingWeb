@@ -139,7 +139,11 @@ class PositionedObject {
     let adjustedX = this.offset.x + this.position.x;
     let adjustedY = this.offset.y + this.position.y;
     let adjustedZ = this.offset.z + this.position.z;
-    let finalizedPosition = new BABYLON.Vector3(adjustedX, adjustedY, adjustedZ);
+    let finalizedPosition = new BABYLON.Vector3(
+      adjustedX,
+      adjustedY,
+      adjustedZ
+    );
     return finalizedPosition;
   }
 
@@ -152,7 +156,11 @@ class PositionedObject {
     let adjustedY = this.offset.y + positionVector.y;
     let adjustedZ = this.offset.z + positionVector.z;
     this.position = positionVector;
-    this.finalizedPosition = new BABYLON.Vector3(adjustedX, adjustedY, adjustedZ);
+    this.finalizedPosition = new BABYLON.Vector3(
+      adjustedX,
+      adjustedY,
+      adjustedZ
+    );
     if (this.model) {
       this.model.position = this.finalizedPosition;
     }
@@ -230,7 +238,6 @@ class PositionedObject {
     if (this.model) {
       this.model.dispose();
       this.model = null;
-      console.log(`PositionedObject: Model for '${this.modelId}' has been disposed.`);
     }
   }
 }

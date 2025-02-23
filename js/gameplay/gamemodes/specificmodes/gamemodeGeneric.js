@@ -1,7 +1,6 @@
 class GamemodeGeneric {
   static MOVEMENT_IS_BOUNDED = false; // Indicates if player movement is restricted
   static OBSTACLES_ARE_IGNORED = false; // Determines if obstacles affect player movement
-  static MAX_MOVEMENT_DISTANCE = 999; // Maximum distance a player can move in one action
   static USE_PLAYER_MOVEMENT_DISTANCE = false;
   constructor(
     modeUniqueId,
@@ -36,11 +35,9 @@ class GamemodeGeneric {
       activeEnforcings: this.currentEnforcings,
     };
 
-    // Log formatted description for debugging
-    console.log(
-      "🎮 Gamemode Configuration:",
-      JSON.stringify(description, null, 2)
-    );
+    let msg =
+      "🎮 Gamemode Configuration: " + JSON.stringify(description, null, 2);
+    GameplayLogger.lazyLog(msg);
 
     return description;
   }

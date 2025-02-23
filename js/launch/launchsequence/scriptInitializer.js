@@ -179,7 +179,7 @@ class ScriptInitializer {
     } catch (error) {
       let catastrophe =
         "Error caught in attemptInstantiationOfRadiantEngine: " + error.message;
-      console.log(catastrophe);
+
       CatastropheManager.logCatastrophe(catastrophe);
       InitializationDiagnosticsLogger.logPhaseError(
         "InstantiationOfRadiantEngine-Script Loading" + error.message,

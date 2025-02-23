@@ -13,7 +13,6 @@ class RegionalAdaptionProfile {
 
   // Updated: Loads additional regional profile data using credentials and router endpoint.
   async loadProfileData(credentials) {
-    console.log("Loading profile data for", this.adaptionNickName);
     try {
       // Build the API endpoint using the router and the access code from credentials
       const profileApiUrl =
@@ -33,9 +32,7 @@ class RegionalAdaptionProfile {
       if (data.gameDataComposite) {
         this.adapationGameDataComposite.parseGameData(data.gameDataComposite);
       }
-      console.log("Regional profile data loaded:", data);
     } catch (error) {
-      console.error("Failed to load regional profile data:", error);
       // TODO: Add fallback mechanism or further error handling.
     }
   }

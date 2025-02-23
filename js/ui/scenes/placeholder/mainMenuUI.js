@@ -60,7 +60,6 @@ class MainMenuUI {
 
     // Attach an event handler for pointer-up events.
     imageButton.onPointerUpObservable.add(() => {
-      console.log("Image button clicked!");
       this.attemptDisposeUI();
     });
   }
@@ -71,10 +70,8 @@ class MainMenuUI {
    */
   attemptDisposeUI() {
     if (this.gameInitialization && this.gameInitialization.demoLevelLoaded) {
-      console.log("Game is loaded, disposing UI now.");
       this.disposeUI();
     } else {
-      console.log("Game not yet loaded, will retry disposing in 500ms...");
       setTimeout(() => this.attemptDisposeUI(), 500);
     }
   }
@@ -132,7 +129,6 @@ class MainMenuUI {
       false,
       1.0,
       () => {
-        console.log("Fade out complete! The menu is now invisible.");
         // Optionally, dispose of the advancedTexture if it is no longer needed.
         // this.advancedTexture.dispose();
         // this.advancedTexture = null;

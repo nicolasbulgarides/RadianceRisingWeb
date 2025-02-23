@@ -103,10 +103,6 @@ class CameraManager {
     followCamera.rotationOffset = 180;
     // Assign the new camera and activate it
     this.currentCamera = followCamera;
-
-    if (relevantScene == null) {
-      console.log("NULL REELVANT CHASE SCENE!");
-    }
   }
 
   /**

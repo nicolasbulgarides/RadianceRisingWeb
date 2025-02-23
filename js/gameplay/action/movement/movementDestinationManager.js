@@ -13,10 +13,14 @@ class MovementDestinationManager {
   static getDestinationVector(direction, activeGameLevelPlane, relevantPlayer) {
     let currentGamemodeRules = activeGameLevelPlane.gameModeRules;
     let bounded = currentGamemodeRules.MOVEMENT_IS_BOUNDED;
-    let maxDistance = currentGamemodeRules.MAX_MOVEMENT_DISTANCE;
+    let maxDistance =
+      currentGamemodeRules.currentEnforcings.maximumMovementDistance;
     let ignoreObstacles = currentGamemodeRules.OBSTACLES_ARE_IGNORED;
 
     if (bounded) {
+      GameplayLogger.lazyLog(
+        "Calculating destination vector while respecting boundaries"
+      );
       return BoundedDestinationCalculator.getDestinationVector(
         direction,
         ignoreObstacles,
@@ -25,6 +29,9 @@ class MovementDestinationManager {
         relevantPlayer
       );
     } else {
+      GameplayLogger.lazyLog(
+        "Calculating destination vector while ignoring boundaries"
+      );
       return UnboundedDestinationCalculator.getDestinationVector(
         direction,
         ignoreObstacles,

@@ -34,7 +34,6 @@ class PlayerUnlocksComposite {
 
   addUnlockedAndReportSingleUnlock(unlockName) {
     if (this.unlockedItems.includes(unlockName)) {
-      console.log(`${unlockName} is already unlocked.`);
     } else {
       this.unlockedItems.push(unlockName);
     }

@@ -103,10 +103,6 @@ class PlayerMovementManager {
    * @returns {Object} - The player's model.
    */
   getPlayerModelDirectly() {
-    if (this.playerModelPositionedObject == null) {
-      // Log a message if the model object is not available.
-      console.log("NULL!");
-    }
     return this.playerModelPositionedObject.model;
   }
 
@@ -225,14 +221,12 @@ class PlayerMovementManager {
    * Note: The variable "speed" is not defined in this scope; adjust if necessary.
    */
   describeMovement() {
-    // Log movement parameters including duration and frame count.
-    console.log(
-      `Movement initialized: Speed = ${
-        /* speed variable missing here */ "N/A"
-      }, Duration = ${this.durationInSeconds.toFixed(2)}s, Frames = ${
-        this.totalFrames
-      }`
-    );
+    let msg = `Movement initialized: Speed = ${
+      /* speed variable missing here */ "N/A"
+    }, Duration = ${this.durationInSeconds.toFixed(2)}s, Frames = ${
+      this.totalFrames
+    }`;
+    GameplayLogger.lazyLog(msg);
   }
 
   /**
@@ -285,12 +279,6 @@ class PlayerMovementManager {
     // Compute the new position by adding the movement vector to the start position.
     let updatedPosition = this.startPosition.add(movementVector);
 
-    /** 
-    // For frame-by-frame debugging, uncomment the following:
-    console.log(
-      `Updated pos: x${updatedPosition.x}, y ${updatedPosition.y}, z${updatedPosition.z}`
-    );
-    */
     return updatedPosition;
   }
 

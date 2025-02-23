@@ -176,7 +176,6 @@ class UILoadRequest {
         // Play the sound effect if one is specified.
         if (this.soundEffectForActivation) {
           // Replace with actual sound playing code (e.g., using Babylon.Sound).
-          console.log(`Playing sound effect: ${this.soundEffectForActivation}`);
         }
 
         // Mark the request as loaded successfully.

@@ -137,8 +137,6 @@ class RenderSceneSwapper {
 
       this.allStoredCameras[this.activeGameScene] =
         CameraManager.setAndGetPlaceholderCamera(this.activeGameScene);
-      // Debug log: active game level scene set.
-      // console.log("Set active game level scene: " + sceneId);
     } else {
       console.error(`Scene with ID '${sceneId}' not found.`);
     }
@@ -152,8 +150,6 @@ class RenderSceneSwapper {
     if (this.allStoredScenes[sceneId]) {
       this.allStoredScenes[sceneId].isRendering = true;
       this.activeUIScene = this.allStoredScenes[sceneId];
-      // Debug log: active UI scene set.
-      // console.log("UI Scene set");
     } else {
       console.error(`Scene with ID '${sceneId}' not found.`);
     }
@@ -166,7 +162,6 @@ class RenderSceneSwapper {
 
   getActiveGameLevelScene() {
     // Debug log can be enabled for troubleshooting.
-    // console.log("Returning active game level scene");
     return this.activeGameScene;
   }
 
@@ -192,7 +187,7 @@ class RenderSceneSwapper {
       // Render the game scene.
       this.activeGameScene.render();
     } else {
-      console.log("NULL camera!");
+      // to do add log code here
     }
     // Render the UI scene.
     this.activeUIScene.render();

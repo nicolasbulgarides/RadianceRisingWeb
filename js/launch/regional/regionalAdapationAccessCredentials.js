@@ -23,7 +23,6 @@ class RegionalAdaptionAccessCredentials {
   // Placeholder method to validate that the credentials meet expected format/values.
   validateCredentials() {
     // TODO: Implement actual validation logic (e.g., regex checks, checksum validations)
-    console.log("Validating credentials for", this.regionalAdapationIdentifier);
     return (
       this.regionalStaticAccessCode &&
       this.regionalDynamicAccessCode &&
@@ -34,7 +33,6 @@ class RegionalAdaptionAccessCredentials {
   // Placeholder method to encrypt or transform access codes if required.
   // This method can be extended to use robust cryptographic libraries.
   secureAccessCodes() {
-    console.log("Securing credentials for", this.regionalAdapationIdentifier);
     // As an example, using btoa for simple base64 encoding (not secure for production)
     this.regionalStaticAccessCode = btoa(this.regionalStaticAccessCode);
     this.regionalDynamicAccessCode = btoa(this.regionalDynamicAccessCode);
