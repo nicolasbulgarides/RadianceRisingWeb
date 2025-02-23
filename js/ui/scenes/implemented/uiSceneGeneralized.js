@@ -1,6 +1,6 @@
 class UISceneGeneralized extends BABYLON.Scene {
   constructor(uiSceneType) {
-    super(FundamentalSystemBridge.babylonEngine);
+    super(FundamentalSystemBridge["babylonEngine"]);
     this.baseContainer = null;
     this.autoClear = false;
     this.setBackgroundColor(new BABYLON.Color4(0.1, 0.1, 0.3, 1));

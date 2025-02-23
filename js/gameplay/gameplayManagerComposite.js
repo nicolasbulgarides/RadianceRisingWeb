@@ -35,8 +35,8 @@ class GameplayManagerComposite {
    * This method ensures that test orders are processed if a TestManager instance is available.
    */
   async processOrdersFromTestManager() {
-    if (FundamentalSystemBridge.testManager instanceof TestManager) {
-      FundamentalSystemBridge.testManager.processTestOrders(this);
+    if (FundamentalSystemBridge["testManager"] instanceof TestManager) {
+      await FundamentalSystemBridge["testManager"].processTestOrders(this);
     }
   }
 
@@ -54,6 +54,7 @@ class GameplayManagerComposite {
       this.allActivePlayers.push(playerToLoad); // Add the player to the active players list.
       activeGameplayLevel.registerCurrentPrimaryPlayer(playerToLoad); // Register the player in the active level.
       activeGameplayLevel.loadRegisteredPlayerModel(playerToLoad, true); // Load the player's model.
+      return proceed;
     }
   }
 
@@ -76,14 +77,15 @@ class GameplayManagerComposite {
    */
   processAttemptedMovementFromUIClick(clickedDirection) {
     let currentPlayer = this.primaryActiveGameplayLevel.currentPrimaryPlayer; // Get the current player.
+    // Check if the player can move.
+
     if (ValidActionChecker.canMove(currentPlayer, clickedDirection)) {
-      // Check if the player can move.
-      let destinationVector =
-        MovementDestinationCalculator.getProposedDestination(
-          clickedDirection,
-          currentPlayer,
-          this.primaryActiveGameplayLevel
-        ); // Calculate the proposed destination based on the clicked direction.
+      // Calculate the proposed destination based on the clicked direction.
+      let destinationVector = MovementDestinationManager.getDestinationVector(
+        clickedDirection,
+        this.primaryActiveGameplayLevel,
+        currentPlayer
+      );
 
       if (destinationVector instanceof BABYLON.Vector3) {
         currentPlayer.playerMovementManager.setDestinationAndBeginMovement(
@@ -100,7 +102,26 @@ class GameplayManagerComposite {
    * @param {Object} activeGameplayLevel - The new active gameplay level to set.
    */
   setActiveGameplayLevel(activeGameplayLevel) {
+    if (activeGameplayLevel == null) {
+      GameplayLogger.lazyLog(
+        "Active gameplay level in setter is null, cannot set active gameplay level"
+      );
+      return;
+    }
+
+    if (!(activeGameplayLevel instanceof ActiveGameplayLevel)) {
+      GameplayLogger.lazyLog(
+        "Active gameplay level is not an instance of ActiveGameplayLevel"
+      );
+      return;
+    }
+
     // Set the primary active gameplay level.
     this.primaryActiveGameplayLevel = activeGameplayLevel;
+
+    // Also track in allActiveGameplayLevels if not already there
+    if (!this.allActiveGameplayLevels.includes(activeGameplayLevel)) {
+      this.allActiveGameplayLevels.push(activeGameplayLevel);
+    }
   }
 }

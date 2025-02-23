@@ -262,7 +262,7 @@ class BaseGameUIScene extends UISceneGeneralized {
    */
   processMovementClick(buttonFunction) {
     const buttonFunctionKey = String(buttonFunction);
-    if (FundamentalSystemBridge.gameplayManagerComposite != null) {
+    if (FundamentalSystemBridge["gameplayManagerComposite"] != null) {
       let playerDirection = null;
 
       if (buttonFunctionKey === "LEFTCLICK") {
@@ -277,9 +277,9 @@ class BaseGameUIScene extends UISceneGeneralized {
 
       // Send the movement direction to the game's logic manager.
 
-      FundamentalSystemBridge.gameplayManagerComposite.processAttemptedMovementFromUIClick(
-        playerDirection
-      );
+      FundamentalSystemBridge[
+        "gameplayManagerComposite"
+      ].processAttemptedMovementFromUIClick(playerDirection);
     }
   }
 }

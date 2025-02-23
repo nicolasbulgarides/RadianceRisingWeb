@@ -34,7 +34,7 @@ class NetworkingProgressSubmission {
       let compositeProgressSubmissionRequest =
         this.formCompositeProgressSubmissionRequestAndClear();
 
-      let networkingManager = FundamentalSystemBridge.networkingManager;
+      let networkingManager = FundamentalSystemBridge[networkingManager];
 
       if (networkingManager instanceof NetworkingManager) {
         networkingManager.processRequestViaAPIRequestRouter(

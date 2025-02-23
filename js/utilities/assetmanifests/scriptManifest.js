@@ -79,8 +79,8 @@ class ScriptManifest {
     "/gameplay/gamemodes/gamemodeFactory.js",
     "/gameplay/gamemodes/specificmodes/gamemodeGeneric.js",
     "/gameplay/gamemodes/specificmodes/gamemodeStandard.js",
-    "/gameplay/gamemodes/specificmodes/gamemodeTestAssist.js",
-    "/gameplay/gamemodes/gamemodeCurrentEnforcings.js",
+    "/gameplay/gamemodes/specificmodes/gamemodeTest.js",
+    "/gameplay/gamemodes/gamemodeEnforcings.js",
   ];
   static occurrenceScripts = [
     "/gameplay/interactions/occurrences/specialOccurrenceComposite.js",
@@ -256,14 +256,16 @@ class ScriptManifest {
   ];
 
   static movementScripts = [
-    "/gameplay/action/movement/movementDestinationCalculator.js",
+    "/gameplay/action/movement/movementDestinationManager.js",
+    "/gameplay/action/movement/boundedDestinationCalculator.js",
+    "/gameplay/action/movement/unboundedDestinationCalculator.js",
+    "/gameplay/action/movement/obstacle.js",
+    "/gameplay/action/utilities/obstacleFinder.js",
   ];
   static gameInteractionsScripts = [
     "/gameplay/action/utilities/validActionChecker.js",
   ];
   static gameAreaScripts = [
-    "/gameplay/areas/interactions/obstacle.js",
-    "/gameplay/areas/interactions/obstacleFinder.js",
     "/gameplay/areas/generation/levelData.js",
     "/gameplay/areas/generation/boardSlot.js",
     "/gameplay/areas/generation/activeGameplayLevel.js",
@@ -307,6 +309,8 @@ class ScriptManifest {
   static minorUtilityScripts = [
     "/utilities/misc/chadUtilities.js",
     "/utilities/misc/timestampGenie.js",
+    "/utilities/misc/randomAssist.js",
+    "/utilities/misc/vectorAssist.js",
   ];
 
   static networkingScripts = [

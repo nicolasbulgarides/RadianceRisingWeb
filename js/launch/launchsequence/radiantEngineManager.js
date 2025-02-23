@@ -28,7 +28,7 @@ class RadiantEngineManager {
   }
 
   startRenderLoop() {
-    FundamentalSystemBridge.babylonEngine.runRenderLoop(() => {
+    FundamentalSystemBridge["babylonEngine"].runRenderLoop(() => {
       this.onFrameRenderUpdates();
     });
   }
@@ -40,12 +40,12 @@ class RadiantEngineManager {
    */
 
   loadEngineSettings() {
-    FundamentalSystemBridge.babylonEngine.autoClearDepthAndStencil = false;
-    FundamentalSystemBridge.babylonEngine.setHardwareScalingLevel(
+    FundamentalSystemBridge["babylonEngine"].autoClearDepthAndStencil = false;
+    FundamentalSystemBridge["babylonEngine"].setHardwareScalingLevel(
       1 / (window.devicePixelRatio || 1)
     );
     window.addEventListener("resize", () => {
-      FundamentalSystemBridge.babylonEngine.resize();
+      FundamentalSystemBridge["babylonEngine"].resize();
     });
 
     Config.addAudioUnlock();
@@ -66,7 +66,9 @@ class RadiantEngineManager {
    * Updates gameplay and other per-frame processes.
    */
   onFrameRenderUpdates() {
-    FundamentalSystemBridge.gameplayManagerComposite.processEndOfFrameEvents();
-    FundamentalSystemBridge.renderSceneSwapper.render();
+    FundamentalSystemBridge[
+      "gameplayManagerComposite"
+    ].processEndOfFrameEvents();
+    FundamentalSystemBridge["renderSceneSwapper"].render();
   }
 }

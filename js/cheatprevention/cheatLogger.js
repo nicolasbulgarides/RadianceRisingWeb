@@ -11,8 +11,7 @@ class CheatLogger {
     let cheatReportToSystemAdminNetworkAPIRequest =
       this.formCheatReportToSystemAdmin(cheatDetection);
 
-    let NetworkManager = FundamentalSystemBridge.getNetworkManager();
-
+    let NetworkManager = FundamentalSystemBridge[networkingManager];
     if (networkManager != null && NetworkManager instanceof NetworkingManager) {
       let sender = "-processed-by-cheat-logger-cheat-category: ";
 

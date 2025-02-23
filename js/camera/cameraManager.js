@@ -16,9 +16,17 @@ class CameraManager {
     this.scene = scene;
   }
 
+  hasActiveCamera() {
+    if (this.currentCamera == null) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+
   utilizeDefaultGameSceneForCamera() {
     this.registerPrimaryGameScene(
-      FundamentalSystemBridge.renderSceneSwapper.getActiveGameLevelScene()
+      FundamentalSystemBridge[renderSceneSwapper].getActiveGameLevelScene()
     );
   }
 

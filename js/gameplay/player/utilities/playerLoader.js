@@ -24,7 +24,6 @@ class PlayerLoader {
 
     // Load the player's position manager with the created model object and the provided position.
     player.loadMovementManager(playerModelObject, position);
-    // Inline debug option: Uncomment the next line for logging the default model.
   }
 
   /**
@@ -38,7 +37,6 @@ class PlayerLoader {
     // Instantiate a new PlayerUnit object.
     let gamePlayer = new PlayerUnit();
 
-    console.log("Loading fresh player...speed XXX" + Config.DEFAULT_MAX_SPEED);
     // Load the player's status with default values (full health and magic).
     gamePlayer.loadStatusFresh(
       Config.DEFAULT_NAME, // Player name.

@@ -9,7 +9,7 @@ class PlayerSaveManager {
 
   attemptToRetrievePlayerSaveComposite() {
     let playerSaveComposite =
-      FundamentalSystemBridge.networkingManager.retrievePlayerSaveComposite();
+      FundamentalSystemBridge[networkingManager].retrievePlayerSaveComposite();
     if (playerSaveComposite) {
       return playerSaveComposite;
     }

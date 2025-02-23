@@ -65,4 +65,16 @@ class LevelMap {
   getPlayerStartingPosition() {
     return this.startingPosition; // Return the starting position.
   }
+  /**
+   * Describes the level map in a readable format.
+   * @returns {string} - A formatted description of the level map.
+   */
+  describeLevelMap() {
+    return `Level Map Description:
+    Dimensions: ${this.mapWidth}x${this.mapDepth}
+    Total Board Slots: ${this.mapWidth * this.mapDepth}
+    Starting Position: (${this.startingPosition.x}, ${
+      this.startingPosition.y
+    }, ${this.startingPosition.z})`;
+  }
 }

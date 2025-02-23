@@ -20,6 +20,7 @@ class PlayerMovementManager {
     this.movementActive = false;
     this.pathingDestination = null;
     this.currentPosition = position;
+    this.maxMovementDistance = 0;
   }
 
   /**
@@ -29,6 +30,15 @@ class PlayerMovementManager {
    */
   getPositionVector() {
     return this.currentPosition;
+  }
+
+  /**
+   * Sets the maximum movement distance for the player.
+   *
+   * @param {number} distance - The maximum distance the player can move.
+   */
+  setMaxMovementDistance(distance) {
+    this.maxMovementDistance = distance;
   }
 
   /**
@@ -109,75 +119,86 @@ class PlayerMovementManager {
     return this.playerModelPositionedObject;
   }
 
-  // Call this method once to start the movement.
-  startMovement(speed) {
+  /**
+   * Validates all required parameters for movement.
+   *
+   * @param {number} speed - The movement speed to validate
+   * @returns {boolean} - True if all parameters are valid, false otherwise
+   */
+  validateMovementParameters(speed) {
     if (!this.currentPlayer) {
       console.error("No player to move!");
-      return;
+      return false;
     }
 
-    // Check that the destination exists and is a valid BABYLON.Vector3.
     if (
       !this.pathingDestination ||
       !(this.pathingDestination instanceof BABYLON.Vector3)
     ) {
       console.error("Invalid or missing pathing destination!");
-      return;
+      return false;
     }
 
-    // Validate speed.
     if (speed <= 0) {
       console.error("Invalid speed provided. Speed must be greater than zero.");
-      return;
+      return false;
     }
 
-    // Validate FPS configuration.
     if (!Config.FPS || Config.FPS <= 0) {
       console.error("Invalid FPS configuration!");
-      return;
+      return false;
     }
 
-    // Retrieve starting and destination positions.
+    return true;
+  }
+
+  /**
+   * Initializes movement parameters including distance, direction, and frame calculations.
+   *
+   * @param {number} speed - The movement speed to use for calculations
+   * @returns {boolean} - True if initialization successful, false if movement unnecessary
+   */
+  initializeMovementParameters(speed) {
     this.startPosition = this.currentPosition;
     this.endPosition = this.pathingDestination;
-
-    // Compute the total distance to travel.
     this.totalDistance = BABYLON.Vector3.Distance(
       this.startPosition,
       this.endPosition
     );
 
-    if (this.totalDistance > 0) {
-      // Compute the movement direction.
-      this.currentPlayer.playerStatus.playerCurrentActionStatus.setInDirectionalMotion(
-        true
-      );
-      this.direction = this.endPosition
-        .subtract(this.startPosition)
-        .normalize();
+    if (this.totalDistance <= 0) {
+      this.direction = BABYLON.Vector3.Zero();
+      return false;
+    }
 
-      // Calculate the duration of the movement.
-      this.durationInSeconds = this.totalDistance / speed;
+    this.direction = this.endPosition.subtract(this.startPosition).normalize();
+    this.durationInSeconds = this.totalDistance / speed;
+    this.totalFrames = Math.max(
+      1,
+      Math.ceil(this.durationInSeconds * Config.FPS)
+    );
+    this.currentFrame = 0;
+    this.movementPerFrame = this.direction.scale(
+      this.totalDistance / this.totalFrames
+    );
 
-      // Calculate total frames.
-      this.totalFrames = Math.max(
-        1,
-        Math.ceil(this.durationInSeconds * Config.FPS)
-      );
-      this.currentFrame = 0;
-      // Calculate the movement vector to be applied each frame.
-      this.movementPerFrame = this.direction.scale(
-        this.totalDistance / this.totalFrames
-      );
-      console.log("Movement per frame:", this.movementPerFrame);
+    return true;
+  }
 
-      // Mark the movement as active.
-      this.movementActive = true;
-    } else {
-      this.direction = BABYLON.Vector3.Zero(); // Prevent potential NaN values.
-      this.movementActive = false;
+  // Call this method once to start the movement.
+  startMovement(speed) {
+    if (!this.validateMovementParameters(speed)) {
       return;
     }
+
+    if (!this.initializeMovementParameters(speed)) {
+      return;
+    }
+
+    this.currentPlayer.playerStatus.playerCurrentActionStatus.setInDirectionalMotion(
+      true
+    );
+    this.movementActive = true;
   }
 
   // Call this method every frame (e.g., in your game loop) to update the movement.
@@ -275,11 +296,6 @@ class PlayerMovementManager {
 
   setDestinationAndBeginMovement(destinationVector, relevantPlayer) {
     let currentSpeed = relevantPlayer.playerStatus.currentMaxSpeed;
-
-    console.log(
-      "Setting destination and beginning movement...current speed" +
-        currentSpeed
-    );
 
     // Set the player's destination in the position/model manager.
     this.setDestination(destinationVector);

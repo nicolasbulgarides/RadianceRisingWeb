@@ -5,10 +5,11 @@ class LevelMapObstacleGenerator {
    * @param {LevelMap} level - The level map to populate with obstacles.
    * @param {Object} relevantSceneBuilder - The scene builder for loading models.
    */
-  initializeObstacles(level, relevantSceneBuilder) {
-    if (!level.obstacles) return; // Exit if there are no obstacles to initialize.
+  renderObstaclesForLevel(activeGameplayLevel, relevantSceneBuilder) {
+    let levelMap = activeGameplayLevel.levelMap;
+    if (!levelMap.obstacles) return; // Exit if there are no obstacles to initialize.
 
-    for (const obstacleData of level.obstacles) {
+    for (const obstacleData of levelMap.obstacles) {
       const {
         obstacleArchetype,
         nickname,
@@ -32,7 +33,7 @@ class LevelMapObstacleGenerator {
       }
 
       // Retrieve the board slot located at the obstacle's intended position.
-      const boardSlot = level.boardSlots[position.x][position.z];
+      const boardSlot = levelMap.boardSlots[position.x][position.z];
       if (boardSlot) {
         // Host the obstacle in the board slot.
         boardSlot.hostObstacle(obstacle); // Add the obstacle to the board slot.
@@ -40,7 +41,9 @@ class LevelMapObstacleGenerator {
         // Load the obstacle's model into the scene.
         relevantSceneBuilder.loadModel(obstacle.positionedObject); // Load the model for the obstacle.
       } else {
-        console.warn(`LevelMap: No BoardSlot at ${position.x}, ${position.z}`); // Log warning if no board slot is found.
+        GameplayLogger.lazyLog(
+          `LevelMap loading obstacle issue: No BoardSlot at ${position.x}, ${position.z}`
+        ); // Log warning if no board slot is found.
       }
     }
   }
@@ -48,13 +51,22 @@ class LevelMapObstacleGenerator {
   /**
    * Dynamically generates edge obstacles (mountains) along the borders of the game level.
    * This helps to simulate natural boundaries and define the playable area.
-   * @param {LevelMap} level - The level map to which edge obstacles are added.
+   * @param {ActiveGameplayLevel} activeGameplayLevel - The active gameplay level to which edge obstacles are added.
    */
-  generateEdgeMountains(level) {
+  generateEdgeMountainsObstacles(activeGameplayLevel) {
+    if (!(activeGameplayLevel instanceof ActiveGameplayLevel)) {
+      GameplayLogger.lazyLog(
+        "LevelMapObstacleGenerator: Invalid active gameplay level provided to obstacle generator for edge mountains"
+      );
+      return;
+    }
+
+    let levelMap = activeGameplayLevel.levelMap;
+
     const mountains = []; // Array to hold generated mountain obstacles.
 
     // Generate obstacles along the left and right edges.
-    for (let z = 0; z < level.mapDepth; z++) {
+    for (let z = 0; z < levelMap.mapDepth; z++) {
       // Left edge obstacle at x = 0.
       mountains.push({
         obstacleArchetype: "mountain",
@@ -70,12 +82,12 @@ class LevelMapObstacleGenerator {
         nickname: `mountain_right_${z}`,
         interactionId: "none",
         directionsBlocked: "all",
-        position: new BABYLON.Vector3(level.mapWidth - 1, 0, z),
+        position: new BABYLON.Vector3(levelMap.mapWidth - 1, 0, z),
       });
     }
 
     // Generate obstacles along the top and bottom edges.
-    for (let x = 0; x < level.mapWidth; x++) {
+    for (let x = 0; x < levelMap.mapWidth; x++) {
       // Top edge obstacle at z = 0.
       mountains.push({
         obstacleArchetype: "mountain",
@@ -91,12 +103,12 @@ class LevelMapObstacleGenerator {
         nickname: `mountain_bottom_${x}`,
         interactionId: "none",
         directionsBlocked: "all",
-        position: new BABYLON.Vector3(x, 0, level.mapDepth - 1),
+        position: new BABYLON.Vector3(x, 0, levelMap.mapDepth - 1),
       });
     }
 
     // Overwrite the level's obstacles with the generated edge obstacles.
-    level.obstacles = mountains; // Set the level's obstacles to the generated mountains.
+    levelMap.obstacles = mountains; // Set the level's obstacles to the generated mountains.
   }
 
   /**

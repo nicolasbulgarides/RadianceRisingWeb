@@ -22,8 +22,12 @@ class LevelFactoryComposite {
   }
 
   async renderGameplayLevel(gameplayLevel) {
-    await this.gridManager.generateGrid(gameplayLevel.levelMap, 1);
-
     gameplayLevel.initializeLevelLighting();
+
+    let finalizedRendering = await this.gridManager.generateGrid(
+      gameplayLevel.levelMap,
+      1
+    );
+    return true;
   }
 }

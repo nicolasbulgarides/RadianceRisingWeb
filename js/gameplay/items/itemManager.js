@@ -63,12 +63,12 @@ class ItemManager {
   processFailureToUseItem(failureReason, itemId) {}
 
   addItemToInventoryUI(item) {
-    let inventoryUI = FundamentalSystemBridge.playerInventoryUI;
+    let inventoryUI = FundamentalSystemBridge[playerInventoryUI];
     inventoryUI.updatePlayerInventoryUI("add", item);
   }
 
   subtractItemFromInventoryUI(item) {
-    let inventoryUI = FundamentalSystemBridge.playerInventoryUI;
+    let inventoryUI = FundamentalSystemBridge[playerInventoryUI];
     inventoryUI.updatePlayerInventoryUI("subtract", item);
   }
 }

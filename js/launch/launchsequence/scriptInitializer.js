@@ -115,8 +115,6 @@ class ScriptInitializer {
    */
   async coreInitializeSequence() {
     try {
-      this.fundamentalSystemBridge = new FundamentalSystemBridge();
-
       let criticalLoggingSequenceSuccess =
         await this.loadCriticalLoggingSequenceScripts();
 
@@ -132,15 +130,7 @@ class ScriptInitializer {
 
       // If Babylon engine loaded successfully, try to load the Radiant engine manager
       if (babylonEngineSuccess) {
-        FundamentalSystemBridge.registerBabylonEngine(this.babylonEngineLoaded);
         radiantEngineSuccess = await this.loadRadiantEngine();
-      }
-
-      // If both engines are successfully loaded, register them with the fundamental system bridge
-      if (babylonEngineSuccess && radiantEngineSuccess) {
-        FundamentalSystemBridge.registerRadiantEngineManager(
-          this.radiantEngineManager
-        );
       }
     } catch (error) {
       console.log("Error in core initialize sequence: " + error.message);
@@ -161,10 +151,13 @@ class ScriptInitializer {
     try {
       // Check if a valid Babylon engine instance and canvas element exist before instantiation
       if (
-        this.babylonEngineLoaded instanceof BABYLON.Engine &&
+        FundamentalSystemBridge["babylonEngine"] != null &&
         this.canvas != null
       ) {
-        this.radiantEngineManager = new RadiantEngineManager();
+        let radiantEngineManager = new RadiantEngineManager();
+        FundamentalSystemBridge.registerRadiantEngineManager(
+          radiantEngineManager
+        );
         successfulInstantiation = true;
         return successfulInstantiation;
       } else {
@@ -172,8 +165,8 @@ class ScriptInitializer {
         if (this.canvas == null) {
           catastrophe += " - Canvas Not Found";
         }
-        if (this.babylonEngineLoaded == null) {
-          catastrophe += " - Babylon Engine Not Found";
+        if (FundamentalSystemBridge["babylonEngine"] == null) {
+          catastrophe += " - Babylon Engine Not Found in FSB";
         }
         // Log and display catastrophe using diagnostic and management tools
         CatastropheManager.logCatastrophe(catastrophe);
@@ -234,8 +227,7 @@ class ScriptInitializer {
       const babylonEngine = new BABYLON.Engine(this.canvas, true, {
         stencil: true,
       });
-      this.babylonEngineLoaded = babylonEngine;
-      return this.babylonEngineLoaded;
+      return babylonEngine;
     } catch (error) {
       const catastrophe =
         "Failure in loadEngine of ScriptInitializer - BABYLON Engine Basic Initialization FAILURE!";
@@ -262,9 +254,10 @@ class ScriptInitializer {
     let babylonEngineFound = this.verifyBabylonEngineFound();
     if (babylonEngineFound) {
       // Attempt to initialize the Babylon engine
-      this.babylonEngineLoaded = this.initializeBabylonEngine();
+      let babylonEngineLoaded = this.initializeBabylonEngine();
       // Verify that the loaded engine is an instance of BABYLON.Engine
-      if (this.babylonEngineLoaded instanceof BABYLON.Engine) {
+      if (babylonEngineLoaded instanceof BABYLON.Engine) {
+        FundamentalSystemBridge.registerBabylonEngine(babylonEngineLoaded);
         babylonEngineSuccess = true;
       } else {
         // Log a catastrophe if the engine is not a valid Babylon engine

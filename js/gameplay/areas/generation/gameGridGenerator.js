@@ -23,7 +23,7 @@ class GameGridGenerator {
 
   async loadTilesModelsDefault() {
     let relevantSceneBuilder =
-      FundamentalSystemBridge.renderSceneSwapper.getSceneBuilderForScene(
+      FundamentalSystemBridge["renderSceneSwapper"].getSceneBuilderForScene(
         "BaseGameScene"
       );
     const tilesLoaded = await this.loadTilesModels(

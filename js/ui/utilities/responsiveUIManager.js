@@ -50,7 +50,7 @@ class ResponsiveUIManager {
    */
   static handleResizeOfActiveUIScene() {
     let activeScene =
-      FundamentalSystemBridge.renderSceneSwapper.getActiveUIScene();
+      FundamentalSystemBridge[renderSceneSwapper].getActiveUIScene();
 
     // activeScene.rebuildUICompletely();
 

@@ -73,7 +73,7 @@ class ProgrammaticAnimation {
 
     if (timeToTriggerEvent) {
       for (const triggerEvent of this.programmaticAnimationTriggerEvents) {
-        FundamentalSystemBridge.activeTriggerManager.addTriggerEventToPop(
+        FundamentalSystemBridge[activeTriggerManager].addTriggerEventToPop(
           triggerEvent
         );
       }

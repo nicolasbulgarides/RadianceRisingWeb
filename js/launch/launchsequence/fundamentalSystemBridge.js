@@ -83,8 +83,15 @@ class FundamentalSystemBridge {
   }
 
   static loadLevelFactoryComposite() {
-    this.levelFactoryComposite = new LevelFactoryComposite();
-    this.levelFactoryComposite.loadFactorySupportSystems();
+    let levelFactoryComposite = new LevelFactoryComposite();
+    FundamentalSystemBridge.registerManager(
+      "levelFactoryComposite",
+      levelFactoryComposite,
+      LevelFactoryComposite
+    );
+    FundamentalSystemBridge[
+      "levelFactoryComposite"
+    ].loadFactorySupportSystems();
   }
 
   static registerUIConstructionGrandManager(uiConstructionGrandManager) {
@@ -120,7 +127,12 @@ class FundamentalSystemBridge {
   }
 
   static loadGameplayManagerComposite() {
-    this.gameplayManagerComposite = new GameplayManagerComposite();
+    let gameplayManagerComposite = new GameplayManagerComposite();
+    FundamentalSystemBridge.registerManager(
+      "gameplayManagerComposite",
+      gameplayManagerComposite,
+      GameplayManagerComposite
+    );
   }
 
   static registerPrimaryGameplayLightingManager(
@@ -147,8 +159,18 @@ class FundamentalSystemBridge {
    * Loads he Soundand Music Managers instances.
    */
   static loadSoundManagers() {
-    FundamentalSystemBridge.musicManager = new MusicManager();
-    FundamentalSystemBridge.soundEffectsManager = new SoundEffectsManager();
+    let musicManager = new MusicManager();
+    FundamentalSystemBridge.registerManager(
+      "musicManager",
+      musicManager,
+      MusicManager
+    );
+    let soundEffectsManager = new SoundEffectsManager();
+    FundamentalSystemBridge.registerManager(
+      "soundEffectsManager",
+      soundEffectsManager,
+      SoundEffectsManager
+    );
   }
 
   /**
@@ -157,34 +179,59 @@ class FundamentalSystemBridge {
    */
   static registerUILoadRequestManager(uiLoadRequestManager) {
     if (uiLoadRequestManager instanceof UILoadRequestManager) {
-      FundamentalSystemBridge.uiLoadRequestManager = uiLoadRequestManager;
+      FundamentalSystemBridge["uiLoadRequestManager"] = uiLoadRequestManager;
     }
   }
 
   static possiblyLoadAndActivateTestManager() {
     if (Config.LOAD_TEST_MANAGER) {
-      this.testManager = new TestManager();
-      this.testManager.processTestOrders(this.gameplayManagerComposite);
+      let testManager = new TestManager();
+      FundamentalSystemBridge.registerManager(
+        "testManager",
+        testManager,
+        TestManager
+      );
+      FundamentalSystemBridge["testManager"].processTestOrders(
+        FundamentalSystemBridge["gameplayManagerComposite"]
+      );
     }
   }
 
   static loadProgrammaticAnimationManager() {
-    FundamentalSystemBridge.programmaticAnimationManager =
-      new ProgrammaticAnimationManager();
+    let programmaticAnimationManager = new ProgrammaticAnimationManager();
+    FundamentalSystemBridge.registerManager(
+      "programmaticAnimationManager",
+      programmaticAnimationManager,
+      ProgrammaticAnimationManager
+    );
   }
 
   static loadActiveTriggerManager() {
-    FundamentalSystemBridge.activeTriggerManager = new ActiveTriggerManager();
+    let activeTriggerManager = new ActiveTriggerManager();
+    FundamentalSystemBridge.registerManager(
+      "activeTriggerManager",
+      activeTriggerManager,
+      ActiveTriggerManager
+    );
   }
 
-  static registerSpecialOccurenceManager(specialOccurenceManager) {
+  static registerSpecialOccurenceManager() {
     if (specialOccurenceManager instanceof SpecialOccurenceManager) {
-      FundamentalSystemBridge.specialOccurenceManager = specialOccurenceManager;
+      FundamentalSystemBridge.registerManager(
+        "specialOccurenceManager",
+        specialOccurenceManager,
+        SpecialOccurenceManager
+      );
     }
   }
 
   static loadRenderSceneSwapper() {
-    this.renderSceneSwapper = new RenderSceneSwapper();
+    let renderSceneSwapper = new RenderSceneSwapper();
+    FundamentalSystemBridge.registerManager(
+      "renderSceneSwapper",
+      renderSceneSwapper,
+      RenderSceneSwapper
+    );
   }
 
   /**

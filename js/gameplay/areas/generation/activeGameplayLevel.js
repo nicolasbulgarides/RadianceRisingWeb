@@ -92,7 +92,7 @@ class ActiveGameplayLevel {
   setPlayerCamera(player) {
     // After the player model is loaded, configure the camera to chase the player.
     let cameraToDispose =
-      FundamentalSystemBridge.renderSceneSwapper.allStoredCameras[
+      FundamentalSystemBridge["renderSceneSwapper"].allStoredCameras[
         this.hostingScene
       ];
 
@@ -100,7 +100,7 @@ class ActiveGameplayLevel {
     // Update the camera to chase the player's model.
     this.cameraManager.setCameraToChase(this.hostingScene, model);
 
-    FundamentalSystemBridge.renderSceneSwapper.disposeAndDeleteCamera(
+    FundamentalSystemBridge["renderSceneSwapper"].disposeAndDeleteCamera(
       cameraToDispose // Dispose of the previous camera.
     );
   }
@@ -117,10 +117,11 @@ class ActiveGameplayLevel {
       let positionedObject =
         player.playerMovementManager.getPlayerModelPositionedObject(); // Get the positioned object for the player.
 
-      let relevantBuilder =
-        FundamentalSystemBridge.renderSceneSwapper.getSceneBuilderByScene(
-          this.hostingScene // Get the scene builder for the current scene.
-        );
+      let relevantBuilder = FundamentalSystemBridge[
+        "renderSceneSwapper"
+      ].getSceneBuilderByScene(
+        this.hostingScene // Get the scene builder for the current scene.
+      );
       // Asynchronously load the animated player model.
       await relevantBuilder.loadAnimatedModel(positionedObject);
 
@@ -129,5 +130,48 @@ class ActiveGameplayLevel {
       }
       return true; // Return success.
     }
+  }
+
+  /**
+   * Returns a beautifully formatted string description of the current gameplay level state.
+   * @returns {string} A formatted description of the level
+   */
+  describeMe() {
+    const boundary = this.getActiveGameLevelBoundary();
+    const playerPos =
+      this.currentPrimaryPlayer?.playerMovementManager.getPlayerModelPositionedObject()
+        ?.position;
+
+    return `🎮 Level Status Report 🎮
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📐 Dimensions
+   Width: ${this.levelMap.mapWidth} units
+   Depth: ${this.levelMap.mapDepth} units
+   Playable Area: (${boundary.minX},${boundary.minZ}) to (${boundary.maxX},${
+      boundary.maxZ
+    })
+
+👥 Players
+   Total Players: ${this.registeredPlayers.length}
+   Primary Player: ${this.currentPrimaryPlayer ? "✓ Active" : "✗ None"}
+   ${
+     playerPos
+       ? `   Location: (${playerPos.x.toFixed(2)}, ${playerPos.y.toFixed(
+           2
+         )}, ${playerPos.z.toFixed(2)})`
+       : ""
+   }
+
+🎯 Game Mode
+   Lighting: ${this.lightingManager ? "💡 Active" : "🌑 Not Initialized"}
+   Rules: ${Object.keys(this.gameModeRules || {})
+     .map((rule) => `\n     • ${rule}`)
+     .join("")}
+
+🎥 Scene Status
+   Camera System: ${
+     this.cameraManager?.hasActiveCamera() ? "🎥 Ready" : "❌ Not Set"
+   }
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
   }
 }

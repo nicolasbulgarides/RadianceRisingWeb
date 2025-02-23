@@ -45,7 +45,7 @@ class ConstellationOrLevelUnlockValidator extends AreaUnlockValidator {
     constellationOrLevel,
     constellationOrLevelName
   ) {
-    let gameplayManager = FundamentalSystemBridge.gameplayManager;
+    let gameplayManager = FundamentalSystemBridge["gameplayManagerComposite"];
 
     if (constellationOrLevel === "constellation") {
       gameplayManager.processUnlockedConstellation(constellationOrLevelName);

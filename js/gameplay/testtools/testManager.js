@@ -8,50 +8,116 @@ class TestManager {
   async processTestOrders(gameplayManager) {
     // Ensure tiles are loaded before proceeding
     if (!LevelFactoryComposite.checkTilesLoaded()) {
-      await FundamentalSystemBridge.levelFactoryComposite.loadFactorySupportSystems();
+      await FundamentalSystemBridge[
+        "levelFactoryComposite"
+      ].loadFactorySupportSystems();
     }
 
     let gameplayLevel = await this.loadLevelAndPlayer(gameplayManager);
-    await this.renderLevel(gameplayLevel);
+
+    if (!gameplayLevel) {
+      GameplayLogger.lazyLog("Failed to load gameplay level");
+      return;
+    }
+
+    let finalizedRendering = await this.renderLevel(gameplayLevel);
+
+    if (!finalizedRendering) {
+      GameplayLogger.lazyLog("Failed to render level");
+      return;
+    }
+
+    // Double check that the level is properly set in the gameplay manager
+    if (!gameplayManager.primaryActiveGameplayLevel) {
+      gameplayManager.setActiveGameplayLevel(gameplayLevel);
+    } else if (gameplayManager.primaryActiveGameplayLevel !== gameplayLevel) {
+      gameplayManager.setActiveGameplayLevel(gameplayLevel);
+    }
+
     await this.levelObstacleTest();
   }
+
   async loadLevelAndPlayer(gameplayManager) {
-    let gameplayLevel = await this.generateBasicTestLevel(gameplayManager);
+    let gameplayLevel = await this.generateGameplayLevelComposite(
+      gameplayManager
+    );
+
+    if (gameplayLevel == null) {
+      GameplayLogger.lazyLog(
+        "GameplayLevel is null at load, cannot load player to gameplay level"
+      );
+      return null;
+    }
     let demoPlayer = PlayerLoader.getFreshPlayer(gameplayLevel.levelMap); // Retrieve the demo player model.
-    gameplayManager.loadPlayerToGameplayLevel(gameplayLevel, demoPlayer); // Load the player into the level.
+    demoPlayer.playerMovementManager.setMaxMovementDistance(3);
+    let loadedPlayer = await gameplayManager.loadPlayerToGameplayLevel(
+      gameplayLevel,
+      demoPlayer
+    ); // Load the player into the level.
+
     return gameplayLevel;
   }
 
-  async generateBasicTestLevel(gameplayManager) {
+  async generateGameplayLevelComposite(gameplayManager) {
     // Load level configuration (dimensions, obstacles, start position) from preset data.
 
     let levelMapDemo = new LevelMap(); // Create a new LevelMap instance.
     levelMapDemo.attemptToLoadMapComposite(Config.DEMO_LEVEL); // Load the demo level configuration.
 
-    // Register camera and lighting managers for the gameplay level.
-    FundamentalSystemBridge.registerPrimaryGameplayCameraManager(
-      new CameraManager()
-    );
-    FundamentalSystemBridge.registerPrimaryGameplayLightingManager(
-      new LightingManager()
+    // Create an active gameplay level instance with the loaded configurations.
+    let activeDemoGameplayLevel = await this.prepareGameplayLevelObject(
+      levelMapDemo
     );
 
-    // Create an active gameplay level instance with the loaded configurations.
-    let activeDemoGameplayLevel = new ActiveGameplayLevel(
-      FundamentalSystemBridge.renderSceneSwapper.getActiveGameLevelScene(),
-      GamemodeFactory.initializeSpecifiedGamemode("DemoLevel", "standard"),
-      levelMapDemo,
-      FundamentalSystemBridge.primaryGameplayCameraManager,
-      FundamentalSystemBridge.primaryGameplayLightingManager
-    );
+    if (activeDemoGameplayLevel == null) {
+      GameplayLogger.lazyLog(
+        "ActiveDemoGameplayLevel is null at generate, post setting active gameplay level cannot generate gameplay level"
+      );
+      return null;
+    }
+
     gameplayManager.setActiveGameplayLevel(activeDemoGameplayLevel); // Set the loaded level as active.
+
     return activeDemoGameplayLevel; // Return the configured gameplay level.
   }
 
-  async renderLevel(gameplayLevel) {
-    FundamentalSystemBridge.levelFactoryComposite.renderGameplayLevel(
-      gameplayLevel
+  generateAndRegisterCameraAndLightingManagers() {
+    let primaryCameraManager = new CameraManager();
+    let primaryLightingManager = new LightingManager();
+    FundamentalSystemBridge.registerPrimaryGameplayCameraManager(
+      primaryCameraManager
     );
+    FundamentalSystemBridge.registerPrimaryGameplayLightingManager(
+      primaryLightingManager
+    );
+    return { primaryCameraManager, primaryLightingManager };
+  }
+
+  async prepareGameplayLevelObject(levelMap) {
+    let { primaryCameraManager, primaryLightingManager } =
+      this.generateAndRegisterCameraAndLightingManagers();
+    let gameMode = GamemodeFactory.initializeSpecifiedGamemode("test");
+
+    let activeGameLevelScene =
+      FundamentalSystemBridge["renderSceneSwapper"].getActiveGameLevelScene();
+
+    let activeDemoGameplayLevel = new ActiveGameplayLevel(
+      activeGameLevelScene,
+      gameMode,
+      levelMap,
+      primaryCameraManager,
+      primaryLightingManager
+    );
+    return activeDemoGameplayLevel;
+  }
+
+  async renderLevel(gameplayLevel) {
+    let finalizedRendering =
+      FundamentalSystemBridge["levelFactoryComposite"].renderGameplayLevel(
+        gameplayLevel
+      );
+
+    return finalizedRendering;
   }
 
   /**
@@ -60,15 +126,57 @@ class TestManager {
    * @param {LevelMapObstacleGenerator} generator - The generator instance for obstacles.
    */
   async levelObstacleTest() {
+    let gameplayManagerComposite =
+      FundamentalSystemBridge["gameplayManagerComposite"];
+
+    if (gameplayManagerComposite == null) {
+      GameplayLogger.lazyLog(
+        "GameplayManagerComposite is null, cannot generate obstacles"
+      );
+      return;
+    }
+
+    let gameLevel = gameplayManagerComposite.primaryActiveGameplayLevel;
+
+    if (gameLevel == null) {
+      GameplayLogger.lazyLog("GameLevel is null, cannot generate obstacles");
+      return;
+    }
+
+    if (!(gameLevel instanceof ActiveGameplayLevel)) {
+      GameplayLogger.lazyLog(
+        "GameLevel is not an instance of ActiveGameplayLevel, cannot generate obstacles"
+      );
+      return;
+    }
+
     let relevantSceneBuilder =
-      FundamentalSystemBridge.renderSceneSwapper.getSceneBuilderForScene(
-        "BaseGameScene" // Get the scene builder for the base game scene.
+      FundamentalSystemBridge["renderSceneSwapper"].getSceneBuilderForScene(
+        "BaseGameScene"
       );
 
-    // Ensure the obstacle generator is initialized before generating mountains.
     let obstacleGenerator =
-      FundamentalSystemBridge.levelFactoryComposite.levelMapObstacleGenerator; // Get the obstacle generator.
+      FundamentalSystemBridge["levelFactoryComposite"]
+        .levelMapObstacleGenerator;
 
-    obstacleGenerator.generateEdgeMountains(this, relevantSceneBuilder); // Generate edge mountains.
+    obstacleGenerator.generateEdgeMountainsObstacles(gameLevel);
+    obstacleGenerator.renderObstaclesForLevel(gameLevel, relevantSceneBuilder);
+  }
+
+  checkifGameLevelisValid(gameLevel) {
+    if (gameLevel == null) {
+      GameplayLogger.lazyLog("GameLevel is null, cannot generate obstacles");
+      return false;
+    } else if (
+      gameLevel != null &&
+      !(gameLevel instanceof ActiveGameplayLevel)
+    ) {
+      GameplayLogger.lazyLog(
+        "GameLevel is not an instance of ActiveGameplayLevel, cannot generate obstacles"
+      );
+      return false;
+    } else {
+      return true;
+    }
   }
 }
