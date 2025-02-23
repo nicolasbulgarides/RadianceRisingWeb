@@ -7,13 +7,25 @@ class ActiveGameplayLevel {
    * @param {CameraManager} cameraManager - Manages the camera for the active level.
    * @param {LightingManager} lightingManager - Handles dynamic lighting updates.
    */
-  constructor(hostingScene, levelMap, cameraManager, lightingManager) {
+  constructor(
+    hostingScene,
+    gameModeRules,
+    levelMap,
+    cameraManager,
+    lightingManager
+  ) {
     this.hostingScene = hostingScene;
     this.levelMap = levelMap;
     this.cameraManager = cameraManager;
     this.lightingManager = lightingManager;
+    this.gameModeRules = gameModeRules;
+    this.registeredPlayers = [];
+    this.currentPrimaryPlayer = null;
   }
 
+  updateLevelMapGameModeRules(newGameModeRules) {
+    this.gameModeRules = newGameModeRules;
+  }
   initializeLevelLighting() {
     this.lightingManager.initializeConstructSystems(false, this.hostingScene);
   }
@@ -38,29 +50,40 @@ class ActiveGameplayLevel {
 
     return boundary;
   }
-  registerPlayer(playerToRegister) {
-    this.player = playerToRegister;
+  registerCurrentPrimaryPlayer(playerToRegister) {
+    this.registeredPlayers.push(playerToRegister);
+    this.currentPrimaryPlayer = playerToRegister;
+  }
+
+  updateCurrentPrimaryPlayer(newPrimaryPlayer) {
+    this.currentPrimaryPlayer = newPrimaryPlayer;
   }
   /**
    * Configures the camera to follow the player and sets lighting for the player model.
    *
    * @param {Player} player - The player instance to follow.
    */
-  setPlayerCamera() {
-    let model = this.player
-      .getPlayerPositionAndModelManager()
-      .getPlayerModelDirectly();
+  setPlayerCamera(player) {
+    // After the player model is loaded, configure the camera to chase the player.
+
+    let cameraToDispose =
+      FundamentalSystemBridge.renderSceneSwapper.allStoredCameras[
+        this.hostingScene
+      ];
+
+    let model = player.playerMovementManager.getPlayerModelDirectly();
     // Update the camera to chase the player's model.
     this.cameraManager.setCameraToChase(this.hostingScene, model);
 
-    console.log("Camera set to chase player.");
+    FundamentalSystemBridge.renderSceneSwapper.disposeAndDeleteCamera(
+      cameraToDispose
+    );
   }
 
-  async loadRegisteredPlayerModel() {
-    if (this.player != null) {
-      let positionedObject = this.player
-        .getPlayerPositionAndModelManager()
-        .getPlayerModelPositionedObject();
+  async loadRegisteredPlayerModel(player, switchCameraToFollowPlayer) {
+    if (player != null) {
+      let positionedObject =
+        player.playerMovementManager.getPlayerModelPositionedObject();
 
       let relevantBuilder =
         FundamentalSystemBridge.renderSceneSwapper.getSceneBuilderByScene(
@@ -68,15 +91,11 @@ class ActiveGameplayLevel {
         );
       // Asynchronously load the animated player model.
       await relevantBuilder.loadAnimatedModel(positionedObject);
-      // After the player model is loaded, configure the camera to chase the player.
-      let cameraToDispose =
-        FundamentalSystemBridge.renderSceneSwapper.allStoredCameras[
-          this.hostingScene
-        ];
-      if (cameraToDispose != null) {
-        cameraToDispose.dispose();
+
+      if (switchCameraToFollowPlayer) {
+        this.setPlayerCamera(player);
       }
-      this.setPlayerCamera();
+      return true;
     }
   }
 }

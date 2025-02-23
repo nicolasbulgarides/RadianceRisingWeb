@@ -11,8 +11,9 @@ class PlayerUnit {
    * @param {Object} playerModelPositionedObject - The object containing the player's model and position methods.
    * @param {BABYLON.Vector3} position - The starting position of the player.
    */
-  loadPositionManager(playerModelPositionedObject, position) {
-    this.playerPositionAndModelManager = new PlayerPositionAndModelManager(
+  loadMovementManager(playerModelPositionedObject, position) {
+    this.playerMovementManager = new PlayerMovementManager(
+      this,
       playerModelPositionedObject,
       position
     );
@@ -78,29 +79,11 @@ class PlayerUnit {
   }
 
   /**
-   * Retrieves the player's position and model manager.
-   *
-   * @returns {PlayerPositionAndModelManager} - The manager handling the player's positional data.
-   */
-  getPlayerPositionAndModelManager() {
-    return this.playerPositionAndModelManager;
-  }
-
-  /**
    * Directly retrieves the player's model from the position manager.
    *
    * @returns {Object} - The player's model object.
    */
   getPlayerModelDirectly() {
-    return this.getPlayerPositionAndModelManager().getPlayerModelDirectly();
-  }
-
-  /**
-   * Returns the player's status information.
-   *
-   * @returns {PlayerStatus} - The current status of the player.
-   */
-  getPlayerStatus() {
-    return this.playerStatus;
+    return this.playerMovementManager.getPlayerModelDirectly();
   }
 }

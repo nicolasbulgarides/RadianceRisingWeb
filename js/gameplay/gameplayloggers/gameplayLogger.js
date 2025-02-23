@@ -1,11 +1,11 @@
 class GameplayLogger {
   static LOG_ALL_GAMEPLAY_EVENTS_OVERRIDE = false;
-  static LOG_ALL_PLAYER_MOVEMENTS = true;
+  static LOG_ALL_GAMEPLAY_EVENTS = true;
 
   static lazyLog(logMessage, sender, importance) {
     let finalDecision = LoggerOmega.GetFinalizedLoggingDecision(
       this.LOG_ALL_GAMEPLAY_EVENTS_OVERRIDE,
-      this.LOG_ALL_PLAYER_MOVEMENTS,
+      this.LOG_ALL_GAMEPLAY_EVENTS,
       importance
     );
 

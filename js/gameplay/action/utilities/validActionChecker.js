@@ -1,21 +1,24 @@
 class ValidActionChecker {
-  checkIfAllowedToMove(playerToCheckIfAllowedToMove) {
-    if (playerToCheckIfAllowedToMove.playerCurrentActionStatus.canAct()) {
-      return true;
-    }
-    return false;
-  }
+  static canMove(playerToCheck) {
+    if (playerToCheck instanceof PlayerUnit) {
+      if (playerToCheck.playerStatus.playerCurrentActionStatus.canAct()) {
+        return true;
+      }
+      MovementLogger.lazyLog(
+        "Player Unable to move due to something stopping their ability to act: " +
+          playerToCheck.playerCurrentActionStatus.assembleReasonCannotMoveOrAct(),
+        "GameplayManagerComposite"
+      );
+      MovementLogger.logInabilityToMoveOrAct(direction, playerToCheck);
 
-  logInvalidMovementAttempt(direction, player) {
-    let reasonCannotMoveOrAct =
-      player.playerCurrentActionStatus.assembleReasonCannotMoveOrAct();
-    GameplayLogger.lazyLog(
-      "Movement towards  " +
-        direction +
-        " is prohibited because: " +
-        reasonCannotMoveOrAct,
-      "ValidActionChecker",
-      0
-    );
+      return false;
+    } else {
+      MovementLogger.lazyLog(
+        "Player Unable to move due to not being a valid player unit: " +
+          typeof playerToCheck,
+        "GameplayManagerComposite"
+      );
+      return false;
+    }
   }
 }

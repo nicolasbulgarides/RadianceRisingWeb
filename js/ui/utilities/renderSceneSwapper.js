@@ -41,6 +41,21 @@ class RenderSceneSwapper {
       );
     }
   }
+  disposeAndDeleteCamera(cameraToDispose) {
+    if (cameraToDispose != null) {
+      // Retrieve the scene that owns this camera.
+      const scene = cameraToDispose.getScene();
+      if (scene) {
+        // Find and remove the camera from the scene's camera list.
+        const index = scene.cameras.indexOf(cameraToDispose);
+        if (index !== -1) {
+          scene.cameras.splice(index, 1);
+        }
+      }
+      // Dispose of the camera.
+      cameraToDispose.dispose();
+    }
+  }
   /**
    * Loads the basic scenes and sets them up.
    * Creates and assigns separate SceneBuilders for each scene.

@@ -15,14 +15,20 @@ class GameplayManagerComposite {
   constructor() {
     // Instead of calling systems initialization consecutively,
     // call a composite async initializer that handles waiting.
+    this.initializeVariables();
     this.initializeComposite();
   }
 
+  initializeVariables() {
+    this.primaryActivePlayer = null;
+    this.allActivePlayers = [];
+    this.primaryActiveGameplayLevel = null;
+    this.allActiveGameplayLevels = [];
+    this.primaryActiveGameMode = null;
+    this.allActiveGameModes = [];
+  }
   // NEW: Composite initializer method.
   async initializeComposite() {
-    FundamentalSystemBridge.registerGamemodeManager(
-      new GamemodeManager(Config.DEFAULT_GAME_MODE)
-    );
     // Wait for support systems (including grid tile loading) to finish.
     await this.initializeGameplaySupportSystems();
     // Now that all support systems including tile loading are ready, initialize gameplay.
@@ -31,7 +37,6 @@ class GameplayManagerComposite {
 
   // Modified to be asynchronous to await grid tile loading.
   async initializeGameplaySupportSystems() {
-    this.playerLoader = new PlayerLoader();
     // Loader to handle game level initialization based on SceneBuilder.
     this.levelFactoryComposite = new LevelFactoryComposite();
     // Await support system loading if the method returns a promise.
@@ -57,14 +62,13 @@ class GameplayManagerComposite {
    * Loads the demo level, sets up obstacles, players, sound, music, and movement management.
    */
   async initializeGameplayTestA() {
-    this.validActionChecker = new ValidActionChecker();
-    this.activeGameplayLevel =
+    this.primaryActiveGameplayLevel =
       await this.levelFactoryComposite.loadDemoLevelTest();
     this.levelFactoryComposite.renderActiveDemoGameplayLevel(
-      this.activeGameplayLevel
+      this.primaryActiveGameplayLevel
     );
     // Load and position player into the current level.
-    this.loadPlayerToSpecifiedGameplayLevel(this.activeGameplayLevel);
+    this.loadPlayerToSpecifiedGameplayLevel(this.primaryActiveGameplayLevel);
   }
 
   /**
@@ -73,19 +77,11 @@ class GameplayManagerComposite {
    */
   async loadPlayerToSpecifiedGameplayLevel(activeGameplayLevel) {
     // Retrieve demo player instance with appropriate positioning.
-    let demoPlayer = this.playerLoader.getDemoPlayer(
-      activeGameplayLevel.levelMap
-    );
-    activeGameplayLevel.registerPlayer(demoPlayer);
+    let demoPlayer = PlayerLoader.getDemoPlayer(activeGameplayLevel.levelMap);
+    this.allActivePlayers.push(demoPlayer);
+    activeGameplayLevel.registerCurrentPrimaryPlayer(demoPlayer);
+    activeGameplayLevel.loadRegisteredPlayerModel(demoPlayer, true);
 
-    // Setup movement management linked to the player and the current map.
-    this.movementPathManager = new MovementPathManager(
-      demoPlayer,
-      activeGameplayLevel
-    );
-
-    // Await the asynchronous player model load.
-    await activeGameplayLevel.loadRegisteredPlayerModel();
     // Removed redundant explicit camera chase call.
     // The camera is now set to chase the player within loadRegisteredPlayerModel
   }
@@ -95,12 +91,7 @@ class GameplayManagerComposite {
    * This includes updates for player movement and processing level events.
    */
   processEndOfFrameEvents() {
-    if (this.movementPathManager != null) {
-      this.movementPathManager.processPossiblePlayerModelMovements();
-    }
-    if (this.activeGameplayLevel != null) {
-      this.activeGameplayLevel.onFrameEvents();
-    }
+    GameplayEndOfFrameCoordinator.processEndOfFrameEvents(this);
   }
 
   /**
@@ -109,54 +100,30 @@ class GameplayManagerComposite {
    *
    * @param {string} direction - The direction input from the UI click.
    */
-  processAttemptedMovementFromUIClick(direction) {
-    if (!this.checkIfPlayerCanMove(this.activeGameplayLevel.player)) return;
-
-    let gamemodeRules =
-      FundamentalSystemBridge.gamemodeManager.CURRENT_GAMEMODE;
-
-    let destinationVector = this.movementPathManager.processMovementByDirection(
-      direction,
-      gamemodeRules.MOVEMENT_IS_BOUNDED,
-      gamemodeRules.MAX_MOVEMENT_DISTANCE,
-      gamemodeRules.OBSTACLES_ARE_IGNORED,
-      this.activeGameplayLevel
-    );
-
+  processAttemptedMovementFromUIClick(clickedDirection) {
     if (
-      destinationVector != null &&
-      destinationVector !=
-        this.activeGameplayLevel.player.getPlayerPositionAndModelManager()
-          .currentPosition
+      !ValidActionChecker.canMove(
+        this.primaryActiveGameplayLevel.currentPrimaryPlayer
+      )
     ) {
+      return;
     } else {
-      GameplayLogger.lazyLog(
-        "Destination vector is the same as the current position vector or is null",
-        "GameplayManagerComposite",
-        0
-      );
+      let currentPlayer = this.primaryActiveGameplayLevel.currentPrimaryPlayer;
+      let destinationVector =
+        MovementDestinationCalculator.getProposedDestination(
+          clickedDirection,
+          currentPlayer,
+          this.primaryActiveGameplayLevel
+        );
+      if (destinationVector instanceof BABYLON.Vector3) {
+        currentPlayer.playerMovementManager.setDestination(destinationVector);
+        currentPlayer.playerMovementManager.startMovement(Config.DEFAULT_SPEED);
+      }
     }
   }
 
-  registerActiveGameplayLevel(activeGameplayLevel) {
-    this.activeGameplayLevel = activeGameplayLevel;
-  }
-
-  processFrameEvents() {
-    if (this.activeGameplayLevel != null) {
-      this.activeGameplayLevel.processFrameEvents();
-    }
-  }
-
-  checkIfPlayerCanMove(player) {
-    let canMove = this.validActionChecker.checkIfAllowedToMove(player);
-
-    if (!canMove) {
-      this.validActionChecker.logInvalidMovementAttempt(
-        direction,
-        this.activeGameplayLevel.player
-      );
-    }
-    return canMove;
+  setActiveGameplayLevel(activeGameplayLevel) {
+    //to do -  behavior as needed for transition between current levels
+    this.primaryActiveGameplayLevel = activeGameplayLevel;
   }
 }

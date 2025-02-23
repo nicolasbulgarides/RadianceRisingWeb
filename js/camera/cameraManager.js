@@ -71,12 +71,6 @@ class CameraManager {
       return;
     }
 
-    // Dispose of the old camera before creating a new one
-    if (this.currentCamera) {
-      this.currentCamera.detachControl();
-      this.currentCamera.dispose();
-    }
-
     // Create and configure the new follow camera
     const followCamera = new BABYLON.FollowCamera(
       "helicopterFollowCamera",

@@ -11,7 +11,7 @@ class PlayerLoader {
    * @param {PlayerUnit} player - The player unit instance.
    * @param {BABYLON.Vector3} position - The position to place the player's model.
    */
-  loadModelAndPosition(player, position) {
+  static loadModelAndPosition(player, position) {
     // Create a positioned object using the default model configuration and assign it to the specified position.
     const playerModelObject = PositionedObject.getPositionedObjectQuick(
       Config.DEFAULT_MODEL, // Default model from configuration.
@@ -23,9 +23,8 @@ class PlayerLoader {
     );
 
     // Load the player's position manager with the created model object and the provided position.
-    player.loadPositionManager(playerModelObject, position);
+    player.loadMovementManager(playerModelObject, position);
     // Inline debug option: Uncomment the next line for logging the default model.
-    // console.log("Default model: " + Config.DEFAULT_MODEL);
   }
 
   /**
@@ -35,7 +34,7 @@ class PlayerLoader {
    * @param {Object} defaultMap - The map object that provides the player's starting position.
    * @returns {PlayerUnit} - A newly created and initialized player unit.
    */
-  getDemoPlayer(defaultMap) {
+  static getDemoPlayer(defaultMap) {
     // Instantiate a new PlayerUnit object.
     let gamePlayer = new PlayerUnit();
 
@@ -50,14 +49,9 @@ class PlayerLoader {
 
     // Retrieve the player's starting position from the map.
     let position = defaultMap.getPlayerStartingPosition();
-    /** 
-    // Debug: Uncomment for logging the player's starting position.
-    console.log(
-      "Position: " + position.x + " , " + position.y + " , " + position.z
-    );
-    */
+
     // Load the player's model and set its position.
-    this.loadModelAndPosition(gamePlayer, position);
+    PlayerLoader.loadModelAndPosition(gamePlayer, position);
 
     // Return the fully initialized player unit.
     return gamePlayer;

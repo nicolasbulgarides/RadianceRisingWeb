@@ -14,18 +14,26 @@ class ChadUtilities {
     if (!(vector instanceof BABYLON.Vector3)) {
       LoggerOmega.SmartLogger(true, sender);
     }
-    msg =
-      "MSG: " +
-      msg +
-      " , Vector: X: " +
-      vector.x +
-      " , y: " +
-      vector.y +
-      " , Z: " +
-      vector.z;
-    LoggerOmega.SmartLogger(true, "Output: " + msg, sender);
+
+    let vectorMessage = msg + " " + ChadUtilities.convertVectorToString(vector);
+
+    LoggerOmega.SmartLogger(true, "Output: " + vectorMessage, sender);
   }
 
+  static convertVectorToString(vector) {
+    let vectorString = "Vector3 Converted: ";
+
+    if (vector instanceof BABYLON.Vector3) {
+      vectorString +=
+        " , Vector: X: " + vector.x + " , y: " + vector.y + " , Z: " + vector.z;
+    } else if (vector != null && !(vector instanceof BABYLON.Vector3)) {
+      vectorString += "Invalid vector type: " + typeof vector;
+    } else if (vector == null) {
+      vectorString += "Vector is null";
+    }
+
+    return vectorString;
+  }
   /**
    * Wrapper for LoggerOmega's SmartLogger.
    * @param {boolean} loggingDecision - Whether logging should occur.

@@ -3,7 +3,7 @@ class LevelMap {
    * Constructs an in-memory representation of the game level.
    * Holds grid configuration, board slots, obstacles, and player start position.
    */
-  constructor() {
+  constructor(gameModeRules) {
     // 2D array containing BoardSlot instances representing each grid cell.
     this.boardSlots = [];
     // Grid dimensions (default values; updated on load).

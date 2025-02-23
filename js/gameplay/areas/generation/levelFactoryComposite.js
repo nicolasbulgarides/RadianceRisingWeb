@@ -38,6 +38,7 @@ class LevelFactoryComposite {
 
     let activeDemoGameplayLevel = new ActiveGameplayLevel(
       FundamentalSystemBridge.renderSceneSwapper.getActiveGameLevelScene(),
+      GamemodeFactory.initializeSpecifiedGamemode("DemoLevel", "standard"),
       levelMapDemo,
       FundamentalSystemBridge.primaryGameplayCameraManager,
       FundamentalSystemBridge.primaryGameplayLightingManager

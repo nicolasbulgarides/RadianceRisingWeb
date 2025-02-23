@@ -98,6 +98,7 @@ class RadiantEngineManager {
     FundamentalSystemBridge.registerActiveTriggerManager(
       new ActiveTriggerManager()
     );
+
     FundamentalSystemBridge.registerTestManager(new TestManager());
   }
   /**

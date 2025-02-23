@@ -76,7 +76,7 @@ class ScriptManifest {
     "/history/datastructures/general/historyProgressData.js",
   ];
   static gamemodeScripts = [
-    "/gameplay/gamemodes/gamemodeManager.js",
+    "/gameplay/gamemodes/gamemodeFactory.js",
     "/gameplay/gamemodes/specificmodes/gamemodeGeneric.js",
     "/gameplay/gamemodes/specificmodes/gamemodeStandard.js",
     "/gameplay/gamemodes/specificmodes/gamemodeTestAssist.js",
@@ -208,7 +208,9 @@ class ScriptManifest {
   // Top-level gameplay scripts (other gameplay subcategories are loaded separately)
   static gameplayScripts = [
     "/gameplay/gameplayManagerComposite.js",
-    "/gameplay/gameplayLogger.js",
+    "/gameplay/gameplayEndOfFrameCoordinator.js",
+    "/gameplay/gameplayloggers/gameplayLogger.js",
+    "/gameplay/gameplayloggers/movementLogger.js",
   ];
 
   static playerScripts = [
@@ -221,8 +223,7 @@ class ScriptManifest {
     "/gameplay/player/datastructures/accounts/guestAccount.js",
     "/gameplay/player/datastructures/accounts/authenticatedAccount.js",
     "/gameplay/player/datastructures/accounts/accountPreferences.js",
-    "/gameplay/player/utilities/playerPositionAndModelManager.js",
-    "/gameplay/player/utilities/playerModelMovementManager.js",
+    "/gameplay/player/utilities/playerMovementManager.js",
     "/gameplay/player/utilities/playerLoader.js",
   ];
 
@@ -254,8 +255,10 @@ class ScriptManifest {
     "/gameplay/items/itemrequirements/specificItemRequirements.js",
   ];
 
+  static movementScripts = [
+    "/gameplay/action/movement/movementDestinationCalculator.js",
+  ];
   static gameInteractionsScripts = [
-    "/gameplay/action/movement/movementPathManager.js",
     "/gameplay/action/utilities/validActionChecker.js",
   ];
   static gameAreaScripts = [
@@ -413,6 +416,10 @@ class ScriptManifest {
    */
   static getUISceneScriptsImplemented() {
     return this.uiSceneScriptsImplemented;
+  }
+
+  static getMovementScripts() {
+    return this.movementScripts;
   }
 
   /**
@@ -779,6 +786,10 @@ class ScriptManifest {
     return this.loadScriptsArray(this.getLightingScripts(), "Lighting");
   }
 
+  static loadMovementScriptsPromise() {
+    return this.loadScriptsArray(this.getMovementScripts(), "Movement");
+  }
+
   /**
    * Loads the camera scripts and returns a promise.
    * @returns {Promise} Resolves when camera scripts are loaded.
@@ -947,6 +958,7 @@ class ScriptManifest {
       .then(() => this.loadInputScriptsPromise())
       .then(() => this.loadTriggerScriptsPromise())
       .then(() => this.loadRadiantRaysAnimationScriptsPromise())
+      .then(() => this.loadMovementScriptsPromise())
       .then(() => this.loadGamemodeScriptsPromise())
       .then(() => this.loadGameplayScriptsPromise())
       .then(() => this.loadPlayerScriptsPromise())
