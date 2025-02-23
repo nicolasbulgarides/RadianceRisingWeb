@@ -108,68 +108,7 @@ class PlayerMovementManager {
   getPlayerModelPositionedObject() {
     return this.playerModelPositionedObject;
   }
-  /**
-   * Initializes movement parameters based on speed.
-   * Retrieves start and target positions, computes the movement direction, total distance,
-   * and determines the number of frames needed.
-   *
-   * @param {number} speed - Movement speed in units per second.
-   */
-  startMovementOld(speed) {
-    if (!this.currentPlayer) {
-      console.error("No player to move!");
-      return;
-    }
 
-    // Check if speed is valid.
-    if (speed <= 0) {
-      console.error("Invalid speed provided. Speed must be greater than zero.");
-      return;
-    }
-
-    // Retrieve positions from the player's position manager.
-    this.startPosition = this.currentPosition;
-    this.endPosition = this.pathingDestination;
-
-    // Compute the total distance to travel.
-    this.totalDistance = BABYLON.Vector3.Distance(
-      this.startPosition,
-      this.endPosition
-    );
-
-    // Compute the movement direction only if there is a non-zero distance.
-    if (this.totalDistance > 0) {
-      this.direction = this.endPosition
-        .subtract(this.startPosition)
-        .normalize();
-
-      // Calculate the duration of the movement.
-      this.durationInSeconds = this.totalDistance / speed;
-
-      // Calculate total frames; ensure there is at least 1 frame to avoid division by zero.
-      this.totalFrames = Math.max(
-        1,
-        Math.ceil(this.durationInSeconds * Config.FPS)
-      );
-      this.currentFrame = 0;
-
-      // Calculate the movement vector that should be applied each frame.
-      this.movementPerFrame = this.direction.scale(
-        this.totalDistance / this.totalFrames
-      );
-      console.log("Movement per frame: ", this.movementPerFrame);
-
-      // Mark the movement as active.
-      this.movementActive = true;
-    } else {
-      console.warn(
-        "Warning: No movement required, start and end positions are the same."
-      );
-      this.direction = BABYLON.Vector3.Zero(); // Prevent potential NaN values.
-      this.movementActive = false;
-      return;
-    }
-  }
   // Call this method once to start the movement.
   startMovement(speed) {
     if (!this.currentPlayer) {
@@ -210,6 +149,9 @@ class PlayerMovementManager {
 
     if (this.totalDistance > 0) {
       // Compute the movement direction.
+      this.currentPlayer.playerStatus.playerCurrentActionStatus.setInDirectionalMotion(
+        true
+      );
       this.direction = this.endPosition
         .subtract(this.startPosition)
         .normalize();
@@ -244,10 +186,10 @@ class PlayerMovementManager {
       return;
     }
     // If all frames have been processed, ensure the player is exactly at the end position and stop moving.
-    if (this.currentFrame >= this.totalFrames) {
-      this.currentPosition = this.endPosition.clone();
-      this.movementActive = false;
-      this.currentFrame = 0;
+    if (this.currentFrame > this.totalFrames) {
+      this.currentPosition = this.pathingDestination.clone();
+      this.relocateToCurrentPositionInstantly();
+      this.resetMovement();
       return;
     }
 
@@ -331,6 +273,19 @@ class PlayerMovementManager {
     return updatedPosition;
   }
 
+  setDestinationAndBeginMovement(destinationVector, relevantPlayer) {
+    let currentSpeed = relevantPlayer.playerStatus.currentMaxSpeed;
+
+    console.log(
+      "Setting destination and beginning movement...current speed" +
+        currentSpeed
+    );
+
+    // Set the player's destination in the position/model manager.
+    this.setDestination(destinationVector);
+    this.startMovement(currentSpeed);
+  }
+
   /**
    * Resets the movement process, deactivating movement and resetting frame counter.
    */
@@ -339,6 +294,8 @@ class PlayerMovementManager {
     this.movementActive = false;
     // Reset the frame counter to restart any future movement.
     this.currentFrame = 0;
+    let status = this.currentPlayer.playerStatus.playerCurrentActionStatus;
+    status.setInDirectionalMotion(false);
   }
 
   /**
@@ -358,35 +315,6 @@ class PlayerMovementManager {
    */
   isMovementComplete() {
     return this.currentFrame >= this.totalFrames;
-  }
-
-  /**
-   * Processes model movement on the player's unit if movement is active.
-   * Validates the computed vector and updates the player's model position instantly.
-   */
-  processPossibleModelMovements() {
-    if (this.movementActive) {
-      // Calculate the next position based on movement progression.
-      let vectorMovement = this.getNextPosition();
-
-      // Validate that all components in the movement vector are finite numbers.
-      if (
-        isFinite(vectorMovement.x) &&
-        isFinite(vectorMovement.y) &&
-        isFinite(vectorMovement.z)
-      ) {
-        // Update the player's position immediately via the position manager.
-        this.currentPlayer.playerPositionAndModelManager.setPositionRelocateModelInstantly(
-          vectorMovement
-        );
-      } else {
-        // Log an error if invalid movement data is detected.
-        console.error(
-          "Invalid position detected in vector movement:",
-          vectorMovement
-        );
-      }
-    }
   }
 
   /**

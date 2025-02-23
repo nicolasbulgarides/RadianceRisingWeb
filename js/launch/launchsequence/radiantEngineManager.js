@@ -16,7 +16,9 @@
 class RadiantEngineManager {
   constructor() {
     try {
-      this.initializeCoreSystems();
+      this.loadEngineSettings();
+      this.loadSystems();
+      this.startRenderLoop();
     } catch (err) {
       InitializationDiagnosticsLogger.logPhaseError(
         "RadiantEngineConstructor-Ambiguous or OVERALL: ",
@@ -24,92 +26,39 @@ class RadiantEngineManager {
       );
     }
   }
-  /**
-   * Initializes the core systems of the engine.
-   */
-  initializeCoreSystems() {
-    this.addAudioUnlock();
-    this.loadEngineSettings();
-    this.sceneRenderProcess();
-    this.loadSoundManagers();
-    this.loadGameplayManager();
-    this.loadAuxillaryManagers();
-    this.startRenderLoop();
-  }
 
   startRenderLoop() {
     FundamentalSystemBridge.babylonEngine.runRenderLoop(() => {
       this.onFrameRenderUpdates();
     });
   }
-  /**
-   * Loads the sound managers and registers them with the fundamental system bridge.
-   */
-  loadSoundManagers() {
-    let musicManager = new MusicManager();
-    let soundEffectsManager = new SoundEffectsManager();
-    FundamentalSystemBridge.registerSoundManagers(
-      musicManager,
-      soundEffectsManager
-    );
-  }
-  /**
-   * Adds support for custom audio unlocking.
-   * Sets up an event listener for the first user click to unlock the audio engine.
-   */
-  addAudioUnlock() {
-    try {
-      BABYLON.Engine.audioEngine.useCustomUnlockedButton = true;
-
-      window.addEventListener(
-        "click",
-        () => {
-          if (!BABYLON.Engine.audioEngine.unlocked) {
-            BABYLON.Engine.audioEngine.unlock();
-          }
-        },
-        { once: true }
-      );
-    } catch (err) {
-      InitializationDiagnosticsLogger.logPhaseError(
-        "RadiantEngineConstructor-Failure to unlock audio engine: ",
-        ", Error Found: " + err
-      );
-    }
-  }
 
   /**
    * Configures engine settings including hardware scaling, scene initialization,
    * clear color, and audio unlocking.
+   * Sets up window resize event handler to adjust engine dimensions.
    */
+
   loadEngineSettings() {
     FundamentalSystemBridge.babylonEngine.autoClearDepthAndStencil = false;
     FundamentalSystemBridge.babylonEngine.setHardwareScalingLevel(
       1 / (window.devicePixelRatio || 1)
     );
+    window.addEventListener("resize", () => {
+      FundamentalSystemBridge.babylonEngine.resize();
+    });
 
-    this.setupResizeHandler();
+    Config.addAudioUnlock();
   }
 
-  loadAuxillaryManagers() {
-    FundamentalSystemBridge.registerProgrammaticAnimationManager(
-      new ProgrammaticAnimationManager()
-    );
-    FundamentalSystemBridge.registerActiveTriggerManager(
-      new ActiveTriggerManager()
-    );
-
-    FundamentalSystemBridge.registerTestManager(new TestManager());
-  }
-  /**
-   * Processes the initial render setup.
-   * Sets up camera and scene management.
-   */
-  sceneRenderProcess() {
-    FundamentalSystemBridge.registerRenderSceneSwapper(
-      new RenderSceneSwapper(FundamentalSystemBridge.babylonEngine)
-    );
-    FundamentalSystemBridge.renderSceneSwapper.loadBasicScenes();
+  loadSystems() {
+    FundamentalSystemBridge.loadRenderSceneSwapper();
+    FundamentalSystemBridge.loadSoundManagers();
+    FundamentalSystemBridge.loadLevelFactoryComposite();
+    FundamentalSystemBridge.loadGameplayManagerComposite();
+    FundamentalSystemBridge.loadProgrammaticAnimationManager();
+    FundamentalSystemBridge.loadActiveTriggerManager();
+    FundamentalSystemBridge.possiblyLoadAndActivateTestManager();
   }
 
   /**
@@ -119,24 +68,5 @@ class RadiantEngineManager {
   onFrameRenderUpdates() {
     FundamentalSystemBridge.gameplayManagerComposite.processEndOfFrameEvents();
     FundamentalSystemBridge.renderSceneSwapper.render();
-  }
-
-  /**
-   * Loads the gameplay systems by creating an instance of GameplayManager.
-   * Registers the gameplay manager with the base UI scene.
-   */
-  loadGameplayManager() {
-    FundamentalSystemBridge.registerGameplayManagerComposite(
-      new GameplayManagerComposite()
-    );
-  }
-
-  /**
-   * Sets up window resize event handler to adjust engine dimensions.
-   */
-  setupResizeHandler() {
-    window.addEventListener("resize", () => {
-      FundamentalSystemBridge.babylonEngine.resize();
-    });
   }
 }

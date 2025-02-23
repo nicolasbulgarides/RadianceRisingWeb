@@ -34,17 +34,20 @@ class PlayerLoader {
    * @param {Object} defaultMap - The map object that provides the player's starting position.
    * @returns {PlayerUnit} - A newly created and initialized player unit.
    */
-  static getDemoPlayer(defaultMap) {
+  static getFreshPlayer(defaultMap) {
     // Instantiate a new PlayerUnit object.
     let gamePlayer = new PlayerUnit();
 
+    console.log("Loading fresh player...speed XXX" + Config.DEFAULT_MAX_SPEED);
     // Load the player's status with default values (full health and magic).
     gamePlayer.loadStatusFresh(
       Config.DEFAULT_NAME, // Player name.
       Config.STARTING_LEVEL, // Starting level.
+      Config.STARTING_MAGICPOINTS, // Starting magic points.
       Config.STARTING_EXP, // Starting experience.
       Config.STARTING_HEALTH, // Base magic points (using starting health as placeholder).
-      Config.STARTING_HEALTH // Base health points.
+      Config.STARTING_HEALTH, // Base health points.
+      Config.DEFAULT_MAX_SPEED // Base max speed.
     );
 
     // Retrieve the player's starting position from the map.

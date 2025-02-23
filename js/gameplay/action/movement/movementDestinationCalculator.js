@@ -11,13 +11,12 @@ class MovementDestinationCalculator {
 
     console.log("Current: ", currentPosition);
 
-    let destinationVector =
-      MovementDestinationCalculator.getDeterminedDestinationVectorByDirectionAndGamemodeRules(
-        proposedDirection,
-        gamemodeRules,
-        activeGameplayLevel,
-        ponderedPlayer
-      );
+    let destinationVector = MovementDestinationCalculator.getDestinationVector(
+      proposedDirection,
+      gamemodeRules,
+      activeGameplayLevel,
+      ponderedPlayer
+    );
 
     MovementLogger.autoDisplayInvalidMovement(
       currentPosition,
@@ -97,19 +96,6 @@ class MovementDestinationCalculator {
     return finalPosition;
   }
 
-  static setDestinationAndBeginMovement(
-    destinationVector,
-    relevantPlayer,
-    currentSpeed
-  ) {
-    // Set the player's destination in the position/model manager.
-    relevantPlayer.playerPositionAndModelManager.setCurrentPathingDestination(
-      destinationVector
-    );
-
-    relevantPlayer.playerModelMovementManager // Initiate the player model movement with the configuration default speed.
-      .initMovement(currentSpeed);
-  }
   /**
    * Generates a BabylonJS vector for a designated destination.
    * @param {number} x - The X-coordinate of the destination.
@@ -127,13 +113,154 @@ class MovementDestinationCalculator {
    * @param {string} direction - The intended movement direction ("LEFT", "RIGHT", "UP", "DOWN").
    * @param {boolean} ignoreObstacles - Flag indicating if obstacles can be bypassed.
    * @param {number} maxDistance - The maximum distance allowed for the movement.
+   * @param {BABYLON.Vector3} activeGameLevelPlane - The active game level plane.
+   * @param {Player} relevantPlayer - The relevant player.
    */
   static getDestinationVectorForBoundedMovement(
     direction,
     ignoreObstacles,
-    maxDistance
+    maxDistance,
+    activeGameLevelPlane,
+    relevantPlayer
   ) {
-    // TODO: Implement movement restrictions based on maxDistance and obstacle collisions.
+    // Retrieve the current player position.
+    // In this example, we assume that the current position is stored as a static property.
+    // Replace this with your actual method of retrieving the player's current position.
+    let finalDestinationVector = null;
+
+    // If obstacles are to be ignored, we ensure the destination remains within level boundaries.
+    // Note: When obstacles are not ignored, you will add your own collision logic later.
+    if (ignoreObstacles) {
+      finalDestinationVector =
+        MovementDestinationCalculator.clampStopPositionDueToBoundary(
+          relevantPlayer,
+          activeGameLevelPlane
+        );
+    } else if (!ignoreObstacles) {
+      finalDestinationVector =
+        MovementDestinationCalculator.determineWhenToStopDueToObstacle(
+          direction,
+          maxDistance,
+          activeGameLevelPlane,
+          relevantPlayer
+        );
+    }
+
+    return finalDestinationVector;
+  }
+
+  static clampStopPositionDueToBoundary(
+    theoreticalStopPosition,
+    activeGameLevelPlane
+  ) {
+    let boundary = activeGameLevelPlane.getActiveGameLevelBoundary();
+    // For the x-coordinate:
+    let originalX = theoreticalStopPosition.x;
+    let clampedX = Math.min(boundary.maxX, originalX); // First, cap at the maximum
+    clampedX = Math.max(boundary.minX, clampedX); // Then, ensure it's above the minimum
+
+    // For the z-coordinate:
+    let originalZ = theoreticalStopPosition.z;
+    let clampedZ = Math.min(boundary.maxZ, originalZ); // First, cap at the maximum
+    clampedZ = Math.max(boundary.minZ, clampedZ); // Then, ensure it's above the minimum
+
+    return new BABYLON.Vector3(clampedX, theoreticalStopPosition.y, clampedZ);
+  }
+
+  //Using the direction and max distance, determine the theoreticalposition which in theory could exceed a maps boundaries, as an initial phase BEFORE checking for obstacles that stop the movement
+  static determineTheoreticalStopPosition(
+    direction,
+    maxDistance,
+    relevantPlayer
+  ) {
+    let currentPosition = relevantPlayer.playerMovementManager.currentPosition;
+
+    // Determine the shift vector based on the given direction and maxDistance.
+    let xShift = 0;
+    let yShift = 0;
+    let zShift = 0;
+    let directionString = String(direction);
+
+    if (directionString === "UP") {
+      zShift = maxDistance;
+    } else if (directionString === "DOWN") {
+      zShift = -maxDistance;
+    } else if (directionString === "LEFT") {
+      xShift = -maxDistance;
+    } else if (directionString === "RIGHT") {
+      xShift = maxDistance;
+    }
+
+    // Calculate the tentative destination vector.
+    let tentativeDestination = new BABYLON.Vector3(
+      currentPosition.x + xShift,
+      currentPosition.y + yShift,
+      currentPosition.z + zShift
+    );
+
+    return tentativeDestination;
+  }
+  //Determines the last valid position (capped by the max distance for a player's motion) before an obstacle is encountered
+  static determineWhenToStopDueToObstacle(
+    direction,
+    maxDistance,
+    activeGameLevelPlane,
+    relevantPlayer
+  ) {
+    // Retrieve the level map and current player position.
+    const levelMap = activeGameLevelPlane.levelMap;
+    const currentPosition =
+      relevantPlayer.playerMovementManager.currentPosition;
+    let lastValidPosition = currentPosition;
+
+    // Iterate one slot at a time, up to maxDistance.
+    for (let step = 0; step < maxDistance; step++) {
+      // Calculate the next position based on the current valid position.
+      let nextX = lastValidPosition.x;
+      let nextZ = lastValidPosition.z;
+
+      // Adjust the coordinates based on the direction.
+      switch (direction) {
+        case "UP":
+          nextZ += 1;
+          break;
+        case "DOWN":
+          nextZ -= 1;
+          break;
+        case "LEFT":
+          nextX -= 1;
+          break;
+        case "RIGHT":
+          nextX += 1;
+          break;
+        default:
+          console.error("Invalid direction:", direction);
+          return lastValidPosition;
+      }
+
+      // Stop if the next position is out of bounds.
+      if (
+        !ObstacleFinder.isWithinBounds(
+          levelMap,
+          nextX,
+          currentPosition.y,
+          nextZ
+        )
+      ) {
+        break;
+      }
+
+      // Stop if an obstacle is found in the next board slot.
+      let boardSlot = levelMap.boardSlots[nextX]?.[nextZ];
+      if (boardSlot && boardSlot.hostedObstacle) {
+        break;
+      }
+
+      // Update the last valid position.
+      lastValidPosition = new BABYLON.Vector3(nextX, currentPosition.y, nextZ);
+    }
+
+    return lastValidPosition;
   }
 
   /**
@@ -143,7 +270,7 @@ class MovementDestinationCalculator {
    * @param {number} maxDistance - The maximum allowed distance for bounded movements.
    * @param {boolean} ignoreObstacles - Whether obstacles should be ignored during movement.
    */
-  static getDeterminedDestinationVectorByDirectionAndGamemodeRules(
+  static getDestinationVector(
     direction,
     currentGamemodeRules,
     activeGameLevelPlane,
@@ -157,8 +284,6 @@ class MovementDestinationCalculator {
     if (!bounded) {
       // Process unbounded movement logic.
 
-      console.log("Getting Unbounded");
-
       destinationVector =
         MovementDestinationCalculator.getDestinationVectorForUnboundedMovement(
           direction,
@@ -168,8 +293,6 @@ class MovementDestinationCalculator {
         );
     } else if (bounded) {
       // Process bounded movement logic according to provided constraints.
-
-      console.log("Getting Bounded");
 
       destinationVector =
         MovementDestinationCalculator.getDestinationVectorForBoundedMovement(

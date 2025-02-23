@@ -15,6 +15,7 @@ class PlayerStatusComposite {
    * @param {number} maximumMagicPoints - The player's maximum magic points.
    * @param {number} currentHealthPoints - The player's current health points.
    * @param {number} maximumHealthPoints - The player's maximum health points.
+   * @param {number} baseMaxSpeed - The player's base max speed.
    */
 
   constructor(
@@ -25,7 +26,8 @@ class PlayerStatusComposite {
     currentMagicPoints,
     maximumMagicPoints,
     currentHealthPoints,
-    maximumHealthPoints
+    maximumHealthPoints,
+    baseMaxSpeed
   ) {
     this.name = name;
     // Set the player's current level.
@@ -44,6 +46,8 @@ class PlayerStatusComposite {
     this.playerInventoryMain = new PlayerInventory();
     this.playerInventoryBackup = null;
     this.playerUnlocksComposite = new PlayerUnlocksComposite();
+    this.baseMaxSpeed = baseMaxSpeed;
+    this.currentMaxSpeed = baseMaxSpeed;
   }
 
   replacePlayerMainInventory(newPlayerInventory) {
@@ -76,7 +80,8 @@ class PlayerStatusComposite {
     currentExp = 0,
     currentMagicLevel = 1,
     maximumMagicPoints = 2,
-    maximumHealthPoints = 3
+    maximumHealthPoints = 3,
+    baseMaxSpeed = 1
   ) {
     // Create a new instance with current magic and health reflecting the maximum values.
     let status = new PlayerStatusComposite(
@@ -84,14 +89,24 @@ class PlayerStatusComposite {
       currentLevel,
       currentExp,
       currentMagicLevel,
-      maximumMagicPoints, // current magic points
-      maximumMagicPoints, // maximum magic points (set equal)
-      maximumHealthPoints, // current health points
-      maximumHealthPoints // maximum health points (set equal)
+      maximumMagicPoints,
+      maximumMagicPoints,
+      maximumHealthPoints,
+      maximumHealthPoints,
+      baseMaxSpeed
     );
 
     return status;
   }
+
+  setPlayerCurrentMaxSpeed(newMaxSpeed) {
+    this.currentMaxSpeed = newMaxSpeed;
+  }
+
+  resetPlayerCurrentMaxSpeed() {
+    this.currentMaxSpeed = this.baseMaxSpeed;
+  }
+
   /**
    *
    * @param {PlayerInventory} playerInventory - The player's inventory - storing this is called from the networking class PlayerSaveRetrieval, which retrieves the player save and sequentially

@@ -1,20 +1,16 @@
 class ValidActionChecker {
-  static canMove(playerToCheck) {
+  static canMove(playerToCheck, direction) {
     if (playerToCheck instanceof PlayerUnit) {
       if (playerToCheck.playerStatus.playerCurrentActionStatus.canAct()) {
         return true;
       }
-      MovementLogger.lazyLog(
-        "Player Unable to move due to something stopping their ability to act: " +
-          playerToCheck.playerCurrentActionStatus.assembleReasonCannotMoveOrAct(),
-        "GameplayManagerComposite"
-      );
-      MovementLogger.logInabilityToMoveOrAct(direction, playerToCheck);
-
+      //to do add status error logging
       return false;
     } else {
       MovementLogger.lazyLog(
-        "Player Unable to move due to not being a valid player unit: " +
+        "Player Unable to move in direction: " +
+          direction +
+          " due to not being a valid player unit: " +
           typeof playerToCheck,
         "GameplayManagerComposite"
       );

@@ -11,17 +11,19 @@
  * such as EngineInitialization, GameInitialization, and GameplayManager.
  */
 class Config {
+  static LOAD_TEST_MANAGER = true;
   static STATUS_ENVIRONMENT = "DEVELOPMENT";
   static STATUS_IN_DEVELOPMENT = true;
   static STATUS_IN_DEPLOYMENT = false;
   static ITEM_REQUEST_VALIDATION_OVERRIDE = true;
   static UNLOCK_AREA_VALIDATION_OVERRIDE = true;
+
   // Engine infrastructure.
   static FPS = 60;
   // Default values (player).
   static DEFAULT_NAME = "Francisco";
   static DEFAULT_MODEL = "mechaSphereBlueBase";
-  static DEFAULT_SPEED = 4;
+  static DEFAULT_MAX_SPEED = 4;
   static DEFAULT_HINT_FREQUENCY = "often"; //default of option, can be "often", "sometimes','rare','pro,'legendary','developer'
 
   static GAME_SCENES_IN_DEVELOPMENT = {
@@ -76,4 +78,29 @@ class Config {
 
   static IDEAL_UI_WIDTH = 1000;
   static IDEAL_UI_HEIGHT = 2000;
+
+  /**
+   * Adds support for custom audio unlocking.
+   * Sets up an event listener for the first user click to unlock the audio engine.
+   */
+  static addAudioUnlock() {
+    try {
+      BABYLON.Engine.audioEngine.useCustomUnlockedButton = true;
+
+      window.addEventListener(
+        "click",
+        () => {
+          if (!BABYLON.Engine.audioEngine.unlocked) {
+            BABYLON.Engine.audioEngine.unlock();
+          }
+        },
+        { once: true }
+      );
+    } catch (err) {
+      InitializationDiagnosticsLogger.logPhaseError(
+        "RadiantEngineConstructor-Failure to unlock audio engine: ",
+        ", Error Found: " + err
+      );
+    }
+  }
 }

@@ -8,8 +8,8 @@
 
 class RenderSceneSwapper {
   constructor() {
-    FundamentalSystemBridge.register;
     this.initializeStorage();
+    this.loadBasicScenes();
   }
   /**
    * Retrieves the SceneBuilder associated with the given scene instance.

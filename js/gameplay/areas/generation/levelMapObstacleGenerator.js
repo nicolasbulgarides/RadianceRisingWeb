@@ -2,12 +2,11 @@ class LevelMapObstacleGenerator {
   /**
    * Initializes obstacles on the level map.
    * Reads obstacle configurations from the level and creates corresponding obstacle instances.
-   *
    * @param {LevelMap} level - The level map to populate with obstacles.
+   * @param {Object} relevantSceneBuilder - The scene builder for loading models.
    */
-
   initializeObstacles(level, relevantSceneBuilder) {
-    if (!level.obstacles) return;
+    if (!level.obstacles) return; // Exit if there are no obstacles to initialize.
 
     for (const obstacleData of level.obstacles) {
       const {
@@ -16,7 +15,7 @@ class LevelMapObstacleGenerator {
         interactionId,
         directionsBlocked,
         position,
-      } = obstacleData;
+      } = obstacleData; // Destructure obstacle data.
 
       // Create an Obstacle instance using preset values.
       const obstacle = LevelMapObstacleGenerator.getObstacleByPreset(
@@ -28,20 +27,20 @@ class LevelMapObstacleGenerator {
       );
 
       if (!obstacle) {
-        console.error(`LevelMap: Failed to create obstacle ${nickname}`);
-        continue;
+        console.error(`LevelMap: Failed to create obstacle ${nickname}`); // Log error if obstacle creation fails.
+        continue; // Skip to the next obstacle.
       }
 
       // Retrieve the board slot located at the obstacle's intended position.
       const boardSlot = level.boardSlots[position.x][position.z];
       if (boardSlot) {
         // Host the obstacle in the board slot.
-        boardSlot.hostObstacle(obstacle);
+        boardSlot.hostObstacle(obstacle); // Add the obstacle to the board slot.
 
         // Load the obstacle's model into the scene.
-        relevantSceneBuilder.loadModel(obstacle.positionedObject);
+        relevantSceneBuilder.loadModel(obstacle.positionedObject); // Load the model for the obstacle.
       } else {
-        console.warn(`LevelMap: No BoardSlot at ${position.x}, ${position.z}`);
+        console.warn(`LevelMap: No BoardSlot at ${position.x}, ${position.z}`); // Log warning if no board slot is found.
       }
     }
   }
@@ -49,19 +48,16 @@ class LevelMapObstacleGenerator {
   /**
    * Dynamically generates edge obstacles (mountains) along the borders of the game level.
    * This helps to simulate natural boundaries and define the playable area.
-   *
    * @param {LevelMap} level - The level map to which edge obstacles are added.
    */
-
   generateEdgeMountains(level) {
-    const mountains = [];
+    const mountains = []; // Array to hold generated mountain obstacles.
 
     // Generate obstacles along the left and right edges.
     for (let z = 0; z < level.mapDepth; z++) {
       // Left edge obstacle at x = 0.
       mountains.push({
         obstacleArchetype: "mountain",
-
         nickname: `mountain_left_${z}`,
         interactionId: "none",
         directionsBlocked: "all",
@@ -83,7 +79,6 @@ class LevelMapObstacleGenerator {
       // Top edge obstacle at z = 0.
       mountains.push({
         obstacleArchetype: "mountain",
-
         nickname: `mountain_top_${x}`,
         interactionId: "none",
         directionsBlocked: "all",
@@ -101,12 +96,11 @@ class LevelMapObstacleGenerator {
     }
 
     // Overwrite the level's obstacles with the generated edge obstacles.
-    level.obstacles = mountains;
+    level.obstacles = mountains; // Set the level's obstacles to the generated mountains.
   }
 
   /**
    * Factory method to create an Obstacle instance based on preset configurations.
-   *
    * @param {string} obstacleArchetype - Type of obstacle, used to resolve the model.
    * @param {string} nickname - Friendly name for the new obstacle.
    * @param {number} interactionId - Numeric identifier describing interaction behavior.
@@ -127,12 +121,11 @@ class LevelMapObstacleGenerator {
       interactionId,
       directionsBlocked,
       position
-    );
+    ); // Create and return a new Obstacle instance.
   }
 
   /**
    * Resolves and returns the model ID corresponding to an obstacle archetype.
-   *
    * @param {string} obstacleArchetype - The archetype name to resolve.
    * @returns {string} - The model ID associated with the given archetype.
    */
@@ -140,9 +133,9 @@ class LevelMapObstacleGenerator {
     let modelId = "testMountain"; // Default model ID.
     switch (obstacleArchetype.toLowerCase()) {
       case "mountain":
-        modelId = "testMountain";
+        modelId = "testMountain"; // Set model ID for mountain archetype.
         break;
     }
-    return modelId;
+    return modelId; // Return the resolved model ID.
   }
 }

@@ -31,17 +31,21 @@ class PlayerUnit {
   loadStatusFresh(
     name,
     currentLevel,
+    currentMagicLevel,
     currentExperience,
     baseMagicPoints,
-    baseHealthPoints
+    baseHealthPoints,
+    baseMaxSpeed
   ) {
     // Initialize a fresh status using the factory method.
     this.playerStatus = PlayerStatusComposite.getPlayerStatusFresh(
       name,
       currentLevel,
+      currentMagicLevel,
       currentExperience,
       baseMagicPoints,
-      baseHealthPoints
+      baseHealthPoints,
+      baseMaxSpeed
     );
   }
 
@@ -64,17 +68,19 @@ class PlayerUnit {
     baseMagicPoints,
     currentMagicPoints,
     baseHealthPoints,
-    currentHealthPoints
+    currentHealthPoints,
+    baseMaxSpeed
   ) {
     // Directly create a new PlayerStatus with the provided partial values.
-    this.playerStatus = new PlayerStatus(
+    this.playerStatus = new PlayerStatusComposite(
       name,
       currentLevel,
       currentExperience,
       currentMagicPoints, // Current magic points.
       baseMagicPoints, // Maximum magic points.
       currentHealthPoints, // Current health points.
-      baseHealthPoints // Maximum health points.
+      baseHealthPoints, // Maximum health points.
+      baseMaxSpeed
     );
   }
 

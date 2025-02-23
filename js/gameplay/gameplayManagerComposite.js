@@ -10,80 +10,51 @@
  */
 class GameplayManagerComposite {
   /**
-   * Creates an instance of GameplayManagerComposite
+   * Creates an instance of GameplayManagerComposite.
+   * Initializes gameplay variables and starts the composite initialization process.
    */
   constructor() {
-    // Instead of calling systems initialization consecutively,
-    // call a composite async initializer that handles waiting.
+    // Initialize gameplay variables and start the composite initialization.
     this.initializeVariables();
-    this.initializeComposite();
-  }
-
-  initializeVariables() {
-    this.primaryActivePlayer = null;
-    this.allActivePlayers = [];
-    this.primaryActiveGameplayLevel = null;
-    this.allActiveGameplayLevels = [];
-    this.primaryActiveGameMode = null;
-    this.allActiveGameModes = [];
-  }
-  // NEW: Composite initializer method.
-  async initializeComposite() {
-    // Wait for support systems (including grid tile loading) to finish.
-    await this.initializeGameplaySupportSystems();
-    // Now that all support systems including tile loading are ready, initialize gameplay.
-    await this.initializeGameplayTestA();
-  }
-
-  // Modified to be asynchronous to await grid tile loading.
-  async initializeGameplaySupportSystems() {
-    // Loader to handle game level initialization based on SceneBuilder.
-    this.levelFactoryComposite = new LevelFactoryComposite();
-    // Await support system loading if the method returns a promise.
-    let finishedLoading =
-      await this.levelFactoryComposite.loadFactorySupportSystems();
-
-    // Instantiate game grid generator and wait for all 6 tile models to load.
-
-    this.gameGridGenerator = new GameGridGenerator();
-    const areTilesLoaded =
-      await this.gameGridGenerator.loadTilesModelsDefault();
-    if (!areTilesLoaded) {
-      GameplayLogger.lazyLog(
-        "GameplaySupportSystems: Failed to load all grid tile models.",
-        "GameplayManagerComposite"
-      );
-      // Optionally, handle errors (e.g. retry or prevent further initialization).
-    }
   }
 
   /**
-   * Initializes gameplay systems.
-   * Loads the demo level, sets up obstacles, players, sound, music, and movement management.
+   * Initializes variables to track active players, gameplay levels, and game modes.
    */
-  async initializeGameplayTestA() {
-    this.primaryActiveGameplayLevel =
-      await this.levelFactoryComposite.loadDemoLevelTest();
-    this.levelFactoryComposite.renderActiveDemoGameplayLevel(
-      this.primaryActiveGameplayLevel
-    );
-    // Load and position player into the current level.
-    this.loadPlayerToSpecifiedGameplayLevel(this.primaryActiveGameplayLevel);
+  initializeVariables() {
+    this.primaryActivePlayer = null; // The main player currently active in the game.
+    this.allActivePlayers = []; // Array to hold all players currently in the game.
+    this.primaryActiveGameplayLevel = null; // The main gameplay level currently active.
+    this.allActiveGameplayLevels = []; // Array to hold all gameplay levels.
+    this.primaryActiveGameMode = null; // The main game mode currently active.
+    this.allActiveGameModes = []; // Array to hold all game modes.
+  }
+
+  /**
+   * Processes orders received from the TestManager.
+   * This method ensures that test orders are processed if a TestManager instance is available.
+   */
+  async processOrdersFromTestManager() {
+    if (FundamentalSystemBridge.testManager instanceof TestManager) {
+      FundamentalSystemBridge.testManager.processTestOrders(this);
+    }
   }
 
   /**
    * Loads the demo player into the game.
    * Retrieves the player model and ensures animations are loaded via SceneBuilder.
+   * @param {Object} activeGameplayLevel - The current gameplay level where the player will be loaded.
+   * @param {Object} playerToLoad - The player instance to be loaded into the level.
    */
-  async loadPlayerToSpecifiedGameplayLevel(activeGameplayLevel) {
-    // Retrieve demo player instance with appropriate positioning.
-    let demoPlayer = PlayerLoader.getDemoPlayer(activeGameplayLevel.levelMap);
-    this.allActivePlayers.push(demoPlayer);
-    activeGameplayLevel.registerCurrentPrimaryPlayer(demoPlayer);
-    activeGameplayLevel.loadRegisteredPlayerModel(demoPlayer, true);
+  async loadPlayerToGameplayLevel(activeGameplayLevel, playerToLoad) {
+    let proceed = LevelFactoryComposite.checkTilesLoaded(); // Check if tiles are loaded.
 
-    // Removed redundant explicit camera chase call.
-    // The camera is now set to chase the player within loadRegisteredPlayerModel
+    if (proceed) {
+      // Retrieve demo player instance with appropriate positioning.
+      this.allActivePlayers.push(playerToLoad); // Add the player to the active players list.
+      activeGameplayLevel.registerCurrentPrimaryPlayer(playerToLoad); // Register the player in the active level.
+      activeGameplayLevel.loadRegisteredPlayerModel(playerToLoad, true); // Load the player's model.
+    }
   }
 
   /**
@@ -91,6 +62,7 @@ class GameplayManagerComposite {
    * This includes updates for player movement and processing level events.
    */
   processEndOfFrameEvents() {
+    // Delegate end-of-frame processing to the coordinator.
     GameplayEndOfFrameCoordinator.processEndOfFrameEvents(this);
   }
 
@@ -98,32 +70,37 @@ class GameplayManagerComposite {
    * Processes movement input coming from the UI.
    * Translates UI direction commands to player model movements.
    *
-   * @param {string} direction - The direction input from the UI click.
+   * Note the method intelligently determines various factors, such as the primary game level's game mode
+   * rules including if movement is bounded or not, what max distance, and if obstacles are bypassed.
+   * @param {string} clickedDirection - The direction input from the UI click.
    */
   processAttemptedMovementFromUIClick(clickedDirection) {
-    if (
-      !ValidActionChecker.canMove(
-        this.primaryActiveGameplayLevel.currentPrimaryPlayer
-      )
-    ) {
-      return;
-    } else {
-      let currentPlayer = this.primaryActiveGameplayLevel.currentPrimaryPlayer;
+    let currentPlayer = this.primaryActiveGameplayLevel.currentPrimaryPlayer; // Get the current player.
+    if (ValidActionChecker.canMove(currentPlayer, clickedDirection)) {
+      // Check if the player can move.
       let destinationVector =
         MovementDestinationCalculator.getProposedDestination(
           clickedDirection,
           currentPlayer,
           this.primaryActiveGameplayLevel
-        );
+        ); // Calculate the proposed destination based on the clicked direction.
+
       if (destinationVector instanceof BABYLON.Vector3) {
-        currentPlayer.playerMovementManager.setDestination(destinationVector);
-        currentPlayer.playerMovementManager.startMovement(Config.DEFAULT_SPEED);
+        currentPlayer.playerMovementManager.setDestinationAndBeginMovement(
+          destinationVector,
+          currentPlayer // Set the destination and start movement for the player.
+        );
       }
     }
   }
 
+  /**
+   * Sets the active gameplay level.
+   * This method can be extended to handle transitions between levels as needed.
+   * @param {Object} activeGameplayLevel - The new active gameplay level to set.
+   */
   setActiveGameplayLevel(activeGameplayLevel) {
-    //to do -  behavior as needed for transition between current levels
+    // Set the primary active gameplay level.
     this.primaryActiveGameplayLevel = activeGameplayLevel;
   }
 }

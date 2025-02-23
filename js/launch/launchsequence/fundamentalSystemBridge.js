@@ -9,110 +9,146 @@ class FundamentalSystemBridge {
   // Static fields for system references (singletons).
 
   /**
-   * Constructor for FundamentalSystemBridge.
-   * Initializes the static storage for system references.
-   * Although system references are stored statically, an instance
-   * constructor has been provided for potential future instance-level logic.
+   * Generic method to register a manager instance.
+   * @param {string} managerName - The name of the manager to register.
+   * @param {Object} managerInstance - The manager instance to register.
+   * @param {Function} instanceType - The constructor function of the expected type.
    */
-  constructor() {
-    this.initializeStorage();
-    // Instance-level initialization (currently unused).
-  }
-
-  /**
-   * Initializes static storage fields to null.
-   * This method is called during construction to ensure all static fields
-   * are reset to their default state.
-   */
-  initializeStorage() {
-    FundamentalSystemBridge.babylonEngine = null; // Babylon engine reference
-    FundamentalSystemBridge.radiantEngineManager = null; // Radiant engine manager reference
-    FundamentalSystemBridge.networkingManager = null; // Networking manager reference
-    FundamentalSystemBridge.gameplayManagerComposite = null; // Composite gameplay manager reference
-  }
-
-  /**
-   * Registers a GamemodeManager instance.
-   * @param {GamemodeManager} gamemodeManager - The gamemode manager instance.
-   * This method checks if the provided instance is of the correct type
-   * and assigns it to the static field.
-   */
-  static registerGamemodeManager(gamemodeManager) {
-    if (gamemodeManager instanceof GamemodeManager) {
-      FundamentalSystemBridge.gamemodeManager = gamemodeManager;
-    }
-  }
-
-  /**
-   * Registers the Babylon Engine instance.
-   * @param {BABYLON.Engine} engine - The Babylon engine instance.
-   * Validates the type of the provided engine before assignment.
-   */
-  static registerBabylonEngine(engine) {
-    if (engine instanceof BABYLON.Engine) {
-      this.babylonEngine = engine;
+  static registerManager(managerName, managerInstance, instanceType) {
+    if (managerInstance instanceof instanceType) {
+      FundamentalSystemBridge[managerName] = managerInstance;
     } else {
-      const providedType = typeof engine;
+      const providedType = typeof managerInstance;
       FundamentalSystemBridge.logCatastrophicRegistration(
-        "BabylonEngine",
+        managerName,
         providedType
       );
     }
   }
 
+  static registerBabylonEngine(engine) {
+    FundamentalSystemBridge.registerManager(
+      "babylonEngine",
+      engine,
+      BABYLON.Engine
+    );
+  }
+
   static registerHistoryManager(historyManager) {
-    if (historyManager instanceof HistoryManager) {
-      FundamentalSystemBridge.historyManager = historyManager;
-    }
+    FundamentalSystemBridge.registerManager(
+      "historyManager",
+      historyManager,
+      HistoryManager
+    );
   }
 
   static registerPrimaryGameplayCameraManager(primaryCameraManager) {
-    if (primaryCameraManager instanceof CameraManager) {
-      FundamentalSystemBridge.primaryGameplayCameraManager =
-        primaryCameraManager;
-    }
-  }
-
-  static registerTestManager(testManager) {
-    if (testManager instanceof TestManager) {
-      FundamentalSystemBridge.testManager = testManager;
-    }
-  }
-
-  static registerProgrammaticAnimationManager(programmaticAnimationManager) {
-    if (programmaticAnimationManager instanceof ProgrammaticAnimationManager) {
-      FundamentalSystemBridge.programmaticAnimationManager =
-        programmaticAnimationManager;
-    }
-  }
-
-  static registerActiveTriggerManager(activeTriggerManager) {
-    if (activeTriggerManager instanceof ActiveTriggerManager) {
-      FundamentalSystemBridge.activeTriggerManager = activeTriggerManager;
-    }
-  }
-
-  static registerSpecialOccurenceManager(specialOccurenceManager) {
-    if (specialOccurenceManager instanceof SpecialOccurenceManager) {
-      FundamentalSystemBridge.specialOccurenceManager = specialOccurenceManager;
-    }
+    FundamentalSystemBridge.registerManager(
+      "primaryGameplayCameraManager",
+      primaryCameraManager,
+      CameraManager
+    );
   }
 
   static registerSecondaryGameplayCameraManager(secondaryCameraManager) {
-    if (secondaryCameraManager instanceof CameraManager) {
-      FundamentalSystemBridge.secondaryGameplayCameraManager =
-        secondaryCameraManager;
-    }
+    FundamentalSystemBridge.registerManager(
+      "secondaryGameplayCameraManager",
+      secondaryCameraManager,
+      CameraManager
+    );
+  }
+
+  static registerItemManager(itemManager) {
+    FundamentalSystemBridge.registerManager(
+      "itemManager",
+      itemManager,
+      ItemManager
+    );
+  }
+
+  static registerAchievementManager(achievementManager) {
+    FundamentalSystemBridge.registerManager(
+      "achievementManager",
+      achievementManager,
+      AchievementManager
+    );
+  }
+
+  static registerTransactionManager(transactionManager) {
+    FundamentalSystemBridge.registerManager(
+      "transactionManager",
+      transactionManager,
+      TransactionManager
+    );
+  }
+
+  static loadLevelFactoryComposite() {
+    this.levelFactoryComposite = new LevelFactoryComposite();
+    this.levelFactoryComposite.loadFactorySupportSystems();
+  }
+
+  static registerUIConstructionGrandManager(uiConstructionGrandManager) {
+    FundamentalSystemBridge.registerManager(
+      "uiConstructionGrandManager",
+      uiConstructionGrandManager,
+      UIConstructionGrandManager
+    );
+  }
+
+  static registerPlayerSaveManager(playerSaveManager) {
+    FundamentalSystemBridge.registerManager(
+      "playerSaveManager",
+      playerSaveManager,
+      PlayerSaveManager
+    );
+  }
+
+  static registerRadiantEngineManager(radiantEngineManager) {
+    FundamentalSystemBridge.registerManager(
+      "radiantEngineManager",
+      radiantEngineManager,
+      RadiantEngineManager
+    );
+  }
+
+  static registerNetworkingManager(networkingManager) {
+    FundamentalSystemBridge.registerManager(
+      "networkingManager",
+      networkingManager,
+      NetworkingManager
+    );
+  }
+
+  static loadGameplayManagerComposite() {
+    this.gameplayManagerComposite = new GameplayManagerComposite();
+  }
+
+  static registerPrimaryGameplayLightingManager(
+    primaryGameplayLightingManager
+  ) {
+    FundamentalSystemBridge.registerManager(
+      "primaryGameplayLightingManager",
+      primaryGameplayLightingManager,
+      LightingManager
+    );
+  }
+
+  static registerSecondaryGameplayLightingManager(
+    secondaryGameplayLightingManager
+  ) {
+    FundamentalSystemBridge.registerManager(
+      "secondaryGameplayLightingManager",
+      secondaryGameplayLightingManager,
+      LightingManager
+    );
   }
 
   /**
-   * Registers the Sound Managers instances.
-   * @param {MusicManager} musicManager - The music manager instance.
-   * @param {SoundEffectsManager} soundEffectsManager - The sound effects manager instance.
+   * Loads he Soundand Music Managers instances.
    */
-  static registerSoundManagers(musicManager, soundEffectsManager) {
-    FundamentalSystemBridge.musicManager = musicManager;
-    FundamentalSystemBridge.soundEffectsManager = soundEffectsManager;
+  static loadSoundManagers() {
+    FundamentalSystemBridge.musicManager = new MusicManager();
+    FundamentalSystemBridge.soundEffectsManager = new SoundEffectsManager();
   }
 
   /**
@@ -125,180 +161,32 @@ class FundamentalSystemBridge {
     }
   }
 
-  /**
-   * Registers the Item Manager instance.
-   * @param {ItemManager} itemManager - The item manager instance.
-   */
-
-  static registerItemManager(itemManager) {
-    if (itemManager instanceof ItemManager) {
-      FundamentalSystemBridge.itemManager = itemManager;
-    } else {
-      const providedType = typeof itemManager;
-      FundamentalSystemBridge.logCatastrophicRegistration(
-        "ItemManager",
-        providedType
-      );
+  static possiblyLoadAndActivateTestManager() {
+    if (Config.LOAD_TEST_MANAGER) {
+      this.testManager = new TestManager();
+      this.testManager.processTestOrders(this.gameplayManagerComposite);
     }
   }
 
-  /**
-   * Registers the Achievement Manager instance.
-   * @param {AchievementManager} achievementManager - The achievement manager instance.
-   */
+  static loadProgrammaticAnimationManager() {
+    FundamentalSystemBridge.programmaticAnimationManager =
+      new ProgrammaticAnimationManager();
+  }
 
-  static registerAchievementManager(achievementManager) {
-    if (achievementManager instanceof AchievementManager) {
-      FundamentalSystemBridge.achievementManager = achievementManager;
-    } else {
-      const providedType = typeof achievementManager;
-      FundamentalSystemBridge.logCatastrophicRegistration(
-        "AcheivementManager",
-        providedType
-      );
+  static loadActiveTriggerManager() {
+    FundamentalSystemBridge.activeTriggerManager = new ActiveTriggerManager();
+  }
+
+  static registerSpecialOccurenceManager(specialOccurenceManager) {
+    if (specialOccurenceManager instanceof SpecialOccurenceManager) {
+      FundamentalSystemBridge.specialOccurenceManager = specialOccurenceManager;
     }
   }
 
-  /**
-   * Registers the Transaction Manager instance.
-   * @param {TransactionManager} transactionManager - The transaction manager instance.
-   */
-  static registerTransactionManager(transactionManager) {
-    if (transactionManager instanceof TransactionManager) {
-      FundamentalSystemBridge.transactionManager = transactionManager;
-    } else {
-      const providedType = typeof transactionManager;
-      FundamentalSystemBridge.logCatastrophicRegistration(
-        "TransactionManager",
-        providedType
-      );
-    }
+  static loadRenderSceneSwapper() {
+    this.renderSceneSwapper = new RenderSceneSwapper();
   }
 
-  static registerLevelFactoryComposite(levelFactoryComposite) {
-    if (levelFactoryComposite instanceof LevelFactoryComposite) {
-      FundamentalSystemBridge.levelFactoryComposite = levelFactoryComposite;
-    }
-  }
-
-  static registerUIConstructionGrandManager(uiConstructionGrandManager) {
-    if (uiConstructionGrandManager instanceof UIConstructionGrandManager) {
-      FundamentalSystemBridge.uiConstructionGrandManager =
-        uiConstructionGrandManager;
-    }
-  }
-
-  /**
-   * Registers the Babylon Engine instance.
-   * @param {PlayerSaveManager} playerSaveManager - The player save manager instance.
-   */
-  static registerPlayerSaveManager(playerSaveManager) {
-    if (playerSaveManager instanceof PlayerSaveManager) {
-      FundamentalSystemBridge.playerSaveManager = playerSaveManager;
-    } else {
-      const providedType = typeof playerSaveManager;
-      FundamentalSystemBridge.logCatastrophicRegistration(
-        "PlayerSaveManager",
-        providedType
-      );
-    }
-  }
-
-  /**
-   * Registers the Radiant Engine Manager.
-   * @param {RadiantEngineManager} radiantEngineManager - The radiant engine manager instance.
-   */
-  static registerRadiantEngineManager(radiantEngineManager) {
-    if (radiantEngineManager instanceof RadiantEngineManager) {
-      FundamentalSystemBridge.radiantEngineManager = radiantEngineManager;
-    } else {
-      const providedType = typeof radiantEngineManager;
-      FundamentalSystemBridge.logCatastrophicRegistration(
-        "RadiantEngineManager",
-        providedType
-      );
-    }
-  }
-
-  /**
-   * Registers the Networking Manager.
-   * @param {NetworkingManager} networkingManager - The networking manager instance.
-   */
-  static registerNetworkingManager(networkingManager) {
-    if (networkingManager instanceof NetworkingManager) {
-      FundamentalSystemBridge.networkingManager = networkingManager;
-    } else {
-      const providedType = typeof networkingManager;
-      FundamentalSystemBridge.logCatastrophicRegistration(
-        "NetworkingManager",
-        providedType
-      );
-    }
-  }
-
-  /**
-   * Registers the Render Scene Swapper.
-   * @param {RenderSceneSwapper} renderSceneSwapper - The render scene swapper instance.
-   */
-  static registerRenderSceneSwapper(renderSceneSwapper) {
-    if (renderSceneSwapper instanceof RenderSceneSwapper) {
-      FundamentalSystemBridge.renderSceneSwapper = renderSceneSwapper;
-    }
-  }
-
-  /**
-   * Registers the Gameplay Manager.
-   * @param {GameplayManagerComposite} gameplayManagerComposite - The gameplay manager instance.
-   */
-  static registerGameplayManagerComposite(gameplayManagerComposite) {
-    if (gameplayManagerComposite instanceof GameplayManagerComposite) {
-      FundamentalSystemBridge.gameplayManagerComposite =
-        gameplayManagerComposite;
-    } else {
-      const providedType = typeof gameplayManagerComposite;
-      FundamentalSystemBridge.logCatastrophicRegistration(
-        "GameplayManagerComposite",
-        providedType
-      );
-    }
-  }
-
-  /**
-   * Registers the Lighting Manager.
-   * @param {LightingManager} primaryGameplayLightingManager - The primary gameplay lighting manager instance.
-   */
-  static registerPrimaryGameplayLightingManager(
-    primaryGameplayLightingManager
-  ) {
-    if (primaryGameplayLightingManager instanceof LightingManager) {
-      FundamentalSystemBridge.primaryGameplayLightingManager =
-        primaryGameplayLightingManager;
-    } else {
-      const providedType = typeof primaryGameplayLightingManager;
-      FundamentalSystemBridge.logCatastrophicRegistration(
-        "PrimaryGameplayLightingManager",
-        providedType
-      );
-    }
-  }
-  /**
-   * Registers the Lighting Manager.
-   * @param {LightingManager} lightingManager - The lighting manager instance.
-   */
-  static registerSecondaryGameplayLightingManager(
-    secondaryGameplayLightingManager
-  ) {
-    if (secondaryGameplayLightingManager instanceof LightingManager) {
-      FundamentalSystemBridge.secondaryGameplayLightingManager =
-        secondaryGameplayLightingManager;
-    } else {
-      const providedType = typeof secondaryGameplayLightingManager;
-      FundamentalSystemBridge.logCatastrophicRegistration(
-        "SecondaryGameplayLightingManager",
-        providedType
-      );
-    }
-  }
   /**
    * Logs a catastrophic registration error.
    * @param {string} systemName - The name of the system being registered.

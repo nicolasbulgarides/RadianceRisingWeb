@@ -26,11 +26,18 @@ class GameGridGenerator {
       FundamentalSystemBridge.renderSceneSwapper.getSceneBuilderForScene(
         "BaseGameScene"
       );
-    return this.loadTilesModels(
+    const tilesLoaded = await this.loadTilesModels(
       relevantSceneBuilder,
       GameGridGenerator.getTileIdsByLevelArchetype(),
       1
     );
+
+    // Set TILES_LOADED to true if tiles were successfully loaded
+    if (tilesLoaded) {
+      LevelFactoryComposite.TILES_LOADED = true;
+    }
+
+    return tilesLoaded; // Return the loading status
   }
   /**
    * Loads all tile models into memory based on provided tile IDs.
