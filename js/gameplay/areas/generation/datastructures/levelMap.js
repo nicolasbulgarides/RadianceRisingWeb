@@ -1,15 +1,35 @@
+/**
+ * LevelMap represents the physical layout and structure of a game level.
+ * It manages a 2D grid of BoardSlot instances that form the playable area.
+ *
+ * Core Responsibilities:
+ * - Maintains a 2D grid of BoardSlot objects
+ * - Tracks level dimensions and boundaries
+ * - Manages player spawn position
+ * - Handles obstacle placement and grid occupancy
+ *
+ * This class serves as the bridge between the abstract level data and the
+ * physical representation of the game world. It's used by ActiveGameplayLevel
+ * to manage the actual gameplay space.
+ */
 class LevelMap {
   /**
    * Constructs an in-memory representation of the game level.
-   * Holds grid configuration, board slots, obstacles, and player start position.
-   * @param {Object} gameModeRules - The rules governing the current game mode.
+   * Initializes an empty grid that can be populated through level loading.
+   * The grid is represented as a 2D array of BoardSlot instances, where each
+   * BoardSlot can contain obstacles or other interactive elements.
    */
   constructor() {
-    this.boardSlots = []; // 2D array containing BoardSlot instances representing each grid cell.
-    this.mapWidth = 1; // Grid width (number of columns).
-    this.mapDepth = 1; // Grid depth (number of rows).
-    this.startingPosition = null; // Starting position for the player in the level.
-    this.obstacles = {}; // Container for obstacles (if needed in further logic).
+    /** @type {BoardSlot[][]} 2D array containing BoardSlot instances representing each grid cell */
+    this.boardSlots = [];
+    /** @type {number} Grid width (number of columns) */
+    this.mapWidth = 1;
+    /** @type {number} Grid depth (number of rows) */
+    this.mapDepth = 1;
+    /** @type {BABYLON.Vector3} Starting position for the player in the level */
+    this.startingPosition = null;
+    /** @type {Object} Container for obstacle references and state */
+    this.obstacles = {};
   }
 
   /**

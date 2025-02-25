@@ -1,8 +1,25 @@
+/**
+ * ActiveGameplayLevel represents the primary gameplay object used by the gameplay manager.
+ * It serves as the central hub for managing the active state of a level during gameplay,
+ * coordinating between various subsystems like lighting, camera, and player management.
+ *
+ * Key Components:
+ * - LevelMap: Contains the physical grid layout and board slots
+ * - Camera Management: Handles player following and scene visualization
+ * - Lighting Management: Controls dynamic lighting effects
+ * - Player Management: Tracks active players and their states
+ *
+ * This class bridges the gap between static level data (LevelDataComposite) and
+ * the actual running gameplay instance.
+ */
 class ActiveGameplayLevel {
   /**
    * Constructs an active gameplay level instance.
+   * This is the runtime representation of a level, created from LevelDataComposite
+   * but enhanced with active gameplay elements and state management.
    *
    * @param {Scene} hostingScene - The scene instance hosting the gameplay level.
+   * @param {GamemodeGeneric} gameModeRules - Rules and constraints for the current game mode.
    * @param {LevelMap} levelMap - The level map instance representing grid and obstacles.
    * @param {CameraManager} cameraManager - Manages the camera for the active level.
    * @param {LightingManager} lightingManager - Handles dynamic lighting updates.

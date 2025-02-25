@@ -21,6 +21,7 @@ class PlayerMovementManager {
     this.pathingDestination = null;
     this.currentPosition = position;
     this.maxMovementDistance = 0;
+    this.lastCrossedTileBoundary = position;
   }
 
   /**
@@ -30,6 +31,10 @@ class PlayerMovementManager {
    */
   getPositionVector() {
     return this.currentPosition;
+  }
+
+  updateLastCrossedTileBoundary(boundary) {
+    this.lastCrossedTileBoundary = boundary;
   }
 
   /**

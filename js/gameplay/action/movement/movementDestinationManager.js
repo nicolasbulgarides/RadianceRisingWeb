@@ -18,9 +18,6 @@ class MovementDestinationManager {
     let ignoreObstacles = currentGamemodeRules.OBSTACLES_ARE_IGNORED;
 
     if (bounded) {
-      GameplayLogger.lazyLog(
-        "Calculating destination vector while respecting boundaries"
-      );
       return BoundedDestinationCalculator.getDestinationVector(
         direction,
         ignoreObstacles,
@@ -29,9 +26,6 @@ class MovementDestinationManager {
         relevantPlayer
       );
     } else {
-      GameplayLogger.lazyLog(
-        "Calculating destination vector while ignoring boundaries"
-      );
       return UnboundedDestinationCalculator.getDestinationVector(
         direction,
         ignoreObstacles,

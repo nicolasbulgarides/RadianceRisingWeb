@@ -25,7 +25,8 @@ class BoundedDestinationCalculator {
       let theoreticalPosition = this.determineTheoreticalStopPosition(
         direction,
         maxDistance,
-        relevantPlayer
+        relevantPlayer,
+        activeGameLevelPlane
       );
       finalDestinationVector = this.clampStopPositionDueToBoundary(
         theoreticalPosition,
@@ -85,10 +86,11 @@ class BoundedDestinationCalculator {
     if (gameModeRules.USE_PLAYER_MOVEMENT_DISTANCE) {
       const playerMaxDistance =
         relevantPlayer.playerMovementManager.maxMovementDistance;
-      effectiveMaxDistance = Math.min(maxDistance, playerMaxDistance);
+
+      effectiveMaxDistance = playerMaxDistance;
     } else {
       const playerMaxDistance =
-        gameModeRules.currentEnforcings.MAX_MOVEMENT_DISTANCE;
+        gameModeRules.currentEnforcings.maximumMovementDistance;
       effectiveMaxDistance = Math.min(maxDistance, playerMaxDistance);
     }
 

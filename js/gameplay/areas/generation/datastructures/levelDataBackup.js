@@ -1,4 +1,4 @@
-class LevelData {
+class LevelDataBackup {
   // Static array containing predefined level configurations.
   // Each configuration includes grid dimensions, player starting position, and obstacles.
   static levels = [

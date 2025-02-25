@@ -49,7 +49,7 @@ class TestManager {
       return null;
     }
     let demoPlayer = PlayerLoader.getFreshPlayer(gameplayLevel.levelMap); // Retrieve the demo player model.
-    demoPlayer.playerMovementManager.setMaxMovementDistance(3);
+    demoPlayer.playerMovementManager.setMaxMovementDistance(5);
     let loadedPlayer = await gameplayManager.loadPlayerToGameplayLevel(
       gameplayLevel,
       demoPlayer

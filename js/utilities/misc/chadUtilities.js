@@ -12,12 +12,17 @@ class ChadUtilities {
    */
   static describeVector(msg, vector, sender) {
     if (!(vector instanceof BABYLON.Vector3)) {
-      LoggerOmega.SmartLogger(true, sender);
+      LoggerOmega.SmartLogger(
+        true,
+        "Vector to describe is not a vector: ",
+        sender
+      );
+    } else {
+      let vectorMessage =
+        msg + " " + ChadUtilities.convertVectorToString(vector);
+
+      LoggerOmega.SmartLogger(true, "Output: " + vectorMessage, sender);
     }
-
-    let vectorMessage = msg + " " + ChadUtilities.convertVectorToString(vector);
-
-    LoggerOmega.SmartLogger(true, "Output: " + vectorMessage, sender);
   }
 
   static convertVectorToString(vector) {

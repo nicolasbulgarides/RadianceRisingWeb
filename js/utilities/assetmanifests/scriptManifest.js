@@ -85,8 +85,7 @@ class ScriptManifest {
   static occurrenceScripts = [
     "/gameplay/interactions/occurrences/specialOccurrenceComposite.js",
     "/gameplay/interactions/occurrences/specialOccurrenceManager.js",
-    "/gameplay/interactions/occurrences/occurrenceFactory.js",
-
+    "/gameplay/interactions/occurrences/specialOccurrenceFactory.js",
     "/gameplay/interactions/datastructures/specialOccurrenceBasicData.js",
     "/gameplay/interactions/datastructures/specialOccurrenceHeader.js",
     "/gameplay/interactions/datastructures/specialOccurrenceStatus.js",
@@ -100,9 +99,21 @@ class ScriptManifest {
     "/gameplay/interactions/datastructures/specialOccurrenceUnlockData.js",
   ];
 
+  static microEventScripts = [
+    "/gameplay/interactions/microevents/microEvent.js",
+    "/gameplay/interactions/microevents/microEventManager.js",
+    "/gameplay/interactions/microevents/microEventSignal.js",
+    "/gameplay/interactions/microevents/microEventFactory.js",
+  ];
+
   static triggerScripts = [
-    "/gameplay/interactions/triggers/triggerReadyCheck.js",
-    "/gameplay/interactions/triggers/triggerEvent.js",
+    "/gameplay/interactions/triggers/datastructures/triggerHeader.js",
+    "/gameplay/interactions/triggers/datastructures/triggerSpecialData.js",
+    "/gameplay/interactions/triggers/datastructures/triggerBehavior.js",
+    "/gameplay/interactions/triggers/datastructures/triggerEvent.js",
+    "/gameplay/interactions/triggers/datastructures/triggerInstructionPreset.js",
+    "/gameplay/interactions/triggers/datastructures/triggerInstruction.js",
+
     "/gameplay/interactions/triggers/activeTriggerManager.js",
     "/gameplay/interactions/triggers/triggerFactory.js",
   ];
@@ -128,6 +139,8 @@ class ScriptManifest {
     "/utilities/assetmanifests/itemIconAssetManifest.js",
     "/utilities/assetmanifests/soundAssetManifest.js",
     "/utilities/assetmanifests/songAssetManifest.js",
+    "/utilities/assetmanifests/levelProfileHeader.js",
+    "/utilities/assetmanifests/levelManifest.js",
   ];
 
   static assetLoadersAndManagersScripts = [
@@ -136,6 +149,7 @@ class ScriptManifest {
     "/utilities/loaders/modelLoadingLogger.js",
     "/utilities/loaders/animatedModelLoader.js",
     "/utilities/loaders/sceneBuilder.js",
+    "/utilities/loaders/levelDataFileLoader.js",
   ];
 
   static uiSpecialFunctionScripts = [];
@@ -207,10 +221,13 @@ class ScriptManifest {
 
   // Top-level gameplay scripts (other gameplay subcategories are loaded separately)
   static gameplayScripts = [
+    "/gameplay/levelEventSignal.js",
     "/gameplay/gameplayManagerComposite.js",
     "/gameplay/gameplayEndOfFrameCoordinator.js",
     "/gameplay/gameplayloggers/gameplayLogger.js",
     "/gameplay/gameplayloggers/movementLogger.js",
+    "/gameplay/player/utilities/playerMovementManager.js",
+    "/gameplay/action/movement/tileBoundaryDetector.js",
   ];
 
   static playerScripts = [
@@ -223,7 +240,6 @@ class ScriptManifest {
     "/gameplay/player/datastructures/accounts/guestAccount.js",
     "/gameplay/player/datastructures/accounts/authenticatedAccount.js",
     "/gameplay/player/datastructures/accounts/accountPreferences.js",
-    "/gameplay/player/utilities/playerMovementManager.js",
     "/gameplay/player/utilities/playerLoader.js",
   ];
 
@@ -265,14 +281,39 @@ class ScriptManifest {
   static gameInteractionsScripts = [
     "/gameplay/action/utilities/validActionChecker.js",
   ];
+
+  static rewardScripts = [
+    "/gameplay/rewards/rewardManagerComposite.js",
+    "/gameplay/rewards/rewardReporter.js",
+    "/gameplay/rewards/rewardUIManager.js",
+
+    "/gameplay/rewards/datastructures/rewardBasic.js",
+    "/gameplay/rewards/datastructures/rewardBundleHeader.js",
+    "/gameplay/rewards/datastructures/rewardBundleComposite.js",
+    "/gameplay/rewards/datastructures/rewardSpecial.js",
+    "/gameplay/rewards/datastructures/rewardUnlocks.js",
+    "/gameplay/rewards/datastructures/rewardReason.js",
+    "/gameplay/rewards/datastructures/rewardEventRecord.js",
+
+    "/gameplay/rewards/mojo/mojoAuditor.js",
+    "/gameplay/rewards/mojo/mojoUIManager.js",
+    "/gameplay/rewards/mojo/mojoManagerComposite.js",
+    "/gameplay/rewards/mojo/mojoMilestoneCalculator.js",
+  ];
   static gameAreaScripts = [
-    "/gameplay/areas/generation/levelData.js",
-    "/gameplay/areas/generation/boardSlot.js",
-    "/gameplay/areas/generation/activeGameplayLevel.js",
+    "/gameplay/testtools/testLevelJsonBuilder.js",
+    "/gameplay/areas/generation/datastructures/levelVictoryCondition.js",
+    "/gameplay/areas/generation/datastructures/levelObjective.js",
+    "/gameplay/areas/generation/datastructures/levelFeaturedObject.js",
+    "/gameplay/areas/generation/datastructures/levelHeaderData.js",
+    "/gameplay/areas/generation/datastructures/levelGameplayTraitsData.js",
+    "/gameplay/areas/generation/datastructures/levelDataComposite.js",
+    "/gameplay/areas/generation/datastructures/boardSlot.js",
+    "/gameplay/areas/generation/datastructures/activeGameplayLevel.js",
     "/gameplay/areas/generation/levelFactoryComposite.js",
     "/gameplay/areas/generation/gameGridGenerator.js",
     "/gameplay/areas/generation/levelMapObstacleGenerator.js",
-    "/gameplay/areas/generation/levelMap.js",
+    "/gameplay/areas/generation/datastructures/levelMap.js",
   ];
 
   static progressionScriptsRadiantRays = [
@@ -358,6 +399,15 @@ class ScriptManifest {
     "/saving/batching/batchmanagers/batchTracker.js",
     "/saving/batching/batchmanagers/batchMergeFactory.js",
   ];
+
+  /**
+   * Retrieves the reward scripts.
+   * @returns {Array<string>} Array of reward script URLs.
+   */
+  static getRewardScripts() {
+    return this.rewardScripts;
+  }
+
   /**
    * Retrieves the general item scripts.
    * @returns {Array<string>} Array of general item script URLs.
@@ -577,7 +627,13 @@ class ScriptManifest {
   static getGeneralProgressionScripts() {
     return this.progressionScriptsGeneral;
   }
-
+  /**
+   * Retrieves the radiant rays progression scripts.
+   * @returns {Array<string>} Array of radiant rays progression script URLs.
+   */
+  static getMicroEventScripts() {
+    return this.microEventScripts;
+  }
   /**
    * Retrieves the radiant rays progression scripts.
    * @returns {Array<string>} Array of radiant rays progression script URLs.
@@ -607,7 +663,7 @@ class ScriptManifest {
    * @returns {Array<string>} Array of radiant rays occurrence script URLs.
    */
   static getRadiantRaysOccurenceScripts() {
-    return this.occurenceScripts;
+    return this.occurrenceScripts;
   }
 
   /**
@@ -664,7 +720,13 @@ class ScriptManifest {
       }
     })();
   }
-
+  /**
+   * Loads the micro event scripts and returns a promise.
+   * @returns {Promise} Resolves when micro event scripts are loaded.
+   */
+  static loadMicroEventScriptsPromise() {
+    return this.loadScriptsArray(this.getMicroEventScripts(), "MicroEvent");
+  }
   /**
    * Loads the gamemode scripts and returns a promise.
    * @returns {Promise} Resolves when gamemode scripts are loaded.
@@ -690,6 +752,14 @@ class ScriptManifest {
   }
 
   /**
+   * Loads the reward scripts and returns a promise.
+   * @returns {Promise} Resolves when reward scripts are loaded.
+   */
+  static loadRewardScriptsPromise() {
+    return this.loadScriptsArray(this.getRewardScripts(), "Reward");
+  }
+
+  /**
    * Loads the trigger scripts and returns a promise.
    * @returns {Promise} Resolves when trigger scripts are loaded.
    */
@@ -701,8 +771,8 @@ class ScriptManifest {
    * Loads the occurrence scripts and returns a promise.
    * @returns {Promise} Resolves when occurrence scripts are loaded.
    */
-  static loadOccurenceScriptsPromise() {
-    return this.loadScriptsArray(this.getOccurenceScripts(), "Occurence");
+  static loadOccurrenceScriptsPromise() {
+    return this.loadScriptsArray(this.getOccurrenceScripts(), "Occurrence");
   }
 
   /**
@@ -960,7 +1030,9 @@ class ScriptManifest {
       .then(() => this.loadLightingScriptsPromise())
       .then(() => this.loadCameraScriptsPromise())
       .then(() => this.loadInputScriptsPromise())
+      .then(() => this.loadMicroEventScriptsPromise())
       .then(() => this.loadTriggerScriptsPromise())
+      .then(() => this.loadOccurrenceScriptsPromise())
       .then(() => this.loadRadiantRaysAnimationScriptsPromise())
       .then(() => this.loadMovementScriptsPromise())
       .then(() => this.loadGamemodeScriptsPromise())

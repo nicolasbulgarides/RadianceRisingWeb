@@ -22,7 +22,6 @@ class SpecialOccurrenceManager {
   transmitOccurrenceToSaveSystem(occurrence) {
     // Simulate asynchronous transmission.
     setTimeout(() => {
-      console.log("Transmitted occurrence:", occurrence.id);
       occurrence.recorded = true; // Mark the occurrence as recorded.
       this.recordOccurrenceWasRecordedSuccessfully(occurrence); // Record successful save.
       this.allOccurrencesInTransitBackupBuffer =
@@ -43,9 +42,7 @@ class SpecialOccurrenceManager {
     if (occurrence.shouldRemove || occurrence.recorded) {
       this.allUnrecordedProcessedOccurrences =
         this.allUnrecordedProcessedOccurrences.filter((o) => o !== occurrence);
-      console.log("Occurrence removed from unrecorded list:", occurrence.id);
     } else {
-      console.warn("Occurrence not ready for removal:", occurrence.id);
     }
   }
 }

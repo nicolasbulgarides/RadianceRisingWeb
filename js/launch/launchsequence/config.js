@@ -11,8 +11,11 @@
  * such as EngineInitialization, GameInitialization, and GameplayManager.
  */
 class Config {
+  static CURRENT_GAME_VERSION = "-version-dev-0-0-0-";
+  static ASSUMED_GAME_VERSION = "-version-dev-0-0-0-";
   static LOAD_TEST_MANAGER = true;
   static STATUS_ENVIRONMENT = "DEVELOPMENT";
+  static LOAD_LEVEL_FROM_DEVELOPER_OVERRIDE = false;
   static STATUS_IN_DEVELOPMENT = true;
   static STATUS_IN_DEPLOYMENT = false;
   static ITEM_REQUEST_VALIDATION_OVERRIDE = true;

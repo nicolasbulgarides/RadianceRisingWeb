@@ -32,9 +32,9 @@ class GamemodeFactory {
     );
   }
   static getTestGamemode(uniqueId, category, enforcings) {
-    let ignoreObstacles = false;
+    let ignoreObstacles = true;
     let movementBounded = true;
-    let usePlayerMovementDistance = false;
+    let usePlayerMovementDistance = true;
     return new GamemodeTestAssist(
       uniqueId,
       category,
@@ -62,7 +62,7 @@ class GamemodeFactory {
   }
   static getTestEnforcings() {
     let enforcings = new GamemodeEnforcings();
-    enforcings.setMaximumMovementDistance(2);
+    enforcings.setMaximumMovementDistance(3);
     return enforcings;
   }
 }
