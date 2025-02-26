@@ -1,5 +1,3 @@
-import AchievementCategory from "../achievementCategory.js";
-
 /**
  * ConstellationAchievements represents achievements related to constellations.
  */

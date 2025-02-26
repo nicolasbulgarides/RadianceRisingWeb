@@ -4,7 +4,7 @@
  * coordinating between various subsystems like lighting, camera, and player management.
  *
  * Key Components:
- * - LevelMap: Contains the physical grid layout and board slots
+ * - LevelDataComposite: Contains all level data including layout, objectives, and rewards
  * - Camera Management: Handles player following and scene visualization
  * - Lighting Management: Controls dynamic lighting effects
  * - Player Management: Tracks active players and their states
@@ -16,28 +16,85 @@ class ActiveGameplayLevel {
   /**
    * Constructs an active gameplay level instance.
    * This is the runtime representation of a level, created from LevelDataComposite
-   * but enhanced with active gameplay elements and state management.
+   * and enhanced with active gameplay elements and state management.
    *
    * @param {Scene} hostingScene - The scene instance hosting the gameplay level.
    * @param {GamemodeGeneric} gameModeRules - Rules and constraints for the current game mode.
-   * @param {LevelMap} levelMap - The level map instance representing grid and obstacles.
+   * @param {LevelDataComposite} levelDataComposite - The complete level data.
    * @param {CameraManager} cameraManager - Manages the camera for the active level.
    * @param {LightingManager} lightingManager - Handles dynamic lighting updates.
    */
   constructor(
     hostingScene,
     gameModeRules,
-    levelMap,
+    levelDataComposite,
     cameraManager,
     lightingManager
   ) {
     this.hostingScene = hostingScene; // The scene where the gameplay occurs.
-    this.levelMap = levelMap; // The map representing the level's grid and obstacles.
+    this.levelDataComposite = levelDataComposite; // The complete level data.
     this.cameraManager = cameraManager; // The manager responsible for camera behavior.
     this.lightingManager = lightingManager; // The manager responsible for lighting effects.
     this.gameModeRules = gameModeRules; // Rules governing the current game mode.
     this.registeredPlayers = []; // Array to hold registered players in the level.
     this.currentPrimaryPlayer = null; // The player currently active in the level.
+
+    // For backward compatibility - create a minimal level map
+    // this.levelMap = this.createMinimalLevelMap();
+  }
+
+  /**
+   * Creates a minimal LevelMap for backward compatibility
+   * @private
+   * @returns {LevelMap} A minimal LevelMap with essential data
+   */
+  createMinimalLevelMap() {
+    const levelMap = new LevelMap();
+    const dimensions = this.getGridDimensions();
+
+    // Set minimal required properties
+    levelMap.mapWidth = dimensions.width;
+    levelMap.mapDepth = dimensions.depth;
+    levelMap.startingPosition = this.getPlayerStartPosition();
+    levelMap.obstacles = this.getObstacles();
+
+    return levelMap;
+  }
+
+  /**
+   * Gets the grid dimensions from the level data
+   * @returns {Object} Object containing width and depth
+   */
+  getGridDimensions() {
+    return {
+      width: this.levelDataComposite.customGridSize?.width || 11,
+      depth: this.levelDataComposite.customGridSize?.depth || 21,
+    };
+  }
+
+  /**
+   * Gets the player starting position from the level data
+   * @returns {BABYLON.Vector3} The player starting position
+   */
+  getPlayerStartPosition() {
+    const dimensions = this.getGridDimensions();
+    const startX =
+      this.levelDataComposite.playerStartPosition?.x ||
+      Math.floor(dimensions.width / 2);
+    const startY = this.levelDataComposite.playerStartPosition?.y || 0.25;
+    const startZ =
+      this.levelDataComposite.playerStartPosition?.z ||
+      Math.floor(dimensions.depth / 2);
+
+    return new BABYLON.Vector3(startX, startY, startZ);
+  }
+
+  /**
+   * Gets the obstacles from the level data
+   * @returns {Array} Array of obstacles
+   */
+  getObstacles() {
+    return this.levelDataComposite.obstacles || [];
   }
 
   /**
@@ -53,6 +110,13 @@ class ActiveGameplayLevel {
    * This method sets up the lighting systems based on the current scene.
    */
   initializeLevelLighting() {
+    // Apply lighting presets from level data if available
+
+    ///Disabled light preset retrieval for now
+    // const lightingPresets =
+    // to do - add lighting presets
+    //  this.levelDataComposite.levelGameplayTraitsData?.lightingPresets;
+
     this.lightingManager.initializeConstructSystems(false, this.hostingScene); // Initialize lighting systems.
   }
 
@@ -72,13 +136,15 @@ class ActiveGameplayLevel {
    * @returns {Object} - An object containing min and max coordinates.
    */
   getActiveGameLevelBoundary() {
+    const dimensions = this.getGridDimensions();
+
     let boundary = {
       minX: 0,
       minY: 0, // Assuming the game level has constant Y-level movement.
       minZ: 0,
-      maxX: this.levelMap.mapWidth - 1,
+      maxX: dimensions.width - 1,
       maxY: 0,
-      maxZ: this.levelMap.mapDepth - 1,
+      maxZ: dimensions.depth - 1,
     };
 
     return boundary; // Return the calculated boundaries.
@@ -158,12 +224,13 @@ class ActiveGameplayLevel {
     const playerPos =
       this.currentPrimaryPlayer?.playerMovementManager.getPlayerModelPositionedObject()
         ?.position;
+    const dimensions = this.getGridDimensions();
 
     return `🎮 Level Status Report 🎮
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📐 Dimensions
-   Width: ${this.levelMap.mapWidth} units
-   Depth: ${this.levelMap.mapDepth} units
+   Width: ${dimensions.width} units
+   Depth: ${dimensions.depth} units
    Playable Area: (${boundary.minX},${boundary.minZ}) to (${boundary.maxX},${
       boundary.maxZ
     })

@@ -26,6 +26,13 @@ class FundamentalSystemBridge {
     }
   }
 
+  static registerAccomplishmentEmitterRegistry(accomplishmentEmitterRegistry) {
+    FundamentalSystemBridge.registerManager(
+      "accomplishmentEmitterRegistry",
+      accomplishmentEmitterRegistry,
+      AccomplishmentEmitterRegistry
+    );
+  }
   static registerBabylonEngine(engine) {
     FundamentalSystemBridge.registerManager(
       "babylonEngine",
@@ -195,6 +202,15 @@ class FundamentalSystemBridge {
         FundamentalSystemBridge["gameplayManagerComposite"]
       );
     }
+  }
+
+  static loadUnlockManager() {
+    let unlockManager = new UnlockManager();
+    FundamentalSystemBridge.registerManager(
+      "unlockManager",
+      unlockManager,
+      UnlockManager
+    );
   }
 
   static loadProgrammaticAnimationManager() {

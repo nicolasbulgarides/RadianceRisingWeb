@@ -91,13 +91,28 @@ class GameGridGenerator {
    * Generates the game grid by creating thin instances of the loaded tiles.
    * Each grid cell is assigned a tile model instance with proper transformations.
    *
-   * @param {LevelMap} mapToLoad - The level map instance containing grid dimensions.
+   * @param {number} width - The width of the grid (number of columns).
+   * @param {number} depth - The depth of the grid (number of rows).
    * @param {number} [tileSize=1] - Size of each tile for spacing.
+   * @returns {Promise<boolean>} - Resolves to true if the grid was generated successfully.
    */
-  async generateGrid(mapToLoad, tileSize = 1) {
-    // Extract grid dimensions from the level map.
-    let width = mapToLoad.mapWidth;
-    let depth = mapToLoad.mapDepth;
+  async generateGrid(width, depth, tileSize = 1) {
+    // Validate input dimensions
+    if (!width || !depth || width < 1 || depth < 1) {
+      console.error(
+        `GridGenerator: Invalid grid dimensions: ${width}x${depth}`
+      );
+      return false;
+    }
+
+    // Ensure tiles are loaded
+    if (this.loadedTiles.length === 0) {
+      console.error(
+        "GridGenerator: No tiles loaded. Call loadTilesModels first."
+      );
+      return false;
+    }
+
     // Iterate over every grid cell position.
     for (let x = 0; x < width; x++) {
       for (let z = 0; z < depth; z++) {
@@ -105,6 +120,15 @@ class GameGridGenerator {
         const rowOffset = x % this.loadedTiles.length;
         const tileIndex = (z + rowOffset) % this.loadedTiles.length;
         const baseTile = this.loadedTiles[tileIndex];
+
+        // Ensure the base tile has meshes
+        if (!baseTile || !baseTile.meshes || baseTile.meshes.length === 0) {
+          console.warn(
+            `GridGenerator: Missing or invalid tile at index ${tileIndex}`
+          );
+          continue;
+        }
+
         // Assume each base tile has a primary mesh with child meshes.
         const children = baseTile.meshes[0].getChildren(undefined, false);
 
@@ -122,5 +146,7 @@ class GameGridGenerator {
         }
       }
     }
+
+    return true;
   }
 }

@@ -52,15 +52,33 @@ class RadiantEngineManager {
   }
 
   loadSystems() {
-    FundamentalSystemBridge.loadRenderSceneSwapper();
-    FundamentalSystemBridge.loadSoundManagers();
-    FundamentalSystemBridge.loadLevelFactoryComposite();
-    FundamentalSystemBridge.loadGameplayManagerComposite();
-    FundamentalSystemBridge.loadProgrammaticAnimationManager();
-    FundamentalSystemBridge.loadActiveTriggerManager();
+    this.loadRenderingAndStartupExperienceSystems();
+    this.loadGameplayEssentialSystems();
     FundamentalSystemBridge.possiblyLoadAndActivateTestManager();
   }
 
+  //statistics and analytics, platform detection, regional adapation systems, partnership systems, data security / law / requirements
+  loadPartnershipAndPlatformAndLegalSystems() {
+    //to do
+  }
+  // to do - networking manager, transaction manager, save manager / save batching, login, cheat detection, special logging, statistics
+  loadNetworkingSystems() {
+    //to do
+  }
+  loadRenderingAndStartupExperienceSystems() {
+    FundamentalSystemBridge.loadProgrammaticAnimationManager();
+    FundamentalSystemBridge.loadRenderSceneSwapper();
+    FundamentalSystemBridge.loadSoundManagers();
+    FundamentalSystemBridge.loadLevelFactoryComposite();
+  }
+
+  loadGameplayEssentialSystems() {
+    FundamentalSystemBridge.loadGameplayManagerComposite();
+    FundamentalSystemBridge.loadActiveTriggerManager();
+  }
+
+  //rewards, mojo, items, achievements, competitive
+  loadGameplayNonEssentialSystems() {}
   /**
    * Called on each render loop frame.
    * Updates gameplay and other per-frame processes.

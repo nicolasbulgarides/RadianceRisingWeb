@@ -1,5 +1,3 @@
-import AchievementCategory from "../achievementCategory.js";
-
 /**
  * RegionalAchievements represents achievements based on geographic or regional criteria.
  */

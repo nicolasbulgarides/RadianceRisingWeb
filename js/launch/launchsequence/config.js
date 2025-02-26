@@ -11,8 +11,9 @@
  * such as EngineInitialization, GameInitialization, and GameplayManager.
  */
 class Config {
-  static CURRENT_GAME_VERSION = "-version-dev-0-0-0-";
-  static ASSUMED_GAME_VERSION = "-version-dev-0-0-0-";
+  static CURRENT_GAME_VERSION = "0.0.0";
+  static ASSUMED_GAME_VERSION = "0.0.0";
+  static AUTHORIZE_ALL_PREMIUM_UNLOCKS = true;
   static LOAD_TEST_MANAGER = true;
   static STATUS_ENVIRONMENT = "DEVELOPMENT";
   static LOAD_LEVEL_FROM_DEVELOPER_OVERRIDE = false;
@@ -20,6 +21,42 @@ class Config {
   static STATUS_IN_DEPLOYMENT = false;
   static ITEM_REQUEST_VALIDATION_OVERRIDE = true;
   static UNLOCK_AREA_VALIDATION_OVERRIDE = true;
+
+  static ITEMS_AND_REWARDS_ACTIVE = false;
+
+  static LESS_ESSENTIAL_GAMEPLAY_SYSTEMS_TO_SKIP_LOADING = [
+    "achievement",
+    "history",
+    "itemRequirements",
+    "itemGeneral",
+    "itemVerification",
+    "reward",
+  ];
+
+  static NETWORKING_SYSTEMS_TO_SKIP_LOADING = [
+    "networking",
+    "transaction",
+    "cheatPrevention",
+    "successfulTransactionEvent",
+    "platformTransaction",
+    "playerSave",
+    "playerSaveBatching",
+  ];
+
+  /**
+   * Combined array of all systems to skip during development
+   * This merges both LESS_ESSENTIAL_GAMEPLAY_SYSTEMS_TO_SKIP_LOADING and NETWORKING_SYSTEMS_TO_SKIP_LOADING
+   * Used by ScriptManifest to determine which script categories to skip loading
+   */
+  static get SYSTEMS_TO_SKIP_LOADING() {
+    // Use a Set to ensure uniqueness when combining arrays
+    return [
+      ...new Set([
+        ...this.LESS_ESSENTIAL_GAMEPLAY_SYSTEMS_TO_SKIP_LOADING,
+        ...this.NETWORKING_SYSTEMS_TO_SKIP_LOADING,
+      ]),
+    ];
+  }
 
   // Engine infrastructure.
   static FPS = 60;

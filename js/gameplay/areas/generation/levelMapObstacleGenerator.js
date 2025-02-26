@@ -1,15 +1,18 @@
 class LevelMapObstacleGenerator {
   /**
-   * Initializes obstacles on the level map.
+   * Initializes obstacles on the level.
    * Reads obstacle configurations from the level and creates corresponding obstacle instances.
-   * @param {LevelMap} level - The level map to populate with obstacles.
+   * @param {ActiveGameplayLevel} activeGameplayLevel - The active gameplay level to populate with obstacles.
    * @param {Object} relevantSceneBuilder - The scene builder for loading models.
    */
   renderObstaclesForLevel(activeGameplayLevel, relevantSceneBuilder) {
-    let levelMap = activeGameplayLevel.levelMap;
-    if (!levelMap.obstacles) return; // Exit if there are no obstacles to initialize.
+    // Get obstacles from the level data
+    const obstacles = this.getObstaclesFromLevel(activeGameplayLevel);
+    if (!obstacles || obstacles.length === 0) return; // Exit if there are no obstacles to initialize.
 
-    for (const obstacleData of levelMap.obstacles) {
+    // Get the level map for backward compatibility
+
+    for (const obstacleData of obstacles) {
       const {
         obstacleArchetype,
         nickname,
@@ -32,20 +35,49 @@ class LevelMapObstacleGenerator {
         continue; // Skip to the next obstacle.
       }
 
-      // Retrieve the board slot located at the obstacle's intended position.
-      const boardSlot = levelMap.boardSlots[position.x][position.z];
-      if (boardSlot) {
-        // Host the obstacle in the board slot.
-        boardSlot.hostObstacle(obstacle); // Add the obstacle to the board slot.
-
-        // Load the obstacle's model into the scene.
-        relevantSceneBuilder.loadModel(obstacle.positionedObject); // Load the model for the obstacle.
-      } else {
-        GameplayLogger.lazyLog(
-          `LevelMap loading obstacle issue: No BoardSlot at ${position.x}, ${position.z}`
-        ); // Log warning if no board slot is found.
-      }
+      // Load the obstacle's model into the scene regardless of board slot system
+      relevantSceneBuilder.loadModel(obstacle.positionedObject); // Load the model for the obstacle.
     }
+  }
+
+  /**
+   * Gets obstacles from the level data, supporting both LevelDataComposite and legacy formats
+   * @param {ActiveGameplayLevel} activeGameplayLevel - The active gameplay level
+   * @returns {Array} Array of obstacles
+   */
+  getObstaclesFromLevel(activeGameplayLevel) {
+    // First check if obstacles are directly in the level data composite
+    if (
+      activeGameplayLevel.levelDataComposite &&
+      activeGameplayLevel.levelDataComposite.obstacles
+    ) {
+      return activeGameplayLevel.levelDataComposite.obstacles;
+    }
+
+    // Then check if obstacles are in the featured objects
+    if (
+      activeGameplayLevel.levelDataComposite &&
+      activeGameplayLevel.levelDataComposite.levelGameplayTraitsData &&
+      activeGameplayLevel.levelDataComposite.levelGameplayTraitsData
+        .allFeaturedObjects
+    ) {
+      const featuredObjects =
+        activeGameplayLevel.levelDataComposite.levelGameplayTraitsData
+          .allFeaturedObjects;
+      // Filter for objects that are obstacles
+      return featuredObjects.filter((obj) => obj.isObstacle);
+    }
+
+    // Fallback to level map obstacles for backward compatibility
+    if (
+      activeGameplayLevel.levelMap &&
+      activeGameplayLevel.levelMap.obstacles
+    ) {
+      return activeGameplayLevel.levelMap.obstacles;
+    }
+
+    // Return empty array if no obstacles found
+    return [];
   }
 
   /**
@@ -61,12 +93,15 @@ class LevelMapObstacleGenerator {
       return;
     }
 
-    let levelMap = activeGameplayLevel.levelMap;
+    // Get dimensions from the level data
+    const dimensions = this.getLevelDimensions(activeGameplayLevel);
+    const width = dimensions.width;
+    const depth = dimensions.depth;
 
     const mountains = []; // Array to hold generated mountain obstacles.
 
     // Generate obstacles along the left and right edges.
-    for (let z = 0; z < levelMap.mapDepth; z++) {
+    for (let z = 0; z < depth; z++) {
       // Left edge obstacle at x = 0.
       mountains.push({
         obstacleArchetype: "mountain",
@@ -76,18 +111,18 @@ class LevelMapObstacleGenerator {
         position: new BABYLON.Vector3(0, 0, z),
       });
 
-      // Right edge obstacle at x = mapWidth - 1.
+      // Right edge obstacle at x = width - 1.
       mountains.push({
         obstacleArchetype: "mountain",
         nickname: `mountain_right_${z}`,
         interactionId: "none",
         directionsBlocked: "all",
-        position: new BABYLON.Vector3(levelMap.mapWidth - 1, 0, z),
+        position: new BABYLON.Vector3(width - 1, 0, z),
       });
     }
 
     // Generate obstacles along the top and bottom edges.
-    for (let x = 0; x < levelMap.mapWidth; x++) {
+    for (let x = 0; x < width; x++) {
       // Top edge obstacle at z = 0.
       mountains.push({
         obstacleArchetype: "mountain",
@@ -97,18 +132,69 @@ class LevelMapObstacleGenerator {
         position: new BABYLON.Vector3(x, 0, 0),
       });
 
-      // Bottom edge obstacle at z = mapDepth - 1.
+      // Bottom edge obstacle at z = depth - 1.
       mountains.push({
         obstacleArchetype: "mountain",
         nickname: `mountain_bottom_${x}`,
         interactionId: "none",
         directionsBlocked: "all",
-        position: new BABYLON.Vector3(x, 0, levelMap.mapDepth - 1),
+        position: new BABYLON.Vector3(x, 0, depth - 1),
       });
     }
 
-    // Overwrite the level's obstacles with the generated edge obstacles.
-    levelMap.obstacles = mountains; // Set the level's obstacles to the generated mountains.
+    // Store the obstacles in the level data
+    this.storeObstaclesInLevel(activeGameplayLevel, mountains);
+  }
+
+  /**
+   * Gets the dimensions of the level
+   * @param {ActiveGameplayLevel} activeGameplayLevel - The active gameplay level
+   * @returns {Object} Object containing width and depth
+   */
+  getLevelDimensions(activeGameplayLevel) {
+    // If the level has a getGridDimensions method, use it
+    if (typeof activeGameplayLevel.getGridDimensions === "function") {
+      return activeGameplayLevel.getGridDimensions();
+    }
+
+    // If the level has a levelDataComposite with customGridSize, use it
+    if (
+      activeGameplayLevel.levelDataComposite &&
+      activeGameplayLevel.levelDataComposite.customGridSize
+    ) {
+      return {
+        width: activeGameplayLevel.levelDataComposite.customGridSize.width,
+        depth: activeGameplayLevel.levelDataComposite.customGridSize.depth,
+      };
+    }
+
+    // Fallback to level map dimensions for backward compatibility
+    if (activeGameplayLevel.levelMap) {
+      return {
+        width: activeGameplayLevel.levelMap.mapWidth,
+        depth: activeGameplayLevel.levelMap.mapDepth,
+      };
+    }
+
+    // Default dimensions if nothing else is available
+    return { width: 11, depth: 21 };
+  }
+
+  /**
+   * Stores obstacles in the level data
+   * @param {ActiveGameplayLevel} activeGameplayLevel - The active gameplay level
+   * @param {Array} obstacles - The obstacles to store
+   */
+  storeObstaclesInLevel(activeGameplayLevel, obstacles) {
+    // Store in level data composite if available
+    if (activeGameplayLevel.levelDataComposite) {
+      activeGameplayLevel.levelDataComposite.obstacles = obstacles;
+    }
+
+    // Also store in level map for backward compatibility
+    if (activeGameplayLevel.levelMap) {
+      activeGameplayLevel.levelMap.obstacles = obstacles;
+    }
   }
 
   /**

@@ -1,5 +1,3 @@
-import AchievementCategory from "../achievementCategory.js";
-
 /**
  * ItemAchievements represents achievements tied to items.
  */

@@ -1,5 +1,3 @@
-import AchievementCategory from "../achievementCategory.js";
-
 /**
  * SpecialAchievementsOthers represents any other special achievements.
  */

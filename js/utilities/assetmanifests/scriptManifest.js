@@ -2,12 +2,25 @@
  * ScriptManifest Class
  *
  * Defines separate arrays of script URLs for each functional category required by the application.
- * Each category has a dedicated getter method and an associated promise-based loader.
+ * Uses a centralized metadata-driven approach for script access and loading.
  *
  * On a script loading failure the following happens:
  *   • InitializationDiagnosticsLogger.logPhaseError is called to record the failure.
  *   • CatastropheManager.registerCatastrophe is invoked to log the catastrophic error.
  *   • CatastropheManager.displayCatastrophePage routes to catastropheReport.html.
+ *
+ * The class uses a metadata-driven approach with the scriptCategories array that maps
+ * category names to their corresponding script arrays and display names. This enables:
+ * 1. Generic access to script arrays via getScripts(category)
+ * 2. Generic loading via loadCategoryScriptsPromise(category)
+ *
+ * IMPORTANT: All individual getXScripts and loadXScriptsPromise methods have been replaced
+ * by the generic getScripts and loadCategoryScriptsPromise methods. Any code that was
+ * previously using those methods should be updated to use the generic methods instead.
+ *
+ * For development and testing purposes, specific script categories can be skipped by
+ * adding them to the loadsToSkip array. This allows for faster loading during development
+ * by omitting non-essential systems.
  *
  * Categories include:
  * - EssentialInitializationScripts
@@ -43,6 +56,159 @@
  * - PlayerSaveScripts
  */
 class ScriptManifest {
+  /**
+   * Array of script categories to skip during development/testing
+   * Add category names here to prevent them from loading
+   * Example: ['cheatPrevention', 'accomplishment', 'networking']
+   * @type {Array<string>}
+   */
+  static loadsToSkip = [];
+
+  /**
+   * Initializes the loadsToSkip array from Config settings
+   * This method should be called after Config is fully loaded
+   */
+  static initializeSkipList() {
+    try {
+      // Check if Config exists and has the SYSTEMS_TO_SKIP_LOADING property
+      if (typeof Config !== "undefined" && Config.SYSTEMS_TO_SKIP_LOADING) {
+        this.loadsToSkip = [...Config.SYSTEMS_TO_SKIP_LOADING];
+        console.info(
+          `Initialized skip list from Config: ${this.loadsToSkip.join(", ")}`
+        );
+      }
+    } catch (error) {
+      console.warn("Failed to initialize skip list from Config:", error);
+      this.loadsToSkip = [];
+    }
+  }
+
+  /**
+   * Registry of all script categories with metadata
+   * @type {Array<{name: string, array: string, displayName: string}>}
+   */
+  static scriptCategories = [
+    { name: "animation", array: "animationScripts", displayName: "Animation" },
+    { name: "history", array: "historyScripts", displayName: "History" },
+    { name: "gamemode", array: "gamemodeScripts", displayName: "Gamemode" },
+    {
+      name: "occurrence",
+      array: "occurrenceScripts",
+      displayName: "Occurrence",
+    },
+    {
+      name: "microEvent",
+      array: "microEventScripts",
+      displayName: "MicroEvent",
+    },
+    { name: "trigger", array: "triggerScripts", displayName: "Trigger" },
+    {
+      name: "platformTransaction",
+      array: "platformTransactionScripts",
+      displayName: "PlatformTransaction",
+    },
+    { name: "testTool", array: "testToolScripts", displayName: "TestTool" },
+    {
+      name: "assetManifest",
+      array: "assetManifestScripts",
+      displayName: "AssetManifest",
+    },
+    {
+      name: "assetLoadersAndManagers",
+      array: "assetLoadersAndManagersScripts",
+      displayName: "AssetLoadersAndManagers",
+    },
+    {
+      name: "accomplishment",
+      array: "accomplishmentScripts",
+      displayName: "Accomplishment",
+    },
+    {
+      name: "accomplishmentEmitter",
+      array: "accomplishmentEmitterScripts",
+      displayName: "AccomplishmentEmitter",
+    },
+    { name: "uiUtility", array: "uiUtilityScripts", displayName: "UIUtility" },
+    {
+      name: "uiSceneImplemented",
+      array: "uiSceneScriptsImplemented",
+      displayName: "UISceneImplemented",
+    },
+    {
+      name: "cheatPrevention",
+      array: "cheatPreventionScripts",
+      displayName: "CheatPrevention",
+    },
+    { name: "lighting", array: "lightingScripts", displayName: "Lighting" },
+    { name: "camera", array: "cameraScripts", displayName: "Camera" },
+    { name: "input", array: "inputScripts", displayName: "Input" },
+    { name: "gameplay", array: "gameplayScripts", displayName: "Gameplay" },
+    { name: "player", array: "playerScripts", displayName: "Player" },
+    {
+      name: "itemGeneral",
+      array: "itemGeneralScripts",
+      displayName: "GeneralItem",
+    },
+    {
+      name: "itemVerification",
+      array: "itemVerificationScripts",
+      displayName: "ItemVerification",
+    },
+    {
+      name: "itemRequirements",
+      array: "itemRequirementsScripts",
+      displayName: "ItemRequirements",
+    },
+    { name: "movement", array: "movementScripts", displayName: "Movement" },
+    {
+      name: "gameInteractions",
+      array: "gameInteractionsScripts",
+      displayName: "GameInteractions",
+    },
+    { name: "reward", array: "rewardScripts", displayName: "Reward" },
+    { name: "gameArea", array: "gameAreaScripts", displayName: "GameArea" },
+    {
+      name: "unlocking",
+      array: "unlockingScriptsGeneral",
+      displayName: "Unlocking",
+    },
+    {
+      name: "unlockingRadiantRays",
+      array: "unlockingScriptsRadiantRays",
+      displayName: "RadiantRaysUnlocking",
+    },
+    {
+      name: "soundSystems",
+      array: "soundSystemsScripts",
+      displayName: "SoundSystems",
+    },
+    {
+      name: "minorUtility",
+      array: "minorUtilityScripts",
+      displayName: "MinorUtility",
+    },
+    {
+      name: "networking",
+      array: "networkingScripts",
+      displayName: "Networking",
+    },
+    {
+      name: "transaction",
+      array: "transactionScripts",
+      displayName: "Transaction",
+    },
+    {
+      name: "playerSave",
+      array: "playerSaveScripts",
+      displayName: "PlayerSave",
+    },
+    {
+      name: "playerSaveBatching",
+      array: "playerSaveBatchingScripts",
+      displayName: "PlayerSaveBatching",
+    },
+  ];
+
   static animationScripts = [
     "/animations/datastructures/programmaticAnimation.js",
     "/animations/datastructures/programmaticAnimationHeader.js",
@@ -86,17 +252,20 @@ class ScriptManifest {
     "/gameplay/interactions/occurrences/specialOccurrenceComposite.js",
     "/gameplay/interactions/occurrences/specialOccurrenceManager.js",
     "/gameplay/interactions/occurrences/specialOccurrenceFactory.js",
-    "/gameplay/interactions/datastructures/specialOccurrenceBasicData.js",
-    "/gameplay/interactions/datastructures/specialOccurrenceHeader.js",
-    "/gameplay/interactions/datastructures/specialOccurrenceStatus.js",
-    "/gameplay/interactions/datastructures/specialOccurrenceHyperspecificOtherData.js",
-    "/gameplay/interactions/datastructures/specialOccurrenceItemData.js",
-    "/gameplay/interactions/datastructures/specialOccurrencePetData.js",
-    "/gameplay/interactions/datastructures/specialOccurrenceProgressData.js",
-    "/gameplay/interactions/datastructures/specialOccurrenceCompetitiveData.js",
-    "/gameplay/interactions/datastructures/specialOccurrenceSocialData.js",
-    "/gameplay/interactions/datastructures/specialOccurrenceSpecialEventData.js",
-    "/gameplay/interactions/datastructures/specialOccurrenceUnlockData.js",
+
+    "/gameplay/interactions/occurrences/datastructures/specialOccurrenceBasicData.js",
+    "/gameplay/interactions/occurrences/datastructures/specialOccurrenceHeader.js",
+    "/gameplay/interactions/occurrences/datastructures/specialOccurrenceHyperspecificOtherData.js",
+    "/gameplay/interactions/occurrences/datastructures/specialOccurrenceItemData.js",
+    "/gameplay/interactions/occurrences/datastructures/specialOccurrencePetData.js",
+    "/gameplay/interactions/occurrences/datastructures/specialOccurrenceProgressData.js",
+    "/gameplay/interactions/occurrences/datastructures/specialOccurrenceSpecialEventData.js",
+    "/gameplay/interactions/occurrences/datastructures/specialOccurrenceUnlockData.js",
+
+    //to do - review various kinds of occurences will exist, when they will exist / priority, and what those occurences will entail including useful archetypes
+    // "/gameplay/interactions/occurrences/datastructures/specialOccurrenceSocialData.js","
+    // "/gameplay/interactions/occurrences/datastructures/specialOccurrenceCompetitiveData.js",
+    // "/gameplay/interactions/occurrences/datastructures/specialOccurrenceStatusData.js",
   ];
 
   static microEventScripts = [
@@ -131,7 +300,11 @@ class ScriptManifest {
     "/networking/transactions/platforms/transactionSteam.js",
   ];
 
-  static testToolScripts = ["/gameplay/testtools/testManager.js"];
+  static testToolScripts = [
+    "/testtools/testManager.js",
+    "/testtools/testLevelDataCompositeLoader.js",
+    "/testtools/testLevelJsonBuilder.js",
+  ];
   static assetManifestScripts = [
     "/utilities/assetmanifests/assetManifest.js",
     "/utilities/assetmanifests/assetManifestOverrides.js",
@@ -139,7 +312,7 @@ class ScriptManifest {
     "/utilities/assetmanifests/itemIconAssetManifest.js",
     "/utilities/assetmanifests/soundAssetManifest.js",
     "/utilities/assetmanifests/songAssetManifest.js",
-    "/utilities/assetmanifests/levelProfileHeader.js",
+    "/utilities/assetmanifests/levelRetrievalHeader.js",
     "/utilities/assetmanifests/levelManifest.js",
   ];
 
@@ -150,6 +323,71 @@ class ScriptManifest {
     "/utilities/loaders/animatedModelLoader.js",
     "/utilities/loaders/sceneBuilder.js",
     "/utilities/loaders/levelDataFileLoader.js",
+  ];
+
+  static accomplishmentScripts = [
+    "/gameplay/progression/accomplishments/datastructures/accomplishmentProfileHeader.js",
+    "/gameplay/progression/accomplishments/datastructures/accomplishmentEventData.js",
+    "/gameplay/progression/accomplishments/datastructures/accomplishmentAccountData.js",
+    "/gameplay/progression/accomplishments/datastructures/accomplishmentAchievementData.js",
+    "/gameplay/progression/accomplishments/datastructures/accomplishmentAcquiredObjectData.js",
+    "/gameplay/progression/accomplishments/datastructures/accomplishmentAreaData.js",
+    "/gameplay/progression/accomplishments/datastructures/accomplishmentBasicMilestoneData.js",
+    "/gameplay/progression/accomplishments/datastructures/accomplishmentCombatData.js",
+    "/gameplay/progression/accomplishments/datastructures/accomplishmentCompetitiveData.js",
+    "/gameplay/progression/accomplishments/datastructures/accomplishmentDataComposite.js",
+    "/gameplay/progression/accomplishments/datastructures/accomplishmentGameStateCarrier.js",
+    "/gameplay/progression/accomplishments/datastructures/accomplishmentHeader.js",
+    "/gameplay/progression/accomplishments/datastructures/accomplishmentLearnedData.js",
+    "/gameplay/progression/accomplishments/datastructures/accomplishmentMinigameData.js",
+    "/gameplay/progression/accomplishments/datastructures/accomplishmentPetData.js",
+    "/gameplay/progression/accomplishments/datastructures/accomplishmentQuestData.js",
+    "/gameplay/progression/accomplishments/datastructures/accomplishmentSocialData.js",
+    "/gameplay/progression/accomplishments/datastructures/accomplishmentStatusData.js",
+    "/gameplay/progression/accomplishments/datastructures/accomplishmentTechnicalData.js",
+    "/gameplay/progression/accomplishments/datastructures/accomplishmentUsageData.js",
+    "/gameplay/progression/accomplishments/datastructures/accomplishmentExplorationData.js",
+    "/gameplay/progression/accomplishments/datastructures/accomplishmentEconomyData.js",
+    "/gameplay/progression/accomplishments/datastructures/accomplishmentProgressionData.js",
+    "/gameplay/progression/accomplishments/datastructures/accomplishmentCraftingData.js",
+
+    "/gameplay/progression/accomplishments/accomplishmentRecognitionFactory.js",
+    "/gameplay/progression/accomplishments/accomplishmentToRewardFactory.js",
+  ];
+
+  static accomplishmentEmitterScripts = [
+    // Specific emitters corresponding to accomplishment data structures
+    "/gameplay/progression/accomplishments/emitters/accomplishmentEmitterBase.js",
+    "/gameplay/progression/accomplishments/emitters/accomplishmentEmitterRegistry.js",
+
+    //specific emitter categories
+    "/gameplay/progression/accomplishments/emitters/accountEmitter.js", // Handles accomplishmentAccountData
+    "/gameplay/progression/accomplishments/emitters/achievementEmitter.js", // Handles accomplishmentAchievementData
+    "/gameplay/progression/accomplishments/emitters/acquiredObjectEmitter.js", // Handles accomplishmentAcquiredObjectData
+    "/gameplay/progression/accomplishments/emitters/areaEmitter.js", // Handles accomplishmentAreaData
+    "/gameplay/progression/accomplishments/emitters/basicMilestoneEmitter.js", // Handles accomplishmentBasicMilestoneData
+    "/gameplay/progression/accomplishments/emitters/combatEmitter.js", // Handles accomplishmentCombatData
+    "/gameplay/progression/accomplishments/emitters/competitiveEmitter.js", // Handles accomplishmentCompetitiveData
+    "/gameplay/progression/accomplishments/emitters/craftingEmitter.js", // Handles accomplishmentCraftingData
+    "/gameplay/progression/accomplishments/emitters/economyEmitter.js", // Handles accomplishmentEconomyData
+    "/gameplay/progression/accomplishments/emitters/eventEmitter.js", // Handles accomplishmentEventData
+    "/gameplay/progression/accomplishments/emitters/explorationEmitter.js", // Handles accomplishmentExplorationData
+    "/gameplay/progression/accomplishments/emitters/learnedEmitter.js", // Handles accomplishmentLearnedData
+    "/gameplay/progression/accomplishments/emitters/minigameEmitter.js", // Handles accomplishmentMinigameData
+    "/gameplay/progression/accomplishments/emitters/petEmitter.js", // Handles accomplishmentPetData
+    "/gameplay/progression/accomplishments/emitters/progressionEmitter.js", // Handles accomplishmentProgressionData
+    "/gameplay/progression/accomplishments/emitters/questEmitter.js", // Handles accomplishmentQuestData
+    "/gameplay/progression/accomplishments/emitters/socialEmitter.js", // Handles accomplishmentSocialData
+    "/gameplay/progression/accomplishments/emitters/statusEmitter.js", // Handles accomplishmentStatusData
+    "/gameplay/progression/accomplishments/emitters/technicalEmitter.js", // Handles accomplishmentTechnicalData
+    "/gameplay/progression/accomplishments/emitters/usageEmitter.js", // Handles accomplishmentUsageData
+
+    // Template for creating new emitters
+    "/gameplay/progression/accomplishments/emitters/emitterTemplate.js",
+
+    // Utility classes for emitters
+    "/gameplay/progression/accomplishments/utilities/accomplishmentValidator.js",
+    "/gameplay/progression/accomplishments/utilities/accomplishmentConverter.js",
   ];
 
   static uiSpecialFunctionScripts = [];
@@ -224,8 +462,11 @@ class ScriptManifest {
     "/gameplay/levelEventSignal.js",
     "/gameplay/gameplayManagerComposite.js",
     "/gameplay/gameplayEndOfFrameCoordinator.js",
+    "/gameplay/gameplayProgressionManager.js",
     "/gameplay/gameplayloggers/gameplayLogger.js",
     "/gameplay/gameplayloggers/movementLogger.js",
+
+    //to do - reorganize
     "/gameplay/player/utilities/playerMovementManager.js",
     "/gameplay/action/movement/tileBoundaryDetector.js",
   ];
@@ -275,7 +516,7 @@ class ScriptManifest {
     "/gameplay/action/movement/movementDestinationManager.js",
     "/gameplay/action/movement/boundedDestinationCalculator.js",
     "/gameplay/action/movement/unboundedDestinationCalculator.js",
-    "/gameplay/action/movement/obstacle.js",
+
     "/gameplay/action/utilities/obstacleFinder.js",
   ];
   static gameInteractionsScripts = [
@@ -301,7 +542,7 @@ class ScriptManifest {
     "/gameplay/rewards/mojo/mojoMilestoneCalculator.js",
   ];
   static gameAreaScripts = [
-    "/gameplay/testtools/testLevelJsonBuilder.js",
+    "/gameplay/areas/generation/datastructures/obstacle.js",
     "/gameplay/areas/generation/datastructures/levelVictoryCondition.js",
     "/gameplay/areas/generation/datastructures/levelObjective.js",
     "/gameplay/areas/generation/datastructures/levelFeaturedObject.js",
@@ -315,31 +556,31 @@ class ScriptManifest {
     "/gameplay/areas/generation/levelMapObstacleGenerator.js",
     "/gameplay/areas/generation/datastructures/levelMap.js",
   ];
-
-  static progressionScriptsRadiantRays = [
-    "/gameplay/progression/gamespecific/radiantrays/constellationOrLevelUnlockRequirements.js",
-    "/gameplay/progression/gamespecific/radiantrays/constellationOrLevelUnlockValidator.js",
-    "/gameplay/progression/gamespecific/radiantrays/constellationOrLevelUnlockPresets.js",
+  static unlockingScriptsRadiantRays = [
+    "/gameplay/progression/unlocking/gamespecific/radiantrays/constellationOrLevelUnlockRequirements.js",
+    "/gameplay/progression/unlocking/gamespecific/radiantrays/constellationOrLevelUnlockPresets.js",
   ];
 
-  static progressionScriptsGeneral = [
-    "/gameplay/progression/general/areaunlocking/areaUnlockRequirements.js",
-    "/gameplay/progression/general/areaunlocking/areaUnlockValidator.js",
-    "/gameplay/progression/general/areaunlocking/areaUnlockPresets.js",
-    "/gameplay/progression/general/areaunlocking/areaUnlockManager.js",
+  static unlockingScriptsGeneral = [
+    "/gameplay/progression/unlocking/datastructures/unlockHeaderData.js",
+    "/gameplay/progression/unlocking/datastructures/areaUnlockRequirements.js",
+    "/gameplay/progression/unlocking/datastructures/areaUnlockPresets.js",
+    "/gameplay/progression/unlocking/datastructures/unlockAccountData.js",
+    "/gameplay/progression/unlocking/datastructures/unlockFeasibilityData.js",
+    "/gameplay/progression/unlocking/datastructures/unlockProgressData.js",
+    "/gameplay/progression/unlocking/datastructures/unlockSocialData.js",
+    "/gameplay/progression/unlocking/datastructures/unlockTechnicalData.js",
+    "/gameplay/progression/unlocking/datastructures/unlockReport.js",
+    "/gameplay/progression/unlocking/datastructures/unlockRequirementsComposite.js",
+    "/gameplay/progression/unlocking/datastructures/unlockEvent.js",
+    "/gameplay/progression/unlocking/datastructures/unlockPresets.js",
 
-    "/gameplay/progression/general/unlockarchetypes/requirementsGeneral.js",
+    "/gameplay/progression/unlocking/utilities/unlockReporter.js",
+    "/gameplay/progression/unlocking/utilities/unlockValidator.js",
+    "/gameplay/progression/unlocking/utilities/unlockUIManager.js",
+    "/gameplay/progression/unlocking/unlockManagerComposite.js",
 
-    "/gameplay/progression/general/unlockarchetypes/accountRequirementsComposite.js",
-    "/gameplay/progression/general/unlockarchetypes/achievementRequirementsComposite.js",
-    "/gameplay/progression/general/unlockarchetypes/areaRequirementsComposite.js",
-    "/gameplay/progression/general/unlockarchetypes/artifactRequirementsComposite.js",
-    "/gameplay/progression/general/unlockarchetypes/basicStatRequirementsComposite.js",
-    "/gameplay/progression/general/unlockarchetypes/itemRequirementsComposite.js",
-    "/gameplay/progression/general/unlockarchetypes/gameModeRequirementsComposite.js",
-    "/gameplay/progression/general/unlockarchetypes/premiumRequirementsComposite.js",
-    "/gameplay/progression/general/unlockarchetypes/specialRequirementsComposite.js",
-    "/gameplay/progression/general/unlockarchetypes/unlockRequirementsComposite.js",
+    // to do - add unlock area requirements
   ];
 
   static soundSystemsScripts = [
@@ -369,6 +610,7 @@ class ScriptManifest {
     "/networking/transactions/transactionManager.js",
     "/networking/transactions/transactionOutwardRequest.js",
     "/networking/transactions/transactionUIManager.js",
+    "/networking/transactions/successfulTransactionEvent.js",
   ];
 
   static playerSaveScripts = [
@@ -401,269 +643,62 @@ class ScriptManifest {
   ];
 
   /**
-   * Retrieves the reward scripts.
-   * @returns {Array<string>} Array of reward script URLs.
+   * Generic method to get scripts for a specific category.
+   * This method replaces all the individual getter methods (getXScripts).
+   *
+   * Example:
+   * // Instead of: ScriptManifest.getLightingScripts()
+   * // You can use: ScriptManifest.getScripts('lighting')
+   *
+   * Available categories:
+   * - animation, history, gamemode, occurrence, microEvent, trigger
+   * - platformTransaction, testTool, assetManifest, assetLoadersAndManagers
+   * - accomplishment, accomplishmentEmitter, uiUtility, uiSceneImplemented
+   * - cheatPrevention, lighting, camera, input, gameplay, player
+   * - itemGeneral, itemVerification, itemRequirements, movement
+   * - gameInteractions, reward, gameArea, unlocking, unlockingRadiantRays
+   * - soundSystems, minorUtility, networking, transaction
+   * - playerSave, playerSaveBatching
+   *
+   * @param {string} category - The category name from scriptCategories
+   * @returns {Array<string>} Array of script URLs for the category
    */
-  static getRewardScripts() {
-    return this.rewardScripts;
+  static getScripts(category) {
+    const categoryInfo = this.scriptCategories.find((c) => c.name === category);
+    return categoryInfo ? this[categoryInfo.array] : [];
   }
 
   /**
-   * Retrieves the general item scripts.
-   * @returns {Array<string>} Array of general item script URLs.
+   * Generic method to load scripts for a specific category.
+   * This method replaces all the individual loader methods (loadXScriptsPromise).
+   *
+   * Example:
+   * // Instead of: ScriptManifest.loadLightingScriptsPromise()
+   * // You can use: ScriptManifest.loadCategoryScriptsPromise('lighting')
+   *
+   * Available categories:
+   * - animation, history, gamemode, occurrence, microEvent, trigger
+   * - platformTransaction, testTool, assetManifest, assetLoadersAndManagers
+   * - accomplishment, accomplishmentEmitter, uiUtility, uiSceneImplemented
+   * - cheatPrevention, lighting, camera, input, gameplay, player
+   * - itemGeneral, itemVerification, itemRequirements, movement
+   * - gameInteractions, reward, gameArea, unlocking, unlockingRadiantRays
+   * - soundSystems, minorUtility, networking, transaction
+   * - playerSave, playerSaveBatching
+   *
+   * @param {string} category - The category name from scriptCategories
+   * @returns {Promise} Resolves when scripts are loaded
    */
-  static getGeneralItemScripts() {
-    return this.itemGeneralScripts;
-  }
+  static loadCategoryScriptsPromise(category) {
+    const categoryInfo = this.scriptCategories.find((c) => c.name === category);
+    if (!categoryInfo) {
+      return Promise.reject(new Error(`Unknown category: ${category}`));
+    }
 
-  /**
-   * Retrieves the test tool scripts.
-   * @returns {Array<string>} Array of test tool script URLs.
-   */
-  static getTestToolScripts() {
-    return this.testToolScripts;
-  }
-
-  /**
-   * Retrieves the item verification scripts.
-   * @returns {Array<string>} Array of item verification script URLs.
-   */
-  static getItemVerificationScripts() {
-    return this.itemVerificationScripts;
-  }
-
-  /**
-   * Retrieves the regional adaptation scripts.
-   * @returns {Array<string>} Array of regional adaptation script URLs.
-   */
-  static getRegionalAdaptationScripts() {
-    return this.regionalAdaptationScripts;
-  }
-
-  /**
-   * Retrieves the gamemode scripts.
-   * @returns {Array<string>} Array of gamemode script URLs.
-   */
-  static getGamemodeScripts() {
-    return this.gamemodeScripts;
-  }
-
-  /**
-   * Retrieves the asset manifest scripts.
-   * @returns {Array<string>} Array of asset manifest script URLs.
-   */
-  static getAssetManifestScripts() {
-    return this.assetManifestScripts;
-  }
-
-  /**
-   * Retrieves the asset loaders and managers scripts.
-   * @returns {Array<string>} Array of asset loaders and managers script URLs.
-   */
-  static getAssetLoadersAndManagersScripts() {
-    return this.assetLoadersAndManagersScripts;
-  }
-
-  /**
-   * Retrieves the implemented UI scene scripts.
-   * @returns {Array<string>} Array of implemented UI scene script URLs.
-   */
-  static getUISceneScriptsImplemented() {
-    return this.uiSceneScriptsImplemented;
-  }
-
-  static getMovementScripts() {
-    return this.movementScripts;
-  }
-
-  /**
-   * Retrieves the UI utility scripts.
-   * @returns {Array<string>} Array of UI utility script URLs.
-   */
-  static getUIUtilityScripts() {
-    return this.uiUtilityScripts;
-  }
-
-  /**
-   * Retrieves the platform transaction scripts.
-   * @returns {Array<string>} Array of platform transaction script URLs.
-   */
-  static getPlatformTransactionScripts() {
-    return this.platformTransactionScripts;
-  }
-
-  /**
-   * Retrieves the item requirements scripts.
-   * @returns {Array<string>} Array of item requirements script URLs.
-   */
-  static getItemRequirementsScripts() {
-    return this.itemRequirementsScripts;
-  }
-
-  /**
-   * Retrieves the history scripts.
-   * @returns {Array<string>} Array of history script URLs.
-   */
-  static getHistoryScripts() {
-    return this.historyScripts;
-  }
-
-  /**
-   * Retrieves the lighting scripts.
-   * @returns {Array<string>} Array of lighting script URLs.
-   */
-  static getLightingScripts() {
-    return this.lightingScripts;
-  }
-
-  /**
-   * Retrieves the camera scripts.
-   * @returns {Array<string>} Array of camera script URLs.
-   */
-  static getCameraScripts() {
-    return this.cameraScripts;
-  }
-
-  /**
-   * Retrieves the input scripts.
-   * @returns {Array<string>} Array of input script URLs.
-   */
-  static getInputScripts() {
-    return this.inputScripts;
-  }
-
-  /**
-   * Retrieves the gameplay scripts.
-   * @returns {Array<string>} Array of gameplay script URLs.
-   */
-  static getGameplayScripts() {
-    return this.gameplayScripts;
-  }
-
-  /**
-   * Retrieves the player scripts.
-   * @returns {Array<string>} Array of player script URLs.
-   */
-  static getPlayerScripts() {
-    return this.playerScripts;
-  }
-
-  /**
-   * Retrieves the game interactions scripts.
-   * @returns {Array<string>} Array of game interactions script URLs.
-   */
-  static getGameInteractionsScripts() {
-    return this.gameInteractionsScripts;
-  }
-
-  /**
-   * Retrieves the game area scripts.
-   * @returns {Array<string>} Array of game area script URLs.
-   */
-  static getGameAreaScripts() {
-    return this.gameAreaScripts;
-  }
-
-  /**
-   * Retrieves the sound systems scripts.
-   * @returns {Array<string>} Array of sound systems script URLs.
-   */
-  static getSoundSystemsScripts() {
-    return this.soundSystemsScripts;
-  }
-
-  /**
-   * Retrieves the trigger scripts.
-   * @returns {Array<string>} Array of trigger script URLs.
-   */
-  static getTriggerScripts() {
-    return this.triggerScripts;
-  }
-
-  /**
-   * Retrieves the cheat prevention scripts.
-   * @returns {Array<string>} Array of cheat prevention script URLs.
-   */
-  static getCheatPreventionScripts() {
-    return this.cheatPreventionScripts;
-  }
-
-  /**
-   * Retrieves the minor utility scripts.
-   * @returns {Array<string>} Array of minor utility script URLs.
-   */
-  static getMinorUtilityScripts() {
-    return this.minorUtilityScripts;
-  }
-
-  /**
-   * Retrieves the networking scripts.
-   * @returns {Array<string>} Array of networking script URLs.
-   */
-  static getNetworkingScripts() {
-    return this.networkingScripts;
-  }
-
-  /**
-   * Retrieves the transaction scripts.
-   * @returns {Array<string>} Array of transaction script URLs.
-   */
-  static getTransactionScripts() {
-    return this.transactionScripts;
-  }
-
-  /**
-   * Retrieves the player save scripts.
-   * @returns {Array<string>} Array of player save script URLs.
-   */
-  static getPlayerSaveScripts() {
-    return this.playerSaveScripts;
-  }
-
-  /**
-   * Retrieves the general progression scripts.
-   * @returns {Array<string>} Array of general progression script URLs.
-   */
-  static getGeneralProgressionScripts() {
-    return this.progressionScriptsGeneral;
-  }
-  /**
-   * Retrieves the radiant rays progression scripts.
-   * @returns {Array<string>} Array of radiant rays progression script URLs.
-   */
-  static getMicroEventScripts() {
-    return this.microEventScripts;
-  }
-  /**
-   * Retrieves the radiant rays progression scripts.
-   * @returns {Array<string>} Array of radiant rays progression script URLs.
-   */
-  static getRadiantRaysProgressionScripts() {
-    return this.progressionScriptsRadiantRays;
-  }
-
-  /**
-   * Retrieves the radiant rays animation scripts.
-   * @returns {Array<string>} Array of radiant rays animation script URLs.
-   */
-  static getRadiantRaysAnimationScripts() {
-    return this.animationScripts;
-  }
-
-  /**
-   * Retrieves the radiant rays trigger scripts.
-   * @returns {Array<string>} Array of radiant rays trigger script URLs.
-   */
-  static getRadiantRaysTriggerScripts() {
-    return this.triggerScripts;
-  }
-
-  /**
-   * Retrieves the radiant rays occurrence scripts.
-   * @returns {Array<string>} Array of radiant rays occurrence script URLs.
-   */
-  static getRadiantRaysOccurenceScripts() {
-    return this.occurrenceScripts;
+    return this.loadScriptsArray(
+      this[categoryInfo.array],
+      categoryInfo.displayName
+    );
   }
 
   /**
@@ -712,6 +747,8 @@ class ScriptManifest {
               categoryName,
               `Failed to load ${src}`
             );
+            //to do update logger
+
             reject(new Error(`Failed to load ${src}`));
           };
 
@@ -720,331 +757,181 @@ class ScriptManifest {
       }
     })();
   }
+
   /**
-   * Loads the micro event scripts and returns a promise.
-   * @returns {Promise} Resolves when micro event scripts are loaded.
+   * Adds one or more categories to the loadsToSkip array.
+   * This is useful for developers to dynamically disable script categories.
+   *
+   * @param {...string} categories - One or more category names to skip
    */
-  static loadMicroEventScriptsPromise() {
-    return this.loadScriptsArray(this.getMicroEventScripts(), "MicroEvent");
-  }
-  /**
-   * Loads the gamemode scripts and returns a promise.
-   * @returns {Promise} Resolves when gamemode scripts are loaded.
-   */
-  static loadGamemodeScriptsPromise() {
-    return this.loadScriptsArray(this.getGamemodeScripts(), "Gamemode");
+  static skipCategories(...categories) {
+    categories.forEach((category) => {
+      if (!this.loadsToSkip.includes(category)) {
+        this.loadsToSkip.push(category);
+      }
+    });
+    //to do update logger
+
+    console.info(`Updated skip list: ${this.loadsToSkip.join(", ")}`);
   }
 
   /**
-   * Loads the general item scripts and returns a promise.
-   * @returns {Promise} Resolves when general item scripts are loaded.
+   * Removes one or more categories from the loadsToSkip array.
+   * This is useful for developers to re-enable previously skipped categories.
+   *
+   * @param {...string} categories - One or more category names to unskip
    */
-  static loadGeneralItemScriptsPromise() {
-    return this.loadScriptsArray(this.getGeneralItemScripts(), "GeneralItem");
+  static unskipCategories(...categories) {
+    categories.forEach((category) => {
+      const index = this.loadsToSkip.indexOf(category);
+      if (index !== -1) {
+        this.loadsToSkip.splice(index, 1);
+      }
+    });
+    //to do update logger
+
+    console.info(`Updated skip list: ${this.loadsToSkip.join(", ")}`);
   }
 
   /**
-   * Loads the test tool scripts and returns a promise.
-   * @returns {Promise} Resolves when test tool scripts are loaded.
+   * Clears all categories from the loadsToSkip array.
+   * This is useful for developers to re-enable all script categories.
    */
-  static loadTestToolScriptsPromise() {
-    return this.loadScriptsArray(this.getTestToolScripts(), "TestTool");
+  static clearSkipList() {
+    this.loadsToSkip = [];
+    //to do update logger
+    console.info("All script categories will be loaded");
   }
 
   /**
-   * Loads the reward scripts and returns a promise.
-   * @returns {Promise} Resolves when reward scripts are loaded.
+   * Checks if a specific category should be skipped based on Config settings
+   *
+   * @param {string} category - The category name to check
+   * @returns {boolean} True if the category should be skipped, false otherwise
    */
-  static loadRewardScriptsPromise() {
-    return this.loadScriptsArray(this.getRewardScripts(), "Reward");
-  }
+  static shouldSkipCategory(category) {
+    // First check our local loadsToSkip array
+    if (this.loadsToSkip.includes(category)) {
+      return true;
+    }
 
-  /**
-   * Loads the trigger scripts and returns a promise.
-   * @returns {Promise} Resolves when trigger scripts are loaded.
-   */
-  static loadTriggerScriptsPromise() {
-    return this.loadScriptsArray(this.getTriggerScripts(), "Trigger");
-  }
+    // Then check Config arrays directly if available
+    try {
+      if (typeof Config !== "undefined") {
+        // Check LESS_ESSENTIAL_GAMEPLAY_SYSTEMS_TO_SKIP_LOADING
+        if (
+          Config.LESS_ESSENTIAL_GAMEPLAY_SYSTEMS_TO_SKIP_LOADING &&
+          Config.LESS_ESSENTIAL_GAMEPLAY_SYSTEMS_TO_SKIP_LOADING.includes(
+            category
+          )
+        ) {
+          return true;
+        }
 
-  /**
-   * Loads the occurrence scripts and returns a promise.
-   * @returns {Promise} Resolves when occurrence scripts are loaded.
-   */
-  static loadOccurrenceScriptsPromise() {
-    return this.loadScriptsArray(this.getOccurrenceScripts(), "Occurrence");
-  }
+        // Check NETWORKING_SYSTEMS_TO_SKIP_LOADING
+        if (
+          Config.NETWORKING_SYSTEMS_TO_SKIP_LOADING &&
+          Config.NETWORKING_SYSTEMS_TO_SKIP_LOADING.includes(category)
+        ) {
+          return true;
+        }
+      }
+    } catch (error) {
+      console.warn(
+        `Error checking if category ${category} should be skipped:`,
+        error
+      );
+    }
 
-  /**
-   * Loads the asset manifest scripts and returns a promise.
-   * @returns {Promise} Resolves when asset manifest scripts are loaded.
-   */
-  static loadAssetManifestScriptsPromise() {
-    return this.loadScriptsArray(
-      this.getAssetManifestScripts(),
-      "AssetManifest"
-    );
-  }
-
-  /**
-   * Loads the general progression scripts and returns a promise.
-   * @returns {Promise} Resolves when general progression scripts are loaded.
-   */
-  static loadGeneralProgressionScriptsPromise() {
-    return this.loadScriptsArray(
-      this.getGeneralProgressionScripts(),
-      "GeneralProgression"
-    );
-  }
-
-  /**
-   * Loads the regional adaptation scripts and returns a promise.
-   * @returns {Promise} Resolves when regional adaptation scripts are loaded.
-   */
-  static loadRegionalAdaptationScriptsPromise() {
-    return this.loadScriptsArray(
-      this.getRegionalAdaptationScripts(),
-      "RegionalAdaptation"
-    );
-  }
-
-  /**
-   * Loads the radiant rays progression scripts and returns a promise.
-   * @returns {Promise} Resolves when radiant rays progression scripts are loaded.
-   */
-  static loadRadiantRaysProgressionScriptsPromise() {
-    return this.loadScriptsArray(
-      this.getRadiantRaysProgressionScripts(),
-      "RadiantRaysProgression"
-    );
-  }
-
-  /**
-   * Loads the asset loaders and managers scripts and returns a promise.
-   * @returns {Promise} Resolves when asset loaders and managers scripts are loaded.
-   */
-  static loadAssetLoadersAndManagersScriptsPromise() {
-    return this.loadScriptsArray(
-      this.getAssetLoadersAndManagersScripts(),
-      "AssetLoadersAndManagers"
-    );
-  }
-
-  /**
-   * Loads the item requirements scripts and returns a promise.
-   * @returns {Promise} Resolves when item requirements scripts are loaded.
-   */
-  static loadItemRequirementsScriptsPromise() {
-    return this.loadScriptsArray(
-      this.getItemRequirementsScripts(),
-      "ItemRequirements"
-    );
-  }
-
-  /**
-   * Loads the implemented UI scene scripts and returns a promise.
-   * @returns {Promise} Resolves when implemented UI scene scripts are loaded.
-   */
-  static loadUISceneScriptsImplementedPromise() {
-    return this.loadScriptsArray(
-      this.getUISceneScriptsImplemented(),
-      "UISceneScriptsImplemented"
-    );
-  }
-
-  /**
-   * Loads the lighting scripts and returns a promise.
-   * @returns {Promise} Resolves when lighting scripts are loaded.
-   */
-  static loadLightingScriptsPromise() {
-    return this.loadScriptsArray(this.getLightingScripts(), "Lighting");
-  }
-
-  static loadMovementScriptsPromise() {
-    return this.loadScriptsArray(this.getMovementScripts(), "Movement");
-  }
-
-  /**
-   * Loads the camera scripts and returns a promise.
-   * @returns {Promise} Resolves when camera scripts are loaded.
-   */
-  static loadCameraScriptsPromise() {
-    return this.loadScriptsArray(this.getCameraScripts(), "Camera");
-  }
-
-  /**
-   * Loads the input scripts and returns a promise.
-   * @returns {Promise} Resolves when input scripts are loaded.
-   */
-  static loadInputScriptsPromise() {
-    return this.loadScriptsArray(this.getInputScripts(), "Input");
-  }
-
-  /**
-   * Loads the history scripts and returns a promise.
-   * @returns {Promise} Resolves when history scripts are loaded.
-   */
-  static loadHistoryScriptsPromise() {
-    return this.loadScriptsArray(this.getHistoryScripts(), "History");
-  }
-
-  /**
-   * Loads the item verification scripts and returns a promise.
-   * @returns {Promise} Resolves when item verification scripts are loaded.
-   */
-  static loadItemVerificationScriptsPromise() {
-    return this.loadScriptsArray(
-      this.getItemVerificationScripts(),
-      "ItemVerification"
-    );
-  }
-
-  /**
-   * Loads the cheat prevention scripts and returns a promise.
-   * @returns {Promise} Resolves when cheat prevention scripts are loaded.
-   */
-  static loadCheatPreventionScriptsPromise() {
-    return this.loadScriptsArray(
-      this.getCheatPreventionScripts(),
-      "CheatPrevention"
-    );
-  }
-
-  /**
-   * Loads the gameplay scripts and returns a promise.
-   * @returns {Promise} Resolves when gameplay scripts are loaded.
-   */
-  static loadGameplayScriptsPromise() {
-    return this.loadScriptsArray(this.getGameplayScripts(), "Gameplay");
-  }
-
-  /**
-   * Loads the player scripts and returns a promise.
-   * @returns {Promise} Resolves when player scripts are loaded.
-   */
-  static loadPlayerScriptsPromise() {
-    return this.loadScriptsArray(this.getPlayerScripts(), "Player");
-  }
-
-  /**
-   * Loads the game interactions scripts and returns a promise.
-   * @returns {Promise} Resolves when game interactions scripts are loaded.
-   */
-  static loadGameInteractionsScriptsPromise() {
-    return this.loadScriptsArray(
-      this.getGameInteractionsScripts(),
-      "GameInteractions"
-    );
-  }
-
-  /**
-   * Loads the radiant rays animation scripts and returns a promise.
-   * @returns {Promise} Resolves when radiant rays animation scripts are loaded.
-   */
-  static loadRadiantRaysAnimationScriptsPromise() {
-    return this.loadScriptsArray(
-      this.getRadiantRaysAnimationScripts(),
-      "RadiantRaysAnimation"
-    );
-  }
-
-  /**
-   * Loads the platform transaction scripts and returns a promise.
-   * @returns {Promise} Resolves when platform transaction scripts are loaded.
-   */
-  static loadPlatformTransactionScriptsPromise() {
-    return this.loadScriptsArray(
-      this.getPlatformTransactionScripts(),
-      "PlatformTransactions"
-    );
-  }
-
-  /**
-   * Loads the game area scripts and returns a promise.
-   * @returns {Promise} Resolves when game area scripts are loaded.
-   */
-  static loadGameAreaScriptsPromise() {
-    return this.loadScriptsArray(this.getGameAreaScripts(), "GameArea");
-  }
-
-  /**
-   * Loads the sound systems scripts and returns a promise.
-   * @returns {Promise} Resolves when sound systems scripts are loaded.
-   */
-  static loadSoundSystemsScriptsPromise() {
-    return this.loadScriptsArray(this.getSoundSystemsScripts(), "SoundSystems");
-  }
-
-  /**
-   * Loads the minor utility scripts and returns a promise.
-   * @returns {Promise} Resolves when minor utility scripts are loaded.
-   */
-  static loadMinorUtilityScriptsPromise() {
-    return this.loadScriptsArray(this.getMinorUtilityScripts(), "MinorUtility");
-  }
-
-  /**
-   * Loads the networking scripts and returns a promise.
-   * @returns {Promise} Resolves when networking scripts are loaded.
-   */
-  static loadNetworkingScriptsPromise() {
-    return this.loadScriptsArray(this.getNetworkingScripts(), "Networking");
-  }
-
-  /**
-   * Loads the transaction scripts and returns a promise.
-   * @returns {Promise} Resolves when transaction scripts are loaded.
-   */
-  static loadTransactionScriptsPromise() {
-    return this.loadScriptsArray(this.getTransactionScripts(), "Transaction");
-  }
-
-  /**
-   * Loads the player save scripts and returns a promise.
-   * @returns {Promise} Resolves when player save scripts are loaded.
-   */
-  static loadPlayerSaveScriptsPromise() {
-    return this.loadScriptsArray(this.getPlayerSaveScripts(), "PlayerSave");
-  }
-
-  /**
-   * Loads the UI utility scripts and returns a promise.
-   * @returns {Promise} Resolves when UI utility scripts are loaded.
-   */
-  static loadUIUtilityScriptsPromise() {
-    return this.loadScriptsArray(this.getUIUtilityScripts(), "UIUtility");
+    return false;
   }
 
   /**
    * Loads all script categories sequentially.
    * If any category fails to load, a catastrophe is reported and the promise chain is halted.
    *
+   * This method uses the metadata-driven approach with a predefined loading order
+   * to ensure scripts are loaded in the exact same sequence as before.
+   * The order is critical for dependencies between script categories.
+   *
+   * During development, categories listed in loadsToSkip will be omitted from loading.
+   * The skip list is initialized from Config.SYSTEMS_TO_SKIP_LOADING.
+   *
    * @returns {Promise} Resolves when all script categories are successfully loaded.
    */
   static loadAllScriptsPromise() {
-    return this.loadAssetLoadersAndManagersScriptsPromise()
-      .then(() => this.loadAssetManifestScriptsPromise())
-      .then(() => this.loadCheatPreventionScriptsPromise())
-      .then(() => this.loadUIUtilityScriptsPromise())
-      .then(() => this.loadUISceneScriptsImplementedPromise())
-      .then(() => this.loadLightingScriptsPromise())
-      .then(() => this.loadCameraScriptsPromise())
-      .then(() => this.loadInputScriptsPromise())
-      .then(() => this.loadMicroEventScriptsPromise())
-      .then(() => this.loadTriggerScriptsPromise())
-      .then(() => this.loadOccurrenceScriptsPromise())
-      .then(() => this.loadRadiantRaysAnimationScriptsPromise())
-      .then(() => this.loadMovementScriptsPromise())
-      .then(() => this.loadGamemodeScriptsPromise())
-      .then(() => this.loadGameplayScriptsPromise())
-      .then(() => this.loadPlayerScriptsPromise())
-      .then(() => this.loadGeneralProgressionScriptsPromise())
-      .then(() => this.loadGameAreaScriptsPromise())
-      .then(() => this.loadGameInteractionsScriptsPromise())
-      .then(() => this.loadRadiantRaysProgressionScriptsPromise())
-      .then(() => this.loadSoundSystemsScriptsPromise())
-      .then(() => this.loadMinorUtilityScriptsPromise())
-      .then(() => this.loadTestToolScriptsPromise())
+    // Initialize the skip list from Config
+    this.initializeSkipList();
+
+    // to do - refine and tweak the script loading order including the display of a game loading screen which may involve assets / essential loaders
+    // Define the exact loading order to maintain the same sequence as before
+    const loadingOrder = [
+      "assetLoadersAndManagers",
+      "assetManifest",
+      "cheatPrevention",
+      "uiUtility",
+      "uiSceneImplemented",
+      "lighting",
+      "camera",
+      "input",
+      "microEvent",
+      "trigger",
+      "occurrence",
+      "animation",
+      "movement",
+      "gamemode",
+      "gameplay",
+      "player",
+      "gameArea",
+      "gameInteractions",
+      "soundSystems",
+      "minorUtility",
+      "testTool",
+      "accomplishment",
+      "accomplishmentEmitter",
+      "history",
+      "itemVerification",
+      "itemRequirements",
+      "platformTransaction",
+      "unlocking",
+      "unlockingRadiantRays",
+      "networking",
+      "transaction",
+      "playerSave",
+      "playerSaveBatching",
+      "reward",
+      "itemGeneral",
+    ];
+
+    // Filter out categories that should be skipped
+    const filteredLoadingOrder = loadingOrder.filter(
+      (category) => !this.shouldSkipCategory(category)
+    );
+
+    // Collect all skipped categories for logging
+    const skippedCategories = loadingOrder.filter((category) =>
+      this.shouldSkipCategory(category)
+    );
+
+    // Log skipped categories if any
+    if (skippedCategories.length > 0) {
+      console.warn(
+        `Development mode: Skipping script categories: ${skippedCategories.join(
+          ", "
+        )}`
+      );
+    }
+
+    // Create a promise chain that follows the filtered loading order
+    return filteredLoadingOrder
+      .reduce((chain, category) => {
+        return chain.then(() => {
+          //to do update logger
+
+          //console.log(`Loading script category: ${category}`);
+          return this.loadCategoryScriptsPromise(category);
+        });
+      }, Promise.resolve())
       .catch((error) => {
         console.error("Failed to load all scripts:", error);
         CatastropheManager.displayCatastrophePage();

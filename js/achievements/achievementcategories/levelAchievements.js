@@ -1,5 +1,3 @@
-import AchievementCategory from "../achievementCategory.js";
-
 /**
  * LevelAchievements represents achievements based on player levels.
  */

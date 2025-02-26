@@ -53,6 +53,7 @@ class LevelManifest {
     if (Config.RUN_LOCALLY_DETERMINED == false && convenientLevelOverride) {
       return false;
     } else if (Config.LOAD_LEVEL_FROM_DEVELOPER_OVERRIDE) {
+      // to do update logging
       console.log(
         "Developer local override from config file: " +
           ", Config: " +
@@ -63,6 +64,7 @@ class LevelManifest {
 
       return true;
     } else if (convenientLevelOverride) {
+      // to do update logging
       console.log(
         "Developer local override convenience override: " +
           convenientLevelOverride
@@ -140,10 +142,11 @@ class LevelManifest {
     isPremiumLevel
   ) {
     if (isFreeLevel && isPremiumLevel) {
+      // to do update logging
       console.log("Warning - level is both free and premium: " + levelId);
     }
 
-    let newLevelHeader = new LevelProfileHeader(
+    let newLevelHeader = new LevelRetrievalHeader(
       levelId,
       levelNickname,
       levelCategory,

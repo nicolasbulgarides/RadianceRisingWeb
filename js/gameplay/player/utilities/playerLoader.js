@@ -28,12 +28,12 @@ class PlayerLoader {
 
   /**
    * Generates a demo player instance with default settings.
-   * The player is loaded with fresh status parameters and positioned using the default map.
+   * The player is loaded with fresh status parameters and positioned using the level data.
    *
-   * @param {Object} defaultMap - The map object that provides the player's starting position.
+   * @param {ActiveGameplayLevel|LevelDataComposite} levelData - The level data that provides the player's starting position.
    * @returns {PlayerUnit} - A newly created and initialized player unit.
    */
-  static getFreshPlayer(defaultMap) {
+  static getFreshPlayer(levelData) {
     // Instantiate a new PlayerUnit object.
     let gamePlayer = new PlayerUnit();
 
@@ -48,13 +48,48 @@ class PlayerLoader {
       Config.DEFAULT_MAX_SPEED // Base max speed.
     );
 
-    // Retrieve the player's starting position from the map.
-    let position = defaultMap.getPlayerStartingPosition();
+    // Retrieve the player's starting position from the level data
+    let position = this.getPlayerStartingPosition(levelData);
 
     // Load the player's model and set its position.
     PlayerLoader.loadModelAndPosition(gamePlayer, position);
 
     // Return the fully initialized player unit.
     return gamePlayer;
+  }
+
+  /**
+   * Extracts the player starting position from various level data formats
+   * @param {ActiveGameplayLevel|LevelDataComposite|Object} levelData - The level data
+   * @returns {BABYLON.Vector3} The player starting position
+   */
+  static getPlayerStartingPosition(levelData) {
+    // If it's an ActiveGameplayLevel, use its method
+    if (levelData instanceof ActiveGameplayLevel) {
+      return levelData.getPlayerStartPosition();
+    }
+
+    // If it's a LevelDataComposite, extract from its properties
+    if (levelData.levelHeaderData && levelData.levelGameplayTraitsData) {
+      const dimensions = {
+        width: levelData.customGridSize?.width || 11,
+        depth: levelData.customGridSize?.depth || 21,
+      };
+
+      const startX =
+        levelData.playerStartPosition?.x || Math.floor(dimensions.width / 2);
+      const startY = levelData.playerStartPosition?.y || 0.25;
+      const startZ =
+        levelData.playerStartPosition?.z || Math.floor(dimensions.depth / 2);
+
+      return new BABYLON.Vector3(startX, startY, startZ);
+    }
+
+    // to do update logging
+    // Default fallback position
+    console.warn(
+      "PlayerLoader: Could not determine player starting position, using default"
+    );
+    return new BABYLON.Vector3(5, 0.25, 10);
   }
 }
