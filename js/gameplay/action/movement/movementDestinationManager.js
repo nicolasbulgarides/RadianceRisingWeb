@@ -6,12 +6,12 @@ class MovementDestinationManager {
   /**
    * Determines the type of movement and delegates to appropriate calculator
    * @param {string} direction - Movement direction
-   * @param {GameLevelPlane} activeGameLevelPlane - The active game level
+   * @param {ActiveGameplayLevel} activeGameplayLevel - The active gameplay level
    * @param {Player} relevantPlayer - The player being moved
    * @returns {BABYLON.Vector3} The calculated destination position
    */
-  static getDestinationVector(direction, activeGameLevelPlane, relevantPlayer) {
-    let currentGamemodeRules = activeGameLevelPlane.gameModeRules;
+  static getDestinationVector(direction, activeGameplayLevel, relevantPlayer) {
+    let currentGamemodeRules = activeGameplayLevel.gameModeRules;
     let bounded = currentGamemodeRules.MOVEMENT_IS_BOUNDED;
     let maxDistance =
       currentGamemodeRules.currentEnforcings.maximumMovementDistance;
@@ -22,14 +22,14 @@ class MovementDestinationManager {
         direction,
         ignoreObstacles,
         maxDistance,
-        activeGameLevelPlane,
+        activeGameplayLevel,
         relevantPlayer
       );
     } else {
       return UnboundedDestinationCalculator.getDestinationVector(
         direction,
         ignoreObstacles,
-        activeGameLevelPlane,
+        activeGameplayLevel,
         relevantPlayer
       );
     }

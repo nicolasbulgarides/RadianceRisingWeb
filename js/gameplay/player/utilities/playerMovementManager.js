@@ -20,7 +20,7 @@ class PlayerMovementManager {
     this.movementActive = false;
     this.pathingDestination = null;
     this.currentPosition = position;
-    this.maxMovementDistance = 0;
+    this.maxMovementDistance = Config.MAX_MOVEMENT; //note / to do - later on this may be parameterized or overwritten by the level's rules
     this.lastCrossedTileBoundary = position;
   }
 

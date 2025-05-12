@@ -94,7 +94,11 @@ class ObstacleFinder {
     let levelMap = gameplayLevel.levelMap;
     // Validate inputs
     if (!levelMap || !startPosition || !direction) {
-      console.error("Invalid parameters provided to getLastValidPosition");
+      console.error("Invalid parameters provided to getLastValidPosition:", {
+        levelMap: levelMap ? "valid" : "null",
+        startPosition: startPosition ? "valid" : "null",
+        direction: direction ? "valid" : "null",
+      });
       return startPosition;
     }
 

@@ -7,14 +7,14 @@ class UnboundedDestinationCalculator {
    * Calculates the destination vector for unbounded movement
    * @param {string} direction - Movement direction ("LEFT", "RIGHT", "UP", "DOWN")
    * @param {boolean} ignoreObstacles - Whether to ignore obstacles during movement
-   * @param {GameLevelPlane} activeGameLevel - The active game level
+   * @param {ActiveGameplayLevel} activeGameplayLevel - The active gameplay level
    * @param {Player} relevantPlayer - The player being moved
    * @returns {BABYLON.Vector3} The calculated destination position
    */
   static getDestinationVector(
     direction,
     ignoreObstacles,
-    activeGameLevel,
+    activeGameplayLevel,
     relevantPlayer
   ) {
     let currentPositionVector =
@@ -23,13 +23,13 @@ class UnboundedDestinationCalculator {
 
     if (ignoreObstacles) {
       destinationVector = this.getBoundaryDestinationVectorBypassingObstacles(
-        activeGameLevel,
+        activeGameplayLevel,
         direction,
         currentPositionVector
       );
     } else {
-      destinationVector = ObstacleFinder.getLastValidPosition(
-        activeGameLevel,
+      destinationVector = this.getLastValidPosition(
+        activeGameplayLevel,
         currentPositionVector,
         direction
       );
@@ -40,50 +40,124 @@ class UnboundedDestinationCalculator {
 
   /**
    * Calculates destination vector when moving to boundary edge while ignoring obstacles
-   * @param {GameLevelPlane} activeGameLevel - The active game level
+   * @param {ActiveGameplayLevel} activeGameplayLevel - The active gameplay level
    * @param {string} direction - Movement direction
    * @param {BABYLON.Vector3} currentPositionVector - Current position of the player
    * @returns {BABYLON.Vector3} The destination vector at the boundary
    */
   static getBoundaryDestinationVectorBypassingObstacles(
-    activeGameLevel,
+    activeGameplayLevel,
     direction,
     currentPositionVector
   ) {
-    let boundary = activeGameLevel.getActiveGameLevelBoundary();
+    let boundary = activeGameplayLevel.getActiveGameLevelBoundary();
     let destinationVector = null;
 
     switch (String(direction)) {
       case "LEFT":
         destinationVector = new BABYLON.Vector3(
           boundary.minX,
-          0,
+          currentPositionVector.y,
           currentPositionVector.z
         );
         break;
       case "RIGHT":
         destinationVector = new BABYLON.Vector3(
           boundary.maxX,
-          0,
+          currentPositionVector.y,
           currentPositionVector.z
         );
         break;
       case "UP":
         destinationVector = new BABYLON.Vector3(
           currentPositionVector.x,
-          0,
+          currentPositionVector.y,
           boundary.maxZ
         );
         break;
       case "DOWN":
         destinationVector = new BABYLON.Vector3(
           currentPositionVector.x,
-          0,
+          currentPositionVector.y,
           boundary.minZ
         );
         break;
     }
 
     return destinationVector;
+  }
+
+  /**
+   * Determines the last valid position before encountering an obstacle
+   * @param {ActiveGameplayLevel} activeGameplayLevel - The active gameplay level
+   * @param {BABYLON.Vector3} startPosition - Starting position for the search
+   * @param {string} direction - Movement direction
+   * @returns {BABYLON.Vector3} The last valid position before any obstacles
+   */
+  static getLastValidPosition(activeGameplayLevel, startPosition, direction) {
+    // Validate inputs
+    if (!activeGameplayLevel || !startPosition || !direction) {
+      console.error("Invalid parameters provided to getLastValidPosition:", {
+        activeGameplayLevel: activeGameplayLevel ? "valid" : "null",
+        startPosition: startPosition ? "valid" : "null",
+        direction: direction ? "valid" : "null",
+      });
+      return startPosition;
+    }
+
+    // Standardize direction format
+    const normalizedDirection = direction.toUpperCase().trim();
+
+    let x = Math.floor(startPosition.x);
+    let y = startPosition.y;
+    let z = Math.floor(startPosition.z);
+
+    // Begin tracking with the starting position
+    let lastValidPosition = new BABYLON.Vector3(x, y, z);
+
+    // Get boundary for bounds checking
+    const boundary = activeGameplayLevel.getActiveGameLevelBoundary();
+
+    // Iterate until reaching an obstacle or out-of-bounds
+    while (
+      x >= boundary.minX &&
+      x <= boundary.maxX &&
+      z >= boundary.minZ &&
+      z <= boundary.maxZ
+    ) {
+      // Check for obstacles using the level's obstacle data
+      const obstacles = activeGameplayLevel.levelDataComposite?.obstacles || [];
+      const hasObstacle = obstacles.some(
+        (obstacle) => obstacle.position.x === x && obstacle.position.z === z
+      );
+
+      if (hasObstacle) {
+        return lastValidPosition;
+      }
+
+      // Update the last valid position
+      lastValidPosition = new BABYLON.Vector3(x, y, z);
+
+      // Move the coordinates according to the specified direction
+      switch (normalizedDirection) {
+        case "UP":
+          z += 1;
+          break;
+        case "DOWN":
+          z -= 1;
+          break;
+        case "LEFT":
+          x -= 1;
+          break;
+        case "RIGHT":
+          x += 1;
+          break;
+        default:
+          console.error("Invalid direction:", direction);
+          return lastValidPosition;
+      }
+    }
+
+    return lastValidPosition;
   }
 }

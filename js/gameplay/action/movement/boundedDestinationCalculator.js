@@ -8,7 +8,7 @@ class BoundedDestinationCalculator {
    * @param {string} direction - The intended movement direction ("LEFT", "RIGHT", "UP", "DOWN")
    * @param {boolean} ignoreObstacles - Flag indicating if obstacles can be bypassed
    * @param {number} maxDistance - The maximum distance allowed for the movement
-   * @param {GameLevelPlane} activeGameLevelPlane - The active game level plane
+   * @param {ActiveGameplayLevel} activeGameplayLevel - The active gameplay level
    * @param {Player} relevantPlayer - The player being moved
    * @returns {BABYLON.Vector3} The calculated destination position
    */
@@ -16,7 +16,7 @@ class BoundedDestinationCalculator {
     direction,
     ignoreObstacles,
     maxDistance,
-    activeGameLevelPlane,
+    activeGameplayLevel,
     relevantPlayer
   ) {
     let finalDestinationVector = null;
@@ -26,17 +26,17 @@ class BoundedDestinationCalculator {
         direction,
         maxDistance,
         relevantPlayer,
-        activeGameLevelPlane
+        activeGameplayLevel
       );
       finalDestinationVector = this.clampStopPositionDueToBoundary(
         theoreticalPosition,
-        activeGameLevelPlane
+        activeGameplayLevel
       );
     } else {
       finalDestinationVector = this.determineWhenToStopDueToObstacle(
         direction,
         maxDistance,
-        activeGameLevelPlane,
+        activeGameplayLevel,
         relevantPlayer
       );
     }
@@ -47,14 +47,14 @@ class BoundedDestinationCalculator {
   /**
    * Clamps a theoretical position to within the game level boundaries
    * @param {BABYLON.Vector3} theoreticalStopPosition - The unclamped position
-   * @param {GameLevelPlane} activeGameLevelPlane - The active game level plane
+   * @param {ActiveGameplayLevel} activeGameplayLevel - The active gameplay level
    * @returns {BABYLON.Vector3} The clamped position within boundaries
    */
   static clampStopPositionDueToBoundary(
     theoreticalStopPosition,
-    activeGameLevelPlane
+    activeGameplayLevel
   ) {
-    let boundary = activeGameLevelPlane.getActiveGameLevelBoundary();
+    let boundary = activeGameplayLevel.getActiveGameLevelBoundary();
 
     let clampedX = Math.min(boundary.maxX, theoreticalStopPosition.x);
     clampedX = Math.max(boundary.minX, clampedX);
@@ -70,18 +70,19 @@ class BoundedDestinationCalculator {
    * @param {string} direction - Movement direction
    * @param {number} maxDistance - Maximum movement distance
    * @param {Player} relevantPlayer - The player being moved
+   * @param {ActiveGameplayLevel} activeGameplayLevel - The active gameplay level
    * @returns {BABYLON.Vector3} The theoretical stop position before boundary/obstacle checks
    */
   static determineTheoreticalStopPosition(
     direction,
     maxDistance,
     relevantPlayer,
-    activeGameLevelPlane
+    activeGameplayLevel
   ) {
     let currentPosition = relevantPlayer.playerMovementManager.currentPosition;
     let effectiveMaxDistance = maxDistance;
 
-    let gameModeRules = activeGameLevelPlane.gameModeRules;
+    let gameModeRules = activeGameplayLevel.gameModeRules;
     // If player's gamemode uses player movement distance, use the lower value
     if (gameModeRules.USE_PLAYER_MOVEMENT_DISTANCE) {
       const playerMaxDistance =
@@ -126,17 +127,16 @@ class BoundedDestinationCalculator {
    * Determines the last valid position before encountering an obstacle
    * @param {string} direction - Movement direction
    * @param {number} maxDistance - Maximum movement distance
-   * @param {GameLevelPlane} activeGameLevelPlane - The active game level plane
+   * @param {ActiveGameplayLevel} activeGameplayLevel - The active gameplay level
    * @param {Player} relevantPlayer - The player being moved
    * @returns {BABYLON.Vector3} The last valid position before any obstacles
    */
   static determineWhenToStopDueToObstacle(
     direction,
     maxDistance,
-    activeGameLevelPlane,
+    activeGameplayLevel,
     relevantPlayer
   ) {
-    const levelMap = activeGameLevelPlane.levelMap;
     const currentPosition =
       relevantPlayer.playerMovementManager.currentPosition;
     let lastValidPosition = currentPosition;
@@ -162,19 +162,25 @@ class BoundedDestinationCalculator {
           return lastValidPosition;
       }
 
+      // Check if position is within bounds using ActiveGameplayLevel's boundary
+      const boundary = activeGameplayLevel.getActiveGameLevelBoundary();
       if (
-        !ObstacleFinder.isWithinBounds(
-          levelMap,
-          nextX,
-          currentPosition.y,
-          nextZ
-        )
+        nextX < boundary.minX ||
+        nextX > boundary.maxX ||
+        nextZ < boundary.minZ ||
+        nextZ > boundary.maxZ
       ) {
         break;
       }
 
-      let boardSlot = levelMap.boardSlots[nextX]?.[nextZ];
-      if (boardSlot && boardSlot.hostedObstacle) {
+      // Check for obstacles using the level's obstacle data
+      const obstacles = activeGameplayLevel.levelDataComposite?.obstacles || [];
+      const hasObstacle = obstacles.some(
+        (obstacle) =>
+          obstacle.position.x === nextX && obstacle.position.z === nextZ
+      );
+
+      if (hasObstacle) {
         break;
       }
 
