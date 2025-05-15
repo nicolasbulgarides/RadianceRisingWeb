@@ -7,6 +7,24 @@
  * rewards) can be constructed independently and then assembled into a complete level.
  */
 class TestLevelJsonBuilder {
+  static #instance = null;
+
+  static getInstance() {
+    if (!TestLevelJsonBuilder.#instance) {
+      TestLevelJsonBuilder.#instance = new TestLevelJsonBuilder();
+    }
+    return TestLevelJsonBuilder.#instance;
+  }
+
+  constructor() {
+    // Only allow instantiation through getInstance
+    if (TestLevelJsonBuilder.#instance) {
+      throw new Error(
+        "Use TestLevelJsonBuilder.getInstance() instead of new operator"
+      );
+    }
+  }
+
   /**
    * Builds a complete test level with default values
    * @param {string} [levelId="testLevel0"] - The level ID
@@ -17,14 +35,15 @@ class TestLevelJsonBuilder {
     levelId = "testLevel0",
     levelNickname = "Test Level 0"
   ) {
+    console.log("Building test level with id: ", levelId);
+
     // Build the header data
     const levelHeaderData = this.buildLevelHeaderData(levelId, levelNickname);
 
     // Build gameplay traits
     const levelGameplayTraits = this.buildGameplayTraits(levelId);
 
-    // Build reward bundle (or use e
-    // mpty/placeholder rewards)
+    // Build reward bundle (or use empty/placeholder rewards)
     let rewardBundle = null;
 
     if (Config.ITEMS_AND_REWARDS_ACTIVE) {
@@ -207,15 +226,29 @@ class TestLevelJsonBuilder {
     depth,
     playerStart
   ) {
-    const levelData = this.buildDefaultTestLevel(levelId, levelNickname);
+    console.log("Building custom size level with id: ", levelId);
+
+    // Build the header data
+    const levelHeaderData = this.buildLevelHeaderData(levelId, levelNickname);
+
+    // Build gameplay traits
+    const levelGameplayTraits = this.buildGameplayTraits(levelId);
+
+    // Build reward bundle if needed
+    let rewardBundle = null;
+    if (Config.ITEMS_AND_REWARDS_ACTIVE) {
+      rewardBundle = this.buildEmptyRewardBundle();
+    }
+
+    // Create the level data composite
+    const levelData = new LevelDataComposite(
+      levelHeaderData,
+      levelGameplayTraits,
+      rewardBundle
+    );
 
     // Add custom size and player start information
-    // This would typically be stored in the level data and used by LevelMap
-    levelData.customGridSize = {
-      width: width,
-      depth: depth,
-    };
-
+    levelData.customGridSize = { width, depth };
     levelData.playerStartPosition = {
       x: playerStart.x || Math.floor(width / 2),
       y: playerStart.y || 0.25,
@@ -233,12 +266,29 @@ class TestLevelJsonBuilder {
    * @returns {LevelDataComposite} The constructed level data
    */
   static buildLevelWithObstacles(levelId, levelNickname, obstacles) {
-    const levelData = this.buildDefaultTestLevel(levelId, levelNickname);
+    console.log("Building level with obstacles, id: ", levelId);
 
-    // Add obstacles to the level data
-    levelData.obstacles = obstacles;
+    // Build the header data
+    const levelHeaderData = this.buildLevelHeaderData(levelId, levelNickname);
 
-    return levelData;
+    // Build gameplay traits
+    const levelGameplayTraits = this.buildGameplayTraits(levelId);
+
+    // Add obstacles to the featured objects
+    levelGameplayTraits.featuredObjects = obstacles;
+
+    // Build reward bundle if needed
+    let rewardBundle = null;
+    if (Config.ITEMS_AND_REWARDS_ACTIVE) {
+      rewardBundle = this.buildEmptyRewardBundle();
+    }
+
+    // Create and return the level data composite
+    return new LevelDataComposite(
+      levelHeaderData,
+      levelGameplayTraits,
+      rewardBundle
+    );
   }
 
   /**

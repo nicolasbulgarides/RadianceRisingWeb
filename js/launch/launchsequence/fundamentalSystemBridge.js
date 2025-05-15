@@ -240,6 +240,13 @@ class FundamentalSystemBridge {
       );
     }
   }
+  static registerMicroEventManager(microEventManager) {
+    FundamentalSystemBridge.registerManager(
+      "microEventManager",
+      microEventManager,
+      MicroEventManager
+    );
+  }
 
   static loadRenderSceneSwapper() {
     let renderSceneSwapper = new RenderSceneSwapper();
@@ -247,6 +254,18 @@ class FundamentalSystemBridge {
       "renderSceneSwapper",
       renderSceneSwapper,
       RenderSceneSwapper
+    );
+  }
+
+  /**
+   * Registers the CollectiblePlacementManager instance.
+   * @param {CollectiblePlacementManager} collectiblePlacementManager - The collectible placement manager instance.
+   */
+  static registerCollectiblePlacementManager(collectiblePlacementManager) {
+    FundamentalSystemBridge.registerManager(
+      "collectiblePlacementManager",
+      collectiblePlacementManager,
+      CollectiblePlacementManager
     );
   }
 

@@ -236,7 +236,7 @@ class PositionedObject {
    */
   disposeModel() {
     if (this.model) {
-      this.model.dispose();
+      this.model.meshes[0].dispose();
       this.model = null;
     }
   }

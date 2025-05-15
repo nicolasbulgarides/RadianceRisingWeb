@@ -135,7 +135,8 @@ class MicroEventFactory {
     description,
     pickupValue,
     pickupMagnitude,
-    pickupLocation
+    pickupLocation,
+    pickupPositionedObject
   ) {
     let pickupMicroEvent = new MicroEvent(
       "pickup",
@@ -143,8 +144,10 @@ class MicroEventFactory {
       description,
       pickupValue,
       pickupMagnitude,
-      pickupLocation
+      pickupLocation,
+      pickupPositionedObject
     );
+
     return pickupMicroEvent;
   }
 

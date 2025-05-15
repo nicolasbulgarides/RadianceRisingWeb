@@ -54,7 +54,7 @@ class TestLevelDataCompositeLoader {
   static createTestLevelData() {
     // Create a custom level with specific dimensions
     const levelData = TestLevelJsonBuilder.buildCustomSizeLevel(
-      "testCompositeLevel",
+      "testLevel0",
       "Test Composite Level",
       11, // width
       21, // depth

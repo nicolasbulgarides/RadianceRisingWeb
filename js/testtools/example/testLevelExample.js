@@ -217,12 +217,12 @@ function runAllExamples() {
   console.log("=== Running Test Level Examples ===");
 
   const basicLevel = createBasicTestLevel();
-  const customSizedLevel = createCustomSizedLevel();
-  const obstacleLevel = createLevelWithObstacles();
-  const completeLevel = createCompleteCustomLevel();
+  //const customSizedLevel = createCustomSizedLevel();
+  // const obstacleLevel = createLevelWithObstacles();
+  // const completeLevel = createCompleteCustomLevel();
 
   const jsonString = saveLevelToJson();
-  const loadedLevel = loadLevelFromJson(jsonString);
+  // const loadedLevel = loadLevelFromJson(jsonString);
 
   console.log("=== All examples completed successfully ===");
 }

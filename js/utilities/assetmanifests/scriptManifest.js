@@ -555,6 +555,7 @@ class ScriptManifest {
     "/gameplay/areas/generation/gameGridGenerator.js",
     "/gameplay/areas/generation/levelMapObstacleGenerator.js",
     "/gameplay/areas/generation/datastructures/levelMap.js",
+    "/gameplay/areas/collectiblePlacementManager.js",
   ];
   static unlockingScriptsRadiantRays = [
     "/gameplay/progression/unlocking/gamespecific/radiantrays/constellationOrLevelUnlockRequirements.js",

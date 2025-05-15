@@ -81,9 +81,9 @@ class Config {
 
   // Default values (level properties) & Collision/level properties.
   static DEMO_LEVEL = "testLevel0";
-  static MAX_MOVEMENT = 999;
+  static MAX_MOVEMENT = 1;
   static IGNORE_OBSTACLES = false;
-  static UNBOUNDED_MOVEMENT = true;
+  static UNBOUNDED_MOVEMENT = false;
 
   // Default values (lighting, camera).
   static DEFAULT_ENVIRONMENT_LIGHTING_TEMPLATE = "standardlevel0";

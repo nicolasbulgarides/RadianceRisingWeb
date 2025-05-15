@@ -10,6 +10,37 @@ class MicroEventManager {
     return allLevelMicroEvents;
   }
 
+  onFrameCheckMicroEventsForTriggered() {
+    let allMicroEvents = this.gameplayLevelToMicroEventsMap["testLevel0"];
+
+    //to do - switch this to advanced logging
+    /** 
+    if (allMicroEvents) {
+      console.log("All micro events size: " + allMicroEvents.length);
+    } else {
+      console.log("No micro events found");
+    }
+      */
+
+    if (allMicroEvents) {
+      for (let microEvent of allMicroEvents) {
+        if (microEvent.microEventCategory === "pickup") {
+          let collectiblePlacementManager =
+            FundamentalSystemBridge["collectiblePlacementManager"];
+
+          let nearACollectible =
+            collectiblePlacementManager.checkCollectibleForPickupEventTrigger(
+              microEvent
+            );
+
+          if (nearACollectible) {
+            microEvent.microEventPositionedObject.disposeModel();
+          }
+        }
+      }
+    }
+  }
+
   prepareAndRegisterMicroEventsForLevel(levelDataComposite) {
     let allLevelMicroEvents =
       MicroEventManager.convertLevelDataCompositeToMicroEvents(
@@ -38,7 +69,7 @@ class MicroEventManager {
    * @returns {Array} - Array of micro event objects.
    */
   getMicroEventsByLevelId(levelIdToSeek) {
-    return this.gameplayLevelToMicroEventsMap.get(levelIdToSeek) || [];
+    return this.gameplayLevelToMicroEventsMap[levelIdToSeek] || [];
   }
 
   addNewMicroEventToLevel(levelDataComposite, microEventToAdd) {
@@ -47,11 +78,10 @@ class MicroEventManager {
     if (this.gameplayLevelToMicroEventsMap[idToAddTo]) {
       this.gameplayLevelToMicroEventsMap[idToAddTo].push(microEventToAdd);
     } else {
-      //to do update logging
-      console.error(
-        "MicroEventManager - addNewMicroEventToLevel: levelId not found"
-      );
+      this.gameplayLevelToMicroEventsMap[idToAddTo] = [];
+      this.gameplayLevelToMicroEventsMap[idToAddTo].push(microEventToAdd);
     }
+    //console.log("Micro event added to manager of m events:");
   }
   // Filter events by category.
   static filterByCategory(events, category) {
@@ -75,13 +105,13 @@ class MicroEventManager {
   /**
    * Filters micro events for a given level by category and/or completion status.
    *
-   * @param {Object} levelDataComposite - The level data object.
+   * @param {string} levelIdToSeek - The level id to seek.
    * @param {string} [categorySeeked] - The micro event category to filter by.
    * @param {boolean} [completionStatusToSeek] - The desired completion status:
    *                                             true for completed, false for incomplete.
    * @returns {Array} - The filtered array of micro event objects.
    */
-  static getMicroEventsByCategoryAndStatus(
+  getMicroEventsByCategoryAndStatus(
     levelIdToSeek,
     categorySeeked,
     completionStatusToSeek

@@ -79,6 +79,11 @@ class TestManager {
 
     gameplayManager.setActiveGameplayLevel(activeDemoGameplayLevel); // Set the loaded level as active.
 
+    // Set the active gameplay level in the CollectiblePlacementManager
+    await FundamentalSystemBridge[
+      "collectiblePlacementManager"
+    ].setActiveGameplayLevel(activeDemoGameplayLevel);
+
     return activeDemoGameplayLevel; // Return the configured gameplay level.
   }
 

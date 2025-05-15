@@ -9,11 +9,20 @@ class LevelFactoryComposite {
   async loadFactorySupportSystems() {
     // Initialize level obstacle generator
     this.levelMapObstacleGenerator = new LevelMapObstacleGenerator();
-    // Instantiate grid manager for handling tile loading and grid instancing.
+
+    // Instantiate grid manager for handling tile loading and grid instancing
     this.gridManager = new GameGridGenerator();
 
+    // Load tiles
     LevelFactoryComposite.TILES_LOADED =
       await this.gridManager.loadTilesModelsDefault();
+
+    FundamentalSystemBridge.registerMicroEventManager(new MicroEventManager());
+
+    // Initialize collectible manager (will be configured with actual gameplay level later)
+    FundamentalSystemBridge.registerCollectiblePlacementManager(
+      new CollectiblePlacementManager()
+    );
   }
 
   static checkTilesLoaded() {
