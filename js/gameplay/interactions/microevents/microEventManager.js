@@ -34,10 +34,25 @@ class MicroEventManager {
             );
 
           if (nearACollectible) {
-            microEvent.microEventPositionedObject.disposeModel();
+            this.processSuccessfulPickup(microEvent);
           }
         }
       }
+    }
+  }
+
+  processSuccessfulPickup(microEvent) {
+    if (microEvent.microEventCompletionStatus === false) {
+      SoundEffectsManager.playSound("stardustAbsorptionSizzle");
+      microEvent.microEventPositionedObject.disposeModel();
+
+      let pickupOccurrence =
+        CollectibleOccurrenceFactory.convertMicroEventToOccurrence(microEvent);
+
+      FundamentalSystemBridge[
+        "specialOccurrenceManager"
+      ].processPickupOccurrence(pickupOccurrence);
+      microEvent.markAsCompleted();
     }
   }
 

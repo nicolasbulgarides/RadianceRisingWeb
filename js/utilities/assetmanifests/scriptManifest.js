@@ -207,6 +207,11 @@ class ScriptManifest {
       array: "playerSaveBatchingScripts",
       displayName: "PlayerSaveBatching",
     },
+    {
+      name: "development",
+      array: "developmentScripts",
+      displayName: "Development",
+    },
   ];
 
   static animationScripts = [
@@ -252,6 +257,7 @@ class ScriptManifest {
     "/gameplay/interactions/occurrences/specialOccurrenceComposite.js",
     "/gameplay/interactions/occurrences/specialOccurrenceManager.js",
     "/gameplay/interactions/occurrences/specialOccurrenceFactory.js",
+    "/gameplay/interactions/occurrences/pickupOccurrenceSubManager.js",
 
     "/gameplay/interactions/occurrences/datastructures/specialOccurrenceBasicData.js",
     "/gameplay/interactions/occurrences/datastructures/specialOccurrenceHeader.js",
@@ -556,6 +562,7 @@ class ScriptManifest {
     "/gameplay/areas/generation/levelMapObstacleGenerator.js",
     "/gameplay/areas/generation/datastructures/levelMap.js",
     "/gameplay/areas/collectiblePlacementManager.js",
+    "/gameplay/areas/collectibleOccurrenceFactory.js",
   ];
   static unlockingScriptsRadiantRays = [
     "/gameplay/progression/unlocking/gamespecific/radiantrays/constellationOrLevelUnlockRequirements.js",
@@ -641,6 +648,15 @@ class ScriptManifest {
     "/saving/batching/batchmanagers/batchCadenceManager.js",
     "/saving/batching/batchmanagers/batchTracker.js",
     "/saving/batching/batchmanagers/batchMergeFactory.js",
+  ];
+
+  static developmentScripts = [
+    "/development/playerMockInventory.js",
+    "/gameplay/items/general/item.js",
+    "/testtools/example/mountainPathTest.js",
+    "/testtools/example/mountainPathVisualizer.js",
+    "/gameplay/areas/generation/mountainPathGenerator.js",
+    "/gameplay/areas/generation/mountainPuzzleLevelFactory.js",
   ];
 
   /**
@@ -811,6 +827,11 @@ class ScriptManifest {
    * @returns {boolean} True if the category should be skipped, false otherwise
    */
   static shouldSkipCategory(category) {
+    // Never skip development scripts
+    if (category === "development") {
+      return false;
+    }
+
     // First check our local loadsToSkip array
     if (this.loadsToSkip.includes(category)) {
       return true;
@@ -864,9 +885,9 @@ class ScriptManifest {
     // Initialize the skip list from Config
     this.initializeSkipList();
 
-    // to do - refine and tweak the script loading order including the display of a game loading screen which may involve assets / essential loaders
     // Define the exact loading order to maintain the same sequence as before
     const loadingOrder = [
+      "development", // Add development scripts early in loading sequence
       "assetLoadersAndManagers",
       "assetManifest",
       "cheatPrevention",

@@ -13,6 +13,32 @@ class TestManager {
       ].loadFactorySupportSystems();
     }
 
+    // Use mountain path test instead of standard level loading
+    const useMountainPathTest = true; // Set to false to use standard level loading
+
+    // Choose between real model mountains and fallback cylinder mountains
+    const useFallbackVisualization = false; // Set to true to use cylinder mountains
+
+    if (useMountainPathTest) {
+      // Use mountain path test for level generation
+      console.log("Using Mountain Path Test for level generation");
+      const gameplayLevel = await this.runMountainPathTest("default", {
+        useFallbackVisualization,
+      });
+
+      if (!gameplayLevel) {
+        GameplayLogger.lazyLog("Failed to load mountain path level");
+        return;
+      }
+
+      // No need to add additional obstacles since the mountain path generator already creates them
+      console.log(
+        "Mountain path test completed - no additional obstacles needed"
+      );
+      return;
+    }
+
+    // Standard level loading (only runs if useMountainPathTest is false)
     let gameplayLevel = await this.loadLevelAndPlayer(gameplayManager);
 
     if (!gameplayLevel) {
@@ -34,7 +60,30 @@ class TestManager {
       gameplayManager.setActiveGameplayLevel(gameplayLevel);
     }
 
+    // Only add edge obstacles for standard level loading
     await this.levelObstacleTest();
+  }
+
+  /**
+   * Runs the mountain path generator test to create a level with solvable paths
+   * @returns {Promise<ActiveGameplayLevel>} The created mountain path level
+   */
+  async mountainPathTest() {
+    try {
+      console.log("Starting Mountain Path Test");
+      const gameplayLevel = await MountainPathTest.runCompleteTest();
+
+      if (gameplayLevel) {
+        console.log("Mountain path test completed successfully");
+        return gameplayLevel;
+      } else {
+        console.error("Mountain path test failed to load level");
+        return null;
+      }
+    } catch (error) {
+      console.error("Error in mountain path test:", error);
+      return null;
+    }
   }
 
   async loadLevelAndPlayer(gameplayManager) {
@@ -57,6 +106,8 @@ class TestManager {
       gameplayLevel,
       demoPlayer
     ); // Load the player into the level.
+
+    demoPlayer.setMockInventory(new PlayerMockInventory());
 
     return gameplayLevel;
   }
@@ -107,6 +158,13 @@ class TestManager {
     let activeGameLevelScene =
       FundamentalSystemBridge["renderSceneSwapper"].getActiveGameLevelScene();
 
+    // Log obstacle count for debugging
+    if (levelDataComposite && levelDataComposite.obstacles) {
+      console.log(
+        `Preparing level with ${levelDataComposite.obstacles.length} obstacles`
+      );
+    }
+
     let activeDemoGameplayLevel = new ActiveGameplayLevel(
       activeGameLevelScene,
       gameMode,
@@ -114,6 +172,59 @@ class TestManager {
       primaryCameraManager,
       primaryLightingManager
     );
+
+    // Ensure obstacles are properly transferred to the active gameplay level
+    if (
+      levelDataComposite &&
+      levelDataComposite.obstacles &&
+      levelDataComposite.obstacles.length > 0
+    ) {
+      // Ensure the level map exists
+      if (!activeDemoGameplayLevel.levelMap) {
+        activeDemoGameplayLevel.levelMap = {};
+      }
+
+      // Store obstacles in multiple locations to ensure they're found
+      activeDemoGameplayLevel.obstacles = levelDataComposite.obstacles;
+      activeDemoGameplayLevel.levelMap.obstacles = levelDataComposite.obstacles;
+
+      // Ensure obstacles are in the levelDataComposite
+      if (activeDemoGameplayLevel.levelDataComposite) {
+        activeDemoGameplayLevel.levelDataComposite.obstacles =
+          levelDataComposite.obstacles;
+
+        // Add obstacles to featuredObjects if available
+        if (
+          activeDemoGameplayLevel.levelDataComposite.levelGameplayTraitsData
+        ) {
+          if (
+            !activeDemoGameplayLevel.levelDataComposite.levelGameplayTraitsData
+              .featuredObjects
+          ) {
+            activeDemoGameplayLevel.levelDataComposite.levelGameplayTraitsData.featuredObjects =
+              [];
+          }
+
+          // Add each obstacle to featuredObjects if it's not already there
+          levelDataComposite.obstacles.forEach((obstacle) => {
+            if (
+              !activeDemoGameplayLevel.levelDataComposite.levelGameplayTraitsData.featuredObjects.includes(
+                obstacle
+              )
+            ) {
+              activeDemoGameplayLevel.levelDataComposite.levelGameplayTraitsData.featuredObjects.push(
+                obstacle
+              );
+            }
+          });
+        }
+      }
+
+      console.log(
+        `Successfully transferred ${levelDataComposite.obstacles.length} obstacles to game level`
+      );
+    }
+
     return activeDemoGameplayLevel;
   }
 
@@ -224,6 +335,87 @@ class TestManager {
       return false;
     } else {
       return true;
+    }
+  }
+
+  /**
+   * Directly runs a mountain path test without going through normal level loading
+   * @param {string} testType - Type of test to run ('default', 'custom', 'random')
+   * @param {Object} options - Options for custom test
+   * @returns {Promise<ActiveGameplayLevel>} The created level
+   */
+  async runMountainPathTest(testType = "default", options = {}) {
+    console.log(`Running mountain path test type: ${testType}`);
+
+    try {
+      // Ensure systems are loaded
+      if (!LevelFactoryComposite.checkTilesLoaded()) {
+        await FundamentalSystemBridge[
+          "levelFactoryComposite"
+        ].loadFactorySupportSystems();
+      }
+
+      // Set default visualization option
+      const useFallbackVisualization =
+        options.useFallbackVisualization || false;
+      console.log(
+        `Using ${
+          useFallbackVisualization ? "fallback cylinder" : "real model"
+        } mountain visualization`
+      );
+
+      let gameplayLevel = null;
+
+      switch (testType.toLowerCase()) {
+        case "custom":
+          const {
+            startPosition = { x: 2, y: 0.25, z: 2 },
+            endPosition = { x: 8, y: 0.25, z: 8 },
+            width = 11,
+            depth = 11,
+            obstacleRatio = 0.3,
+          } = options;
+
+          gameplayLevel = await MountainPathTest.runCustomTest(
+            startPosition,
+            endPosition,
+            width,
+            depth,
+            obstacleRatio,
+            useFallbackVisualization
+          );
+          break;
+
+        case "random":
+          gameplayLevel = await MountainPathTest.generateRandomLevel(
+            useFallbackVisualization
+          );
+          break;
+
+        case "default":
+        default:
+          gameplayLevel = await MountainPathTest.runCompleteTest(
+            useFallbackVisualization
+          );
+          break;
+      }
+
+      if (gameplayLevel) {
+        console.log("Mountain Path Test completed successfully");
+
+        // Ensure it's set as the active level
+        const gameplayManager =
+          FundamentalSystemBridge["gameplayManagerComposite"];
+        gameplayManager.setActiveGameplayLevel(gameplayLevel);
+
+        return gameplayLevel;
+      } else {
+        console.error("Mountain Path Test failed to create level");
+        return null;
+      }
+    } catch (error) {
+      console.error("Error in runMountainPathTest:", error);
+      return null;
     }
   }
 }

@@ -16,8 +16,14 @@ class GameplayManagerComposite {
   constructor() {
     // Initialize gameplay variables and start the composite initialization.
     this.initializeVariables();
+    this.loadGameplayManagementSystems();
   }
 
+  loadGameplayManagementSystems() {
+    FundamentalSystemBridge.registerSpecialOccurrenceManager(
+      new SpecialOccurrenceManager()
+    );
+  }
   /**
    * Initializes variables to track active players, gameplay levels, and game modes.
    */
@@ -52,6 +58,7 @@ class GameplayManagerComposite {
     if (proceed) {
       // Retrieve demo player instance with appropriate positioning.
       this.allActivePlayers.push(playerToLoad); // Add the player to the active players list.
+      this.primaryActivePlayer = playerToLoad;
       activeGameplayLevel.registerCurrentPrimaryPlayer(playerToLoad); // Register the player in the active level.
       activeGameplayLevel.loadRegisteredPlayerModel(playerToLoad, true); // Load the player's model.
       return proceed;

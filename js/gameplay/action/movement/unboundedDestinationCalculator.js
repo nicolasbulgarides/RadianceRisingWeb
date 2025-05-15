@@ -19,6 +19,13 @@ class UnboundedDestinationCalculator {
   ) {
     let currentPositionVector =
       relevantPlayer.playerMovementManager.currentPosition;
+
+    // Ensure we have a valid current position
+    if (!currentPositionVector) {
+      console.error("Missing current position for player");
+      return new BABYLON.Vector3(0, 0.25, 0); // Safe fallback
+    }
+
     let destinationVector = null;
 
     if (ignoreObstacles) {
@@ -50,7 +57,14 @@ class UnboundedDestinationCalculator {
     direction,
     currentPositionVector
   ) {
-    let boundary = activeGameplayLevel.getActiveGameLevelBoundary();
+    // Safely get boundary with fallback values
+    let boundary = activeGameplayLevel?.getActiveGameLevelBoundary() || {
+      minX: 0,
+      maxX: 10,
+      minZ: 0,
+      maxZ: 10,
+    };
+
     let destinationVector = null;
 
     switch (String(direction)) {
@@ -116,7 +130,12 @@ class UnboundedDestinationCalculator {
     let lastValidPosition = new BABYLON.Vector3(x, y, z);
 
     // Get boundary for bounds checking
-    const boundary = activeGameplayLevel.getActiveGameLevelBoundary();
+    const boundary = activeGameplayLevel.getActiveGameLevelBoundary() || {
+      minX: 0,
+      maxX: 10,
+      minZ: 0,
+      maxZ: 10,
+    };
 
     // Iterate until reaching an obstacle or out-of-bounds
     while (
@@ -125,11 +144,55 @@ class UnboundedDestinationCalculator {
       z >= boundary.minZ &&
       z <= boundary.maxZ
     ) {
-      // Check for obstacles using the level's obstacle data
-      const obstacles = activeGameplayLevel.levelDataComposite?.obstacles || [];
-      const hasObstacle = obstacles.some(
-        (obstacle) => obstacle.position.x === x && obstacle.position.z === z
-      );
+      // Check for obstacles - gather from multiple potential sources
+      let allObstacles = [];
+
+      // From levelDataComposite obstacles
+      if (activeGameplayLevel.levelDataComposite?.obstacles) {
+        allObstacles = allObstacles.concat(
+          activeGameplayLevel.levelDataComposite.obstacles
+        );
+      }
+
+      // From levelMap obstacles
+      if (activeGameplayLevel.levelMap?.obstacles) {
+        allObstacles = allObstacles.concat(
+          activeGameplayLevel.levelMap.obstacles
+        );
+      }
+
+      // From featuredObjects with isObstacle flag
+      if (
+        activeGameplayLevel.levelDataComposite?.levelGameplayTraitsData
+          ?.featuredObjects
+      ) {
+        const featuredObstacles =
+          activeGameplayLevel.levelDataComposite.levelGameplayTraitsData.featuredObjects.filter(
+            (obj) => obj.isObstacle
+          );
+        allObstacles = allObstacles.concat(featuredObstacles);
+      }
+
+      // Safely check for obstacles
+      const hasObstacle = allObstacles.some((obstacle) => {
+        // Skip invalid obstacles
+        if (!obstacle) return false;
+
+        // Try to get position from different possible properties
+        const obstaclePos =
+          obstacle.position ||
+          (obstacle.positionedObject
+            ? obstacle.positionedObject.position
+            : null);
+
+        // If still no valid position, skip this obstacle
+        if (!obstaclePos) return false;
+
+        // Check if position matches current cell
+        return (
+          Math.floor(obstaclePos.x) === x && Math.floor(obstaclePos.z) === z
+        );
+      });
 
       if (hasObstacle) {
         return lastValidPosition;

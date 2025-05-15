@@ -1,10 +1,20 @@
 class SpecialOccurrenceManager {
   // Constructor for managing all occurrences in the game.
   constructor() {
+    this.allUnprocessedOccurrences = []; // Array to store all unprocessed occurrences.
     this.allProcessedOccurrences = []; // Array to store all processed occurrences.
     this.allUnrecordedProcessedOccurrences = []; // Array for occurrences that are processed but not recorded.
     this.allOccurrencesInTransitBackupBuffer = []; // Backup buffer for occurrences in transit.
     this.allRecordedOccurrencesSuccessfullyConfirmed = []; // Array for successfully confirmed occurrences.
+
+    this.pickupOccurrenceSubManager = new PickupOccurrenceSubManager();
+  }
+
+  processPickupOccurrence(pickupOccurence) {
+    this.pickupOccurrenceSubManager.processPickupOccurrence(pickupOccurence);
+  }
+  registerNewOccurrence(occurrence) {
+    this.allUnprocessedOccurrences.push(occurrence);
   }
 
   // Register an occurrence as processed.

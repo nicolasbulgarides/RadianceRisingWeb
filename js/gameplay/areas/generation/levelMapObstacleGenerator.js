@@ -103,47 +103,63 @@ class LevelMapObstacleGenerator {
     // Generate obstacles along the left and right edges.
     for (let z = 0; z < depth; z++) {
       // Left edge obstacle at x = 0.
-      mountains.push({
-        obstacleArchetype: "mountain",
-        nickname: `mountain_left_${z}`,
-        interactionId: "none",
-        directionsBlocked: "all",
-        position: new BABYLON.Vector3(0, 0, z),
-      });
+      const leftMountain = new Obstacle(
+        "testMountain",
+        `mountain_left_${z}`,
+        "none",
+        "all",
+        new BABYLON.Vector3(0, 0, z)
+      );
+      leftMountain.obstacleArchetype = "mountain";
+      leftMountain.isObstacle = true;
+      mountains.push(leftMountain);
 
       // Right edge obstacle at x = width - 1.
-      mountains.push({
-        obstacleArchetype: "mountain",
-        nickname: `mountain_right_${z}`,
-        interactionId: "none",
-        directionsBlocked: "all",
-        position: new BABYLON.Vector3(width - 1, 0, z),
-      });
+      const rightMountain = new Obstacle(
+        "testMountain",
+        `mountain_right_${z}`,
+        "none",
+        "all",
+        new BABYLON.Vector3(width - 1, 0, z)
+      );
+      rightMountain.obstacleArchetype = "mountain";
+      rightMountain.isObstacle = true;
+      mountains.push(rightMountain);
     }
 
     // Generate obstacles along the top and bottom edges.
     for (let x = 0; x < width; x++) {
       // Top edge obstacle at z = 0.
-      mountains.push({
-        obstacleArchetype: "mountain",
-        nickname: `mountain_top_${x}`,
-        interactionId: "none",
-        directionsBlocked: "all",
-        position: new BABYLON.Vector3(x, 0, 0),
-      });
+      const topMountain = new Obstacle(
+        "testMountain",
+        `mountain_top_${x}`,
+        "none",
+        "all",
+        new BABYLON.Vector3(x, 0, 0)
+      );
+      topMountain.obstacleArchetype = "mountain";
+      topMountain.isObstacle = true;
+      mountains.push(topMountain);
 
       // Bottom edge obstacle at z = depth - 1.
-      mountains.push({
-        obstacleArchetype: "mountain",
-        nickname: `mountain_bottom_${x}`,
-        interactionId: "none",
-        directionsBlocked: "all",
-        position: new BABYLON.Vector3(x, 0, depth - 1),
-      });
+      const bottomMountain = new Obstacle(
+        "testMountain",
+        `mountain_bottom_${x}`,
+        "none",
+        "all",
+        new BABYLON.Vector3(x, 0, depth - 1)
+      );
+      bottomMountain.obstacleArchetype = "mountain";
+      bottomMountain.isObstacle = true;
+      mountains.push(bottomMountain);
     }
+
+    console.log(`Generated ${mountains.length} edge mountain obstacles`);
 
     // Store the obstacles in the level data
     this.storeObstaclesInLevel(activeGameplayLevel, mountains);
+
+    return mountains;
   }
 
   /**
@@ -229,11 +245,41 @@ class LevelMapObstacleGenerator {
    */
   static getModelIdByNickname(obstacleArchetype) {
     let modelId = "testMountain"; // Default model ID.
-    switch (obstacleArchetype.toLowerCase()) {
-      case "mountain":
-        modelId = "testMountain"; // Set model ID for mountain archetype.
-        break;
+
+    // Handle undefined or null obstacleArchetype
+    if (!obstacleArchetype) {
+      console.warn(
+        "Undefined or null obstacleArchetype, using default testMountain"
+      );
+      return modelId;
     }
+
+    console.log(
+      `Resolving model ID for obstacle archetype: ${obstacleArchetype}`
+    );
+
+    try {
+      switch (obstacleArchetype.toLowerCase()) {
+        case "mountain":
+          modelId = "testMountain"; // Set model ID for mountain archetype.
+          break;
+
+        // Add more archetypes as needed
+
+        default:
+          console.log(
+            `Unknown obstacle archetype: ${obstacleArchetype}, using default testMountain`
+          );
+          break;
+      }
+    } catch (error) {
+      console.error(`Error processing obstacle archetype: ${error.message}`);
+      console.warn(`Using default model ID: ${modelId} due to error`);
+    }
+
+    console.log(
+      `Using model ID: ${modelId} for archetype: ${obstacleArchetype}`
+    );
     return modelId; // Return the resolved model ID.
   }
 }

@@ -1,13 +1,11 @@
 class ItemFactory {
-
   constructor() {
     this.itemPresets = new ItemPresets();
   }
 
-  attemptToCreateItem(itemRequested, itemJustification) {
-
-    let itemValidationResults = 
-
-
+  attemptToCreateItemWithJustification(itemRequested, itemJustification) {
+    let itemValidationResults = null;
   }
+
+  attemptToCreateItemBypassJustification(itemRequested) {}
 }

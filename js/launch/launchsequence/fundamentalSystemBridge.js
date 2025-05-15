@@ -231,14 +231,12 @@ class FundamentalSystemBridge {
     );
   }
 
-  static registerSpecialOccurenceManager() {
-    if (specialOccurenceManager instanceof SpecialOccurenceManager) {
-      FundamentalSystemBridge.registerManager(
-        "specialOccurenceManager",
-        specialOccurenceManager,
-        SpecialOccurenceManager
-      );
-    }
+  static registerSpecialOccurrenceManager(specialOccurrenceManager) {
+    FundamentalSystemBridge.registerManager(
+      "specialOccurrenceManager",
+      specialOccurrenceManager,
+      SpecialOccurrenceManager
+    );
   }
   static registerMicroEventManager(microEventManager) {
     FundamentalSystemBridge.registerManager(

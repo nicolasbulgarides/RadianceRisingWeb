@@ -92,4 +92,8 @@ class PlayerUnit {
   getPlayerModelDirectly() {
     return this.playerMovementManager.getPlayerModelDirectly();
   }
+
+  setMockInventory(mockInventory) {
+    this.mockInventory = mockInventory;
+  }
 }
