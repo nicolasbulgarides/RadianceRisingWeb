@@ -677,20 +677,22 @@ class MountainPathGenerator {
         this.lastGeneratedData &&
         typeof MountainPathVisualizer !== "undefined"
       ) {
-        // console.log("Creating fallback cylinder mountains...");
+        console.log("Creating visualization with path and mountains...");
+
+        // Create fallback mountains
         MountainPathVisualizer.createFallbackMountains(
           this.lastGeneratedData.grid,
           scene
         );
 
-        /** 
-        // Also visualize the path
-        console.log("Visualizing path...");
-*/
-        MountainPathVisualizer.visualizeGridInScene(
+        // Visualize the path
+        const visualization = MountainPathVisualizer.visualizeGridInScene(
           this.lastGeneratedData.grid,
-          this.lastGeneratedData.path
+          this.lastGeneratedData.path,
+          scene
         );
+
+        console.log("Visualization created:", visualization);
       } else {
         console.warn(
           "Cannot create fallback visualization - missing data or visualizer"

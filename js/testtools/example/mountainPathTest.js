@@ -47,7 +47,7 @@ class MountainPathTest {
       );
 
       if (gameplayLevel) {
-        // console.log("Successfully loaded mountain path test level");
+        console.log("Successfully loaded mountain path test level");
 
         // Visualize the path if needed
         this.visualizePath(gameplayLevel, startPosition, endPosition);
@@ -135,10 +135,17 @@ class MountainPathTest {
         return;
       }
 
-      // Create a visible marker for start position (green sphere)
+      // Debug log the gameplay level
+      console.log("Gameplay level:", gameplayLevel);
+
+      // Get the path data from the gameplay level
+      const pathData = gameplayLevel.lastGeneratedData;
+      console.log("Path data:", pathData);
+
+      // Create distinct start and end markers
       const startMarker = BABYLON.MeshBuilder.CreateSphere(
         "startMarker",
-        { diameter: 0.5 },
+        { diameter: 1.0 },
         scene
       );
       startMarker.position = new BABYLON.Vector3(
@@ -146,17 +153,18 @@ class MountainPathTest {
         startPosition.y + 0.5,
         startPosition.z
       );
-      startMarker.material = new BABYLON.StandardMaterial(
+      const startMaterial = new BABYLON.StandardMaterial(
         "startMaterial",
         scene
       );
-      startMarker.material.diffuseColor = new BABYLON.Color3(0, 1, 0);
-      startMarker.material.alpha = 0.7;
+      startMaterial.diffuseColor = new BABYLON.Color3(0, 1, 0);
+      startMaterial.emissiveColor = new BABYLON.Color3(0, 0.5, 0);
+      startMaterial.alpha = 0.8;
+      startMarker.material = startMaterial;
 
-      // Create a visible marker for end position (red sphere)
       const endMarker = BABYLON.MeshBuilder.CreateSphere(
         "endMarker",
-        { diameter: 0.5 },
+        { diameter: 1.0 },
         scene
       );
       endMarker.position = new BABYLON.Vector3(
@@ -164,11 +172,60 @@ class MountainPathTest {
         endPosition.y + 0.5,
         endPosition.z
       );
-      endMarker.material = new BABYLON.StandardMaterial("endMaterial", scene);
-      endMarker.material.diffuseColor = new BABYLON.Color3(1, 0, 0);
-      endMarker.material.alpha = 0.7;
+      const endMaterial = new BABYLON.StandardMaterial("endMaterial", scene);
+      endMaterial.diffuseColor = new BABYLON.Color3(1, 0, 0);
+      endMaterial.emissiveColor = new BABYLON.Color3(0.5, 0, 0);
+      endMaterial.alpha = 0.8;
+      endMarker.material = endMaterial;
 
-      // console.log("Path visualization complete");
+      // If no path data in gameplay level, try to get it from the generator
+      if (!pathData || !pathData.grid || !pathData.path) {
+        console.log("No path data in gameplay level, checking generator...");
+        const generator = new MountainPathGenerator();
+        const grid = generator.initializeGrid(11, 21); // Use default size
+        const path = generator.findPath(
+          grid,
+          Math.floor(startPosition.x),
+          Math.floor(startPosition.z),
+          Math.floor(endPosition.x),
+          Math.floor(endPosition.z)
+        );
+
+        if (path) {
+          console.log("Generated new path data");
+          // Use MountainPathVisualizer to show the complete path
+          console.log(
+            "Visualizing complete path with MountainPathVisualizer..."
+          );
+          const visualization = MountainPathVisualizer.visualizeGridInScene(
+            grid,
+            path,
+            scene
+          );
+
+          if (visualization) {
+            console.log("Path visualization created successfully");
+          } else {
+            console.warn("Failed to create path visualization");
+          }
+        } else {
+          console.warn("Could not generate path data");
+        }
+      } else {
+        // Use MountainPathVisualizer to show the complete path
+        console.log("Visualizing complete path with MountainPathVisualizer...");
+        const visualization = MountainPathVisualizer.visualizeGridInScene(
+          pathData.grid,
+          pathData.path,
+          scene
+        );
+
+        if (visualization) {
+          console.log("Path visualization created successfully");
+        } else {
+          console.warn("Failed to create path visualization");
+        }
+      }
     } catch (error) {
       console.error("Error visualizing path:", error);
     }

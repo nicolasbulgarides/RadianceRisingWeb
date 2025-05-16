@@ -34,6 +34,7 @@ class MountainPathVisualizer {
     const visualizationMeshes = {
       gridMarkers: [],
       pathMarkers: [],
+      pathLines: [],
     };
 
     // Visualize the grid
@@ -51,6 +52,7 @@ class MountainPathVisualizer {
           marker.position = new BABYLON.Vector3(x, 0.15, z);
           marker.material = new BABYLON.StandardMaterial("startMat", scene);
           marker.material.diffuseColor = new BABYLON.Color3(0, 1, 0);
+          marker.material.emissiveColor = new BABYLON.Color3(0, 0.5, 0);
           marker.material.alpha = 0.7;
           visualizationMeshes.gridMarkers.push(marker);
         } else if (cell === "E") {
@@ -59,11 +61,15 @@ class MountainPathVisualizer {
           marker.position = new BABYLON.Vector3(x, 0.15, z);
           marker.material = new BABYLON.StandardMaterial("endMat", scene);
           marker.material.diffuseColor = new BABYLON.Color3(1, 0, 0);
+          marker.material.emissiveColor = new BABYLON.Color3(0.5, 0, 0);
           marker.material.alpha = 0.7;
           visualizationMeshes.gridMarkers.push(marker);
         }
       }
     }
+
+    // Create path points array for the line
+    const pathPoints = [];
 
     // Visualize the path
     for (let i = 0; i < path.length; i++) {
@@ -77,25 +83,57 @@ class MountainPathVisualizer {
         continue;
       }
 
-      // Create path marker (blue disk)
-      const pathMarker = BABYLON.MeshBuilder.CreateDisc(
+      // Create path marker (blue sphere)
+      const pathMarker = BABYLON.MeshBuilder.CreateSphere(
         `path_${i}`,
-        { radius: 0.2 },
+        { diameter: 0.3 },
         scene
       );
-      pathMarker.position = new BABYLON.Vector3(pathPoint.x, 0.05, pathPoint.z);
-      pathMarker.rotation = new BABYLON.Vector3(Math.PI / 2, 0, 0);
+      pathMarker.position = new BABYLON.Vector3(pathPoint.x, 0.15, pathPoint.z);
 
-      // Apply blue material
+      // Apply blue material with glow
       pathMarker.material = new BABYLON.StandardMaterial(`pathMat_${i}`, scene);
       pathMarker.material.diffuseColor = new BABYLON.Color3(0, 0.5, 1);
-      pathMarker.material.alpha = 0.6;
+      pathMarker.material.emissiveColor = new BABYLON.Color3(0, 0.3, 0.6);
+      pathMarker.material.alpha = 0.8;
 
       visualizationMeshes.pathMarkers.push(pathMarker);
+      pathPoints.push(new BABYLON.Vector3(pathPoint.x, 0.15, pathPoint.z));
+    }
+
+    // Create lines connecting the path points
+    if (pathPoints.length > 1) {
+      // Create a thicker line for better visibility
+      const pathLine = BABYLON.MeshBuilder.CreateLines(
+        "pathLine",
+        {
+          points: pathPoints,
+          updatable: false,
+          instance: null,
+        },
+        scene
+      );
+
+      // Make the line more visible
+      pathLine.color = new BABYLON.Color3(0, 0.7, 1);
+      pathLine.width = 0.1; // Thicker line
+
+      // Add a glow effect
+      const lineMaterial = new BABYLON.StandardMaterial("pathLineMat", scene);
+      lineMaterial.emissiveColor = new BABYLON.Color3(0, 0.5, 1);
+      lineMaterial.alpha = 0.8;
+      pathLine.material = lineMaterial;
+
+      visualizationMeshes.pathLines.push(pathLine);
+
+      // Add debug logging
+      console.log("Created path line with points:", pathPoints.length);
+    } else {
+      console.warn("Not enough path points to create a line");
     }
 
     console.log(
-      `Visualization created with ${visualizationMeshes.gridMarkers.length} grid markers and ${visualizationMeshes.pathMarkers.length} path markers`
+      `Visualization created with ${visualizationMeshes.gridMarkers.length} grid markers, ${visualizationMeshes.pathMarkers.length} path markers, and ${visualizationMeshes.pathLines.length} path lines`
     );
 
     return visualizationMeshes;

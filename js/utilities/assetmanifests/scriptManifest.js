@@ -654,7 +654,7 @@ class ScriptManifest {
     "/development/playerMockInventory.js",
     "/gameplay/items/general/item.js",
     "/testtools/example/mountainPathTest.js",
-    "/testtools/example/mountainPathVisualizer.js",
+    "/gameplay/areas/generation/mountainPathVisualizer.js",
     "/gameplay/areas/generation/mountainPathGenerator.js",
     "/gameplay/areas/generation/mountainPuzzleLevelFactory.js",
   ];
