@@ -62,7 +62,7 @@ class MountainPathGenerator {
     );
 
     // Log obstacle details for debugging
-    console.log(`Generated ${obstacles.length} obstacles`);
+    //  console.log(`Generated ${obstacles.length} obstacles`);
     if (obstacles.length > 0) {
       /** 
       console.log(`First obstacle type: ${typeof obstacles[0]}`);
@@ -258,7 +258,8 @@ class MountainPathGenerator {
       }
     }
 
-    console.log(`Created ${obstacles.length} mountain obstacles`);
+    // console.log(`Created ${obstacles.length} mountain obstacles`);
+    /**   
     console.log(
       "First obstacle details:",
       obstacles.length > 0
@@ -273,7 +274,7 @@ class MountainPathGenerator {
           )
         : "No obstacles created"
     );
-
+    */
     // Store the grid and path for visualization
     this.lastGeneratedData = {
       grid: grid,
@@ -556,10 +557,12 @@ class MountainPathGenerator {
     );
 
     // Log the entire levelData to check if obstacles are present
+    /** 
     console.log(
       "Level data generated with obstacles:",
       levelData.obstacles?.length || 0
     );
+    */
 
     // Use TestManager to load the level
     const testManager = new TestManager();
@@ -571,7 +574,7 @@ class MountainPathGenerator {
     );
 
     if (!activeGameplayLevel) {
-      console.error("Failed to create gameplay level");
+      //console.error("Failed to create gameplay level");
       return null;
     }
 
@@ -582,39 +585,46 @@ class MountainPathGenerator {
 
     // Directly set obstacles on the activeGameplayLevel
     if (levelData.obstacles && levelData.obstacles.length > 0) {
-      // Direct assignment
+      // Store obstacles in a single location
       activeGameplayLevel.obstacles = levelData.obstacles;
 
-      // Ensure obstacle storage in all the right places
+      // Reference the same obstacles array in other locations instead of copying
       if (activeGameplayLevel.levelDataComposite) {
-        activeGameplayLevel.levelDataComposite.obstacles = levelData.obstacles;
+        activeGameplayLevel.levelDataComposite.obstacles =
+          activeGameplayLevel.obstacles;
       }
 
       if (activeGameplayLevel.levelMap) {
-        activeGameplayLevel.levelMap.obstacles = levelData.obstacles;
+        activeGameplayLevel.levelMap.obstacles = activeGameplayLevel.obstacles;
       }
 
+      // Only add obstacles to featuredObjects if they're not already there
       if (activeGameplayLevel.levelDataComposite?.levelGameplayTraitsData) {
-        activeGameplayLevel.levelDataComposite.levelGameplayTraitsData.featuredObjects =
+        const featuredObjects =
           activeGameplayLevel.levelDataComposite.levelGameplayTraitsData
             .featuredObjects || [];
 
-        // Add each obstacle to featuredObjects
-        levelData.obstacles.forEach((obstacle) => {
-          // Make sure each obstacle has all required properties
-          if (!obstacle.obstacleArchetype) {
-            obstacle.obstacleArchetype = "mountain";
-          }
+        // Filter out any existing obstacles to prevent duplicates
+        const nonObstacleObjects = featuredObjects.filter(
+          (obj) => !obj.isObstacle
+        );
 
-          activeGameplayLevel.levelDataComposite.levelGameplayTraitsData.featuredObjects.push(
-            obstacle
-          );
-        });
+        // Add obstacles only if they're not already in featuredObjects
+        const existingObstacleIds = new Set(
+          featuredObjects.map((obj) => obj.nickname)
+        );
+        const newObstacles = levelData.obstacles.filter(
+          (obstacle) => !existingObstacleIds.has(obstacle.nickname)
+        );
+
+        // Combine non-obstacle objects with new obstacles
+        activeGameplayLevel.levelDataComposite.levelGameplayTraitsData.featuredObjects =
+          [...nonObstacleObjects, ...newObstacles];
       }
 
-      console.log("Successfully stored obstacles in activeGameplayLevel");
+      //console.log("Successfully stored obstacles in activeGameplayLevel");
     } else if (!levelData.obstacles) {
-      console.log("No obstacles found in level data");
+      // console.log("No obstacles found in level data");
     }
 
     // Set it as the active level
@@ -633,7 +643,7 @@ class MountainPathGenerator {
       // Render the level with real models
       await testManager.renderLevel(activeGameplayLevel);
 
-      console.log("Attempting to render mountain obstacles as real models...");
+      //  console.log("Attempting to render mountain obstacles as real models...");
 
       // Use the LevelMapObstacleGenerator to render obstacles
       const obstacleGenerator =
@@ -643,15 +653,16 @@ class MountainPathGenerator {
       // Log what obstacles the generator is seeing
       const foundObstacles =
         obstacleGenerator.getObstaclesFromLevel(activeGameplayLevel);
-      console.log("Obstacles found by generator:", foundObstacles?.length || 0);
+      //  console.log("Obstacles found by generator:", foundObstacles?.length || 0);
 
+      /**
       if (foundObstacles && foundObstacles.length > 0) {
         console.log("First found obstacle details:", {
           obstacleArchetype: foundObstacles[0].obstacleArchetype,
           nickname: foundObstacles[0].nickname,
         });
       }
-
+    */
       // Render obstacles using the generator
       obstacleGenerator.renderObstaclesForLevel(
         activeGameplayLevel,
@@ -666,14 +677,16 @@ class MountainPathGenerator {
         this.lastGeneratedData &&
         typeof MountainPathVisualizer !== "undefined"
       ) {
-        console.log("Creating fallback cylinder mountains...");
+        // console.log("Creating fallback cylinder mountains...");
         MountainPathVisualizer.createFallbackMountains(
           this.lastGeneratedData.grid,
           scene
         );
 
+        /** 
         // Also visualize the path
         console.log("Visualizing path...");
+*/
         MountainPathVisualizer.visualizeGridInScene(
           this.lastGeneratedData.grid,
           this.lastGeneratedData.path
@@ -712,10 +725,11 @@ class MountainPathGenerator {
 
     // If there's an obstacle at the start position, find a nearby empty space
     if (hasObstacleAtStart) {
+      /** 
       console.warn(
         "Start position overlaps with an obstacle, finding a nearby valid position"
       );
-
+    */
       // Check nearby positions (increasing Manhattan distance)
       for (let distance = 1; distance <= 5; distance++) {
         // Try in each cardinal direction
@@ -750,7 +764,7 @@ class MountainPathGenerator {
           if (!hasObstacle) {
             // Found a valid position
             validStartPosition = new BABYLON.Vector3(tryX, startVector.y, tryZ);
-            console.log(`Adjusted start position to (${tryX}, ${tryZ})`);
+            // console.log(`Adjusted start position to (${tryX}, ${tryZ})`);
             distance = 6; // Exit the outer loop
             break;
           }
@@ -773,12 +787,14 @@ class MountainPathGenerator {
       demoPlayer
     );
 
+    /** 
+
     console.log(
       `Mountain path level successfully loaded with ${
         useFallbackVisualization ? "fallback" : "real"
       } mountain visualization`
     );
-
+  */
     return activeGameplayLevel;
   }
 

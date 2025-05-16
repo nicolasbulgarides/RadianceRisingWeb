@@ -4,6 +4,10 @@
  */
 class ModelLoader {
   static modelCache = new Map(); // Static cache to store loaded models
+  static maxConcurrentLoads = 20; // Maximum number of concurrent model loads
+  static activeLoads = 0; // Current number of active loads
+  static loadQueue = []; // Queue for pending model loads
+  static minDelayBetweenLoads = 200; // Minimum delay between model loads in ms
 
   constructor() {}
 
@@ -17,6 +21,48 @@ class ModelLoader {
       return this.modelCache.get(modelUrl);
     }
     return null;
+  }
+
+  /**
+   * Processes the next model in the loading queue
+   */
+  static async processQueue() {
+    if (
+      this.loadQueue.length === 0 ||
+      this.activeLoads >= this.maxConcurrentLoads
+    ) {
+      return;
+    }
+
+    const { scene, modelUrl, useCache, resolve, reject } =
+      this.loadQueue.shift();
+    this.activeLoads++;
+
+    try {
+      // Add delay between loads to prevent rate limiting
+      await new Promise((resolve) =>
+        setTimeout(resolve, this.minDelayBetweenLoads)
+      );
+
+      const importResult = await BABYLON.SceneLoader.ImportMeshAsync(
+        "", // Import all meshes
+        "", // Empty path since full URL is provided
+        modelUrl,
+        scene
+      );
+
+      if (useCache) {
+        this.modelCache.set(modelUrl, importResult);
+      }
+
+      resolve(importResult);
+    } catch (error) {
+      console.error(`Failed to load model from URL: ${modelUrl}`, error);
+      reject(error);
+    } finally {
+      this.activeLoads--;
+      this.processQueue(); // Process next item in queue
+    }
   }
 
   /**
@@ -39,20 +85,17 @@ class ModelLoader {
         }
       }
 
-      // Import the model using SceneLoader.ImportMeshAsync with a full URL
-      const importResult = await BABYLON.SceneLoader.ImportMeshAsync(
-        "", // Import all meshes
-        "", // Empty path since full URL is provided
-        modelUrl,
-        scene
-      );
-
-      // Cache the model if caching is enabled
-      if (useCache) {
-        ModelLoader.modelCache.set(modelUrl, importResult);
-      }
-
-      return importResult;
+      // Add to queue and process
+      return new Promise((resolve, reject) => {
+        ModelLoader.loadQueue.push({
+          scene,
+          modelUrl,
+          useCache,
+          resolve,
+          reject,
+        });
+        ModelLoader.processQueue();
+      });
     } catch (error) {
       console.error(`Failed to load model from URL: ${modelUrl}`, error);
       return null;

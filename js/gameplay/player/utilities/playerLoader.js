@@ -37,6 +37,12 @@ class PlayerLoader {
     // Instantiate a new PlayerUnit object.
     let gamePlayer = new PlayerUnit();
 
+    // Validate the player instance
+    if (!(gamePlayer instanceof PlayerUnit)) {
+      console.error("Failed to create valid PlayerUnit instance");
+      return null;
+    }
+
     // Load the player's status with default values (full health and magic).
     gamePlayer.loadStatusFresh(
       Config.DEFAULT_NAME, // Player name.
@@ -53,6 +59,14 @@ class PlayerLoader {
 
     // Load the player's model and set its position.
     PlayerLoader.loadModelAndPosition(gamePlayer, position);
+
+    // Validate the player has all required components
+    if (!gamePlayer.playerStatus || !gamePlayer.playerMovementManager) {
+      console.error(
+        "Player initialization incomplete - missing required components"
+      );
+      return null;
+    }
 
     // Return the fully initialized player unit.
     return gamePlayer;

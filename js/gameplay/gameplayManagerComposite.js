@@ -56,6 +56,15 @@ class GameplayManagerComposite {
     let proceed = LevelFactoryComposite.checkTilesLoaded(); // Check if tiles are loaded.
 
     if (proceed) {
+      // Ensure player is a valid PlayerUnit instance
+      if (!(playerToLoad instanceof PlayerUnit)) {
+        GameplayLogger.lazyLog(
+          "Invalid player instance provided to loadPlayerToGameplayLevel",
+          "GameplayManagerComposite"
+        );
+        return false;
+      }
+
       // Retrieve demo player instance with appropriate positioning.
       this.allActivePlayers.push(playerToLoad); // Add the player to the active players list.
       this.primaryActivePlayer = playerToLoad;
@@ -63,6 +72,7 @@ class GameplayManagerComposite {
       activeGameplayLevel.loadRegisteredPlayerModel(playerToLoad, true); // Load the player's model.
       return proceed;
     }
+    return false;
   }
 
   /**

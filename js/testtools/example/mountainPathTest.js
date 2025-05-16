@@ -15,7 +15,7 @@ class MountainPathTest {
    */
   static async runCompleteTest(useFallbackVisualization = false) {
     try {
-      console.log("Starting Mountain Path Generator Test");
+      //  console.log("Starting Mountain Path Generator Test");
 
       // Create a new mountain path generator
       const generator = new MountainPathGenerator();
@@ -29,11 +29,13 @@ class MountainPathTest {
       const obstacleRatio = 0.3; // 30% of interior cells will be mountains
 
       // Load the generated level
+      /** 
       console.log(
         `Generating mountain path level with ${
           useFallbackVisualization ? "fallback" : "real"
         } visualization...`
       );
+      */
       const gameplayLevel = await generator.loadGeneratedLevel(
         levelId,
         startPosition,
@@ -45,7 +47,7 @@ class MountainPathTest {
       );
 
       if (gameplayLevel) {
-        console.log("Successfully loaded mountain path test level");
+        // console.log("Successfully loaded mountain path test level");
 
         // Visualize the path if needed
         this.visualizePath(gameplayLevel, startPosition, endPosition);
@@ -55,7 +57,7 @@ class MountainPathTest {
 
         return gameplayLevel;
       } else {
-        console.error("Failed to load mountain path test level");
+        // console.error("Failed to load mountain path test level");
         return null;
       }
     } catch (error) {
@@ -166,7 +168,7 @@ class MountainPathTest {
       endMarker.material.diffuseColor = new BABYLON.Color3(1, 0, 0);
       endMarker.material.alpha = 0.7;
 
-      console.log("Path visualization complete");
+      // console.log("Path visualization complete");
     } catch (error) {
       console.error("Error visualizing path:", error);
     }

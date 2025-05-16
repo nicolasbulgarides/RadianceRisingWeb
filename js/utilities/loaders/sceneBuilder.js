@@ -5,18 +5,67 @@
 class SceneBuilder {
   static maxRetries = 3;
   static baseDelay = 2000; // Base delay in milliseconds
+  static uiSceneInstance = null; // Store the UI scene instance
+
+  /**
+   * Creates a new UI scene instance
+   * @param {BABYLON.Engine} engine - The Babylon.js engine instance
+   * @returns {BABYLON.Scene} - The created UI scene
+   */
+  static createUIScene(engine) {
+    if (SceneBuilder.uiSceneInstance) {
+      return SceneBuilder.uiSceneInstance;
+    }
+
+    const uiScene = new BABYLON.Scene(engine);
+    uiScene.clearColor = new BABYLON.Color4(0, 0, 0, 0); // Transparent background
+    uiScene.autoClear = false; // Don't clear the scene automatically
+    uiScene.autoClearDepthAndStencil = false; // Don't clear depth and stencil buffers
+
+    // Create a basic camera for the UI scene
+    const uiCamera = new BABYLON.ArcRotateCamera(
+      "uiCamera",
+      0,
+      Math.PI / 2,
+      10,
+      BABYLON.Vector3.Zero(),
+      uiScene
+    );
+    uiCamera.mode = BABYLON.Camera.ORTHOGRAPHIC_CAMERA;
+    uiCamera.setTarget(BABYLON.Vector3.Zero());
+
+    // Create basic lighting
+    const uiLight = new BABYLON.HemisphericLight(
+      "uiLight",
+      new BABYLON.Vector3(0, 1, 0),
+      uiScene
+    );
+    uiLight.intensity = 1.0;
+
+    SceneBuilder.uiSceneInstance = uiScene;
+    return uiScene;
+  }
 
   /**
    * Constructs a SceneBuilder.
    * @param {BABYLON.Scene} scene - The Babylon.js scene instance.
+   * @param {boolean} isUIScene - Whether this is a UI scene instance
    */
-  constructor(scene) {
+  constructor(scene, isUIScene = false) {
     this.scene = scene;
+    this.isUIScene = isUIScene;
     this.modelLoader = new ModelLoader();
     this.animatedModelLoader = new AnimatedModelLoader(this.scene);
     this.loadedModels = []; // Array to store references to loaded models
-    // Set default background color for the scene
-    this.setBackgroundColor(new BABYLON.Color4(0.1, 0.1, 0.3, 1));
+
+    // Set background color based on scene type
+    if (isUIScene) {
+      this.setBackgroundColor(new BABYLON.Color4(0, 0, 0, 0)); // Transparent for UI
+      this.scene.autoClear = false;
+      this.scene.autoClearDepthAndStencil = false;
+    } else {
+      this.setBackgroundColor(new BABYLON.Color4(0.1, 0.1, 0.3, 1)); // Default for game scenes
+    }
   }
 
   /**
@@ -132,6 +181,10 @@ class SceneBuilder {
    */
   setBackgroundColor(color) {
     this.scene.clearColor = color;
+    if (this.isUIScene) {
+      this.scene.autoClear = false;
+      this.scene.autoClearDepthAndStencil = false;
+    }
   }
 
   /**

@@ -21,20 +21,16 @@ class TestManager {
 
     if (useMountainPathTest) {
       // Use mountain path test for level generation
-      console.log("Using Mountain Path Test for level generation");
+      //console.log("Using Mountain Path Test for level generation");
       const gameplayLevel = await this.runMountainPathTest("default", {
         useFallbackVisualization,
       });
 
       if (!gameplayLevel) {
-        GameplayLogger.lazyLog("Failed to load mountain path level");
+        //GameplayLogger.lazyLog("Failed to load mountain path level");
         return;
       }
 
-      // No need to add additional obstacles since the mountain path generator already creates them
-      console.log(
-        "Mountain path test completed - no additional obstacles needed"
-      );
       return;
     }
 
@@ -137,11 +133,13 @@ class TestManager {
       FundamentalSystemBridge["renderSceneSwapper"].getActiveGameLevelScene();
 
     // Log obstacle count for debugging
+    /** 
     if (levelDataComposite && levelDataComposite.obstacles) {
       console.log(
         `Preparing level with ${levelDataComposite.obstacles.length} obstacles`
       );
     }
+    */
 
     let activeDemoGameplayLevel = new ActiveGameplayLevel(
       activeGameLevelScene,
@@ -198,9 +196,11 @@ class TestManager {
         }
       }
 
+      /** 
       console.log(
         `Successfully transferred ${levelDataComposite.obstacles.length} obstacles to game level`
       );
+      */
     }
 
     return activeDemoGameplayLevel;
@@ -323,7 +323,7 @@ class TestManager {
    * @returns {Promise<ActiveGameplayLevel>} The created level
    */
   async runMountainPathTest(testType = "default", options = {}) {
-    console.log(`Running mountain path test type: ${testType}`);
+    // console.log(`Running mountain path test type: ${testType}`);
 
     try {
       // Ensure systems are loaded
@@ -336,12 +336,14 @@ class TestManager {
       // Set default visualization option
       const useFallbackVisualization =
         options.useFallbackVisualization || false;
+      /** 
       console.log(
         `Using ${
           useFallbackVisualization ? "fallback cylinder" : "real model"
         } mountain visualization`
       );
 
+      */
       let gameplayLevel = null;
 
       switch (testType.toLowerCase()) {
@@ -379,7 +381,7 @@ class TestManager {
       }
 
       if (gameplayLevel) {
-        console.log("Mountain Path Test completed successfully");
+        // console.log("Mountain Path Test completed successfully");
 
         // Ensure it's set as the active level
         const gameplayManager =

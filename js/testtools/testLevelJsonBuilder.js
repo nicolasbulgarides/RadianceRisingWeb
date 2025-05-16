@@ -266,7 +266,7 @@ class TestLevelJsonBuilder {
    * @returns {LevelDataComposite} The constructed level data
    */
   static buildLevelWithObstacles(levelId, levelNickname, obstacles) {
-    console.log("Building level with obstacles, id: ", levelId);
+    //   console.log("Building level with obstacles, id: ", levelId);
 
     // Build the header data
     const levelHeaderData = this.buildLevelHeaderData(levelId, levelNickname);

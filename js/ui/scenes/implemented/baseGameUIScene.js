@@ -15,6 +15,9 @@
 class BaseGameUIScene extends UISceneGeneralized {
   constructor() {
     super();
+    this.failedUIElements = [];
+    this.maxRetryAttempts = 3;
+    this.retryDelay = 2000; // 2 second delay between retries
   }
 
   assembleUIGeneralized(aspectRatioPreset) {
@@ -24,10 +27,20 @@ class BaseGameUIScene extends UISceneGeneralized {
 
   assembleUIBaseGameUI() {
     // 1) Create the bottom panel background
-    this.assembleBackBasePanel();
+    this.attemptUIElementLoad(
+      () => this.assembleBackBasePanel(),
+      "bottomBasePanel"
+    );
 
     // 2) Create the container that holds all base UI elements
-    this.assembleUIControlsComposite();
+    this.attemptUIElementLoad(
+      () => this.assembleUIControlsComposite(),
+      "uiControlsComposite"
+    );
+    console.log("Failed UI elements:", this.failedUIElements);
+
+    // Retry any failed UI elements
+    this.retryFailedUIElements();
   }
 
   rebuildUICompletely() {
@@ -49,6 +62,10 @@ class BaseGameUIScene extends UISceneGeneralized {
       BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
     // Add the panel to the advancedTexture so it appears behind everything else.
     this.advancedTexture.addControl(bottomBasePanel);
+
+    // Ensure the panel is visible and properly layered
+    bottomBasePanel.zIndex = -3; // Ensure it's behind other controls
+    bottomBasePanel.alpha = 1; // Ensure full opacity
   }
 
   /**
@@ -128,69 +145,88 @@ class BaseGameUIScene extends UISceneGeneralized {
     const horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
     const verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
 
-    dPadContainer.addControl(
-      ButtonFactory.createImageButton(
-        "buttonLeft",
-        buttonSize,
-        buttonSize,
-        thickness,
-        -symmetricalOffset, // Shift left of center
-        0, // No vertical shift
-        horizontalAlignment,
-        verticalAlignment,
-        this.buttonFunction.bind(this),
-        "LEFTCLICK",
-        "directionalPadTap"
-      )
-    );
+    const buttons = [
+      {
+        name: "buttonLeft",
+        offsetX: -symmetricalOffset,
+        offsetY: 0,
+        action: "LEFTCLICK",
+      },
+      {
+        name: "buttonRight",
+        offsetX: symmetricalOffset,
+        offsetY: 0,
+        action: "RIGHTCLICK",
+      },
+      {
+        name: "buttonUp",
+        offsetX: 0,
+        offsetY: -symmetricalOffset,
+        action: "UPCLICK",
+      },
+      {
+        name: "buttonDown",
+        offsetX: 0,
+        offsetY: symmetricalOffset,
+        action: "DOWNCLICK",
+      },
+    ];
 
-    dPadContainer.addControl(
-      ButtonFactory.createImageButton(
-        "buttonRight",
-        buttonSize,
-        buttonSize,
-        thickness,
-        symmetricalOffset, // Shift right of center
-        0,
-        horizontalAlignment,
-        verticalAlignment,
-        this.buttonFunction.bind(this),
-        "RIGHTCLICK",
-        "directionalPadTap"
-      )
-    );
-
-    dPadContainer.addControl(
-      ButtonFactory.createImageButton(
-        "buttonUp",
-        buttonSize,
-        buttonSize,
-        thickness,
-        0,
-        -symmetricalOffset, // Shift above center
-        horizontalAlignment,
-        verticalAlignment,
-        this.buttonFunction.bind(this),
-        "UPCLICK",
-        "directionalPadTap"
-      )
-    );
-
-    dPadContainer.addControl(
-      ButtonFactory.createImageButton(
-        "buttonDown",
-        buttonSize,
-        buttonSize,
-        thickness,
-        0,
-        symmetricalOffset, // Shift below center
-        horizontalAlignment,
-        verticalAlignment,
-        this.buttonFunction.bind(this),
-        "DOWNCLICK",
-        "directionalPadTap"
-      )
-    );
+    buttons.forEach((button) => {
+      try {
+        this.attemptUIElementLoad(() => {
+          //  console.log(`Attempting to create button: ${button.name}`);
+          const buttonControl = ButtonFactory.createImageButton(
+            button.name,
+            buttonSize,
+            buttonSize,
+            thickness,
+            button.offsetX,
+            button.offsetY,
+            horizontalAlignment,
+            verticalAlignment,
+            this.buttonFunction.bind(this),
+            button.action,
+            "directionalPadTap"
+          );
+          if (!buttonControl) {
+            throw new Error(
+              `Failed to create button control for ${button.name}`
+            );
+          }
+          // console.log(`Successfully created button: ${button.name}`);
+          dPadContainer.addControl(buttonControl);
+        }, `directionalButton_${button.name}`);
+      } catch (error) {
+        console.error(
+          `Error in button creation process for ${button.name}:`,
+          error
+        );
+        this.failedUIElements.push({
+          loadFunction: () =>
+            this.attemptUIElementLoad(() => {
+              const buttonControl = ButtonFactory.createImageButton(
+                button.name,
+                buttonSize,
+                buttonSize,
+                thickness,
+                button.offsetX,
+                button.offsetY,
+                horizontalAlignment,
+                verticalAlignment,
+                this.buttonFunction.bind(this),
+                button.action,
+                "directionalPadTap"
+              );
+              dPadContainer.addControl(buttonControl);
+            }, `directionalButton_${button.name}`),
+          elementName: `directionalButton_${button.name}`,
+          retryCount: 0,
+          error: error.message,
+          isRateLimitError: error.message && error.message.includes("429"),
+        });
+      }
+    });
   }
 
   /**
@@ -203,35 +239,36 @@ class BaseGameUIScene extends UISceneGeneralized {
     const horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
     const verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
 
-    dPadContainer.addControl(
-      ButtonFactory.createImageButton(
-        "buttonMagic",
-        specialButtonSize,
-        specialButtonSize,
-        thickness,
-        -specialButtonXOffset, // Additional offset for magic button
-        0,
-        horizontalAlignment,
-        verticalAlignment,
-        this.buttonFunction.bind(this),
-        "MAGIC"
-      )
-    );
+    const actionButtons = [
+      {
+        name: "buttonMagic",
+        offsetX: -specialButtonXOffset,
+        action: "MAGIC",
+      },
+      {
+        name: "buttonArtifact",
+        offsetX: specialButtonXOffset,
+        action: "ARTIFACT",
+      },
+    ];
 
-    dPadContainer.addControl(
-      ButtonFactory.createImageButton(
-        "buttonArtifact",
-        specialButtonSize,
-        specialButtonSize,
-        thickness,
-        specialButtonXOffset,
-        0,
-        horizontalAlignment,
-        verticalAlignment,
-        this.buttonFunction.bind(this),
-        "ARTIFACT"
-      )
-    );
+    actionButtons.forEach((button) => {
+      this.attemptUIElementLoad(() => {
+        const buttonControl = ButtonFactory.createImageButton(
+          button.name,
+          specialButtonSize,
+          specialButtonSize,
+          thickness,
+          button.offsetX,
+          0,
+          horizontalAlignment,
+          verticalAlignment,
+          this.buttonFunction.bind(this),
+          button.action
+        );
+        dPadContainer.addControl(buttonControl);
+      }, `actionButton_${button.name}`);
+    });
   }
   /**
    * Handles a button click by routing to the appropriate functionality.
@@ -281,5 +318,105 @@ class BaseGameUIScene extends UISceneGeneralized {
         "gameplayManagerComposite"
       ].processAttemptedMovementFromUIClick(playerDirection);
     }
+  }
+
+  /**
+   * Attempts to load a UI element and tracks failures for retry
+   * @param {Function} loadFunction - The function that loads the UI element
+   * @param {string} elementName - Name of the UI element for tracking
+   * @param {number} retryCount - Current retry attempt number
+   */
+  attemptUIElementLoad(loadFunction, elementName, retryCount = 0) {
+    try {
+      // console.log(`Attempting to load UI element: ${elementName}`);
+      loadFunction();
+      // console.log(`Successfully loaded UI element: ${elementName}`);
+    } catch (error) {
+      //console.warn(`Failed to load UI element: ${elementName}`, error);
+
+      // Check if it's a rate limit error
+      const isRateLimitError =
+        error.message &&
+        (error.message.includes("429") ||
+          error.message.includes("Too Many Requests") ||
+          error.message.includes("rate limit"));
+
+      if (retryCount < this.maxRetryAttempts) {
+        const failedElement = {
+          loadFunction,
+          elementName,
+          retryCount: retryCount + 1,
+          error: error.message,
+          isRateLimitError,
+          timestamp: new Date().toISOString(),
+        };
+        this.failedUIElements.push(failedElement);
+        console.log(`Added to failed elements: ${elementName}`, failedElement);
+
+        // If it's a rate limit error, add a delay before retry
+        if (isRateLimitError) {
+          console.log(
+            `Rate limit hit for ${elementName}, waiting ${this.retryDelay}ms before retry`
+          );
+          setTimeout(() => {
+            this.retryFailedUIElements();
+          }, this.retryDelay);
+        }
+      } else {
+        console.error(
+          `Failed to load UI element ${elementName} after ${this.maxRetryAttempts} attempts`
+        );
+      }
+    }
+  }
+
+  /**
+   * Retries loading failed UI elements
+   */
+  retryFailedUIElements() {
+    if (this.failedUIElements.length === 0) return;
+
+    console.log(`Retrying ${this.failedUIElements.length} failed UI elements`);
+    const stillFailed = [];
+
+    this.failedUIElements.forEach((element) => {
+      try {
+        element.loadFunction();
+      } catch (error) {
+        console.warn(
+          `Retry failed for UI element: ${element.elementName}`,
+          error
+        );
+
+        // Check if it's still a rate limit error
+        const isRateLimitError =
+          error.message &&
+          (error.message.includes("429") ||
+            error.message.includes("Too Many Requests") ||
+            error.message.includes("rate limit"));
+
+        if (element.retryCount < this.maxRetryAttempts) {
+          stillFailed.push({
+            ...element,
+            retryCount: element.retryCount + 1,
+            isRateLimitError,
+          });
+
+          // If it's a rate limit error, increase the delay for next retry
+          if (isRateLimitError) {
+            this.retryDelay *= 1.5; // Increase delay by 50% each time
+            console.log(
+              `Rate limit still hit for ${element.elementName}, increasing delay to ${this.retryDelay}ms`
+            );
+          }
+        } else {
+          console.error(
+            `Failed to load UI element ${element.elementName} after ${this.maxRetryAttempts} attempts`
+          );
+        }
+      }
+    });
+
+    this.failedUIElements = stillFailed;
   }
 }

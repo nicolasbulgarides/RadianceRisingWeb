@@ -6,10 +6,11 @@ class SoundEffectsManager {
   static sounds = new Map();
   static soundIndex = 0;
   static allSoundsLoaded = false;
-  static maxConcurrentLoads = 1; // Only load one sound at a time
+  static maxConcurrentLoads = 10; // Only load one sound at a time
   static maxRetries = 5;
   static baseDelay = 3000; // Increased base delay to 3 seconds
   static soundLoadDelay = 2000; // Increased delay between sounds to 2 seconds
+  static failedSounds = new Set(); // Track failed sound loads
 
   constructor() {
     this.loadQueue = [];
@@ -126,11 +127,10 @@ class SoundEffectsManager {
   /**
    * Loads all sound effects sequentially based on the SoundAssetManifest.
    * @param {BABYLON.Scene} scene - The scene in which to load the sounds.
-   * @returns {Promise<void>} - Resolves when all sounds are loaded.
+   * @returns {Promise<void>} - Resolves when initial sound loading attempt is complete.
    */
   async loadAllSounds(scene) {
     const soundNames = Object.keys(SoundAssetManifest.allSounds);
-    const failedSounds = [];
     const loadPromises = soundNames.map((soundName) => {
       return new Promise((resolve, reject) => {
         this.loadQueue.push({ soundName, scene, resolve, reject });
@@ -139,36 +139,52 @@ class SoundEffectsManager {
     });
 
     try {
-      await Promise.all(loadPromises);
+      await Promise.allSettled(loadPromises);
     } catch (error) {
-      console.error("Failed to load some sounds:", error);
+      console.error("Error during sound loading:", error);
     }
 
-    if (failedSounds.length > 0) {
-      console.warn(
-        `Failed to load ${failedSounds.length} sounds: ${failedSounds.join(
-          ", "
-        )}`
-      );
-    }
-
+    // Set allSoundsLoaded to true regardless of individual sound load status
     SoundEffectsManager.allSoundsLoaded = true;
   }
 
   /**
-   * Plays a sound effect by name.
-   * @param {string} soundName - The name of the sound to play.
+   * Attempts to load a sound if it hasn't been loaded successfully yet
+   * @param {string} soundName - Name of the sound to load
+   * @param {BABYLON.Scene} scene - The scene in which to load the sound
+   * @returns {Promise<void>}
    */
-  static playSound(soundName) {
-    if (!SoundEffectsManager.allSoundsLoaded) {
-      console.warn("Sounds are not loaded yet.");
-      return;
+  static async attemptLoadSound(soundName, scene) {
+    if (
+      !SoundEffectsManager.sounds.has(soundName) &&
+      !SoundEffectsManager.failedSounds.has(soundName)
+    ) {
+      try {
+        await SoundEffectsManager.loadSoundWithRetry(soundName, scene);
+        SoundEffectsManager.failedSounds.delete(soundName);
+      } catch (error) {
+        console.warn(`Failed to load sound ${soundName}:`, error);
+        SoundEffectsManager.failedSounds.add(soundName);
+      }
     }
+  }
+
+  /**
+   * Plays a sound effect by name. Attempts to load the sound if it hasn't been loaded yet.
+   * @param {string} soundName - The name of the sound to play.
+   * @param {BABYLON.Scene} scene - The scene in which to load/play the sound.
+   */
+  static async playSound(soundName, scene) {
+    // If sound isn't loaded, try to load it
+    if (!SoundEffectsManager.sounds.has(soundName)) {
+      await SoundEffectsManager.attemptLoadSound(soundName, scene);
+    }
+
     const sound = SoundEffectsManager.sounds.get(soundName);
     if (sound) {
       sound.play();
     } else {
-      console.warn(`Sound not found: ${soundName}`);
+      console.warn(`Sound not found or failed to load: ${soundName}`);
     }
   }
 

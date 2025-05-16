@@ -15,7 +15,7 @@ class GamemodeTestAssist extends GamemodeGeneric {
       ignoreObstacles,
       usePlayerMovementDistance
     );
-    console.log("Ignore obstacles: ", ignoreObstacles);
+    //console.log("Ignore obstacles: ", ignoreObstacles);
     this.initializeGamemode();
     // Specify test mode values and initialize the gamemode
   }
