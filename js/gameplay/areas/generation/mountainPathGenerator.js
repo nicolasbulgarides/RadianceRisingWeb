@@ -64,11 +64,13 @@ class MountainPathGenerator {
     // Log obstacle details for debugging
     console.log(`Generated ${obstacles.length} obstacles`);
     if (obstacles.length > 0) {
+      /** 
       console.log(`First obstacle type: ${typeof obstacles[0]}`);
       console.log(
         `First obstacle properties:`,
         JSON.stringify(obstacles[0], null, 2)
       );
+      */
     }
 
     // Create level with obstacles

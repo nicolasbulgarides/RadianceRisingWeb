@@ -3,6 +3,9 @@
  * It supports both static and animated models, and provides utility methods for moving models.
  */
 class SceneBuilder {
+  static maxRetries = 3;
+  static baseDelay = 2000; // Base delay in milliseconds
+
   /**
    * Constructs a SceneBuilder.
    * @param {BABYLON.Scene} scene - The Babylon.js scene instance.
@@ -14,6 +17,105 @@ class SceneBuilder {
     this.loadedModels = []; // Array to store references to loaded models
     // Set default background color for the scene
     this.setBackgroundColor(new BABYLON.Color4(0.1, 0.1, 0.3, 1));
+  }
+
+  /**
+   * Calculates delay for exponential backoff
+   * @param {number} attempt - Current retry attempt
+   * @returns {number} - Delay in milliseconds
+   */
+  static getRetryDelay(attempt) {
+    return Math.min(2000 * Math.pow(2, attempt), 30000); // Max 30 second delay
+  }
+
+  /**
+   * Delays execution for specified milliseconds
+   * @param {number} ms - Milliseconds to delay
+   * @returns {Promise<void>}
+   */
+  static delay(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Loads a model with retry logic
+   * @param {PositionedObject} positionedObject - The object defining the model
+   * @param {number} attempt - Current retry attempt
+   * @returns {Promise<BABYLON.Mesh|null>}
+   */
+  async loadModelWithRetry(positionedObject, attempt = 0) {
+    try {
+      const modelUrl = AssetManifest.getAssetUrl(positionedObject.modelId);
+      if (!modelUrl) {
+        console.error(
+          `SceneBuilder: Asset '${positionedObject.modelId}' not found in AssetManifest.`
+        );
+        return null;
+      }
+
+      const loadedModel = await this.modelLoader.loadModelFromUrl(
+        this.scene,
+        modelUrl,
+        true // Enable caching
+      );
+
+      if (loadedModel) {
+        // Apply transformations to the cloned model
+        const rootMesh = loadedModel.meshes[0];
+        if (rootMesh) {
+          positionedObject.setModel(loadedModel);
+
+          if (positionedObject.cloneBase) {
+            rootMesh.setParent(null);
+          }
+
+          // Apply transformations
+          rootMesh.position = positionedObject.getCompositePositionBaseline();
+          rootMesh.rotation = positionedObject.rotation;
+          rootMesh.scaling = positionedObject.scaling;
+
+          // Apply performance optimizations
+          if (positionedObject.freeze) {
+            rootMesh.freezeWorldMatrix();
+            rootMesh.convertToUnIndexedMesh();
+          }
+
+          // Set interactivity
+          if (!positionedObject.interactive) {
+            rootMesh.isPickable = false;
+            rootMesh.doNotSyncBoundingInfo = true;
+          }
+        }
+        return loadedModel;
+      }
+      return null;
+    } catch (error) {
+      console.warn(
+        `Attempt ${attempt + 1} failed for model: ${positionedObject.modelId}`,
+        error
+      );
+
+      if (
+        (error.status === 429 ||
+          error.status === 403 ||
+          error.status != null) &&
+        attempt < SceneBuilder.maxRetries
+      ) {
+        const delay = SceneBuilder.getRetryDelay(attempt);
+        console.log(`Retrying ${positionedObject.modelId} in ${delay}ms...`);
+
+        await SceneBuilder.delay(delay);
+        return this.loadModelWithRetry(positionedObject, attempt + 1);
+      }
+
+      console.error(
+        `Failed to load model after ${attempt + 1} attempts: ${
+          positionedObject.modelId
+        }`,
+        error
+      );
+      return null;
+    }
   }
 
   /**
@@ -69,31 +171,21 @@ class SceneBuilder {
    * @returns {Promise<Array<BABYLON.Mesh|null>>} - An array of loaded models (null for failures).
    */
   async loadModels(positionedObjects) {
-    const loadedModels = [];
-    for (const positionedObject of positionedObjects) {
+    const loadPromises = positionedObjects.map(async (positionedObject) => {
       if (!(positionedObject instanceof PositionedObject)) {
         throw new Error(
           "SceneBuilder: Only instances of PositionedObject are allowed."
         );
       }
-      // Retrieve model URL from AssetManifest
-      const modelUrl = AssetManifest.getAssetUrl(positionedObject.modelId);
-      if (!modelUrl) {
-        console.error(
-          `SceneBuilder: Asset '${positionedObject.modelId}' not found in AssetManifest.`
-        );
-        loadedModels.push(null);
-        continue;
+
+      const model = await this.loadModelWithRetry(positionedObject);
+      if (model) {
+        this.loadedModels.push(model);
       }
-      // Load the model and apply transformations
-      const loadedModel = await this.loadSceneModel(positionedObject, modelUrl);
-      if (loadedModel) {
-        this.loadedModels.push(loadedModel);
-        positionedObject.setModel(loadedModel);
-      }
-      loadedModels.push(loadedModel);
-    }
-    return loadedModels;
+      return model;
+    });
+
+    return Promise.all(loadPromises);
   }
 
   /**
@@ -107,48 +199,12 @@ class SceneBuilder {
         "SceneBuilder: Only instances of PositionedObject are allowed."
       );
     }
-    try {
-      const modelUrl = AssetManifest.getAssetUrl(positionedObject.modelId);
-      const loadedModel = await this.modelLoader.loadModelFromUrl(
-        this.scene,
-        modelUrl
-      );
-      if (loadedModel) {
-        positionedObject.setModel(loadedModel, positionedObject.modelId);
-        if (positionedObject.cloneBase) {
-          const loadedModelBase = loadedModel.meshes[0];
-          loadedModelBase.setParent(null);
-          loadedModel.meshes.forEach((mesh) => {
-            // Optionally make meshes invisible for base cloning
-          });
-        }
-        // Apply position, rotation, and scaling based on PositionedObject
-        loadedModel.meshes[0].position =
-          positionedObject.getCompositePositionBaseline();
-        if (positionedObject.freeze) {
-          loadedModel.meshes[0].freezeWorldMatrix();
-          loadedModel.meshes[0].convertToUnIndexedMesh();
-        }
-        if (positionedObject.interactive == false) {
-          loadedModel.meshes[0].isPickable = false;
-          loadedModel.meshes[0].doNotSyncBoundingInfo = true;
-        }
-        loadedModel.meshes[0].scaling = positionedObject.scaling;
-        loadedModel.meshes[0].rotation = positionedObject.rotation;
-        return loadedModel;
-      } else {
-        console.error(
-          `SceneBuilder: Failed to load model '${positionedObject.modelId}'.`
-        );
-        return null;
-      }
-    } catch (error) {
-      console.error(
-        `SceneBuilder: Error loading model '${positionedObject.modelId}':`,
-        error
-      );
-      return null;
+
+    const model = await this.loadModelWithRetry(positionedObject);
+    if (model) {
+      this.loadedModels.push(model);
     }
+    return model;
   }
 
   /**

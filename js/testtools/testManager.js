@@ -61,29 +61,7 @@ class TestManager {
     }
 
     // Only add edge obstacles for standard level loading
-    await this.levelObstacleTest();
-  }
-
-  /**
-   * Runs the mountain path generator test to create a level with solvable paths
-   * @returns {Promise<ActiveGameplayLevel>} The created mountain path level
-   */
-  async mountainPathTest() {
-    try {
-      console.log("Starting Mountain Path Test");
-      const gameplayLevel = await MountainPathTest.runCompleteTest();
-
-      if (gameplayLevel) {
-        console.log("Mountain path test completed successfully");
-        return gameplayLevel;
-      } else {
-        console.error("Mountain path test failed to load level");
-        return null;
-      }
-    } catch (error) {
-      console.error("Error in mountain path test:", error);
-      return null;
-    }
+    //  await this.levelObstacleTest();
   }
 
   async loadLevelAndPlayer(gameplayManager) {

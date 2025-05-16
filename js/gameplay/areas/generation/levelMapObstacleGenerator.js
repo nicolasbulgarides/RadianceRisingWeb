@@ -254,10 +254,11 @@ class LevelMapObstacleGenerator {
       return modelId;
     }
 
+    /** 
     console.log(
       `Resolving model ID for obstacle archetype: ${obstacleArchetype}`
     );
-
+    */
     try {
       switch (obstacleArchetype.toLowerCase()) {
         case "mountain":
@@ -277,9 +278,11 @@ class LevelMapObstacleGenerator {
       console.warn(`Using default model ID: ${modelId} due to error`);
     }
 
+    /** 
     console.log(
       `Using model ID: ${modelId} for archetype: ${obstacleArchetype}`
     );
+    */
     return modelId; // Return the resolved model ID.
   }
 }
