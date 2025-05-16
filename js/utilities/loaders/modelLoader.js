@@ -4,10 +4,10 @@
  */
 class ModelLoader {
   static modelCache = new Map(); // Static cache to store loaded models
-  static maxConcurrentLoads = 20; // Maximum number of concurrent model loads
+  static maxConcurrentLoads = 5; // Maximum number of concurrent model loads
   static activeLoads = 0; // Current number of active loads
   static loadQueue = []; // Queue for pending model loads
-  static minDelayBetweenLoads = 200; // Minimum delay between model loads in ms
+  static minDelayBetweenLoads = 250; // Minimum delay between model loads in ms
 
   constructor() {}
 
@@ -39,10 +39,12 @@ class ModelLoader {
     this.activeLoads++;
 
     try {
-      // Add delay between loads to prevent rate limiting
-      await new Promise((resolve) =>
-        setTimeout(resolve, this.minDelayBetweenLoads)
-      );
+      // Only add delay if the model isn't already cached
+      if (!this.modelCache.has(modelUrl)) {
+        await new Promise((resolve) =>
+          setTimeout(resolve, this.minDelayBetweenLoads)
+        );
+      }
 
       const importResult = await BABYLON.SceneLoader.ImportMeshAsync(
         "", // Import all meshes

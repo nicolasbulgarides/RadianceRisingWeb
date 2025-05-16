@@ -6,7 +6,7 @@ class SoundEffectsManager {
   static sounds = new Map();
   static soundIndex = 0;
   static allSoundsLoaded = false;
-  static maxConcurrentLoads = 10; // Only load one sound at a time
+  static maxConcurrentLoads = 5; // Only load one sound at a time
   static maxRetries = 5;
   static baseDelay = 3000; // Increased base delay to 3 seconds
   static soundLoadDelay = 2000; // Increased delay between sounds to 2 seconds
