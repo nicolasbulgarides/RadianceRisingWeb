@@ -13,15 +13,6 @@ class MicroEventManager {
   onFrameCheckMicroEventsForTriggered() {
     let allMicroEvents = this.gameplayLevelToMicroEventsMap["testLevel0"];
 
-    //to do - switch this to advanced logging
-    /** 
-    if (allMicroEvents) {
-      console.log("All micro events size: " + allMicroEvents.length);
-    } else {
-      console.log("No micro events found");
-    }
-      */
-
     if (allMicroEvents) {
       for (let microEvent of allMicroEvents) {
         if (microEvent.microEventCategory === "pickup") {
@@ -64,7 +55,7 @@ class MicroEventManager {
 
     if (
       this.gameplayLevelToMicroEventsMap[
-        levelDataComposite.levelHeaderData.levelId
+      levelDataComposite.levelHeaderData.levelId
       ]
     ) {
       //to do update logging
@@ -165,16 +156,16 @@ class MicroEventManager {
     if (events.length === 0) {
       console.log(
         "MicroEventManager - logMicroEventFilteringResults: " +
-          "no events found to survive filter: " +
-          categorySeeked
+        "no events found to survive filter: " +
+        categorySeeked
       );
     }
 
     if (events.length > 0) {
       console.log(
         "MicroEventManager - logMicroEventFilteringResults: " +
-          "events found to  have completion status: " +
-          completionStatusToSeek
+        "events found to  have completion status: " +
+        completionStatusToSeek
       );
     }
   }

@@ -39,6 +39,16 @@ class LevelFactoryComposite {
     // Initialize lighting based on level data
     gameplayLevel.initializeLevelLighting();
 
+    // Apply starfield backdrop to the scene
+    if (typeof StarfieldBackdrop !== "undefined" && gameplayLevel.hostingScene) {
+      // Dispose of existing backdrop if it exists
+      if (gameplayLevel.starfieldBackdrop) {
+        gameplayLevel.starfieldBackdrop.dispose();
+      }
+      // Create new starfield backdrop
+      gameplayLevel.starfieldBackdrop = new StarfieldBackdrop(gameplayLevel.hostingScene);
+    }
+
     // Get dimensions for grid generation
     const dimensions = this.getLevelDimensions(gameplayLevel);
 

@@ -41,15 +41,14 @@ class ScriptManifest {
     "/gameplay/interactions/triggers/triggerFactory.js",
   ];
 
-  static occurenceScripts = [
+  static occurrenceScripts = [
     "/gameplay/interactions/occurrences/specialOccurrenceComposite.js",
     "/gameplay/interactions/occurrences/specialOccurrenceManager.js",
     "/gameplay/interactions/occurrences/specialOccurrenceFactory.js",
-    "/gameplay/interactions/occurrences/pickupOccurrenceSubManager.js",
+    "/gameplay/interactions/occurrences/pickups/pickupOccurrenceSubManager.js",
     "/gameplay/interactions/occurrences/datastructures/specialOccurrenceBasicData.js",
     "/gameplay/interactions/occurrences/datastructures/specialOccurrenceHeader.js",
     "/gameplay/interactions/occurrences/datastructures/specialOccurrenceItemData.js",
-    "/gameplay/interactions/occurrences/datastructures/specialOccurrenceProgressData.js",
 
   ];
   static testToolScripts = [
@@ -79,6 +78,7 @@ class ScriptManifest {
 
 
   static uiUtilityScripts = [
+    "/ui/utilities/loadingScreen.js",
     "/ui/utilities/responsiveUIManager.js",
     "/ui/utilities/renderSceneSwapper.js",
     "/ui/uiconstruction/basicfactories/buttonFactory.js",
@@ -182,6 +182,7 @@ class ScriptManifest {
     "/utilities/misc/timestampGenie.js",
     "/utilities/misc/randomAssist.js",
     "/utilities/misc/vectorAssist.js",
+    "/utilities/starfieldBackdrop.js",
   ];
 
   static developmentScripts = [
@@ -267,7 +268,7 @@ class ScriptManifest {
       "uiSceneImplemented",
       "testTool",
       "development",
-      "occurences"
+      "occurrences"
     ];
 
     // Map loading order names to actual static property names
@@ -291,7 +292,7 @@ class ScriptManifest {
       "uiSceneImplemented": this.uiSceneScriptsImplemented,
       "testTool": this.testToolScripts,
       "development": this.developmentScripts,
-      "occurences": this.occurenceScripts,
+      "occurrences": this.occurrenceScripts,
     };
 
     const failedScripts = [];

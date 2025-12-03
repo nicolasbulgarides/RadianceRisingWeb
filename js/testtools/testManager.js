@@ -1,4 +1,31 @@
 class TestManager {
+  constructor() {
+    // Initialize loading screen instance
+    this.loadingScreen = null;
+    this.initializeLoadingScreen();
+  }
+
+  /**
+   * Initializes the loading screen if available.
+   */
+  initializeLoadingScreen() {
+    if (typeof LoadingScreen !== "undefined") {
+      this.loadingScreen = new LoadingScreen();
+    }
+  }
+
+  /**
+   * Gets or creates the loading screen instance.
+   * @returns {LoadingScreen|null} The loading screen instance or null if not available.
+   */
+  getLoadingScreen() {
+    // Try to initialize if not already done
+    if (!this.loadingScreen && typeof LoadingScreen !== "undefined") {
+      this.initializeLoadingScreen();
+    }
+    return this.loadingScreen;
+  }
+
   /**
    * Processes test orders for the gameplay manager.
    * Loads a basic test level and sets it as the active gameplay level.
@@ -6,6 +33,14 @@ class TestManager {
    * @param {GameplayManagerComposite} gameplayManager - The gameplay manager instance to process orders for.
    */
   async processTestOrders(gameplayManager) {
+    // Get loading screen instance once for the entire function
+    const loadingScreen = this.getLoadingScreen();
+
+    // Start loading screen before anything else
+    if (loadingScreen) {
+      loadingScreen.start();
+    }
+
     // Ensure tiles are loaded before proceeding
     if (!LevelFactoryComposite.checkTilesLoaded()) {
       await FundamentalSystemBridge[
@@ -19,6 +54,10 @@ class TestManager {
 
     if (!gameplayLevel) {
       GameplayLogger.lazyLog("Failed to load gameplay level");
+      // Stop loading screen even on failure
+      if (loadingScreen) {
+        loadingScreen.stop();
+      }
       return;
     }
 
@@ -26,7 +65,20 @@ class TestManager {
 
     if (!finalizedRendering) {
       GameplayLogger.lazyLog("Failed to render level");
+      // Stop loading screen even on failure
+      if (loadingScreen) {
+        loadingScreen.stop();
+      }
       return;
+    }
+
+    // Stop loading screen immediately after rendering completes
+    // The grid is generated and will be visible on the next frame
+    if (loadingScreen) {
+      // Wait for just one frame to ensure the render has been queued
+      await new Promise(resolve => requestAnimationFrame(resolve));
+      // Stop immediately - no additional delay
+      loadingScreen.stop();
     }
 
     // Double check that the level is properly set in the gameplay manager

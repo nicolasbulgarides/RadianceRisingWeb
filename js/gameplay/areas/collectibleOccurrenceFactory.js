@@ -22,46 +22,19 @@ class CollectibleOccurrenceFactory {
     let mangoPickupHeader = this.getPickupHeader("mangoPickupOccurrence");
     let mangoPickupBasicData = this.getPickupBasicData(false, 1, 0, 0, 0.25, 0);
     let mangoPickupItemData = this.getPickupItemData(true, "mango", 1, 0, 0);
-    let mangoPickupProgressData = this.getPickupProgressData(
-      "-no-quest",
-      "-no-quest-data",
-      "task-mango-pickup",
-      1
-    );
+
 
     let mangoPickupOccurrence = new SpecialOccurrenceComposite(
       mangoPickupHeader,
       mangoPickupBasicData,
       mangoPickupItemData,
-      mangoPickupProgressData,
-      null,
-      null,
-      null
     );
 
     return mangoPickupOccurrence;
   }
 
-  static createBasicPickupOccurrenceGeneralized() {}
+  static createBasicPickupOccurrenceGeneralized() { }
 
-  static getPickupProgressData(
-    questId,
-    questProgressValue,
-    taskId,
-    taskProgressValue
-  ) {
-    let pickupProgressData = new SpecialOccurrenceProgressData(
-      "not-level-progress",
-      "no-level-progress-data",
-      "no-achievement-progress-data",
-      questId,
-      questProgressValue,
-      taskId,
-      taskProgressValue
-    );
-
-    return pickupProgressData;
-  }
 
   static getPickupItemData(
     singleItem,
