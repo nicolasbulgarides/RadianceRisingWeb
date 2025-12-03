@@ -19,6 +19,8 @@ class BaseGameUIScene extends UISceneGeneralized {
     this.maxRetryAttempts = 3;
     this.retryDelay = 2000; // 2 second delay between retries
     this.currentFireballEffect = null; // Store the current fireball effect instance
+    this.manaBar = null; // Store the mana bar instance
+    this.artifactSocketBar = null; // Store the artifact socket bar instance
   }
 
   assembleUIGeneralized(aspectRatioPreset) {
@@ -75,6 +77,18 @@ class BaseGameUIScene extends UISceneGeneralized {
   assembleUIControlsComposite() {
     this.createUIControlsContainer();
 
+    // Add the mana bar above the gamepad (must be before gamepad so it appears above)
+    this.attemptUIElementLoad(
+      () => this.createManaBar(),
+      "manaBar"
+    );
+
+    // Add the artifact socket bar above the artifact button
+    this.attemptUIElementLoad(
+      () => this.createArtifactSocketBar(),
+      "artifactSocketBar"
+    );
+
     // Add the central game pad
     const dPadContainer = this.createDirectionalGamePadContainer();
     this.addDirectionalButtons(dPadContainer);
@@ -102,6 +116,108 @@ class BaseGameUIScene extends UISceneGeneralized {
       BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
 
     this.advancedTexture.addControl(this.baseUIControlsContainer);
+  }
+
+  /**
+   * Creates and adds the mana bar above the magic button.
+   */
+  createManaBar() {
+    // Calculate socket size based on UI width (proportional to buttons)
+    const socketSize = Config.IDEAL_UI_WIDTH * 0.08;
+
+    // Magic button is positioned at: center - (IDEAL_UI_WIDTH * 0.3)
+    // So we need to position the mana bar at the same X offset
+    const specialButtonXOffset = Config.IDEAL_UI_WIDTH * 0.3;
+    const offsetX = -specialButtonXOffset; // Same X position as magic button
+
+    // Calculate vertical position: above the magic button
+    // The magic button is centered vertically in the dPadContainer (which is centered in baseUIControlsContainer)
+    // Position mana bar above it, accounting for button size and spacing
+    const specialButtonSize = Config.IDEAL_UI_WIDTH * 0.15;
+    // Use negative offsetY to move up from center (since we're using VERTICAL_ALIGNMENT_CENTER)
+    // Space needed: half button height + spacing + half mana bar height
+    const offsetY = -(specialButtonSize * 0.5 + socketSize * 0.5 + 15); // 15px spacing between button and mana bar
+
+    // Create the mana bar with 5 max mana (default)
+    this.manaBar = new ManaBar(
+      "playerManaBar",
+      5, // maxMana
+      5, // currentMana (starts full)
+      socketSize, // socketWidth
+      socketSize, // socketHeight
+      offsetX, // offsetX (aligned with magic button)
+      offsetY, // offsetY (above magic button)
+      BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER,
+      BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER
+    );
+
+    // Create the mana bar container
+    const manaBarContainer = this.manaBar.create();
+
+    // Ensure the container is visible and properly layered
+    manaBarContainer.isVisible = true;
+    manaBarContainer.zIndex = 10; // Ensure it's above other elements
+
+    // Add to the base UI controls container
+    this.baseUIControlsContainer.addControl(manaBarContainer);
+
+    console.log("ManaBar created above magic button", {
+      socketSize,
+      offsetX,
+      offsetY,
+      specialButtonXOffset
+    });
+  }
+
+  /**
+   * Creates and adds the artifact socket bar above the artifact button.
+   */
+  createArtifactSocketBar() {
+    // Calculate socket size based on UI width (proportional to buttons)
+    const socketSize = Config.IDEAL_UI_WIDTH * 0.08;
+
+    // Artifact button is positioned at: center + (IDEAL_UI_WIDTH * 0.3)
+    // So we need to position the artifact socket bar at the same X offset
+    const specialButtonXOffset = Config.IDEAL_UI_WIDTH * 0.3;
+    const offsetX = specialButtonXOffset; // Same X position as artifact button
+
+    // Calculate vertical position: above the artifact button
+    // The artifact button is centered vertically in the dPadContainer (which is centered in baseUIControlsContainer)
+    // Position artifact socket bar above it, accounting for button size and spacing
+    const specialButtonSize = Config.IDEAL_UI_WIDTH * 0.15;
+    // Use negative offsetY to move up from center (since we're using VERTICAL_ALIGNMENT_CENTER)
+    // Space needed: half button height + spacing + half artifact bar height
+    const offsetY = -(specialButtonSize * 0.5 + socketSize * 0.5 + 15); // 15px spacing between button and artifact bar
+
+    // Create the artifact socket bar with 3 max artifacts (fixed)
+    this.artifactSocketBar = new ArtifactSocketBar(
+      "playerArtifactBar",
+      3, // maxArtifacts (fixed to 3)
+      3, // currentArtifacts (starts full)
+      socketSize, // socketWidth
+      socketSize, // socketHeight
+      offsetX, // offsetX (aligned with artifact button)
+      offsetY, // offsetY (above artifact button)
+      BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER,
+      BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER
+    );
+
+    // Create the artifact socket bar container
+    const artifactBarContainer = this.artifactSocketBar.create();
+
+    // Ensure the container is visible and properly layered
+    artifactBarContainer.isVisible = true;
+    artifactBarContainer.zIndex = 10; // Ensure it's above other elements
+
+    // Add to the base UI controls container
+    this.baseUIControlsContainer.addControl(artifactBarContainer);
+
+    console.log("ArtifactSocketBar created above artifact button", {
+      socketSize,
+      offsetX,
+      offsetY,
+      specialButtonXOffset
+    });
   }
 
   /**
@@ -286,13 +402,38 @@ class BaseGameUIScene extends UISceneGeneralized {
       this.processMovementClick(buttonFunctionKey);
       SoundEffectsManager.playSound("directionalPadTap");
     } else if (buttonFunctionKey === "MAGIC") {
-      // Example: play a sound effect for magic action.
-      SoundEffectsManager.playSound("magicalSpellCastNeutral");
+      // Cast spell using mana bar if available
+      if (this.manaBar) {
+        const spellCast = this.manaBar.castSpell();
+        if (spellCast) {
+          // Play sound effect for successful spell cast
+          SoundEffectsManager.playSound("magicalSpellCastNeutral");
+        } else {
+          // Play different sound for insufficient mana
+          console.log("Insufficient mana to cast spell");
+        }
+      } else {
+        // Fallback: play sound even if mana bar isn't initialized
+        SoundEffectsManager.playSound("magicalSpellCastNeutral");
+      }
     } else if (buttonFunctionKey === "ARTIFACT") {
-      // Example: play sound effect for artifact usage.
-      SoundEffectsManager.playSound("artifactUsage");
-      // Trigger fireball effect around the player
-      this.triggerFireballEffect();
+      // Use artifact using artifact socket bar if available
+      if (this.artifactSocketBar) {
+        const artifactUsed = this.artifactSocketBar.useArtifact();
+        if (artifactUsed) {
+          // Play sound effect for successful artifact usage
+          SoundEffectsManager.playSound("artifactUsage");
+          // Trigger fireball effect around the player
+          this.triggerFireballEffect();
+        } else {
+          // Play different sound for insufficient artifacts
+          console.log("Insufficient artifacts to use");
+        }
+      } else {
+        // Fallback: play sound and trigger effect even if artifact socket bar isn't initialized
+        SoundEffectsManager.playSound("artifactUsage");
+        this.triggerFireballEffect();
+      }
     }
   }
 

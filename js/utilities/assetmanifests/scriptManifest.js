@@ -84,6 +84,8 @@ class ScriptManifest {
     "/ui/uiconstruction/basicfactories/buttonFactory.js",
     "/ui/uiconstruction/basicfactories/containerFactory.js",
     "/ui/uiconstruction/basicfactories/imageFactory.js",
+    "/ui/uiconstruction/manaBar.js",
+    "/ui/uiconstruction/artifactSocketBar.js",
   ];
 
   static uiSceneScriptsImplemented = [
