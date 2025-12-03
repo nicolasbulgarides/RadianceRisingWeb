@@ -18,6 +18,7 @@ class BaseGameUIScene extends UISceneGeneralized {
     this.failedUIElements = [];
     this.maxRetryAttempts = 3;
     this.retryDelay = 2000; // 2 second delay between retries
+    this.currentFireballEffect = null; // Store the current fireball effect instance
   }
 
   assembleUIGeneralized(aspectRatioPreset) {
@@ -290,6 +291,8 @@ class BaseGameUIScene extends UISceneGeneralized {
     } else if (buttonFunctionKey === "ARTIFACT") {
       // Example: play sound effect for artifact usage.
       SoundEffectsManager.playSound("artifactUsage");
+      // Trigger fireball effect around the player
+      this.triggerFireballEffect();
     }
   }
 
@@ -418,5 +421,84 @@ class BaseGameUIScene extends UISceneGeneralized {
     });
 
     this.failedUIElements = stillFailed;
+  }
+
+  /**
+   * Triggers a fireball effect around the player when the artifact button is clicked.
+   */
+  triggerFireballEffect() {
+    console.log("FireballEffect: Trigger function called");
+
+    // Get the game world scene (not the UI scene)
+    const gameWorldScene = FundamentalSystemBridge["renderSceneSwapper"]?.getActiveGameLevelScene();
+    if (!gameWorldScene) {
+      console.warn("FireballEffect: Cannot trigger, game world scene not found");
+      console.warn("FireballEffect: renderSceneSwapper:", FundamentalSystemBridge["renderSceneSwapper"]);
+      return;
+    }
+    console.log("FireballEffect: Game world scene found:", gameWorldScene);
+
+    // Get the player from the gameplay manager
+    const gameplayManager = FundamentalSystemBridge["gameplayManagerComposite"];
+    if (!gameplayManager || !gameplayManager.primaryActivePlayer) {
+      console.warn("FireballEffect: Cannot trigger, player not found");
+      console.warn("FireballEffect: gameplayManager:", gameplayManager);
+      console.warn("FireballEffect: primaryActivePlayer:", gameplayManager?.primaryActivePlayer);
+      return;
+    }
+
+    const player = gameplayManager.primaryActivePlayer;
+    console.log("FireballEffect: Player found:", player);
+
+    // Dispose of any existing fireball effect
+    if (this.currentFireballEffect) {
+      console.log("FireballEffect: Disposing existing effect");
+      this.currentFireballEffect.dispose();
+      this.currentFireballEffect = null;
+    }
+
+    // Create and activate a new fireball effect
+    try {
+      console.log("FireballEffect: Creating new fireball effect");
+      // Calculate fireball size based on player model size
+      let fireballRadius = 0.8; // Default larger size
+      try {
+        const playerMesh = player?.playerMovementManager?.getPlayerModelDirectly();
+        if (playerMesh) {
+          // Get the bounding box of the player to scale fireball appropriately
+          let boundingBox = null;
+          if (playerMesh instanceof BABYLON.Mesh) {
+            boundingBox = playerMesh.getBoundingInfo()?.boundingBox;
+          } else if (playerMesh.meshes && playerMesh.meshes.length > 0) {
+            boundingBox = playerMesh.meshes[0].getBoundingInfo()?.boundingBox;
+          }
+
+          if (boundingBox) {
+            // Make fireball 2x the largest dimension of the player's bounding box
+            const size = boundingBox.maximumWorld.subtract(boundingBox.minimumWorld);
+            const maxDimension = Math.max(size.x, size.y, size.z);
+            console.log("FireballEffect: Player bounding box size:", size, "Fireball radius:", fireballRadius);
+          }
+        }
+      } catch (error) {
+        console.warn("FireballEffect: Could not calculate player size, using default:", error);
+      }
+
+      this.currentFireballEffect = new FireballEffect2(
+        gameWorldScene,
+        player,
+        {
+          radius: fireballRadius * 0.66,
+          intensity: 2.0, // Even higher intensity for maximum visibility
+          duration: 10000 // 10 seconds - much longer so you can see it
+        }
+      );
+      console.log("FireballEffect: Fireball effect created, activating...");
+      this.currentFireballEffect.activate();
+      console.log("FireballEffect: Activation complete");
+    } catch (error) {
+      console.error("FireballEffect: Error creating fireball effect", error);
+      console.error("FireballEffect: Error stack:", error.stack);
+    }
   }
 }

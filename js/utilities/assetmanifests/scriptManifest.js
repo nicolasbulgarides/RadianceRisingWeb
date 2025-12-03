@@ -183,6 +183,8 @@ class ScriptManifest {
     "/utilities/misc/randomAssist.js",
     "/utilities/misc/vectorAssist.js",
     "/utilities/starfieldBackdrop.js",
+    "/utilities/fireballEffect.js",
+    "/utilities/fireballEffect2.js",
   ];
 
   static developmentScripts = [
