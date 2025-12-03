@@ -130,6 +130,7 @@ class ScriptManifest {
     "/gameplay/gameplayProgressionManager.js",
     "/gameplay/gameplayloggers/gameplayLogger.js",
     "/gameplay/gameplayloggers/movementLogger.js",
+    "/gameplay/levelLoaderManager.js",
 
     //to do - reorganize
     "/gameplay/player/utilities/playerMovementManager.js",

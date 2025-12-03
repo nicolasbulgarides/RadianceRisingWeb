@@ -54,9 +54,12 @@ class RadiantEngineManager {
   loadSystems() {
     this.loadRenderingAndStartupExperienceSystems();
     this.loadGameplayEssentialSystems();
-    FundamentalSystemBridge.possiblyLoadAndActivateTestManager();
+    this.loadTestLevel();
   }
 
+  loadTestLevel() {
+    FundamentalSystemBridge.loadAndActivateLevelLoaderManager();
+  }
   //statistics and analytics, platform detection, regional adapation systems, partnership systems, data security / law / requirements
   loadPartnershipAndPlatformAndLegalSystems() {
     //to do

@@ -204,6 +204,19 @@ class FundamentalSystemBridge {
     }
   }
 
+  static loadAndActivateLevelLoaderManager() {
+    let levelLoaderManager = new LevelLoaderManager();
+    FundamentalSystemBridge.registerManager(
+      "levelLoaderManager",
+      levelLoaderManager,
+      LevelLoaderManager
+    );
+
+    levelLoaderManager.loadLevelTest1(FundamentalSystemBridge["gameplayManagerComposite"]);
+
+
+  }
+
   static loadUnlockManager() {
     let unlockManager = new UnlockManager();
     FundamentalSystemBridge.registerManager(
@@ -294,7 +307,7 @@ class FundamentalSystemBridge {
     } catch (error) {
       console.log(
         "Error in logCatastrophicRegistration of FundamentalSystemBridge - Catastrophe Manager or Logger not found: " +
-          error.message
+        error.message
       );
     }
   }
