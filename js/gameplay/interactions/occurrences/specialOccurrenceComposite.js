@@ -10,7 +10,6 @@ class SpecialOccurrenceComposite {
     occurrenceItemData, // Item data related to the occurrence.
     occurrenceProgressData, // Progress data related to the occurrence.
     occurrenceSpecialEventData, // Special event data related to the occurrence.
-    occurrencePetData, // Pet data related to the occurrence.
     occurrenceHyperspecificOtherData // Additional hyperspecific data related to the occurrence.
   ) {
     this.occurrenceHeader = occurrenceHeader;
@@ -18,7 +17,6 @@ class SpecialOccurrenceComposite {
     this.occurrenceItemData = occurrenceItemData;
     this.occurrenceProgressData = occurrenceProgressData;
     this.occurrenceSpecialEventData = occurrenceSpecialEventData;
-    this.occurrencePetData = occurrencePetData;
     this.occurrenceHyperspecificOtherData = occurrenceHyperspecificOtherData;
   }
 }

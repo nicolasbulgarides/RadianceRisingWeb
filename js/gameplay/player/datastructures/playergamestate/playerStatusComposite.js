@@ -45,7 +45,6 @@ class PlayerStatusComposite {
     this.playerCurrentActionStatus = new PlayerCurrentActionStatus(this);
     this.playerInventoryMain = new PlayerInventory();
     this.playerInventoryBackup = null;
-    this.playerUnlocksComposite = new PlayerUnlocksComposite();
     this.baseMaxSpeed = baseMaxSpeed;
     this.currentMaxSpeed = baseMaxSpeed;
   }
@@ -60,9 +59,9 @@ class PlayerStatusComposite {
     this.playerInventoryBackup = null;
   }
 
-  addOrSubtractMultipleItemsFromInventory(allItemsToAddOrSubtract) {}
+  addOrSubtractMultipleItemsFromInventory(allItemsToAddOrSubtract) { }
 
-  addOrSubtractItemFromInventory(itemName, quantity) {}
+  addOrSubtractItemFromInventory(itemName, quantity) { }
 
   /**
    * Factory method to return a new PlayerStatus instance with full magic and health.
