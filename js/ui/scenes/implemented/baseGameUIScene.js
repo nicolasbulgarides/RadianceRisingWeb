@@ -488,7 +488,7 @@ class BaseGameUIScene extends UISceneGeneralized {
         gameWorldScene,
         player,
         {
-          radius: fireballRadius * 0.66,
+          radius: fireballRadius * 1.0,
           intensity: 2.0, // Even higher intensity for maximum visibility
           duration: 10000 // 10 seconds - much longer so you can see it
         }
