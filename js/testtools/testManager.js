@@ -13,26 +13,6 @@ class TestManager {
       ].loadFactorySupportSystems();
     }
 
-    // Use mountain path test instead of standard level loading
-    const useMountainPathTest = true; // Set to false to use standard level loading
-
-    // Choose between real model mountains and fallback cylinder mountains
-    const useFallbackVisualization = false; // Set to true to use cylinder mountains
-
-    if (useMountainPathTest) {
-      // Use mountain path test for level generation
-      //console.log("Using Mountain Path Test for level generation");
-      const gameplayLevel = await this.runMountainPathTest("default", {
-        useFallbackVisualization,
-      });
-
-      if (!gameplayLevel) {
-        //GameplayLogger.lazyLog("Failed to load mountain path level");
-        return;
-      }
-
-      return;
-    }
 
     // Standard level loading (only runs if useMountainPathTest is false)
     let gameplayLevel = await this.loadLevelAndPlayer(gameplayManager);
@@ -86,6 +66,12 @@ class TestManager {
     return gameplayLevel;
   }
 
+
+
+
+  /**
+   * Core code thjat pulls gameplay testlevel data, currently a level full of mangos, needs to be paramaterized as of 12-2-2025
+   */
   async generateGameplayLevelComposite(gameplayManager) {
     // Use the new TestLevelDataLoader to create a LevelDataComposite
     let levelDataComposite = TestLevelDataCompositeLoader.createTestLevelData();
@@ -316,86 +302,4 @@ class TestManager {
     }
   }
 
-  /**
-   * Directly runs a mountain path test without going through normal level loading
-   * @param {string} testType - Type of test to run ('default', 'custom', 'random')
-   * @param {Object} options - Options for custom test
-   * @returns {Promise<ActiveGameplayLevel>} The created level
-   */
-  async runMountainPathTest(testType = "default", options = {}) {
-    // console.log(`Running mountain path test type: ${testType}`);
-
-    try {
-      // Ensure systems are loaded
-      if (!LevelFactoryComposite.checkTilesLoaded()) {
-        await FundamentalSystemBridge[
-          "levelFactoryComposite"
-        ].loadFactorySupportSystems();
-      }
-
-      // Set default visualization option
-      const useFallbackVisualization =
-        options.useFallbackVisualization || false;
-      /** 
-      console.log(
-        `Using ${
-          useFallbackVisualization ? "fallback cylinder" : "real model"
-        } mountain visualization`
-      );
-
-      */
-      let gameplayLevel = null;
-
-      switch (testType.toLowerCase()) {
-        case "custom":
-          const {
-            startPosition = { x: 2, y: 0.25, z: 2 },
-            endPosition = { x: 8, y: 0.25, z: 8 },
-            width = 11,
-            depth = 11,
-            obstacleRatio = 0.3,
-          } = options;
-
-          gameplayLevel = await MountainPathTest.runCustomTest(
-            startPosition,
-            endPosition,
-            width,
-            depth,
-            obstacleRatio,
-            useFallbackVisualization
-          );
-          break;
-
-        case "random":
-          gameplayLevel = await MountainPathTest.generateRandomLevel(
-            useFallbackVisualization
-          );
-          break;
-
-        case "default":
-        default:
-          gameplayLevel = await MountainPathTest.runCompleteTest(
-            useFallbackVisualization
-          );
-          break;
-      }
-
-      if (gameplayLevel) {
-        // console.log("Mountain Path Test completed successfully");
-
-        // Ensure it's set as the active level
-        const gameplayManager =
-          FundamentalSystemBridge["gameplayManagerComposite"];
-        gameplayManager.setActiveGameplayLevel(gameplayLevel);
-
-        return gameplayLevel;
-      } else {
-        console.error("Mountain Path Test failed to create level");
-        return null;
-      }
-    } catch (error) {
-      console.error("Error in runMountainPathTest:", error);
-      return null;
-    }
-  }
 }

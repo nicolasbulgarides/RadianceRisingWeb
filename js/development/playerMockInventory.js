@@ -2,7 +2,6 @@ class PlayerMockInventory {
   constructor() {
     // Using a Map to store items with their quantities
     this.inventory = new Map();
-    console.log("PlayerMockInventory constructor called");
   }
 
   addItem(itemData) {
@@ -12,16 +11,13 @@ class PlayerMockInventory {
       // If item exists, increment quantity
       const existingEntry = this.inventory.get(itemName);
       existingEntry.quantity += 1;
-      console.log(
-        `Increased quantity of ${itemName} to ${existingEntry.quantity}`
-      );
+
     } else {
       // If new item, add it with quantity 1
       this.inventory.set(itemName, {
         itemData: itemData,
         quantity: 1,
       });
-      console.log(`Added new item ${itemName} to inventory`);
     }
   }
 

@@ -63,7 +63,7 @@ class Config {
   // Default values (player).
   static DEFAULT_NAME = "Francisco";
   static DEFAULT_MODEL = "mechaSphereBlueBase";
-  static DEFAULT_MAX_SPEED = 4;
+  static DEFAULT_MAX_SPEED = 16;
   static DEFAULT_HINT_FREQUENCY = "often"; //default of option, can be "often", "sometimes','rare','pro,'legendary','developer'
 
   static GAME_SCENES_IN_DEVELOPMENT = {

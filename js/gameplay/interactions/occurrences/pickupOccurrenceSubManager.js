@@ -22,7 +22,6 @@ class PickupOccurrenceSubManager {
       let activeInventory = activePlayer.mockInventory;
 
       activeInventory.addItem(itemData);
-      console.log("Mango added to inventory");
     }
   }
 

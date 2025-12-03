@@ -1,81 +1,70 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Radiant Rays</title>
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
-    />
-    <script src="./libraries/babylon.js"></script>
-    <script src="./libraries/babylon.gui.js"></script>
-    <script src="./libraries/babylonloader.js"></script>
 
+<head>
+  <meta charset="UTF-8" />
+  <title>Radiant Rays</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <script src="./libraries/babylon.js"></script>
+  <script src="./libraries/babylon.gui.js"></script>
+  <script src="./libraries/babylonloader.js"></script>
 
-    <script src="./launch/diagnostics/catastropheManager.js"></script>
-    <script src="./launch/diagnostics/loggerCooldownRegistry.js"></script>
-    <script src="./launch/diagnostics/loggerOmega.js"></script>
-    <script src="./launch/diagnostics/initializationDiagnosticsLogger.js"></script>
-    <script src="./launch/diagnostics/benchmarkManager.js"></script>
+  <script src="./launch/diagnostics/catastropheManager.js"></script>
+  <script src="./launch/diagnostics/loggerCooldownRegistry.js"></script>
+  <script src="./launch/diagnostics/loggerOmega.js"></script>
+  <script src="./launch/diagnostics/initializationDiagnosticsLogger.js"></script>
+  <script src="./launch/diagnostics/benchmarkManager.js"></script>
+  <script src="./launch/launchsequence/config.js"></script>
+  <script src="./launch/launchsequence/scriptInitializer.js"></script>
+  <script src="./launch/launchsequence/fundamentalSystemBridge.js"></script>
+  <script src="./launch/launchsequence/radiantEngineManager.js"></script>
 
-    <script src="./launch/regional/regionalAdapationAccessCredentials.js"></script>
-    <script src="./launch/regional/regionalAdapationGameDataComposite.js"></script>
-    <script src="./launch/regional/regionalAdaptionRouter.js"></script>
-    <script src="./launch/regional/regionalAdaptionProfile.js"></script>
+  <style>
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      /* Prevent scrollbars */
+    }
 
+    canvas {
+      display: block;
+      /* Remove inline styling issues */
+      position: absolute;
+      /* Ensure it fills the container */
+      top: 0;
+      left: 0;
+      width: 100%;
+      /* Fixed width */
+      height: 100%;
+      /* Fixed height */
+    }
+  </style>
+</head>
 
+<body>
+  <canvas id="renderCanvas"></canvas>
 
-    <script src="./launch/launchsequence/config.js"></script>
-    <script src="./launch/launchsequence/scriptInitializer.js"></script>
-    <script src="./launch/launchsequence/fundamentalSystemBridge.js"></script>
-    <script src="./launch/launchsequence/radiantEngineManager.js"></script>
+  <script>
+    var canvas = document.getElementById("renderCanvas");
 
+    let runLocally = true;
 
-
-
-
-    <script src ="https://cdnjs.cloudflare.com/ajax/libs/platform/1.3.6/platform.min.js"></script>
-
-
-    <style>
-      html,
-      body {
-        width: 100%;
-        height: 100%;
-        margin: 0;
-        padding: 0;
-        overflow: hidden; /* Prevent scrollbars */
-      }
-
-      canvas {
-        display: block; /* Remove inline styling issues */
-        position: absolute; /* Ensure it fills the container */
-        top: 0;
-        left: 0;
-        width: 100%; /* Fixed width */
-        height: 100%; /* Fixed height */
-      }
-    </style>
-  </head>
-  <body>
-    <canvas id="renderCanvas"></canvas>
-
-    <script>
-      var canvas = document.getElementById("renderCanvas");
-
-      let runLocally = false;
-
-      if (Config.STATUS_ENVIRONMENT.toUpperCase() === "PRODUCTION" 
+    if (Config.STATUS_ENVIRONMENT.toUpperCase() === "PRODUCTION"
       && Config.STATUS_IN_DEPLOYMENT == true && Config.STATUS_IN_DEVELOPMENT == false) {
-        runLocally = false;
-        Config.finalizeLocalDetermination(runLocally);
-      } else {
-        runLocally = true;
-      }
+      runLocally = false;
       Config.finalizeLocalDetermination(runLocally);
+    } else {
+      runLocally = true;
+    }
+    Config.finalizeLocalDetermination(runLocally);
 
 
-      var scriptInitializer = new ScriptInitializer(canvas, runLocally);
-    </script>
-  </body>
+    var scriptInitializer = new ScriptInitializer(canvas, runLocally);
+  </script>
+</body>
+
 </html>

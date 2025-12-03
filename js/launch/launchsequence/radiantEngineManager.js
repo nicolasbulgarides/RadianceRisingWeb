@@ -78,7 +78,7 @@ class RadiantEngineManager {
   }
 
   //rewards, mojo, items, achievements, competitive
-  loadGameplayNonEssentialSystems() {}
+  loadGameplayNonEssentialSystems() { }
   /**
    * Called on each render loop frame.
    * Updates gameplay and other per-frame processes.
