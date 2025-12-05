@@ -1,6 +1,7 @@
 class PickupOccurrenceSubManager {
   constructor() {
     this.stardustPickupCount = 0;
+    this.currentExperience = 0; // Track current experience (max 24 segments)
   }
 
   processPickupOccurrence(pickupOccurrence) {
@@ -59,10 +60,33 @@ class PickupOccurrenceSubManager {
     return itemData;
   }
 
+  /**
+   * Updates the experience bar UI with the current experience count.
+   * Caps experience at 24 (the maximum number of segments).
+   */
+  updateExperienceBar() {
+    // Cap experience at 24 (maximum segments)
+    const visibleSegments = Math.min(this.currentExperience, 24);
+
+    // Get the UI scene and update the experience bar
+    const renderSceneSwapper = FundamentalSystemBridge["renderSceneSwapper"];
+    if (renderSceneSwapper) {
+      const uiScene = renderSceneSwapper.getActiveUIScene();
+      if (uiScene && uiScene.setExperienceBarSegments) {
+        uiScene.setExperienceBarSegments(visibleSegments);
+        //nsole.log(`[PICKUP] Updated experience bar to ${visibleSegments} segments (total experience: ${this.currentExperience})`);
+      }
+    }
+  }
+
   async processStardustPickup(pickupOccurrence) {
     // Increment pickup count
     this.stardustPickupCount++;
-    console.log(`[PICKUP] Stardust pickup #${this.stardustPickupCount} processed`);
+    //  console.log(`[PICKUP] Stardust pickup #${this.stardustPickupCount} processed`);
+
+    // Add 1 experience for each stardust pickup
+    this.currentExperience += 1;
+    this.updateExperienceBar();
 
     // Get the scene for playing sounds - try multiple methods
     let scene = FundamentalSystemBridge["renderSceneSwapper"]?.getActiveGameLevelScene();
@@ -106,9 +130,13 @@ class PickupOccurrenceSubManager {
       }
     }
 
-    // If this is the 4th pickup, trigger explosion effect and play "endOfLevelPerfect" immediately
+    // If this is the 4th pickup, trigger explosion effect, add 4 more experience, and play "endOfLevelPerfect" immediately
     if (this.stardustPickupCount === 4) {
       console.log(`[PICKUP] 4th pickup detected! Triggering explosion effect and playing endOfLevelPerfect sound`);
+
+      // Add 4 more experience for level completion
+      this.currentExperience += 4;
+      this.updateExperienceBar();
 
       // Trigger explosion effect immediately (don't await, let it run in background)
       const effectGenerator = new EffectGenerator();
