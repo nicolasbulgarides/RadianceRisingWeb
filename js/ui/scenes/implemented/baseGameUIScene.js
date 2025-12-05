@@ -327,10 +327,10 @@ class BaseGameUIScene extends UISceneGeneralized {
   }
 
   /**
-   * Creates the FPS counter text to the right of the hearts.
+   * Creates the FPS counter text below the hearts.
    */
   createFPSCounter() {
-    // Calculate position to the right of hearts
+    // Calculate position below hearts (same center as hearts)
     const expBarSize = Config.IDEAL_UI_WIDTH * 0.3024; // Same size as experience bar
     const leftMargin = 50;
     const halfBarSize = expBarSize / 2;
@@ -339,16 +339,15 @@ class BaseGameUIScene extends UISceneGeneralized {
     const availableRightSpace = (Config.IDEAL_UI_WIDTH / 2) - rightMargin - expBarRightEdge;
     const centerOfRightSpace = expBarRightEdge + (availableRightSpace / 2);
 
-    // Position to the right of hearts (hearts are centered at centerOfRightSpace)
+    // Position below hearts (hearts are centered at centerOfRightSpace)
     const heartBarSize = 125;
     const heartSpacing = 10;
-    const totalHeartBarWidth = (heartBarSize * 3) + (heartSpacing * 2);
     const levelNameOffsetY = -Config.IDEAL_UI_HEIGHT * 0.02 - 75;
     const heartBarOffsetY = levelNameOffsetY + Config.IDEAL_UI_HEIGHT * 0.05 + (heartBarSize / 2) - 75 + 100;
 
-    // Position FPS counter to the right of hearts
-    const fpsOffsetX = centerOfRightSpace + (totalHeartBarWidth / 2) + 30; // 30px spacing from hearts
-    const fpsOffsetY = heartBarOffsetY; // Same vertical position as hearts
+    // Position FPS counter below hearts, centered
+    const fpsOffsetX = centerOfRightSpace; // Centered with hearts
+    const fpsOffsetY = heartBarOffsetY + (heartBarSize / 2) + 20; // Below hearts with 20px spacing
 
     // Create FPS counter text
     this.fpsCounterText = new BABYLON.GUI.TextBlock("fpsCounter", "FPS: --");
@@ -359,7 +358,7 @@ class BaseGameUIScene extends UISceneGeneralized {
     this.fpsCounterText.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
     this.fpsCounterText.left = fpsOffsetX + "px";
     this.fpsCounterText.top = fpsOffsetY + "px";
-    this.fpsCounterText.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+    this.fpsCounterText.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER; // Centered below hearts
     this.topUIControlsContainer.addControl(this.fpsCounterText);
   }
 
