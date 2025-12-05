@@ -411,7 +411,7 @@ class BaseGameUIScene extends UISceneGeneralized {
       const fps = Math.round((this.fpsFrameCount * 1000) / timeElapsed);
 
       // Update the display
-      if (this.fpsCounterText && this.fpsFrameCount % 60 == 0) {
+      if (this.fpsCounterText && this.fpsFrameCount % 4 == 0) {
         this.fpsCounterText.text = `FPS: ${fps}`;
       }
 
