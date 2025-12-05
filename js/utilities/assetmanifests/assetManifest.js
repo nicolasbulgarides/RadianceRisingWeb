@@ -89,7 +89,7 @@ class AssetManifest {
     testMango: "testMango.glb",
     testMaskRainbow: "testMaskRainbow.glb",
     testMoonSilver: "testMoonSilver.glb",
-    testMountain: "testMountain.glb",
+    testMountain: "tree.glb",
     testQuestion: "testQuestion.glb",
     testRefreshRainbow: "testRefreshRainbow.glb",
     testSphereStarBlue: "testSphereStarBlue.glb",
