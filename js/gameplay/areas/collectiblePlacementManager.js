@@ -112,25 +112,18 @@ class CollectiblePlacementManager {
 
     const playerPosition = player.playerMovementManager.currentPosition;
 
-    // Calculate 2D distance (ignore Y difference for ground-level pickups)
+    // Calculate absolute distances in x and z dimensions (ignore Y difference for ground-level pickups)
     // This allows pickup while moving over the collectible at any Y position
     const dx = collectiblePosition.x - playerPosition.x;
     const dz = collectiblePosition.z - playerPosition.z;
-    const horizontalDistance = Math.sqrt(dx * dx + dz * dz);
+    const absDx = Math.abs(dx);
+    const absDz = Math.abs(dz);
 
-    // Log distance check (only when close to avoid spam, and only occasionally)
-    if (horizontalDistance < 2.0) {
-      if (false && !this._lastDistanceLog || Date.now() - this._lastDistanceLog > 2000) {
-        console.log(`[PICKUP DISTANCE] Player at (${playerPosition.x.toFixed(2)}, ${playerPosition.z.toFixed(2)}), Collectible at (${collectiblePosition.x.toFixed(2)}, ${collectiblePosition.z.toFixed(2)}), Distance: ${horizontalDistance.toFixed(2)}`);
-        this._lastDistanceLog = Date.now();
-      }
-    }
-
-    // Use a larger threshold (1.5 units) to make pickup easier while moving
-    const isNear = horizontalDistance < 1.5;
+    // Pickup only occurs if both absolute x and z distances are less than 0.1 (crossover requirement)
+    const isNear = absDx < 0.1 && absDz < 0.1;
 
     if (isNear) {
-      // console.log(`[PICKUP DISTANCE] ✓ Within pickup range! Distance: ${horizontalDistance.toFixed(2)}`);
+      // console.log(`[PICKUP DISTANCE] ✓ Within pickup range! dx: ${absDx.toFixed(3)}, dz: ${absDz.toFixed(3)}`);
     }
 
     return isNear;

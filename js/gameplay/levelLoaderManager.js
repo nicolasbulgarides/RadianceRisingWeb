@@ -419,7 +419,7 @@ class LevelLoaderManager {
             const offset = new BABYLON.Vector3(0, 0, 0);
             const rotation = new BABYLON.Vector3(0, 0, 0);
             const stardustObject = new PositionedObject(
-                "testSphereStarRed",
+                "sphereNew_transmissiveStainedGlass",
                 position,
                 rotation,
                 offset,

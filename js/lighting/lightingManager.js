@@ -30,12 +30,12 @@ class LightingManager {
     // Create a directional light (sun) shining from above
     this.directionalLight = new BABYLON.DirectionalLight(
       "SunLight",
-      new BABYLON.Vector3(0, -1, 0), // Direction pointing down (from above)
+      new BABYLON.Vector3(1, -1, 0), // Direction pointing down (from above)
       sceneToAddLightsTo
     );
 
     // Set intensity to 10
-    this.directionalLight.intensity = 20;
+    this.directionalLight.intensity = 15;
 
     // Set light color to white (default)
     this.directionalLight.diffuse = new BABYLON.Color3(1, 1, 1);
