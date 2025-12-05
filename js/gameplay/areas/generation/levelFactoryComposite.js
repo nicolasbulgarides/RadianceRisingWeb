@@ -46,7 +46,7 @@ class LevelFactoryComposite {
         gameplayLevel.starfieldBackdrop.dispose();
       }
       // Create new starfield backdrop
-      gameplayLevel.starfieldBackdrop = new StarfieldBackdrop(gameplayLevel.hostingScene);
+      // gameplayLevel.starfieldBackdrop = new StarfieldBackdrop(gameplayLevel.hostingScene);
     }
 
     // Get dimensions for grid generation
