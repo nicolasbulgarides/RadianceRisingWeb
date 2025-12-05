@@ -121,22 +121,69 @@ class Config {
 
   /**
    * Adds support for custom audio unlocking.
-   * Unlocks the audio engine immediately to allow music to play before user interaction.
+   * Sets up an event listener for the first user click to unlock the audio engine.
+   * On mobile, audio must be unlocked via user interaction due to browser security restrictions.
    */
   static addAudioUnlock() {
     try {
       BABYLON.Engine.audioEngine.useCustomUnlockedButton = true;
-      
-      // Unlock audio immediately instead of waiting for user click
-      // This allows music to play before any user interaction
-      if (!BABYLON.Engine.audioEngine.unlocked) {
-        BABYLON.Engine.audioEngine.unlock();
-      }
+
+      // Unlock on first user interaction (click, touch, etc.)
+      const unlockAudio = () => {
+        if (!BABYLON.Engine.audioEngine.unlocked) {
+          BABYLON.Engine.audioEngine.unlock();
+          // Start music immediately after unlock
+          Config.startMusicAfterUnlock();
+        }
+      };
+
+      // Listen for various user interaction events to ensure mobile compatibility
+      window.addEventListener("click", unlockAudio, { once: true });
+      window.addEventListener("touchstart", unlockAudio, { once: true });
+      window.addEventListener("touchend", unlockAudio, { once: true });
     } catch (err) {
       InitializationDiagnosticsLogger.logPhaseError(
         "RadiantEngineConstructor-Failure to unlock audio engine: ",
         ", Error Found: " + err
       );
     }
+  }
+
+  /**
+   * Starts the background music after audio is unlocked.
+   * Called automatically when audio context is unlocked via user interaction.
+   */
+  static startMusicAfterUnlock() {
+    // Try to start music immediately after unlock
+    const tryStartMusic = () => {
+      const musicManager = FundamentalSystemBridge["musicManager"];
+      const renderSceneSwapper = FundamentalSystemBridge["renderSceneSwapper"];
+
+      if (musicManager && renderSceneSwapper) {
+        let scene = renderSceneSwapper.getActiveGameLevelScene();
+        if (!scene) {
+          scene = renderSceneSwapper.getActiveUIScene();
+        }
+
+        if (scene) {
+          try {
+            musicManager.playSong(scene, "crystalVoyage", true, true);
+            console.log("[AUDIO UNLOCK] Started crystalVoyage music on loop");
+          } catch (error) {
+            console.warn("[AUDIO UNLOCK] Failed to start music:", error);
+            // Retry after a short delay if it fails
+            setTimeout(tryStartMusic, 100);
+          }
+        } else {
+          // Scenes not ready yet, retry after a short delay
+          setTimeout(tryStartMusic, 100);
+        }
+      } else {
+        // Systems not ready yet, retry after a short delay
+        setTimeout(tryStartMusic, 100);
+      }
+    };
+
+    tryStartMusic();
   }
 }
