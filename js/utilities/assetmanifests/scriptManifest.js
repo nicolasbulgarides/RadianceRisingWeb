@@ -174,6 +174,7 @@ class ScriptManifest {
     "/utilities/starfieldBackdrop.js",
     "/utilities/fireballEffect.js",
     "/utilities/fireballEffect2.js",
+    "/effects/effectGenerator.js",
   ];
 
   static developmentScripts = [

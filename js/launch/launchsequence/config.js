@@ -121,21 +121,17 @@ class Config {
 
   /**
    * Adds support for custom audio unlocking.
-   * Sets up an event listener for the first user click to unlock the audio engine.
+   * Unlocks the audio engine immediately to allow music to play before user interaction.
    */
   static addAudioUnlock() {
     try {
       BABYLON.Engine.audioEngine.useCustomUnlockedButton = true;
-
-      window.addEventListener(
-        "click",
-        () => {
-          if (!BABYLON.Engine.audioEngine.unlocked) {
-            BABYLON.Engine.audioEngine.unlock();
-          }
-        },
-        { once: true }
-      );
+      
+      // Unlock audio immediately instead of waiting for user click
+      // This allows music to play before any user interaction
+      if (!BABYLON.Engine.audioEngine.unlocked) {
+        BABYLON.Engine.audioEngine.unlock();
+      }
     } catch (err) {
       InitializationDiagnosticsLogger.logPhaseError(
         "RadiantEngineConstructor-Failure to unlock audio engine: ",

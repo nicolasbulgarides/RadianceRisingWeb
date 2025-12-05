@@ -292,6 +292,14 @@ class LevelLoaderManager {
                 loadingScreen.destroy();
             }
 
+            // Start crystal voyage music on loop
+            const musicManager = FundamentalSystemBridge["musicManager"];
+            const activeScene = FundamentalSystemBridge["renderSceneSwapper"]?.getActiveGameLevelScene();
+            if (musicManager && activeScene) {
+                musicManager.playSong(activeScene, "crystalVoyage", true, true);
+                console.log("[LEVEL LOADER] Started crystalVoyage music on loop");
+            }
+
             return gameplayLevel;
         } catch (error) {
             console.error("Error loading level from server:", error);
@@ -635,48 +643,6 @@ class LevelLoaderManager {
         }
 
         return activeDemoGameplayLevel;
-    }
-
-
-    /**
-     * Creates a custom test level with specific dimensions and obstacles
-     * @param {string} levelId - The level ID
-     * @param {string} levelNickname - The level nickname
-     * @param {number} width - Grid width
-     * @param {number} depth - Grid depth
-     * @param {Object} playerStart - Player starting position {x, y, z}
-     * @param {Array} obstacles - Array of obstacle definitions (optional)
-     * @returns {LevelDataComposite} The configured level data composite
-     */
-    createCustomTestLevel(
-        levelId,
-        levelNickname,
-        width,
-        depth,
-        playerStart,
-        obstacles = []
-    ) {
-        let levelDataComposite;
-
-        if (obstacles.length > 0) {
-            // Create a level with custom obstacles
-            levelDataComposite = TestLevelDataLoader.createLevelWithObstacles(
-                levelId,
-                levelNickname,
-                obstacles
-            );
-        } else {
-            // Create a level with just custom dimensions
-            levelDataComposite = TestLevelDataLoader.createCustomTestLevel(
-                levelId,
-                levelNickname,
-                width,
-                depth,
-                playerStart
-            );
-        }
-
-        return levelDataComposite;
     }
 
 }

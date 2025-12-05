@@ -72,6 +72,48 @@ class RadiantEngineManager {
     FundamentalSystemBridge.loadRenderSceneSwapper();
     FundamentalSystemBridge.loadSoundManagers();
     FundamentalSystemBridge.loadLevelFactoryComposite();
+
+    // Start crystal voyage music on loop as soon as scenes and sound managers are ready
+    this.startBackgroundMusic();
+  }
+
+  startBackgroundMusic() {
+    // Try to start music immediately, but retry if scenes aren't ready yet
+    const tryStartMusic = () => {
+      const musicManager = FundamentalSystemBridge["musicManager"];
+      const renderSceneSwapper = FundamentalSystemBridge["renderSceneSwapper"];
+
+      if (musicManager && renderSceneSwapper) {
+        // Try to get the active game level scene first
+        let scene = renderSceneSwapper.getActiveGameLevelScene();
+
+        // If no game scene yet, try to get the UI scene as fallback
+        if (!scene) {
+          scene = renderSceneSwapper.getActiveUIScene();
+        }
+
+        // If we have a scene, start the music
+        if (scene) {
+          try {
+            musicManager.playSong(scene, "crystalVoyage", true, true);
+            console.log("[RADIANT ENGINE] Started crystalVoyage music on loop");
+          } catch (error) {
+            console.warn("[RADIANT ENGINE] Failed to start music:", error);
+            // Retry after a short delay if it fails
+            setTimeout(tryStartMusic, 500);
+          }
+        } else {
+          // Scenes not ready yet, retry after a short delay
+          setTimeout(tryStartMusic, 100);
+        }
+      } else {
+        // Systems not ready yet, retry after a short delay
+        setTimeout(tryStartMusic, 100);
+      }
+    };
+
+    // Start trying immediately
+    tryStartMusic();
   }
 
   loadGameplayEssentialSystems() {

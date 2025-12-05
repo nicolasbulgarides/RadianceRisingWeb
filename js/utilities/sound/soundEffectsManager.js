@@ -11,6 +11,7 @@ class SoundEffectsManager {
   static baseDelay = 3000; // Increased base delay to 3 seconds
   static soundLoadDelay = 2000; // Increased delay between sounds to 2 seconds
   static failedSounds = new Set(); // Track failed sound loads
+  static recentlyPlayedSounds = new Map(); // Track recently played sounds to prevent duplicates (soundName -> timestamp)
 
   constructor() {
     this.loadQueue = [];
@@ -183,6 +184,27 @@ class SoundEffectsManager {
 
     const templateSound = SoundEffectsManager.sounds.get(soundName);
     if (templateSound) {
+      // For pickup sequence sounds, prevent the same sound from playing multiple times in quick succession
+      // This prevents duplicate playback when the same pickup is processed multiple times
+      const now = Date.now();
+      const lastPlayed = SoundEffectsManager.recentlyPlayedSounds.get(soundName);
+      const cooldownMs = 100; // 100ms cooldown to prevent duplicate plays
+
+      if (lastPlayed && (now - lastPlayed) < cooldownMs) {
+        // Sound was recently played, skip to prevent duplicates
+        return;
+      }
+
+      // Update the last played timestamp
+      SoundEffectsManager.recentlyPlayedSounds.set(soundName, now);
+
+      // Clean up old entries (older than 1 second)
+      for (const [name, timestamp] of SoundEffectsManager.recentlyPlayedSounds.entries()) {
+        if (now - timestamp > 1000) {
+          SoundEffectsManager.recentlyPlayedSounds.delete(name);
+        }
+      }
+
       // Check if the sound is currently playing
       // If it is, create a new instance to allow concurrent playback
       // If not, we can reuse the existing instance

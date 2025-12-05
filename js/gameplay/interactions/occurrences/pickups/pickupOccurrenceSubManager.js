@@ -106,30 +106,28 @@ class PickupOccurrenceSubManager {
       }
     }
 
-    // If this is the 4th pickup, play "endOfLevelPerfect" after 1 second delay
+    // If this is the 4th pickup, trigger explosion effect and play "endOfLevelPerfect" immediately
     if (this.stardustPickupCount === 4) {
-      console.log(`[PICKUP] 4th pickup detected! Scheduling endOfLevelPerfect sound`);
-      setTimeout(async () => {
-        // Re-fetch scene in case it changed
-        let delayedScene = FundamentalSystemBridge["renderSceneSwapper"]?.getActiveGameLevelScene();
-        if (!delayedScene) {
-          const gameplayManager = FundamentalSystemBridge["gameplayManagerComposite"];
-          if (gameplayManager?.primaryActiveGameplayLevel?.hostingScene) {
-            delayedScene = gameplayManager.primaryActiveGameplayLevel.hostingScene;
-          }
-        }
+      console.log(`[PICKUP] 4th pickup detected! Triggering explosion effect and playing endOfLevelPerfect sound`);
 
-        if (delayedScene) {
-          try {
-            await SoundEffectsManager.playSound("endOfLevelPerfect", delayedScene);
-            console.log(`[PICKUP] Playing endOfLevelPerfect sound`);
-          } catch (error) {
-            console.error(`[PICKUP] Error playing endOfLevelPerfect sound:`, error);
-          }
-        } else {
-          console.warn(`[PICKUP] Cannot play endOfLevelPerfect: scene not found`);
-        }
-      }, 1000);
+      // Trigger explosion effect immediately (don't await, let it run in background)
+      const effectGenerator = new EffectGenerator();
+      effectGenerator.explosionEffect({
+        type: 'magic', // Use magic type for a celebratory effect
+        intensity: 1.5,
+        duration: 5.0 // 5 second duration
+      }).catch(error => {
+        console.error(`[PICKUP] Error triggering explosion effect:`, error);
+      });
+
+      // Play "endOfLevelPerfect" sound immediately (no delay)
+      try {
+        await SoundEffectsManager.playSound("endOfLevelPerfect", scene);
+        console.log(`[PICKUP] Playing endOfLevelPerfect sound`);
+      } catch (error) {
+        console.error(`[PICKUP] Error playing endOfLevelPerfect sound:`, error);
+      }
     }
+
   }
 }
