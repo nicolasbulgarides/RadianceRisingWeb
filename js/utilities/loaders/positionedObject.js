@@ -235,10 +235,10 @@ class PositionedObject {
    * Disposes of the loaded model to free up resources.
    */
   disposeModel() {
-    console.log(`[DISPOSE] disposeModel() called for modelId: ${this.modelId}`);
+    //console.log(`[DISPOSE] disposeModel() called for modelId: ${this.modelId}`);
 
     if (!this.model) {
-      console.log(`[DISPOSE] No model to dispose (model is null/undefined)`);
+      // console.log(`[DISPOSE] No model to dispose (model is null/undefined)`);
       return;
     }
 
@@ -253,76 +253,28 @@ class PositionedObject {
 
     // Handle ImportMeshAsync result structure (has meshes, particleSystems, skeletons, animationGroups)
     if (this.model.meshes && Array.isArray(this.model.meshes)) {
-      console.log(`[DISPOSE] Disposing ${this.model.meshes.length} meshes...`);
+      // console.log(`[DISPOSE] Disposing ${this.model.meshes.length} meshes...`);
       // Dispose all meshes - this automatically removes them from the scene
       for (let i = 0; i < this.model.meshes.length; i++) {
         const mesh = this.model.meshes[i];
         if (mesh) {
+          /** 
           console.log(`[DISPOSE] Disposing mesh ${i}:`, {
             name: mesh.name,
             hasDispose: typeof mesh.dispose === 'function',
             isDisposed: mesh.isDisposed || false
           });
+          */
           if (typeof mesh.dispose === 'function') {
             mesh.dispose();
-            console.log(`[DISPOSE] Mesh ${i} disposed`);
+            // console.log(`[DISPOSE] Mesh ${i} disposed`);
           } else {
-            console.warn(`[DISPOSE] Mesh ${i} does not have dispose() method`);
+            // console.warn(`[DISPOSE] Mesh ${i} does not have dispose() method`);
           }
         }
       }
     } else {
-      console.log(`[DISPOSE] No meshes array found in model`);
+      //console.log(`[DISPOSE] No meshes array found in model`);
     }
-
-    // Dispose particle systems if present
-    if (this.model.particleSystems && Array.isArray(this.model.particleSystems)) {
-      console.log(`[DISPOSE] Disposing ${this.model.particleSystems.length} particle systems...`);
-      for (let i = 0; i < this.model.particleSystems.length; i++) {
-        const ps = this.model.particleSystems[i];
-        if (ps && typeof ps.dispose === 'function') {
-          ps.dispose();
-        }
-      }
-    }
-
-    // Dispose skeletons if present
-    if (this.model.skeletons && Array.isArray(this.model.skeletons)) {
-      console.log(`[DISPOSE] Disposing ${this.model.skeletons.length} skeletons...`);
-      for (let i = 0; i < this.model.skeletons.length; i++) {
-        const skeleton = this.model.skeletons[i];
-        if (skeleton && typeof skeleton.dispose === 'function') {
-          skeleton.dispose();
-        }
-      }
-    }
-
-    // Dispose animation groups if present
-    if (this.model.animationGroups && Array.isArray(this.model.animationGroups)) {
-      console.log(`[DISPOSE] Disposing ${this.model.animationGroups.length} animation groups...`);
-      for (let i = 0; i < this.model.animationGroups.length; i++) {
-        const ag = this.model.animationGroups[i];
-        if (ag && typeof ag.dispose === 'function') {
-          ag.dispose();
-        }
-      }
-    }
-
-    // If model is a single mesh (not ImportMeshAsync result), dispose it directly
-    if (typeof this.model.dispose === 'function' && !this.model.meshes) {
-      console.log(`[DISPOSE] Disposing model directly (single mesh)`);
-      this.model.dispose();
-    }
-
-    this.model = null;
-    console.log(`[DISPOSE] Model reference cleared. Model is now:`, this.model);
-
-    // Also clear the baseMesh reference if it exists
-    if (this.baseMesh) {
-      this.baseMesh = null;
-      console.log(`[DISPOSE] BaseMesh reference cleared`);
-    }
-
-    console.log(`[DISPOSE] disposeModel() completed for modelId: ${this.modelId}`);
   }
 }
