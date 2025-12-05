@@ -25,9 +25,9 @@ class BaseGameUIScene extends UISceneGeneralized {
     this.experienceBarSegments = []; // Store experience bar segments
     this.levelNameText = null; // Store level name text control
     this.fpsCounterText = null; // Store FPS counter text control
-    this.fpsFrameTimes = []; // Array to store frame times over last 10 seconds
+    this.fpsFrameCount = 0; // Counter for frames since last update
     this.fpsLastUpdateTime = 0; // Last time FPS was calculated
-    this.fpsFrameCounter = 0; // Counter to track frames for every-4-frame checks
+    this.fpsUpdateInterval = 1000; // Update FPS display every 1 second (1000ms)
     // Hint system removed - will be implemented differently
   }
 
@@ -386,46 +386,38 @@ class BaseGameUIScene extends UISceneGeneralized {
   }
 
   /**
-   * Updates the FPS counter by tracking frame times over the last 10 seconds.
-   * Only performs calculations every 4 frames for performance.
+   * Updates the FPS counter using a high-performance frame counting method.
+   * Tracks frames over a 1-second window and updates the display periodically.
    */
   updateFPSCounter() {
-    // Increment frame counter
-    this.fpsFrameCounter++;
+    const currentTime = performance.now();
 
-    // Only perform FPS calculation every 4 frames
-    if (this.fpsFrameCounter % 4 !== 0) {
+    // Initialize on first call
+    if (this.fpsLastUpdateTime === 0) {
+      this.fpsLastUpdateTime = currentTime;
+      this.fpsFrameCount = 0;
       return;
     }
 
-    const currentTime = performance.now();
+    // Increment frame counter
+    this.fpsFrameCount++;
 
-    // Add current frame time to the array
-    if (this.fpsLastUpdateTime > 0) {
-      const frameTime = currentTime - this.fpsLastUpdateTime;
-      this.fpsFrameTimes.push({
-        time: currentTime,
-        frameTime: frameTime
-      });
-    }
-    this.fpsLastUpdateTime = currentTime;
+    // Calculate time elapsed since last update
+    const timeElapsed = currentTime - this.fpsLastUpdateTime;
 
-    // Remove frame times older than 10 seconds
-    const tenSecondsAgo = currentTime - 10000; // 10 seconds in milliseconds
-    this.fpsFrameTimes = this.fpsFrameTimes.filter(entry => entry.time >= tenSecondsAgo);
-
-    // Calculate average FPS over the last 10 seconds
-    if (this.fpsFrameTimes.length > 0) {
-      const totalFrameTime = this.fpsFrameTimes.reduce((sum, entry) => sum + entry.frameTime, 0);
-      const averageFrameTime = totalFrameTime / this.fpsFrameTimes.length;
-      const averageFPS = averageFrameTime > 0 ? Math.round(1000 / averageFrameTime) : 0;
+    // Only update display every second (or when interval is reached)
+    if (timeElapsed >= this.fpsUpdateInterval) {
+      // Calculate FPS: frames / (time in seconds)
+      const fps = Math.round((this.fpsFrameCount * 1000) / timeElapsed);
 
       // Update the display
-      if (this.fpsCounterText) {
-        this.fpsCounterText.text = `FPS: ${averageFPS}`;
+      if (this.fpsCounterText && this.fpsFrameCount % 60 == 0) {
+        this.fpsCounterText.text = `FPS: ${fps}`;
       }
-    } else if (this.fpsCounterText) {
-      this.fpsCounterText.text = "FPS: --";
+
+      // Reset counters for next measurement period
+      this.fpsFrameCount = 0;
+      this.fpsLastUpdateTime = currentTime;
     }
   }
 
