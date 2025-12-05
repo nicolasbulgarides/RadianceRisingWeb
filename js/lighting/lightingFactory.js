@@ -25,10 +25,19 @@ class LightingFactory {
    * @param {Object} configurationTemplate - Lighting configuration data.
    */
   createEnvironmentLightsFromTemplateComposite(scene, configurationTemplate) {
-    let environmentLightTemplateBag =
-      this.lightingTemplateStorage.getEnvironmentLightingConfigurationBagFromTemplate(
-        configurationTemplate
-      );
+    // Check if configurationTemplate is already a bag object or a template name string
+    let environmentLightTemplateBag;
+    if (configurationTemplate && typeof configurationTemplate === 'object' && configurationTemplate.environmentLightingCount !== undefined) {
+      // It's already a bag object, use it directly
+      environmentLightTemplateBag = configurationTemplate;
+      //console.log(`[LIGHTING] Using provided template bag with ${environmentLightTemplateBag.environmentLightingCount} lights`);
+    } else {
+      // It's a template name string, look it up
+      environmentLightTemplateBag =
+        this.lightingTemplateStorage.getEnvironmentLightingConfigurationBagFromTemplate(
+          configurationTemplate
+        );
+    }
 
     let bagPropertiesArray =
       environmentLightTemplateBag.encapsulatePresetArrays();
@@ -59,6 +68,7 @@ class LightingFactory {
         let colorPreset = currentTemplate.environmentLightingColorPreset;
         let motionPreset = currentTemplate.environmentLightingMotionPreset;
 
+        // console.log(`[LIGHTING] Creating environment light ${factoryCounter} with colorPreset: "${colorPreset}"`);
         this.createEnvironmentLight(
           scene,
           "Env Light: " + factoryCounter,
@@ -83,11 +93,11 @@ class LightingFactory {
     ) {
       let archetype =
         environmentLightExperimentBag.environmentLightingArchetypes[
-          factoryCounter
+        factoryCounter
         ];
       let colorIndexes =
         environmentLightExperimentBag.environmentLightingColorPresets[
-          factoryCounter
+        factoryCounter
         ];
 
       let colorValues =
@@ -98,7 +108,7 @@ class LightingFactory {
       ChadUtilities.displayContents(colorValues, "Color Values Pre adjustment");
       let motionPreset =
         environmentLightExperimentBag.environmentLightingMotionPresets[
-          factoryCounter
+        factoryCounter
         ];
 
       this.createEnvironmentLightFromRawValues(
@@ -205,7 +215,7 @@ class LightingFactory {
       LoggerOmega.SmartLogger(
         true,
         "Unknown archetype in createEnvironmentLightFromRawValues: " +
-          archetype,
+        archetype,
         "LightingFactory"
       );
       return;
@@ -320,11 +330,11 @@ class LightingFactory {
    * @param {LightingObject} lightObject - The light to initialize.
    */
   adjustLightInitialValues(lightObject) {
-    const currentTime = performance.now();
+    const currentTime = performance.now() * 0.001; // Convert to seconds for better animation speed
     const profile = lightObject.colorShiftProfile;
 
     // Safely parse numeric values with defaults to 0 to prevent NaN calculations.
-    const baseIntensity = Number(profile.baseLightIntensity) || 0;
+    const baseIntensity = Number(profile.baseLightIntensity) || 1.0;
     const amplitude = Number(profile.baseLightIntensityAmplitude) || 0;
     const speed = Number(profile.baseLightIntensitySpeed) || 0;
     const phaseIntensity = Number(profile.lightIntensityPhaseRatio) || 0;
@@ -335,19 +345,28 @@ class LightingFactory {
     const phaseHue = Number(profile.colorShiftPhaseRatio) || 0;
 
     // Compute new intensity: baseIntensity + amplitude * sin( time * speed + phaseIntensity )
-    const newIntensity =
+    // Ensure intensity is always positive
+    const newIntensity = Math.max(0.1,
       baseIntensity +
-      amplitude * Math.sin(currentTime * speed + phaseIntensity);
+      amplitude * Math.sin(currentTime * speed + phaseIntensity)
+    );
     lightObject.light.intensity = newIntensity;
 
-    if (baseHue != 0) {
+    // Always set diffuse color - use baseHue if available, otherwise use white
+    if (baseHue > 0 || hueVariation > 0) {
       let newHue =
         baseHue + hueVariation * Math.sin(currentTime * hueSpeed + phaseHue);
+      // Wrap hue to 0-1 range
+      newHue = newHue % 1.0;
+      if (newHue < 0) newHue += 1.0;
       lightObject.light.diffuse = this.lightingPropertyCalculator.hsvToRgb(
         newHue,
         1,
         1
       );
+    } else {
+      // Fallback to white if no hue is specified
+      lightObject.light.diffuse = new BABYLON.Color3(1, 1, 1);
     }
   }
 
@@ -398,7 +417,19 @@ class LightingFactory {
         scene
       );
 
-      createdLight.intensity = colorPresetProfile.baseLightIntensity;
+      // Set initial intensity
+      createdLight.intensity = colorPresetProfile.baseLightIntensity || 1.0;
+
+      // Ensure light is enabled
+      createdLight.setEnabled(true);
+
+      // Disable shadows to prevent checkerboard patterns
+      if (createdLight.getShadowGenerator) {
+        createdLight.shadowEnabled = false;
+      }
+
+      // Set light to not cast shadows
+      createdLight.shadowEnabled = false;
 
       lightObject = new LightingObject(
         nickname,
@@ -414,7 +445,13 @@ class LightingFactory {
         this.lightingManager.registerPlayerChasingLight(lightObject);
       }
 
+      // Set initial diffuse color and adjust values
       this.adjustLightInitialValues(lightObject);
+
+      // Ensure diffuse color is set even if baseHue is 0 (fallback to white)
+      if (!createdLight.diffuse || createdLight.diffuse.r === 0 && createdLight.diffuse.g === 0 && createdLight.diffuse.b === 0) {
+        createdLight.diffuse = new BABYLON.Color3(1, 1, 1);
+      }
     }
   }
 

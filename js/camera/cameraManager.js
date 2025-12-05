@@ -35,23 +35,33 @@ class CameraManager {
    * @returns {BABYLON.ArcRotateCamera} The configured default camera.
    */
   setupGameLevelTestCamera() {
-    // Define the center of the game level
-    const centerX = 0; // Center of the X-axis
-    const centerZ = 0; // Center of the Z-axis
+    // Define the center of the game level for a 15x15 board
+    const centerX = 7; // Center of the X-axis for 15x15 board
+    const centerZ = 7; // Center of the Z-axis for 15x15 board
 
-    ///const centerX = 0;
-    ///const centerZ = 0;
-    // Create an ArcRotateCamera
-    const camera = new BABYLON.ArcRotateCamera(
+    // Camera position - directly above the center, looking straight down
+    const cameraX = centerX; // Match X with center for orthogonal view
+    const cameraY = 35; // Height above the board (lower = bigger/closer view)
+    const cameraZ = centerZ; // Match Z with center for orthogonal view
+
+    // Create a FreeCamera positioned directly above the board center
+    const camera = new BABYLON.FreeCamera(
       "gameLevelTestCamera",
-      Math.PI / 2, // Angle around the Y-axis (horizontal rotation)
-      Math.PI / 4, // Angle above the ground (vertical rotation)
-      30, // Distance from the target (radius)
-      new BABYLON.Vector3(centerX, 0, centerZ), // Target position (center of the game level)
-      this.scene // The scene
+      new BABYLON.Vector3(cameraX, cameraY, cameraZ),
+      this.scene
     );
 
-    // Attach camera controls to the canvas for interaction
+    // Set the camera to look straight down - target matches camera X/Z to keep it orthogonal
+    // This ensures the camera is perfectly orthogonal (perpendicular) to the board
+    camera.setTarget(new BABYLON.Vector3(cameraX, 0, cameraZ));
+
+    // Rotate camera to look straight down (rotation around X axis)
+    camera.rotation.x = Math.PI / 2; // 90 degrees to look straight down
+
+    // Rotate camera 180 degrees around Z-axis (horizontal/roll) so D-pad down moves down on board
+    camera.rotation.z = Math.PI; // 180 degrees rotation
+
+    // Disable camera controls to keep it fixed
     // camera.attachControl(this.scene.getEngine().getRenderingCanvas(), true);
 
     this.currentCamera = camera;
@@ -59,14 +69,29 @@ class CameraManager {
   }
 
   static setAndGetPlaceholderCamera(scene) {
-    const camera = new BABYLON.ArcRotateCamera(
+    // Use the same overhead view as the game camera to avoid visible transition
+    // Position directly above center (7, 40, 7) looking straight down at (7, 0, 7) for 15x15 board
+    const centerX = 7; // Center of the X-axis for 15x15 board
+    const centerZ = 7; // Center of the Z-axis for 15x15 board
+    const cameraX = centerX; // Match X with center for orthogonal view
+    const cameraY = 35; // Height above the board (lower = bigger/closer view)
+    const cameraZ = centerZ; // Match Z with center for orthogonal view
+
+    const camera = new BABYLON.FreeCamera(
       "defaultCamera",
-      Math.PI / 2,
-      Math.PI / 4,
-      10,
-      BABYLON.Vector3.Zero(),
+      new BABYLON.Vector3(cameraX, cameraY, cameraZ),
       scene
     );
+
+    // Set the camera to look straight down - target matches camera X/Z to keep it orthogonal
+    camera.setTarget(new BABYLON.Vector3(cameraX, 0, cameraZ));
+
+    // Rotate camera to look straight down (rotation around X axis)
+    camera.rotation.x = Math.PI / 2; // 90 degrees to look straight down
+
+    // Rotate camera 180 degrees around Z-axis (horizontal/roll) so D-pad down moves down on board
+    camera.rotation.z = Math.PI; // 180 degrees rotation
+
     return camera;
   }
 

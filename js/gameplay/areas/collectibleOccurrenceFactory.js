@@ -13,6 +13,8 @@ class CollectibleOccurrenceFactory {
 
     if (pickupType === "mango") {
       occurrence = this.createMangoPickupOccurrence();
+    } else if (pickupType === "stardust") {
+      occurrence = this.createStardustPickupOccurrence();
     }
 
     return occurrence;
@@ -31,6 +33,20 @@ class CollectibleOccurrenceFactory {
     );
 
     return mangoPickupOccurrence;
+  }
+
+  static createStardustPickupOccurrence() {
+    let stardustPickupHeader = this.getPickupHeader("stardustPickupOccurrence");
+    let stardustPickupBasicData = this.getPickupBasicData(false, 0, 0, 0, 0, 0);
+    let stardustPickupItemData = this.getPickupItemData(true, "stardust", 1, 0, 0);
+
+    let stardustPickupOccurrence = new SpecialOccurrenceComposite(
+      stardustPickupHeader,
+      stardustPickupBasicData,
+      stardustPickupItemData,
+    );
+
+    return stardustPickupOccurrence;
   }
 
   static createBasicPickupOccurrenceGeneralized() { }

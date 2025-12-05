@@ -15,19 +15,53 @@ class CollectiblePlacementManager {
   }
 
   checkCollectibleForPickupEventTrigger(microEvent) {
+    // Log that we're checking (throttled)
+    if (!this._checkCallCount) this._checkCallCount = 0;
+    this._checkCallCount++;
+    if (this._checkCallCount === 1 || this._checkCallCount % 120 === 0) {
+      //console.log(`[PICKUP CHECK] ✓ checkCollectibleForPickupEventTrigger() called (check ${this._checkCallCount})`);
+    }
+
+    if (!this.activeGameplayLevel) {
+      // Try to get it from gameplayManager as fallback
+      const gameplayManager = FundamentalSystemBridge["gameplayManagerComposite"];
+      if (gameplayManager && gameplayManager.primaryActiveGameplayLevel) {
+        this.activeGameplayLevel = gameplayManager.primaryActiveGameplayLevel;
+        // console.log(`[PICKUP CHECK] Retrieved primaryActiveGameplayLevel from gameplayManager`);
+      } else {
+        if (!this._lastNoActiveLevelWarning || Date.now() - this._lastNoActiveLevelWarning > 5000) {
+          // console.warn(`[PICKUP CHECK] CollectiblePlacementManager has no activeGameplayLevel!`);
+          this._lastNoActiveLevelWarning = Date.now();
+        }
+        return false;
+      }
+    }
+
     let player = this.activeGameplayLevel.currentPrimaryPlayer;
     let collectibleLocation = microEvent.microEventLocation;
 
-    if (player && collectibleLocation) {
-      let isPlayerNearMango = this.isPlayerNearMango(
-        player,
-        collectibleLocation
-      );
-
-      return isPlayerNearMango;
-    } else {
+    if (!player) {
+      // Only log occasionally to avoid spam
+      if (!this._lastNoPlayerLog || Date.now() - this._lastNoPlayerLog > 5000) {
+        //console.log(`[PICKUP CHECK] No player found in activeGameplayLevel. Registered players:`, this.activeGameplayLevel.registeredPlayers?.length || 0);
+        this._lastNoPlayerLog = Date.now();
+      }
       return false;
     }
+
+    if (!collectibleLocation) {
+      //console.log(`[PICKUP CHECK] No collectible location for event: ${microEvent.microEventNickname}`);
+      return false;
+    }
+
+    // Use generic distance check for all collectibles (works for mangos, stardust, etc.)
+    const isNear = this.isPlayerNearCollectible(player, collectibleLocation);
+
+    if (isNear) {
+      // console.log(`[PICKUP CHECK] Player is near collectible! Event: ${microEvent.microEventNickname}, Location:`, collectibleLocation);
+    }
+
+    return isNear;
   }
 
   /**
@@ -66,27 +100,50 @@ class CollectiblePlacementManager {
   }
 
   /**
-   * Checks if player is near a mango
+   * Checks if player is near a collectible (generic function for all pickup types)
+   * @param {PlayerUnit} player - The player unit
+   * @param {BABYLON.Vector3} collectiblePosition - Position of the collectible
+   * @returns {boolean} - Whether player is near the collectible
+   */
+  isPlayerNearCollectible(player, collectiblePosition) {
+    if (!player || !collectiblePosition) {
+      return false;
+    }
+
+    const playerPosition = player.playerMovementManager.currentPosition;
+
+    // Calculate 2D distance (ignore Y difference for ground-level pickups)
+    // This allows pickup while moving over the collectible at any Y position
+    const dx = collectiblePosition.x - playerPosition.x;
+    const dz = collectiblePosition.z - playerPosition.z;
+    const horizontalDistance = Math.sqrt(dx * dx + dz * dz);
+
+    // Log distance check (only when close to avoid spam, and only occasionally)
+    if (horizontalDistance < 2.0) {
+      if (False && !this._lastDistanceLog || Date.now() - this._lastDistanceLog > 2000) {
+        console.log(`[PICKUP DISTANCE] Player at (${playerPosition.x.toFixed(2)}, ${playerPosition.z.toFixed(2)}), Collectible at (${collectiblePosition.x.toFixed(2)}, ${collectiblePosition.z.toFixed(2)}), Distance: ${horizontalDistance.toFixed(2)}`);
+        this._lastDistanceLog = Date.now();
+      }
+    }
+
+    // Use a larger threshold (1.5 units) to make pickup easier while moving
+    const isNear = horizontalDistance < 1.5;
+
+    if (isNear) {
+      // console.log(`[PICKUP DISTANCE] ✓ Within pickup range! Distance: ${horizontalDistance.toFixed(2)}`);
+    }
+
+    return isNear;
+  }
+
+  /**
+   * Checks if player is near a mango (legacy function, kept for compatibility)
+   * @param {PlayerUnit} player - The player unit
    * @param {BABYLON.Vector3} mangoPosition - Position of the mango
    * @returns {boolean} - Whether player is near the mango
    */
   isPlayerNearMango(player, mangoPosition) {
-    if (!player || !mangoPosition) {
-      return false;
-    } else if (player && mangoPosition) {
-      // Account for the Y-offset of the mango
-      const adjustedMangoPosition = new BABYLON.Vector3(
-        mangoPosition.x,
-        mangoPosition.y - 0.25,
-        mangoPosition.z
-      );
-
-      const distance = BABYLON.Vector3.Distance(
-        player.playerMovementManager.currentPosition,
-        adjustedMangoPosition
-      );
-      return distance < 1.0; // Increased threshold for better detection
-    }
+    return this.isPlayerNearCollectible(player, mangoPosition);
   }
 
   /**

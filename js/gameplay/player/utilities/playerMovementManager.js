@@ -111,6 +111,58 @@ class PlayerMovementManager {
     return this.playerModelPositionedObject.model;
   }
 
+
+
+
+  /**
+   * Collects all meshes from a player model, including child meshes.
+   * 
+   * @param {BABYLON.Mesh|BABYLON.Node} playerModel - The player model mesh or node.
+   * @returns {Array<BABYLON.Mesh>} Array of all meshes in the player model.
+   */
+  collectAllPlayerMeshes() {
+
+    let playerModel = this.getPlayerModelDirectly();
+    const meshes = [];
+
+    if (!playerModel) {
+      return meshes;
+    }
+
+    // If it's a single mesh, add it
+    if (playerModel instanceof BABYLON.Mesh) {
+      meshes.push(playerModel);
+      // Also add all child meshes
+      if (playerModel.getChildMeshes) {
+        const childMeshes = playerModel.getChildMeshes();
+        childMeshes.forEach((child) => {
+          if (child instanceof BABYLON.Mesh && !meshes.includes(child)) {
+            meshes.push(child);
+          }
+        });
+      }
+    }
+    // If it has a meshes array (like a model root)
+    else if (playerModel.meshes && Array.isArray(playerModel.meshes)) {
+      playerModel.meshes.forEach((mesh) => {
+        if (mesh instanceof BABYLON.Mesh && !meshes.includes(mesh)) {
+          meshes.push(mesh);
+        }
+      });
+    }
+    // If it's a transform node with children
+    else if (playerModel.getChildMeshes) {
+      const childMeshes = playerModel.getChildMeshes();
+      childMeshes.forEach((child) => {
+        if (child instanceof BABYLON.Mesh && !meshes.includes(child)) {
+          meshes.push(child);
+        }
+      });
+    }
+
+    return meshes;
+  }
+
   /**
    * Returns the positioned object that encapsulates the player's model and associated methods.
    *
@@ -228,9 +280,8 @@ class PlayerMovementManager {
   describeMovement() {
     let msg = `Movement initialized: Speed = ${
       /* speed variable missing here */ "N/A"
-    }, Duration = ${this.durationInSeconds.toFixed(2)}s, Frames = ${
-      this.totalFrames
-    }`;
+      }, Duration = ${this.durationInSeconds.toFixed(2)}s, Frames = ${this.totalFrames
+      }`;
     GameplayLogger.lazyLog(msg);
   }
 

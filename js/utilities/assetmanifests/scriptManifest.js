@@ -18,8 +18,6 @@ class ScriptManifest {
   static gamemodeScripts = [
     "/gameplay/gamemodes/gamemodeFactory.js",
     "/gameplay/gamemodes/specificmodes/gamemodeGeneric.js",
-    "/gameplay/gamemodes/specificmodes/gamemodeStandard.js",
-    "/gameplay/gamemodes/specificmodes/gamemodeTest.js",
     "/gameplay/gamemodes/gamemodeEnforcings.js",
   ];
 
@@ -63,8 +61,6 @@ class ScriptManifest {
     "/utilities/assetmanifests/itemIconAssetManifest.js",
     "/utilities/assetmanifests/soundAssetManifest.js",
     "/utilities/assetmanifests/songAssetManifest.js",
-    "/utilities/assetmanifests/levelRetrievalHeader.js",
-    "/utilities/assetmanifests/levelManifest.js",
   ];
 
   static assetLoadersAndManagersScripts = [
@@ -201,20 +197,39 @@ class ScriptManifest {
   ];
 
   /**
-   * Loads a single script dynamically by creating a script element.
-   * Returns a Promise that resolves when the script loads, or rejects on error.
+   * Loads a single script dynamically, ensuring proper sequential execution order.
+   * Uses script tags with async=false to ensure scripts load and execute in order.
+   * This is necessary because these scripts define global classes that need to be
+   * available for inheritance in subsequent scripts.
    * 
-   * @param {string} url - The URL of the script to load.
-   * @returns {Promise<HTMLScriptElement>} Resolves with the script element when successfully loaded.
+   * @param {string} url - The URL of the script to load (already converted by getScriptUrl).
+   * @returns {Promise<void>} Resolves when the script is successfully loaded and executed.
    */
   static loadScriptPromise(url) {
     return new Promise((resolve, reject) => {
       const script = document.createElement("script");
       script.src = url;
-      script.async = false;  // Change from true to false to ensure sequential execution
+      script.async = false;  // Critical: ensures scripts load and execute sequentially
+      // Note: Not using type='module' because these scripts define global classes
+      // that need to be immediately available for inheritance in subsequent scripts
+      // Regular script tags ensure classes are in global scope immediately after execution
 
-      script.onload = () => resolve(script);
-      script.onerror = () => reject(new Error(`Failed to load script: ${url}`));
+      // For regular scripts, onload fires after the script is loaded and executed
+      // We add a small delay to ensure all class definitions are fully registered
+      script.onload = () => {
+        // Use requestAnimationFrame + microtask to ensure execution is complete
+        // This is critical for inheritance - parent classes must be fully defined before child classes extend them
+        requestAnimationFrame(() => {
+          // Additional microtask to ensure class registration is complete
+          Promise.resolve().then(() => {
+            resolve();
+          });
+        });
+      };
+
+      script.onerror = () => {
+        reject(new Error(`Failed to load script: ${url}`));
+      };
 
       document.head.appendChild(script);
     });

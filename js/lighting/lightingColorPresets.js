@@ -20,7 +20,7 @@ class LightingColorPresets {
     this.lightingPropertyCalculator.registerLightingPresetStorage(this);
     this.storePresetsComposite();
   }
-  
+
   /**
    * Initializes preset storage objects and populates them with preset configurations.
    * Sets up containers for the following:
@@ -39,13 +39,6 @@ class LightingColorPresets {
 
     this.storeGenericWhiteValuesInGenericSlots();
     this.storeNicksValuableEnvironmentLightDirectionLightPresets();
-    this.storeNicksValuableEnvironmentLightPositionLightPresets();
-
-    this.storeFrancescasValuableEnvironmentLightDirectionLightPresets();
-    this.storeFrancescasValuableEnvironmentLightPositionLightPresets();
-
-    this.storeNicksValuablePlayerLightPresets();
-    this.storeFrancescasValuablePlayerLightPresets();
   }
 
   /**
@@ -115,8 +108,10 @@ class LightingColorPresets {
       let obtainedValues =
         this.valuableEnvironmentLightDirectionLightPresets[presetName];
       let colorShiftProfile = new LightingColorShiftProfile(obtainedValues);
+      //console.log(`[LIGHTING] Found preset "${presetName}" with baseHue: ${obtainedValues.baseHue}, hueVariation: ${obtainedValues.hueVariation}`);
       return colorShiftProfile;
     } else {
+      //console.warn(`[LIGHTING] Preset "${presetName}" not found, falling back to default`);
       if (this.valuableEnvironmentLightDirectionLightPresets["default"]) {
         return new LightingColorShiftProfile(
           this.valuableEnvironmentLightDirectionLightPresets["default"]
@@ -157,9 +152,6 @@ class LightingColorPresets {
     }
   }
 
-  // The following methods for player light presets are placeholders.
-  storeNicksValuablePlayerLightPresets() {}
-  storeFrancescasValuablePlayerLightPresets() {}
 
   /**
    * Returns a generic preset object representing the "default" light color profile.
@@ -182,22 +174,7 @@ class LightingColorPresets {
     return generic;
   }
 
-  // Store methods for environment presets using different designers' selections.
-  storeFrancescasValuableEnvironmentLightDirectionLightPresets() {
-    this.valuableEnvironmentLightDirectionLightPresets.example = {
-      presetName: "example",
-      baseLightIntensity: 0,
-      baseLightIntensityAmplitude: 0,
-      baseHue: 0,
-      hueVariation: 0,
-      baseLightIntensitySpeed: 0,
-      hueShiftSpeed: 0,
-      loops: true,
-      autoReverse: true,
-      lightIntensityPhaseRatio: 0,
-      colorShiftPhaseRatio: 0,
-    };
-  }
+
 
   storeNicksValuableEnvironmentLightDirectionLightPresets() {
     this.valuableEnvironmentLightDirectionLightPresets.mysticbluegradient = {
@@ -206,8 +183,26 @@ class LightingColorPresets {
       baseLightIntensityAmplitude: 3,
       baseHue: 11,
       hueVariation: 1,
-      baseLightIntensitySpeed: 15,
+      baseLightIntensitySpeed: 30,
       hueShiftSpeed: 14,
+      loops: true,
+      autoReverse: true,
+      lightIntensityPhaseRatio: 0,
+      colorShiftPhaseRatio: 0,
+    };
+
+    // Blue to green gradient animation preset
+    // baseHue index 10 = 0.5 (cyan midpoint between blue 0.67 and green 0.33)
+    // hueVariation index 4 = 0.20 (covers blue to green range)
+    // hueShiftSpeed index 18 = 0.90 (fast animation speed for visible gradient)
+    this.valuableEnvironmentLightDirectionLightPresets.blueToGreenGradient = {
+      presetName: "blueToGreenGradient",
+      baseLightIntensity: 3,
+      baseLightIntensityAmplitude: 2,
+      baseHue: 11,
+      hueVariation: 0.5,
+      baseLightIntensitySpeed: 15,
+      hueShiftSpeed: 30,
       loops: true,
       autoReverse: true,
       lightIntensityPhaseRatio: 0,
@@ -215,9 +210,7 @@ class LightingColorPresets {
     };
   }
 
-  // Placeholders for storing environment positional light presets.
-  storeNicksValuableEnvironmentLightPositionLightPresets() {}
-  storeFrancescasValuableEnvironmentLightPositionLightPresets() {}
+
 
   /**
    * Returns the base intensity for an environment positional light given a preset.

@@ -13,6 +13,8 @@ class LightingTemplateStorage {
    * @returns {EnvironmentLightingTemplateBag} - An object containing lighting configurations such as archetypes, color presets, and motion presets.
    */
   getEnvironmentLightingConfigurationBagFromTemplate(configurationTemplate) {
+    // console.log(`[LIGHTING TEMPLATE] Looking up template: "${configurationTemplate}"`);
+
     let templateConfigurationDefault = {
       environmentLightingCount: 4,
 
@@ -66,9 +68,43 @@ class LightingTemplateStorage {
         doTemplateOverride = true;
         break;
       }
+      case "standardlevel0": {
+        // Default test scene with blue-to-green gradient animation
+        //console.log(`[LIGHTING TEMPLATE] Matched "standardlevel0", using blueToGreenGradient preset`);
+        templateConfigurationOverride = {
+          environmentLightingCount: 4,
+          environmentLightingArchetypes: [
+            "direction",
+            "direction",
+            "direction",
+            "direction",
+          ],
+          environmentLightingColorPresets: [
+            "defaultwhite",
+            "defaultwhite",
+            "defaultwhite",
+            "defaultwhite",
+          ],
+          environmentLightingMotionPresets: [
+            "standard",
+            "standard",
+            "standard",
+            "standard",
+          ],
+        };
+        doTemplateOverride = true;
+        break;
+      }
+      default: {
+        // console.log(`[LIGHTING TEMPLATE] No match for "${configurationTemplate}", using default template`);
+        break;
+      }
     }
     if (doTemplateOverride) {
       templateConfigurationLoaded = templateConfigurationOverride;
+      // console.log(`[LIGHTING TEMPLATE] Using override with color presets:`, templateConfigurationOverride.environmentLightingColorPresets);
+    } else {
+      // console.log(`[LIGHTING TEMPLATE] Using default template with color presets:`, templateConfigurationDefault.environmentLightingColorPresets);
     }
     return new EnvironmentLightingTemplateBag(
       templateConfigurationLoaded.environmentLightingCount,
@@ -166,11 +202,11 @@ class EnvironmentLightingTemplateBag {
     if (
       verified &&
       this.environmentLightingCount ==
-        this.environmentLightingArchetypes.length &&
+      this.environmentLightingArchetypes.length &&
       this.environmentLightingCount ==
-        this.environmentLightingColorPresets.length &&
+      this.environmentLightingColorPresets.length &&
       this.environmentLightingCount ==
-        this.environmentLightingMotionPresets.length
+      this.environmentLightingMotionPresets.length
     ) {
       let templateGenerationCounter = 0;
       while (templateGenerationCounter < this.environmentLightingCount) {

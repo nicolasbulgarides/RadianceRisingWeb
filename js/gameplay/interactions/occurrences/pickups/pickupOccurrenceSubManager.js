@@ -8,6 +8,9 @@ class PickupOccurrenceSubManager {
     if (occurrenceId === "mangoPickupOccurrence") {
       this.processBasicFruitPickup(pickupOccurrence, "mango");
       processedSuccessfully = true;
+    } else if (occurrenceId === "stardustPickupOccurrence") {
+      this.processStardustPickup(pickupOccurrence);
+      processedSuccessfully = true;
     }
 
     return processedSuccessfully;
@@ -43,5 +46,10 @@ class PickupOccurrenceSubManager {
     );
 
     return itemData;
+  }
+
+  processStardustPickup(pickupOccurrence) {
+    console.log("Stardust has been picked up!");
+    // Future: Add stardust to player inventory or track collection
   }
 }

@@ -96,6 +96,16 @@ class TestLevelDataCompositeLoader {
     const activeScene =
       FundamentalSystemBridge["renderSceneSwapper"].getActiveGameLevelScene();
 
+    // Register the scene with the camera manager and set up the camera
+    cameraManager.registerPrimaryGameScene(activeScene);
+    const camera = cameraManager.setupGameLevelTestCamera();
+    if (camera) {
+      // Set the camera as the active camera for the scene
+      activeScene.activeCamera = camera;
+      // Also register it with the render scene swapper
+      FundamentalSystemBridge["renderSceneSwapper"].allStoredCameras[activeScene] = camera;
+    }
+
     // Create the gameplay level
     const gameplayLevel = new ActiveGameplayLevel(
       activeScene,

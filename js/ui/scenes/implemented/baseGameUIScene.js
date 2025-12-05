@@ -220,6 +220,7 @@ class BaseGameUIScene extends UISceneGeneralized {
     });
   }
 
+
   /**
    * Creates the D-Pad container, centers it within the bottom container, and adds the pad image.
    */
@@ -424,7 +425,7 @@ class BaseGameUIScene extends UISceneGeneralized {
           // Play sound effect for successful artifact usage
           SoundEffectsManager.playSound("artifactUsage");
           // Trigger fireball effect around the player
-          this.triggerFireballEffect();
+          this.explosionEffect();
         } else {
           // Play different sound for insufficient artifacts
           console.log("Insufficient artifacts to use");
@@ -432,7 +433,7 @@ class BaseGameUIScene extends UISceneGeneralized {
       } else {
         // Fallback: play sound and trigger effect even if artifact socket bar isn't initialized
         SoundEffectsManager.playSound("artifactUsage");
-        this.triggerFireballEffect();
+        this.explosionEffect();
       }
     }
   }

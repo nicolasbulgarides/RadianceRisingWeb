@@ -135,8 +135,10 @@ class RenderSceneSwapper {
       this.allStoredScenes[sceneId].isRendering = true;
       this.activeGameScene = this.allStoredScenes[sceneId];
 
-      this.allStoredCameras[this.activeGameScene] =
-        CameraManager.setAndGetPlaceholderCamera(this.activeGameScene);
+      // Create and set the placeholder camera as the active camera immediately
+      const placeholderCamera = CameraManager.setAndGetPlaceholderCamera(this.activeGameScene);
+      this.allStoredCameras[this.activeGameScene] = placeholderCamera;
+      this.activeGameScene.activeCamera = placeholderCamera;
     } else {
       console.error(`Scene with ID '${sceneId}' not found.`);
     }

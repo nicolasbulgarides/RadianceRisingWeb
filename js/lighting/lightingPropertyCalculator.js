@@ -8,7 +8,7 @@
  * - Generating phase offsets for cyclic light behavior.
  */
 class LightingPropertyCalculator {
-  constructor() {}
+  constructor() { }
   /**
    * Returns a multiplier that randomly varies within the given percentage bounds.
    *
@@ -493,18 +493,49 @@ class LightingPropertyCalculator {
   }
 
   wrapPresetValuesIntoObject(presetIndexes) {
-    let lightPresetValues = {
-      baseLightIntensity: this.getBaseLightIntensityByIndex(presetIndexes[0]),
-      baseLightIntensityAmplitude: this.getBaseLightIntensityAmplitudeByIndex(
-        presetIndexes[1]
-      ),
-      baseHue: this.getBaseHue(presetIndexes[2]),
-      hueVariation: this.getHueShiftVariationByIndex(presetIndexes[3]),
-      baseLightIntensitySpeed: this.getBaseLightIntensitySpeedByIndex(
-        presetIndexes[4]
-      ),
-      hueShiftSpeed: this.getHueShiftSpeedByIndex(presetIndexes[5]),
-    };
+    // Handle both array format (legacy) and LightingColorShiftProfile object format
+    let lightPresetValues;
+
+    if (Array.isArray(presetIndexes)) {
+      // Legacy array format: [baseLightIntensity, amplitude, hue, variation, speed, hueSpeed]
+      lightPresetValues = {
+        baseLightIntensity: this.getBaseLightIntensityByIndex(presetIndexes[0]),
+        baseLightIntensityAmplitude: this.getBaseLightIntensityAmplitudeByIndex(
+          presetIndexes[1]
+        ),
+        baseHue: this.getBaseHue(presetIndexes[2]),
+        hueVariation: this.getHueShiftVariationByIndex(presetIndexes[3]),
+        baseLightIntensitySpeed: this.getBaseLightIntensitySpeedByIndex(
+          presetIndexes[4]
+        ),
+        hueShiftSpeed: this.getHueShiftSpeedByIndex(presetIndexes[5]),
+      };
+    } else if (presetIndexes && typeof presetIndexes === 'object') {
+      // LightingColorShiftProfile object format - extract and convert index values
+      lightPresetValues = {
+        baseLightIntensity: this.getBaseLightIntensityByIndex(presetIndexes.baseLightIntensity || 0),
+        baseLightIntensityAmplitude: this.getBaseLightIntensityAmplitudeByIndex(
+          presetIndexes.baseLightIntensityAmplitude || 0
+        ),
+        baseHue: this.getBaseHue(presetIndexes.baseHue || 0),
+        hueVariation: this.getHueShiftVariationByIndex(presetIndexes.hueVariation || 0),
+        baseLightIntensitySpeed: this.getBaseLightIntensitySpeedByIndex(
+          presetIndexes.baseLightIntensitySpeed || 0
+        ),
+        hueShiftSpeed: this.getHueShiftSpeedByIndex(presetIndexes.hueShiftSpeed || 0),
+      };
+    } else {
+      // Fallback to defaults
+      lightPresetValues = {
+        baseLightIntensity: 5,
+        baseLightIntensityAmplitude: 0,
+        baseHue: 0,
+        hueVariation: 0,
+        baseLightIntensitySpeed: 0,
+        hueShiftSpeed: 0,
+      };
+    }
+
     return lightPresetValues;
   }
 }

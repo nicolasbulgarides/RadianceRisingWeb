@@ -118,6 +118,25 @@ class ActiveGameplayLevel {
     //  this.levelDataComposite.levelGameplayTraitsData?.lightingPresets;
 
     this.lightingManager.initializeConstructSystems(false, this.hostingScene); // Initialize lighting systems.
+
+    // Disable shadows on the scene to prevent checkerboard patterns
+    if (this.hostingScene) {
+      // Disable shadow generators for all lights
+      this.hostingScene.lights.forEach((light) => {
+        if (light.getShadowGenerator) {
+          const shadowGen = light.getShadowGenerator();
+          if (shadowGen) {
+            shadowGen.dispose();
+          }
+        }
+        light.shadowEnabled = false;
+      });
+
+      // Also disable shadows on the scene level if possible
+      if (this.hostingScene.shadowsEnabled !== undefined) {
+        this.hostingScene.shadowsEnabled = false;
+      }
+    }
   }
 
   /**
@@ -176,7 +195,7 @@ class ActiveGameplayLevel {
     // After the player model is loaded, configure the camera to chase the player.
     let cameraToDispose =
       FundamentalSystemBridge["renderSceneSwapper"].allStoredCameras[
-        this.hostingScene
+      this.hostingScene
       ];
 
     let model = player.playerMovementManager.getPlayerModelDirectly(); // Get the player's model.
@@ -208,6 +227,9 @@ class ActiveGameplayLevel {
       // Asynchronously load the animated player model.
       await relevantBuilder.loadAnimatedModel(positionedObject);
 
+      // Player will use the same environment lighting as the scene
+      // (No separate player lights needed)
+
       if (switchCameraToFollowPlayer) {
         this.setPlayerCamera(player); // Set the camera to follow the player if required.
       }
@@ -231,31 +253,28 @@ class ActiveGameplayLevel {
 📐 Dimensions
    Width: ${dimensions.width} units
    Depth: ${dimensions.depth} units
-   Playable Area: (${boundary.minX},${boundary.minZ}) to (${boundary.maxX},${
-      boundary.maxZ
-    })
+   Playable Area: (${boundary.minX},${boundary.minZ}) to (${boundary.maxX},${boundary.maxZ
+      })
 
 👥 Players
    Total Players: ${this.registeredPlayers.length}
    Primary Player: ${this.currentPrimaryPlayer ? "✓ Active" : "✗ None"}
-   ${
-     playerPos
-       ? `   Location: (${playerPos.x.toFixed(2)}, ${playerPos.y.toFixed(
-           2
-         )}, ${playerPos.z.toFixed(2)})`
-       : ""
-   }
+   ${playerPos
+        ? `   Location: (${playerPos.x.toFixed(2)}, ${playerPos.y.toFixed(
+          2
+        )}, ${playerPos.z.toFixed(2)})`
+        : ""
+      }
 
 🎯 Game Mode
    Lighting: ${this.lightingManager ? "💡 Active" : "🌑 Not Initialized"}
    Rules: ${Object.keys(this.gameModeRules || {})
-     .map((rule) => `\n     • ${rule}`)
-     .join("")}
+        .map((rule) => `\n     • ${rule}`)
+        .join("")}
 
 🎥 Scene Status
-   Camera System: ${
-     this.cameraManager?.hasActiveCamera() ? "🎥 Ready" : "❌ Not Set"
-   }
+   Camera System: ${this.cameraManager?.hasActiveCamera() ? "🎥 Ready" : "❌ Not Set"
+      }
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
   }
 }

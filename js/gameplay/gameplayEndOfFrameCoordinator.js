@@ -23,7 +23,11 @@ class GameplayEndOfFrameCoordinator {
   static checkMicroEventsForTriggered() {
     let microEventManager = FundamentalSystemBridge["microEventManager"];
     if (!microEventManager) {
-      //console.log("Micro event manager not found");
+      // Log occasionally to avoid spam
+      if (!this._lastNoManagerLog || Date.now() - this._lastNoManagerLog > 10000) {
+        console.warn(`[FRAME COORDINATOR] MicroEventManager not found in FundamentalSystemBridge!`);
+        this._lastNoManagerLog = Date.now();
+      }
       return;
     } else {
       microEventManager.onFrameCheckMicroEventsForTriggered();
