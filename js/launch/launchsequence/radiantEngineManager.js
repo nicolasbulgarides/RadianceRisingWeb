@@ -41,9 +41,8 @@ class RadiantEngineManager {
 
   loadEngineSettings() {
     FundamentalSystemBridge["babylonEngine"].autoClearDepthAndStencil = false;
-    FundamentalSystemBridge["babylonEngine"].setHardwareScalingLevel(
-      1 / (window.devicePixelRatio || 1)
-    );
+    // Set hardware scaling to 50% for better performance (0.5 = 50% of actual pixels)
+    FundamentalSystemBridge["babylonEngine"].setHardwareScalingLevel(0.5);
     window.addEventListener("resize", () => {
       FundamentalSystemBridge["babylonEngine"].resize();
     });
