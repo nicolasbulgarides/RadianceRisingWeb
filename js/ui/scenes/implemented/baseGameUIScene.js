@@ -21,6 +21,10 @@ class BaseGameUIScene extends UISceneGeneralized {
     this.currentFireballEffect = null; // Store the current fireball effect instance
     this.manaBar = null; // Store the mana bar instance
     this.artifactSocketBar = null; // Store the artifact socket bar instance
+    this.heartSocketBar = null; // Store the heart socket bar instance
+    this.experienceBarSegments = []; // Store experience bar segments
+    this.levelNameText = null; // Store level name text control
+    // Hint system removed - will be implemented differently
   }
 
   assembleUIGeneralized(aspectRatioPreset) {
@@ -35,11 +39,25 @@ class BaseGameUIScene extends UISceneGeneralized {
       "bottomBasePanel"
     );
 
-    // 2) Create the container that holds all base UI elements
+    // 2) Create the top panel background (symmetrical to bottom)
+
+    this.attemptUIElementLoad(
+      () => this.assembleTopBasePanel(),
+      "topBasePanel"
+    );
+
+    // 3) Create the container that holds all base UI elements
     this.attemptUIElementLoad(
       () => this.assembleUIControlsComposite(),
       "uiControlsComposite"
     );
+
+    // 4) Create the top UI controls container with experience bar and level info
+    this.attemptUIElementLoad(
+      () => this.assembleTopUIControlsComposite(),
+      "topUIControlsComposite"
+    );
+
     console.log("Failed UI elements:", this.failedUIElements);
 
     // Retry any failed UI elements
@@ -72,6 +90,27 @@ class BaseGameUIScene extends UISceneGeneralized {
   }
 
   /**
+   * Creates the top panel image that spans 100% width and 20% height (symmetrical to bottom).
+   */
+  assembleTopBasePanel() {
+    const topBasePanel = new BABYLON.GUI.Image(
+      "topMenuBackground",
+      UIAssetManifest.getAssetUrl("uiBasePanel")
+    );
+    topBasePanel.stretch = BABYLON.GUI.Image.STRETCH_FILL;
+    topBasePanel.width = "100%";
+    topBasePanel.height = Config.IDEAL_UI_HEIGHT * 0.2 + "px";
+    topBasePanel.verticalAlignment =
+      BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+    // Add the panel to the advancedTexture so it appears behind everything else.
+    this.advancedTexture.addControl(topBasePanel);
+
+    // Ensure the panel is visible and properly layered
+    topBasePanel.zIndex = -3; // Ensure it's behind other controls
+    topBasePanel.alpha = 1; // Ensure full opacity
+  }
+
+  /**
    * Assembles the container for the UI controls and adds the D-Pad and other buttons.
    */
   assembleUIControlsComposite() {
@@ -96,6 +135,248 @@ class BaseGameUIScene extends UISceneGeneralized {
 
     // Optionally handle extra UI per aspect ratio
     this.augmentUIDueToAspectRatioPreset();
+  }
+
+  /**
+   * Assembles the top UI controls container with experience bar and level info.
+   */
+  assembleTopUIControlsComposite() {
+    this.createTopUIControlsContainer();
+
+    // Add experience bar on the left
+    this.attemptUIElementLoad(
+      () => this.createTopExperienceBar(),
+      "topExperienceBar"
+    );
+
+    // Add level name and hint on the right
+    this.attemptUIElementLoad(
+      () => this.createTopLevelInfo(),
+      "topLevelInfo"
+    );
+
+    // Add heart socket bar beneath the hint text
+    this.attemptUIElementLoad(
+      () => this.createTopHeartBar(),
+      "topHeartBar"
+    );
+
+    // Try to refresh level info from gameplay after a short delay
+    // (allows time for level to be loaded)
+    setTimeout(() => {
+      this.refreshLevelInfoFromGameplay();
+    }, 500);
+
+  }
+
+  /**
+   * Creates a container at the top 20% of the screen, over the top panel.
+   */
+  createTopUIControlsContainer() {
+    // This container overlays exactly the top 20% of the screen
+    this.topUIControlsContainer = new BABYLON.GUI.Container(
+      "TopUIControlsContainer"
+    );
+    this.topUIControlsContainer.width = Config.IDEAL_UI_WIDTH + "px";
+    this.topUIControlsContainer.height = Config.IDEAL_UI_HEIGHT * 0.2 + "px";
+
+    // Place this container at the top (matching the top panel)
+    this.topUIControlsContainer.verticalAlignment =
+      BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+    this.topUIControlsContainer.horizontalAlignment =
+      BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+
+    this.advancedTexture.addControl(this.topUIControlsContainer);
+  }
+
+  /**
+   * Creates the experience bar on the left side of the top panel.
+   */
+  createTopExperienceBar() {
+    // Calculate size based on UI dimensions (3x larger, then reduced by 30%, then increased by 20%)
+    const expBarSize = Config.IDEAL_UI_WIDTH * 0.3024; // 0.252 * 1.2 (20% bigger)
+
+    // Position on the left side of the top panel with 50px left margin
+    // Calculate offset: move left from center, then add left margin
+    const leftMargin = 50; // Minimum 50px margin from left edge
+    const halfBarSize = expBarSize / 2;
+    const offsetX = -(Config.IDEAL_UI_WIDTH / 2) + halfBarSize + leftMargin; // Left side with margin
+    const offsetY = 0; // Centered vertically in top panel
+
+    // Create experience bar base image
+    const expBarBase = new BABYLON.GUI.Image(
+      "topExpBarBase",
+      UIAssetManifest.getAssetUrl("experienceBarBase")
+    );
+    expBarBase.width = expBarSize + "px";
+    expBarBase.height = expBarSize + "px";
+    expBarBase.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+    expBarBase.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+    expBarBase.left = offsetX + "px";
+    expBarBase.top = offsetY + "px";
+    this.topUIControlsContainer.addControl(expBarBase);
+
+    // Create experience bar segments (24 segments total)
+    for (let i = 1; i <= 24; i++) {
+      const segmentName = `experienceBar${25 - i}`;
+      const expBarSegment = new BABYLON.GUI.Image(
+        `topExpBarSegment_${i}`,
+        UIAssetManifest.getAssetUrl(segmentName)
+      );
+      expBarSegment.width = expBarSize + "px";
+      expBarSegment.height = expBarSize + "px";
+      expBarSegment.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+      expBarSegment.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+      expBarSegment.left = offsetX + "px";
+      expBarSegment.top = offsetY + "px";
+      expBarSegment.isVisible = false; // Hidden by default
+      expBarSegment.detectPointerOnOpaqueOnly = true;
+      this.topUIControlsContainer.addControl(expBarSegment);
+      this.experienceBarSegments.push(expBarSegment);
+    }
+  }
+
+  /**
+   * Creates the level name and hint display centered in the space to the right of the experience bar.
+   */
+  createTopLevelInfo() {
+    // Calculate the right edge of the experience bar
+    const expBarSize = Config.IDEAL_UI_WIDTH * 0.3024; // Same size as in createTopExperienceBar (20% bigger)
+    const leftMargin = 50; // Same margin as in createTopExperienceBar
+    const halfBarSize = expBarSize / 2;
+    const expBarRightEdge = -(Config.IDEAL_UI_WIDTH / 2) + halfBarSize + leftMargin + halfBarSize;
+
+    // Calculate the center of the remaining space on the right
+    const rightMargin = 50; // Right margin for symmetry
+    const availableRightSpace = (Config.IDEAL_UI_WIDTH / 2) - rightMargin - expBarRightEdge;
+    const centerOfRightSpace = expBarRightEdge + (availableRightSpace / 2);
+
+    const levelNameOffsetY = -Config.IDEAL_UI_HEIGHT * 0.02 - 75; // Moved 75 pixels up
+
+    // Create level name text (centered in right space)
+    this.levelNameText = new BABYLON.GUI.TextBlock("topLevelName", "Level: Unknown");
+    this.levelNameText.color = "white";
+    this.levelNameText.fontSize = Config.IDEAL_UI_HEIGHT * 0.028 + "px"; // Reduced by 30% (0.04 * 0.7)
+    this.levelNameText.fontFamily = "Arial";
+    this.levelNameText.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+    this.levelNameText.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+    this.levelNameText.left = centerOfRightSpace + "px"; // Centered in right space
+    this.levelNameText.top = levelNameOffsetY + "px";
+    this.levelNameText.textWrapping = true;
+    this.levelNameText.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+    this.topUIControlsContainer.addControl(this.levelNameText);
+  }
+
+  /**
+   * Creates the heart socket bar beneath the level title, centered.
+   */
+  createTopHeartBar() {
+    // Calculate the center of the right space (same as level name position)
+    const expBarSize = Config.IDEAL_UI_WIDTH * 0.3024; // 20% bigger experience bar
+    const leftMargin = 50;
+    const halfBarSize = expBarSize / 2;
+    const expBarRightEdge = -(Config.IDEAL_UI_WIDTH / 2) + halfBarSize + leftMargin + halfBarSize;
+    const rightMargin = 50;
+    const availableRightSpace = (Config.IDEAL_UI_WIDTH / 2) - rightMargin - expBarRightEdge;
+    const centerOfRightSpace = expBarRightEdge + (availableRightSpace / 2);
+
+    // Position beneath the level title, centered
+    const heartBarSize = 125; // 125 pixels tall
+    const heartSpacing = 10;
+    const totalHeartBarWidth = (heartBarSize * 3) + (heartSpacing * 2);
+    const levelNameOffsetY = -Config.IDEAL_UI_HEIGHT * 0.02 - 75; // Same as level name (moved 75px up)
+    const heartBarOffsetY = levelNameOffsetY + Config.IDEAL_UI_HEIGHT * 0.05 + (heartBarSize / 2) - 75 + 100; // Below level name with spacing, moved 75px up, then 100px down (50px additional)
+
+    // Center the hearts so they align with the center of the level title
+    const heartBarCenterOffsetX = centerOfRightSpace; // Center of heart bar aligns with center of level title
+
+    // Create the heart socket bar with 3 hearts, 100px size
+    this.heartSocketBar = new HeartSocketBar(
+      "topHeartBar",
+      3, // maxHearts (fixed to 3)
+      3, // currentHearts (starts full)
+      heartBarSize, // heartWidth (100px)
+      heartBarSize, // heartHeight (100px)
+      heartBarCenterOffsetX, // offsetX (center of heart bar container aligns with center of level title)
+      heartBarOffsetY, // offsetY (beneath level title)
+      BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER,
+      BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER
+    );
+
+    // Create the heart socket bar container
+    const heartBarContainer = this.heartSocketBar.create();
+
+    // Ensure the container is visible and properly layered
+    heartBarContainer.isVisible = true;
+    heartBarContainer.zIndex = 10; // Ensure it's above other elements
+
+    // Add to the top UI controls container
+    this.topUIControlsContainer.addControl(heartBarContainer);
+  }
+
+  /**
+   * Sets the number of visible segments in the experience bar.
+   * @param {number} visibleCount - The count of visible segments (from 0 to 24).
+   */
+  setExperienceBarSegments(visibleCount) {
+    if (!this.experienceBarSegments || this.experienceBarSegments.length === 0) {
+      return;
+    }
+    this.experienceBarSegments.forEach((segment, index) => {
+      if (segment) {
+        segment.isVisible = index < visibleCount;
+      }
+    });
+  }
+
+  /**
+   * Updates the level name display.
+   * @param {string} levelName - The level name to display.
+   * @param {string} levelHint - The level hint (stored for future use with different system).
+   */
+  updateLevelInfo(levelName, levelHint) {
+    if (this.levelNameText) {
+      this.levelNameText.text = levelName ? `Level: ${levelName}` : "Level: Unknown";
+    }
+    // Hint system removed - will be implemented differently
+  }
+
+  /**
+   * Automatically updates level info from the active gameplay level.
+   * Call this when a level is loaded or when the UI needs to refresh.
+   */
+  refreshLevelInfoFromGameplay() {
+    try {
+      const gameplayManager = FundamentalSystemBridge["gameplayManagerComposite"];
+      if (!gameplayManager || !gameplayManager.primaryActiveGameplayLevel) {
+        this.updateLevelInfo(null, null);
+        return;
+      }
+
+      const activeLevel = gameplayManager.primaryActiveGameplayLevel;
+      const levelData = activeLevel.levelDataComposite;
+
+      if (!levelData) {
+        this.updateLevelInfo(null, null);
+        return;
+      }
+
+      // Get level name from levelHeaderData or levelNickname property
+      let levelName = null;
+      if (levelData.levelHeaderData && levelData.levelHeaderData.levelNickname) {
+        levelName = levelData.levelHeaderData.levelNickname;
+      } else if (levelData.levelNickname) {
+        levelName = levelData.levelNickname;
+      }
+
+      // Get level hint (stored directly on levelDataComposite)
+      const levelHint = levelData.levelHint || null;
+
+      this.updateLevelInfo(levelName, levelHint);
+    } catch (error) {
+      console.warn("[UI] Failed to refresh level info:", error);
+      this.updateLevelInfo(null, null);
+    }
   }
 
   /**
@@ -141,8 +422,8 @@ class BaseGameUIScene extends UISceneGeneralized {
     // Create the mana bar with 5 max mana (default)
     this.manaBar = new ManaBar(
       "playerManaBar",
-      5, // maxMana
-      5, // currentMana (starts full)
+      3, // maxMana
+      3, // currentMana (starts full)
       socketSize, // socketWidth
       socketSize, // socketHeight
       offsetX, // offsetX (aligned with magic button)
@@ -161,12 +442,6 @@ class BaseGameUIScene extends UISceneGeneralized {
     // Add to the base UI controls container
     this.baseUIControlsContainer.addControl(manaBarContainer);
 
-    console.log("ManaBar created above magic button", {
-      socketSize,
-      offsetX,
-      offsetY,
-      specialButtonXOffset
-    });
   }
 
   /**
@@ -212,12 +487,6 @@ class BaseGameUIScene extends UISceneGeneralized {
     // Add to the base UI controls container
     this.baseUIControlsContainer.addControl(artifactBarContainer);
 
-    console.log("ArtifactSocketBar created above artifact button", {
-      socketSize,
-      offsetX,
-      offsetY,
-      specialButtonXOffset
-    });
   }
 
 
