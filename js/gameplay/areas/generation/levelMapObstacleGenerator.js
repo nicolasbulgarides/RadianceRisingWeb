@@ -35,8 +35,34 @@ class LevelMapObstacleGenerator {
         continue; // Skip to the next obstacle.
       }
 
+      // Ensure obstacle is set to freeze
+      obstacle.positionedObject.freeze = true;
+
       // Load the obstacle's model into the scene regardless of board slot system
-      relevantSceneBuilder.loadModel(obstacle.positionedObject); // Load the model for the obstacle.
+      relevantSceneBuilder.loadModel(obstacle.positionedObject).then((loadedModel) => {
+        // Freeze all meshes in the obstacle to prevent movement
+        if (loadedModel && loadedModel.meshes) {
+          loadedModel.meshes.forEach((mesh) => {
+            if (mesh instanceof BABYLON.Mesh) {
+              mesh.freezeWorldMatrix(); // Freeze the mesh so it doesn't move
+              // Also freeze all child meshes
+              if (mesh.getChildMeshes) {
+                mesh.getChildMeshes().forEach((childMesh) => {
+                  if (childMesh instanceof BABYLON.Mesh) {
+                    childMesh.freezeWorldMatrix();
+                  }
+                });
+              }
+              // Also disable physics if any
+              if (mesh.physicsImpostor) {
+                mesh.physicsImpostor.dispose();
+              }
+            }
+          });
+        }
+      }).catch((error) => {
+        console.warn(`Failed to freeze obstacle ${nickname}:`, error);
+      });
     }
   }
 

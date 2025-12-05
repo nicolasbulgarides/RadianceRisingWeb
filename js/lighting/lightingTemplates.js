@@ -16,24 +16,15 @@ class LightingTemplateStorage {
     // console.log(`[LIGHTING TEMPLATE] Looking up template: "${configurationTemplate}"`);
 
     let templateConfigurationDefault = {
-      environmentLightingCount: 4,
+      environmentLightingCount: 1,
 
       environmentLightingArchetypes: [
-        "direction",
-        "direction",
-        "direction",
         "direction",
       ],
       environmentLightingColorPresets: [
         "standard",
-        "standard",
-        "standard",
-        "standard",
       ],
       environmentLightingMotionPresets: [
-        "standard",
-        "standard",
-        "standard",
         "standard",
       ],
     };
@@ -45,23 +36,14 @@ class LightingTemplateStorage {
     switch (configurationTemplate) {
       case "CURRENT_EXPERIMENT": {
         templateConfigurationOverride = {
-          environmentLightingCount: 4,
+          environmentLightingCount: 1,
           environmentLightingArchetypes: [
-            "CURRENT_EXPERIMENT",
-            "CURRENT_EXPERIMENT",
-            "CURRENT_EXPERIMENT",
             "CURRENT_EXPERIMENT",
           ],
           environmentLightingColorPresets: [
             "CURRENT_EXPERIMENT",
-            "CURRENT_EXPERIMENT",
-            "CURRENT_EXPERIMENT",
-            "CURRENT_EXPERIMENT",
           ],
           environmentLightingMotionPresets: [
-            "CURRENT_EXPERIMENT",
-            "CURRENT_EXPERIMENT",
-            "CURRENT_EXPERIMENT",
             "CURRENT_EXPERIMENT",
           ],
         };
@@ -72,23 +54,14 @@ class LightingTemplateStorage {
         // Default test scene with blue-to-green gradient animation
         //console.log(`[LIGHTING TEMPLATE] Matched "standardlevel0", using blueToGreenGradient preset`);
         templateConfigurationOverride = {
-          environmentLightingCount: 4,
+          environmentLightingCount: 1,
           environmentLightingArchetypes: [
-            "direction",
-            "direction",
-            "direction",
             "direction",
           ],
           environmentLightingColorPresets: [
             "defaultwhite",
-            "defaultwhite",
-            "defaultwhite",
-            "defaultwhite",
           ],
           environmentLightingMotionPresets: [
-            "standard",
-            "standard",
-            "standard",
             "standard",
           ],
         };

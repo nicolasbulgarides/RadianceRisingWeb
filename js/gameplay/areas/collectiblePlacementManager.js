@@ -120,7 +120,7 @@ class CollectiblePlacementManager {
 
     // Log distance check (only when close to avoid spam, and only occasionally)
     if (horizontalDistance < 2.0) {
-      if (False && !this._lastDistanceLog || Date.now() - this._lastDistanceLog > 2000) {
+      if (false && !this._lastDistanceLog || Date.now() - this._lastDistanceLog > 2000) {
         console.log(`[PICKUP DISTANCE] Player at (${playerPosition.x.toFixed(2)}, ${playerPosition.z.toFixed(2)}), Collectible at (${collectiblePosition.x.toFixed(2)}, ${collectiblePosition.z.toFixed(2)}), Distance: ${horizontalDistance.toFixed(2)}`);
         this._lastDistanceLog = Date.now();
       }

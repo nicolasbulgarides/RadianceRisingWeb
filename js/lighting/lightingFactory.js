@@ -177,7 +177,7 @@ class LightingFactory {
       );
 
       //createdLight = new BABYLON.DirectionalLight(nickname, motionValues.basePosition, scene);
-      createdLight.intensity = 3;
+      createdLight.intensity = 3 * 4; // Increased by 300% (4x)
 
       //createdLight.intensity = colorValues.baseLightIntensity;
       // createdLight.diffuse = new BABYLON.Color3(1,1,1);
@@ -199,7 +199,7 @@ class LightingFactory {
         motionValues.basePosition,
         scene
       );
-      createdLight.intensity = colorValues.baseLightIntensity;
+      createdLight.intensity = colorValues.baseLightIntensity * 4; // Increased by 300% (4x)
       lightObject = new LightingObject(
         nickname,
         createdLight,
@@ -345,10 +345,12 @@ class LightingFactory {
     const phaseHue = Number(profile.colorShiftPhaseRatio) || 0;
 
     // Compute new intensity: baseIntensity + amplitude * sin( time * speed + phaseIntensity )
+    // Multiply by 4 to increase intensity by 300% (4x total)
+
     // Ensure intensity is always positive
     const newIntensity = Math.max(0.1,
-      baseIntensity +
-      amplitude * Math.sin(currentTime * speed + phaseIntensity)
+      (baseIntensity +
+        amplitude * Math.sin(currentTime * speed + phaseIntensity)) * 4
     );
     lightObject.light.intensity = newIntensity;
 
@@ -417,8 +419,9 @@ class LightingFactory {
         scene
       );
 
-      // Set initial intensity
-      createdLight.intensity = colorPresetProfile.baseLightIntensity || 1.0;
+      // Set initial intensity (multiply by 4 for 300% increase)
+
+      createdLight.intensity = (colorPresetProfile.baseLightIntensity || 1.0) * 4;
 
       // Ensure light is enabled
       createdLight.setEnabled(true);

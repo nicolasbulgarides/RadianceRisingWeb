@@ -127,6 +127,14 @@ class SceneBuilder {
           if (positionedObject.freeze) {
             rootMesh.freezeWorldMatrix();
             rootMesh.convertToUnIndexedMesh();
+            // Also freeze all child meshes
+            if (rootMesh.getChildMeshes) {
+              rootMesh.getChildMeshes().forEach((childMesh) => {
+                if (childMesh instanceof BABYLON.Mesh) {
+                  childMesh.freezeWorldMatrix();
+                }
+              });
+            }
           }
 
           // Set interactivity
@@ -158,8 +166,7 @@ class SceneBuilder {
       }
 
       console.error(
-        `Failed to load model after ${attempt + 1} attempts: ${
-          positionedObject.modelId
+        `Failed to load model after ${attempt + 1} attempts: ${positionedObject.modelId
         }`,
         error
       );
