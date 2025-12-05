@@ -119,6 +119,8 @@ class ScriptManifest {
     "/gameplay/gameplayloggers/gameplayLogger.js",
     "/gameplay/gameplayloggers/movementLogger.js",
     "/gameplay/levelLoaderManager.js",
+    "/gameplay/replay/movementTracker.js",
+    "/gameplay/replay/levelReplayManager.js",
 
     //to do - reorganize
     "/gameplay/player/utilities/playerMovementManager.js",

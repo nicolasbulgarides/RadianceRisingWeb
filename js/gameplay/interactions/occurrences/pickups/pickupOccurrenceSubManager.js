@@ -155,6 +155,26 @@ class PickupOccurrenceSubManager {
       } catch (error) {
         console.error(`[PICKUP] Error playing endOfLevelPerfect sound:`, error);
       }
+
+      // Start replay sequence after a short delay
+      setTimeout(async () => {
+        const replayManager = FundamentalSystemBridge["levelReplayManager"];
+        const movementTracker = FundamentalSystemBridge["movementTracker"];
+        const gameplayManager = FundamentalSystemBridge["gameplayManagerComposite"];
+
+        if (replayManager && movementTracker && gameplayManager) {
+          const activeLevel = gameplayManager.primaryActiveGameplayLevel;
+          const activePlayer = gameplayManager.primaryActivePlayer;
+
+          if (activeLevel && activePlayer) {
+            // Stop tracking
+            movementTracker.stopTracking();
+
+            // Start replay
+            await replayManager.startReplay(activeLevel, activePlayer, movementTracker);
+          }
+        }
+      }, 1000); // Wait 1 second before starting replay
     }
 
   }

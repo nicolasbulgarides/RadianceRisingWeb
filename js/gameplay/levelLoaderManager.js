@@ -288,6 +288,22 @@ class LevelLoaderManager {
                 console.error(`[LEVEL LOADER] CollectiblePlacementManager not found in FundamentalSystemBridge!`);
             }
 
+            // Start movement tracking for replay
+            const movementTracker = FundamentalSystemBridge["movementTracker"];
+            if (movementTracker) {
+                movementTracker.startTracking();
+                console.log(`[LEVEL LOADER] Movement tracking started`);
+            }
+
+            // Create duplicate level for replay (20 units to the right)
+            const replayManager = FundamentalSystemBridge["levelReplayManager"];
+            if (replayManager) {
+                // Create duplicate level asynchronously (don't await to avoid blocking level load)
+                replayManager.createDuplicateLevel(activeGameplayLevel).catch(error => {
+                    console.error(`[LEVEL LOADER] Error creating duplicate level:`, error);
+                });
+            }
+
             if (loadingScreen) {
                 loadingScreen.destroy();
             }

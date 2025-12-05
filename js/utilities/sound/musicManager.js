@@ -9,14 +9,24 @@ class MusicManager {
 
   /**
    * Plays a song by retrieving its URL and initializing a BABYLON.Sound.
-   * Stops any currently playing music.
+   * Stops any currently playing music only if it's a different song.
+   * If the same song is already playing, it will continue without restarting.
    * @param {BABYLON.Scene} scene - The scene in which to play the sound.
    * @param {string} songName - The name of the song asset.
    * @param {boolean} autoplay - Whether the song should start automatically.
    * @param {boolean} loop - Whether the song should loop.
    */
   playSong(scene, songName, autoplay, loop) {
-    // Stop previously playing music if any
+    // Check if the same song is already playing
+    if (this.currentMusic != null && this.currentMusic.name === songName) {
+      // Same song is already playing, check if it's still playing
+      if (this.currentMusic.isPlaying) {
+        // Don't restart the same song
+        return;
+      }
+    }
+
+    // Stop previously playing music if any (different song or stopped)
     if (this.currentMusic != null) {
       this.currentMusic.stop();
     }

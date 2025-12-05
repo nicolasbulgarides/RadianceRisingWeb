@@ -106,7 +106,11 @@ class MicroEventManager {
     //console.log(`[PICKUP] PositionedObject exists:`, !!microEvent.microEventPositionedObject);
     //console.log(`[PICKUP] Model exists:`, !!microEvent.microEventPositionedObject?.model);
 
-
+    // Record pickup position for replay
+    const movementTracker = FundamentalSystemBridge["movementTracker"];
+    if (movementTracker && movementTracker.isTracking && microEvent.microEventLocation) {
+      movementTracker.recordPickupPosition(microEvent.microEventLocation);
+    }
 
     SoundEffectsManager.playSound("stardustAbsorptionSizzle");
 

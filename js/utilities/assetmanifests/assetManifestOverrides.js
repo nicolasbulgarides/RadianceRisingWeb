@@ -45,7 +45,6 @@ class AssetManifestOverrides {
     },
     testMountain: {
       scale: { x: 0.8, y: 0.8, z: 0.8 },
-      offset: { x: 0.1, y: 0, z: -0.2 },
       rotation: { pitch: 20, roll: 0, yaw: 0 },
     },
     lotus: {

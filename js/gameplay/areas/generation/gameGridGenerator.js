@@ -150,4 +150,69 @@ class GameGridGenerator {
 
     return true;
   }
+
+  /**
+   * Generates a duplicate grid shifted by an offset using thin instances.
+   * Uses the same loaded tiles but places them at offset positions.
+   *
+   * @param {number} width - The width of the grid (number of columns).
+   * @param {number} depth - The depth of the grid (number of rows).
+   * @param {BABYLON.Vector3} offset - The offset to apply to all tile positions.
+   * @param {number} [tileSize=1] - Size of each tile for spacing.
+   * @returns {Promise<boolean>} - Resolves to true if the grid was generated successfully.
+   */
+  async generateGridWithOffset(width, depth, offset, tileSize = 1) {
+    // Validate input dimensions
+    if (!width || !depth || width < 1 || depth < 1) {
+      console.error(
+        `GridGenerator: Invalid grid dimensions: ${width}x${depth}`
+      );
+      return false;
+    }
+
+    // Ensure tiles are loaded
+    if (this.loadedTiles.length === 0) {
+      console.error(
+        "GridGenerator: No tiles loaded. Call loadTilesModels first."
+      );
+      return false;
+    }
+
+    // Iterate over every grid cell position.
+    for (let x = 0; x < width; x++) {
+      for (let z = 0; z < depth; z++) {
+        // Use a pattern to vary the tile selection.
+        const rowOffset = x % this.loadedTiles.length;
+        const tileIndex = (z + rowOffset) % this.loadedTiles.length;
+        const baseTile = this.loadedTiles[tileIndex];
+
+        // Ensure the base tile has meshes
+        if (!baseTile || !baseTile.meshes || baseTile.meshes.length === 0) {
+          console.warn(
+            `GridGenerator: Missing or invalid tile at index ${tileIndex}`
+          );
+          continue;
+        }
+
+        // Assume each base tile has a primary mesh with child meshes.
+        const children = baseTile.meshes[0].getChildren(undefined, false);
+
+        // Instance each child mesh at the correct grid position with offset.
+        for (const mesh of children) {
+          if (mesh instanceof BABYLON.Mesh) {
+            // Calculate the space position based on grid coordinates with offset.
+            const xPos = (x * tileSize) + offset.x;
+            const yPos = offset.y;
+            const zPos = (z * tileSize) + offset.z;
+            // Create a transformation matrix for placement with offset.
+            const matrix = BABYLON.Matrix.Translation(xPos, yPos, zPos);
+            // Add the transformation as a thin instance for optimal performance.
+            mesh.thinInstanceAdd(matrix);
+          }
+        }
+      }
+    }
+
+    return true;
+  }
 }

@@ -105,6 +105,13 @@ class GameplayManagerComposite {
       );
 
       if (destinationVector instanceof BABYLON.Vector3) {
+        // Record movement for replay
+        const movementTracker = FundamentalSystemBridge["movementTracker"];
+        if (movementTracker && movementTracker.isTracking) {
+          const startPosition = currentPlayer.playerMovementManager.getPositionVector();
+          movementTracker.recordMovement(clickedDirection, startPosition, destinationVector);
+        }
+
         currentPlayer.playerMovementManager.setDestinationAndBeginMovement(
           destinationVector,
           currentPlayer // Set the destination and start movement for the player.

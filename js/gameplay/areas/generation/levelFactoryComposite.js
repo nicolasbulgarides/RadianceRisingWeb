@@ -23,6 +23,18 @@ class LevelFactoryComposite {
     FundamentalSystemBridge.registerCollectiblePlacementManager(
       new CollectiblePlacementManager()
     );
+
+    // Initialize movement tracker and replay manager
+    FundamentalSystemBridge.registerManager(
+      "movementTracker",
+      new MovementTracker(),
+      MovementTracker
+    );
+    FundamentalSystemBridge.registerManager(
+      "levelReplayManager",
+      new LevelReplayManager(),
+      LevelReplayManager
+    );
   }
 
   static checkTilesLoaded() {
