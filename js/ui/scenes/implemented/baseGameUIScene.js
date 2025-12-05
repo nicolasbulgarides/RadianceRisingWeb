@@ -24,6 +24,9 @@ class BaseGameUIScene extends UISceneGeneralized {
     this.heartSocketBar = null; // Store the heart socket bar instance
     this.experienceBarSegments = []; // Store experience bar segments
     this.levelNameText = null; // Store level name text control
+    this.fpsCounterText = null; // Store FPS counter text control
+    this.fpsFrameTimes = []; // Array to store frame times over last 10 seconds
+    this.fpsLastUpdateTime = 0; // Last time FPS was calculated
     // Hint system removed - will be implemented differently
   }
 
@@ -160,6 +163,15 @@ class BaseGameUIScene extends UISceneGeneralized {
       () => this.createTopHeartBar(),
       "topHeartBar"
     );
+
+    // Add FPS counter to the right of hearts
+    this.attemptUIElementLoad(
+      () => this.createFPSCounter(),
+      "fpsCounter"
+    );
+
+    // Initialize FPS tracking
+    this.initializeFPSTracking();
 
     // Try to refresh level info from gameplay after a short delay
     // (allows time for level to be loaded)
@@ -312,6 +324,100 @@ class BaseGameUIScene extends UISceneGeneralized {
 
     // Add to the top UI controls container
     this.topUIControlsContainer.addControl(heartBarContainer);
+  }
+
+  /**
+   * Creates the FPS counter text to the right of the hearts.
+   */
+  createFPSCounter() {
+    // Calculate position to the right of hearts
+    const expBarSize = Config.IDEAL_UI_WIDTH * 0.3024; // Same size as experience bar
+    const leftMargin = 50;
+    const halfBarSize = expBarSize / 2;
+    const expBarRightEdge = -(Config.IDEAL_UI_WIDTH / 2) + halfBarSize + leftMargin + halfBarSize;
+    const rightMargin = 50;
+    const availableRightSpace = (Config.IDEAL_UI_WIDTH / 2) - rightMargin - expBarRightEdge;
+    const centerOfRightSpace = expBarRightEdge + (availableRightSpace / 2);
+
+    // Position to the right of hearts (hearts are centered at centerOfRightSpace)
+    const heartBarSize = 125;
+    const heartSpacing = 10;
+    const totalHeartBarWidth = (heartBarSize * 3) + (heartSpacing * 2);
+    const levelNameOffsetY = -Config.IDEAL_UI_HEIGHT * 0.02 - 75;
+    const heartBarOffsetY = levelNameOffsetY + Config.IDEAL_UI_HEIGHT * 0.05 + (heartBarSize / 2) - 75 + 100;
+
+    // Position FPS counter to the right of hearts
+    const fpsOffsetX = centerOfRightSpace + (totalHeartBarWidth / 2) + 30; // 30px spacing from hearts
+    const fpsOffsetY = heartBarOffsetY; // Same vertical position as hearts
+
+    // Create FPS counter text
+    this.fpsCounterText = new BABYLON.GUI.TextBlock("fpsCounter", "FPS: --");
+    this.fpsCounterText.color = "#CCCCCC"; // Light gray color
+    this.fpsCounterText.fontSize = Config.IDEAL_UI_HEIGHT * 0.025 + "px";
+    this.fpsCounterText.fontFamily = "Arial";
+    this.fpsCounterText.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+    this.fpsCounterText.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+    this.fpsCounterText.left = fpsOffsetX + "px";
+    this.fpsCounterText.top = fpsOffsetY + "px";
+    this.fpsCounterText.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+    this.topUIControlsContainer.addControl(this.fpsCounterText);
+  }
+
+  /**
+   * Initializes FPS tracking by registering a before render observer.
+   */
+  initializeFPSTracking() {
+    if (!this.advancedTexture || !this.advancedTexture.getScene) {
+      // Wait for advanced texture to be ready
+      setTimeout(() => this.initializeFPSTracking(), 100);
+      return;
+    }
+
+    const scene = this.advancedTexture.getScene();
+    if (!scene) {
+      setTimeout(() => this.initializeFPSTracking(), 100);
+      return;
+    }
+
+    // Register before render to track FPS
+    scene.registerBeforeRender(() => {
+      this.updateFPSCounter();
+    });
+  }
+
+  /**
+   * Updates the FPS counter by tracking frame times over the last 10 seconds.
+   */
+  updateFPSCounter() {
+    const currentTime = performance.now();
+
+    // Add current frame time to the array
+    if (this.fpsLastUpdateTime > 0) {
+      const frameTime = currentTime - this.fpsLastUpdateTime;
+      this.fpsFrameTimes.push({
+        time: currentTime,
+        frameTime: frameTime
+      });
+    }
+    this.fpsLastUpdateTime = currentTime;
+
+    // Remove frame times older than 10 seconds
+    const tenSecondsAgo = currentTime - 10000; // 10 seconds in milliseconds
+    this.fpsFrameTimes = this.fpsFrameTimes.filter(entry => entry.time >= tenSecondsAgo);
+
+    // Calculate average FPS over the last 10 seconds
+    if (this.fpsFrameTimes.length > 0) {
+      const totalFrameTime = this.fpsFrameTimes.reduce((sum, entry) => sum + entry.frameTime, 0);
+      const averageFrameTime = totalFrameTime / this.fpsFrameTimes.length;
+      const averageFPS = averageFrameTime > 0 ? Math.round(1000 / averageFrameTime) : 0;
+
+      // Update the display
+      if (this.fpsCounterText) {
+        this.fpsCounterText.text = `FPS: ${averageFPS}`;
+      }
+    } else if (this.fpsCounterText) {
+      this.fpsCounterText.text = "FPS: --";
+    }
   }
 
   /**
