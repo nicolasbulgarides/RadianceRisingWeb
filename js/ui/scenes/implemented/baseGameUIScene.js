@@ -27,6 +27,7 @@ class BaseGameUIScene extends UISceneGeneralized {
     this.fpsCounterText = null; // Store FPS counter text control
     this.fpsFrameTimes = []; // Array to store frame times over last 10 seconds
     this.fpsLastUpdateTime = 0; // Last time FPS was calculated
+    this.fpsFrameCounter = 0; // Counter to track frames for every-4-frame checks
     // Hint system removed - will be implemented differently
   }
 
@@ -386,8 +387,17 @@ class BaseGameUIScene extends UISceneGeneralized {
 
   /**
    * Updates the FPS counter by tracking frame times over the last 10 seconds.
+   * Only performs calculations every 4 frames for performance.
    */
   updateFPSCounter() {
+    // Increment frame counter
+    this.fpsFrameCounter++;
+
+    // Only perform FPS calculation every 4 frames
+    if (this.fpsFrameCounter % 4 !== 0) {
+      return;
+    }
+
     const currentTime = performance.now();
 
     // Add current frame time to the array

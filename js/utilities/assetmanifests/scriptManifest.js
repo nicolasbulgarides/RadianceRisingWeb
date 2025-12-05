@@ -103,17 +103,6 @@ class ScriptManifest {
   ];
 
   static lightingScripts = [
-    "/lighting/lightingLogger.js",
-    "/lighting/lightingColorShiftProfile.js",
-    "/lighting/lightingMotionProfile.js",
-    "/lighting/lightingMotionPresets.js",
-    "/lighting/lightingColorPresets.js",
-    "/lighting/lightingPropertyCalculator.js",
-    "/lighting/lightingTemplates.js",
-    "/lighting/lightingObject.js",
-    "/lighting/lightingExperiments.js",
-    "/lighting/lightingFactory.js",
-    "/lighting/lightingFrameUpdates.js",
     "/lighting/lightingManager.js",
   ];
 

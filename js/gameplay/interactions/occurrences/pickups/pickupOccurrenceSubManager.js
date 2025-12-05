@@ -49,7 +49,7 @@ class PickupOccurrenceSubManager {
   }
 
   processStardustPickup(pickupOccurrence) {
-    console.log("Stardust has been picked up!");
+    //console.log("Stardust has been picked up!");
     // Future: Add stardust to player inventory or track collection
   }
 }

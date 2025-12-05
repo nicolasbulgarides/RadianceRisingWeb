@@ -39,27 +39,9 @@ class ActiveGameplayLevel {
     this.registeredPlayers = []; // Array to hold registered players in the level.
     this.currentPrimaryPlayer = null; // The player currently active in the level.
 
-    // For backward compatibility - create a minimal level map
-    // this.levelMap = this.createMinimalLevelMap();
   }
 
-  /**
-   * Creates a minimal LevelMap for backward compatibility
-   * @private
-   * @returns {LevelMap} A minimal LevelMap with essential data
-   */
-  createMinimalLevelMap() {
-    const levelMap = new LevelMap();
-    const dimensions = this.getGridDimensions();
 
-    // Set minimal required properties
-    levelMap.mapWidth = dimensions.width;
-    levelMap.mapDepth = dimensions.depth;
-    levelMap.startingPosition = this.getPlayerStartPosition();
-    levelMap.obstacles = this.getObstacles();
-
-    return levelMap;
-  }
 
   /**
    * Gets the grid dimensions from the level data
@@ -110,33 +92,9 @@ class ActiveGameplayLevel {
    * This method sets up the lighting systems based on the current scene.
    */
   initializeLevelLighting() {
-    // Apply lighting presets from level data if available
 
-    ///Disabled light preset retrieval for now
-    // const lightingPresets =
-    // to do - add lighting presets
-    //  this.levelDataComposite.levelGameplayTraitsData?.lightingPresets;
 
     this.lightingManager.initializeConstructSystems(false, this.hostingScene); // Initialize lighting systems.
-
-    // Disable shadows on the scene to prevent checkerboard patterns
-    if (this.hostingScene) {
-      // Disable shadow generators for all lights
-      this.hostingScene.lights.forEach((light) => {
-        if (light.getShadowGenerator) {
-          const shadowGen = light.getShadowGenerator();
-          if (shadowGen) {
-            shadowGen.dispose();
-          }
-        }
-        light.shadowEnabled = false;
-      });
-
-      // Also disable shadows on the scene level if possible
-      if (this.hostingScene.shadowsEnabled !== undefined) {
-        this.hostingScene.shadowsEnabled = false;
-      }
-    }
   }
 
   /**
@@ -144,9 +102,7 @@ class ActiveGameplayLevel {
    * This method ensures that lighting is processed for the current frame.
    */
   onFrameEvents() {
-    if (this.lightingManager != null) {
-      this.lightingManager.processLightFrameCaller(); // Process lighting updates.
-    }
+
   }
 
   /**
@@ -237,44 +193,4 @@ class ActiveGameplayLevel {
     }
   }
 
-  /**
-   * Returns a beautifully formatted string description of the current gameplay level state.
-   * @returns {string} A formatted description of the level
-   */
-  describeMe() {
-    const boundary = this.getActiveGameLevelBoundary();
-    const playerPos =
-      this.currentPrimaryPlayer?.playerMovementManager.getPlayerModelPositionedObject()
-        ?.position;
-    const dimensions = this.getGridDimensions();
-
-    return `🎮 Level Status Report 🎮
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📐 Dimensions
-   Width: ${dimensions.width} units
-   Depth: ${dimensions.depth} units
-   Playable Area: (${boundary.minX},${boundary.minZ}) to (${boundary.maxX},${boundary.maxZ
-      })
-
-👥 Players
-   Total Players: ${this.registeredPlayers.length}
-   Primary Player: ${this.currentPrimaryPlayer ? "✓ Active" : "✗ None"}
-   ${playerPos
-        ? `   Location: (${playerPos.x.toFixed(2)}, ${playerPos.y.toFixed(
-          2
-        )}, ${playerPos.z.toFixed(2)})`
-        : ""
-      }
-
-🎯 Game Mode
-   Lighting: ${this.lightingManager ? "💡 Active" : "🌑 Not Initialized"}
-   Rules: ${Object.keys(this.gameModeRules || {})
-        .map((rule) => `\n     • ${rule}`)
-        .join("")}
-
-🎥 Scene Status
-   Camera System: ${this.cameraManager?.hasActiveCamera() ? "🎥 Ready" : "❌ Not Set"
-      }
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
-  }
 }
