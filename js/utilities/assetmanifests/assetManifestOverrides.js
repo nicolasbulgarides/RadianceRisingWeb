@@ -48,6 +48,9 @@ class AssetManifestOverrides {
       offset: { x: 0.1, y: 0, z: -0.2 },
       rotation: { pitch: 20, roll: 0, yaw: 0 },
     },
+    lotus: {
+      scale: { x: 0.7, y: 0.7, z: 0.7 },
+    },
   };
 
   /**

@@ -48,6 +48,7 @@ class MicroEventManager {
     );
 
 
+
     let collectiblePlacementManager =
       FundamentalSystemBridge["collectiblePlacementManager"];
 
@@ -83,37 +84,43 @@ class MicroEventManager {
         );
 
       if (nearACollectible) {
-        //console.log(`[PICKUP] Pickup detected! Event: ${microEvent.microEventNickname}, Value: ${microEvent.microEventValue}`);
-        this.processSuccessfulPickup(microEvent);
+        // Immediately mark as completed to prevent multiple processing
+        // This must happen BEFORE any processing to prevent race conditions
+        if (microEvent.microEventCompletionStatus === false) {
+          microEvent.markAsCompleted();
+          //console.log(`[PICKUP] Pickup detected! Event: ${microEvent.microEventNickname}, Value: ${microEvent.microEventValue}`);
+          this.processSuccessfulPickup(microEvent);
+        }
       }
     }
   }
 
   processSuccessfulPickup(microEvent) {
+    // Event should already be marked as completed before this is called
+    // But add a safety check just in case
     if (microEvent.microEventCompletionStatus === false) {
-      //console.log(`[PICKUP] Processing pickup for: ${microEvent.microEventNickname}`);
-      //console.log(`[PICKUP] PositionedObject exists:`, !!microEvent.microEventPositionedObject);
-      //console.log(`[PICKUP] Model exists:`, !!microEvent.microEventPositionedObject?.model);
-
-
-
-      SoundEffectsManager.playSound("stardustAbsorptionSizzle");
-
-      //console.log(`[PICKUP] Calling disposeModel()...`);
-      microEvent.microEventPositionedObject.disposeModel();
-      //console.log(`[PICKUP] disposeModel() completed. Model is now:`, microEvent.microEventPositionedObject.model);
-
-      let pickupOccurrence =
-        CollectibleOccurrenceFactory.convertMicroEventToOccurrence(microEvent);
-
-      FundamentalSystemBridge[
-        "specialOccurrenceManager"
-      ].processPickupOccurrence(pickupOccurrence);
       microEvent.markAsCompleted();
-      //console.log(`[PICKUP] Pickup processing complete. Event marked as completed.`);
-    } else {
-      //console.log(`[PICKUP] Skipping - event already completed: ${microEvent.microEventNickname}`);
     }
+
+    //console.log(`[PICKUP] Processing pickup for: ${microEvent.microEventNickname}`);
+    //console.log(`[PICKUP] PositionedObject exists:`, !!microEvent.microEventPositionedObject);
+    //console.log(`[PICKUP] Model exists:`, !!microEvent.microEventPositionedObject?.model);
+
+
+
+    SoundEffectsManager.playSound("stardustAbsorptionSizzle");
+
+    //console.log(`[PICKUP] Calling disposeModel()...`);
+    microEvent.microEventPositionedObject.disposeModel();
+    //console.log(`[PICKUP] disposeModel() completed. Model is now:`, microEvent.microEventPositionedObject.model);
+
+    let pickupOccurrence =
+      CollectibleOccurrenceFactory.convertMicroEventToOccurrence(microEvent);
+
+    FundamentalSystemBridge[
+      "specialOccurrenceManager"
+    ].processPickupOccurrence(pickupOccurrence);
+    //console.log(`[PICKUP] Pickup processing complete. Event marked as completed.`);
   }
 
   prepareAndRegisterMicroEventsForLevel(levelDataComposite) {

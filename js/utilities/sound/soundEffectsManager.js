@@ -85,8 +85,7 @@ class SoundEffectsManager {
             }
           } else {
             console.error(
-              `Failed to load sound after ${
-                attempt + 1
+              `Failed to load sound after ${attempt + 1
               } attempts: ${soundName}`,
               error
             );
@@ -171,6 +170,8 @@ class SoundEffectsManager {
 
   /**
    * Plays a sound effect by name. Attempts to load the sound if it hasn't been loaded yet.
+   * Creates a new sound instance for concurrent playback to prevent clipping when the same sound
+   * is triggered multiple times quickly.
    * @param {string} soundName - The name of the sound to play.
    * @param {BABYLON.Scene} scene - The scene in which to load/play the sound.
    */
@@ -180,9 +181,32 @@ class SoundEffectsManager {
       await SoundEffectsManager.attemptLoadSound(soundName, scene);
     }
 
-    const sound = SoundEffectsManager.sounds.get(soundName);
-    if (sound) {
-      sound.play();
+    const templateSound = SoundEffectsManager.sounds.get(soundName);
+    if (templateSound) {
+      // Check if the sound is currently playing
+      // If it is, create a new instance to allow concurrent playback
+      // If not, we can reuse the existing instance
+      if (templateSound.isPlaying) {
+        // Create a new instance for concurrent playback
+        const url = SoundAssetManifest.getSoundUrl(soundName);
+        const volume = SoundAssetManifest.getSoundVolume(soundName);
+
+        const soundInstance = new BABYLON.Sound(
+          `${soundName}_${Date.now()}_${Math.random()}`,
+          url,
+          scene,
+          () => {
+            soundInstance.setVolume(volume);
+            soundInstance.play();
+          },
+          (error) => {
+            console.warn(`Failed to play sound instance ${soundName}:`, error);
+          }
+        );
+      } else {
+        // Sound is not playing, we can safely use the existing instance
+        templateSound.play();
+      }
     } else {
       console.warn(`Sound not found or failed to load: ${soundName}`);
     }

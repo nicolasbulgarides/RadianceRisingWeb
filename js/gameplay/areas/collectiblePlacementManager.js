@@ -119,8 +119,8 @@ class CollectiblePlacementManager {
     const absDx = Math.abs(dx);
     const absDz = Math.abs(dz);
 
-    // Pickup only occurs if both absolute x and z distances are less than 0.1 (crossover requirement)
-    const isNear = absDx < 0.1 && absDz < 0.1;
+    // Pickup only occurs if both absolute x and z distances are less than 0.3 (crossover requirement)
+    const isNear = absDx < 0.3 && absDz < 0.3;
 
     if (isNear) {
       // console.log(`[PICKUP DISTANCE] ✓ Within pickup range! dx: ${absDx.toFixed(3)}, dz: ${absDz.toFixed(3)}`);

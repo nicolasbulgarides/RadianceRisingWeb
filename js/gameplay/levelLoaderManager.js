@@ -84,11 +84,9 @@ class LevelLoaderManager {
 
     async loadLevelTest1(gameplayManager) {
 
-        const loadingScreen = this.getLoadingScreen();
-
         await this.loadTilesAndFactorySupportSystems();
 
-        let levelDataUrl = "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/assets/" + "level1LuckyTest.txt";
+        let levelDataUrl = "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/assets/" + "level0Test2.txt";
         this.loadLevelFromUrl(gameplayManager, levelDataUrl);
 
 
@@ -419,7 +417,7 @@ class LevelLoaderManager {
             const offset = new BABYLON.Vector3(0, 0, 0);
             const rotation = new BABYLON.Vector3(0, 0, 0);
             const stardustObject = new PositionedObject(
-                "sphereNew_transmissiveStainedGlass",
+                "lotus",
                 position,
                 rotation,
                 offset,
@@ -470,6 +468,22 @@ class LevelLoaderManager {
                 );
             } else {
                 console.error(`[STARDUST CREATION] MicroEventManager not found!`);
+            }
+        }
+
+        // Verify that 4 stardusts were registered
+        if (microEventManager) {
+            const levelDataForRegistration = activeGameplayLevel?.levelDataComposite || { levelHeaderData: { levelId: levelId } };
+            const registeredEvents = microEventManager.getMicroEventsByLevelId(levelDataForRegistration.levelHeaderData?.levelId || levelId);
+            const stardustEvents = registeredEvents.filter(e =>
+                e.microEventCategory === "pickup" &&
+                (e.microEventValue === "stardust" || e.microEventNickname?.includes("Stardust"))
+            );
+
+            if (stardustEvents.length !== 4) {
+                console.warn(`[STARDUST VERIFICATION] Expected 4 stardusts, but found ${stardustEvents.length} registered for levelId: ${levelId}`);
+            } else {
+                console.log(`[STARDUST VERIFICATION] ✓ Successfully registered 4 stardusts for levelId: ${levelId}`);
             }
         }
     }

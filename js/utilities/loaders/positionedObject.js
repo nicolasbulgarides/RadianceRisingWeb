@@ -235,10 +235,7 @@ class PositionedObject {
    * Disposes of the loaded model to free up resources.
    */
   disposeModel() {
-    //console.log(`[DISPOSE] disposeModel() called for modelId: ${this.modelId}`);
-
     if (!this.model) {
-      // console.log(`[DISPOSE] No model to dispose (model is null/undefined)`);
       return;
     }
 
@@ -251,30 +248,14 @@ class PositionedObject {
       hasDisposeMethod: typeof this.model.dispose === 'function'
     });
 
-    // Handle ImportMeshAsync result structure (has meshes, particleSystems, skeletons, animationGroups)
     if (this.model.meshes && Array.isArray(this.model.meshes)) {
-      // console.log(`[DISPOSE] Disposing ${this.model.meshes.length} meshes...`);
       // Dispose all meshes - this automatically removes them from the scene
       for (let i = 0; i < this.model.meshes.length; i++) {
         const mesh = this.model.meshes[i];
         if (mesh) {
-          /** 
-          console.log(`[DISPOSE] Disposing mesh ${i}:`, {
-            name: mesh.name,
-            hasDispose: typeof mesh.dispose === 'function',
-            isDisposed: mesh.isDisposed || false
-          });
-          */
-          if (typeof mesh.dispose === 'function') {
-            mesh.dispose();
-            // console.log(`[DISPOSE] Mesh ${i} disposed`);
-          } else {
-            // console.warn(`[DISPOSE] Mesh ${i} does not have dispose() method`);
-          }
+          mesh.dispose();
         }
       }
-    } else {
-      //console.log(`[DISPOSE] No meshes array found in model`);
     }
   }
 }
