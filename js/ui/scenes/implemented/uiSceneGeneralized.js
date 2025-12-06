@@ -1,11 +1,28 @@
 class UISceneGeneralized extends BABYLON.Scene {
   constructor(uiSceneType) {
     super(FundamentalSystemBridge["babylonEngine"]);
+
+    // Initialize components synchronously first
     this.baseContainer = null;
     this.autoClear = false;
     this.setBackgroundColor(new BABYLON.Color4(0.1, 0.1, 0.3, 1));
     this.initAdvancedTexture(uiSceneType);
     this.initCamera();
+
+    // Initialize AudioEngine asynchronously for Babylon.js v8+
+    this.initializeAudioEngine();
+
+    console.log("[UI SCENE] UI scene initialized");
+  }
+
+  async initializeAudioEngine() {
+    try {
+      console.log("[UI SCENE] Ensuring AudioEngine is ready...");
+      await Config.ensureAudioEngineReady();
+      console.log("[UI SCENE] AudioEngine ready for scene");
+    } catch (error) {
+      console.warn("[UI SCENE] Failed to ensure AudioEngine ready:", error);
+    }
   }
 
   assembleUIGeneralized(aspectRatioPreset) {
@@ -15,7 +32,7 @@ class UISceneGeneralized extends BABYLON.Scene {
   rebuildUICompletely() {
     this.advancedTexture.clear();
   }
-  augmentUIDueToAspectRatioPreset(aspectRatioPreset) {}
+  augmentUIDueToAspectRatioPreset(aspectRatioPreset) { }
   rebuildUIDueToResize(newAspectRatioPreset) {
     this.currentAspectRatioPreset = newAspectRatioPreset;
   }

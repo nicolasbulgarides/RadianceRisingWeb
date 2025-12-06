@@ -18,7 +18,7 @@ class MovementTracker {
         this.movements = [];
         this.pickupPositions = [];
         this.isTracking = true;
-        console.log("[MOVEMENT TRACKER] Started tracking movements");
+        //console.log("[MOVEMENT TRACKER] Started tracking movements");
     }
 
     /**
@@ -26,7 +26,7 @@ class MovementTracker {
      */
     stopTracking() {
         this.isTracking = false;
-        console.log(`[MOVEMENT TRACKER] Stopped tracking. Recorded ${this.movements.length} movements`);
+        //  console.log(`[MOVEMENT TRACKER] Stopped tracking. Recorded ${this.movements.length} movements`);
     }
 
     /**
@@ -46,7 +46,7 @@ class MovementTracker {
         };
 
         this.movements.push(movement);
-        console.log(`[MOVEMENT TRACKER] Recorded movement: ${direction} from (${startPosition.x}, ${startPosition.z}) to (${destinationPosition.x}, ${destinationPosition.z})`);
+        //   console.log(`[MOVEMENT TRACKER] Recorded movement: ${direction} from (${startPosition.x}, ${startPosition.z}) to (${destinationPosition.x}, ${destinationPosition.z})`);
     }
 
     /**

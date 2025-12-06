@@ -47,13 +47,18 @@ class RadiantEngineManager {
       FundamentalSystemBridge["babylonEngine"].resize();
     });
 
-    Config.addAudioUnlock();
+    // Move audio unlock to after systems are loaded
+
+    // Config.addAudioUnlock();
   }
 
   loadSystems() {
     this.loadRenderingAndStartupExperienceSystems();
     this.loadGameplayEssentialSystems();
     this.loadTestLevel();
+
+    // Now that systems are loaded, set up audio unlock
+    Config.addAudioUnlock();
   }
 
   loadTestLevel() {
@@ -76,6 +81,7 @@ class RadiantEngineManager {
 
   loadGameplayEssentialSystems() {
     FundamentalSystemBridge.loadGameplayManagerComposite();
+    FundamentalSystemBridge.loadPlayerStatusTracker();
     FundamentalSystemBridge.loadActiveTriggerManager();
   }
 

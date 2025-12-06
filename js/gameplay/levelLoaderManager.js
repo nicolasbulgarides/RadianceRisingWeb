@@ -290,17 +290,17 @@ class LevelLoaderManager {
                 collectibleManager.activeGameplayLevel = gameplayLevel;
                 // Mark as initialized to prevent auto-placing mangos
                 collectibleManager.isInitialized = true;
-                console.log(`[LEVEL LOADER] CollectiblePlacementManager configured with activeGameplayLevel`);
-                console.log(`[LEVEL LOADER] Player registered:`, !!gameplayLevel.currentPrimaryPlayer);
+                // console.log(`[LEVEL LOADER] CollectiblePlacementManager configured with activeGameplayLevel`);
+                // console.log(`[LEVEL LOADER] Player registered:`, !!gameplayLevel.currentPrimaryPlayer);
             } else {
-                console.error(`[LEVEL LOADER] CollectiblePlacementManager not found in FundamentalSystemBridge!`);
+                // console.error(`[LEVEL LOADER] CollectiblePlacementManager not found in FundamentalSystemBridge!`);
             }
 
             // Start movement tracking for replay
             const movementTracker = FundamentalSystemBridge["movementTracker"];
             if (movementTracker) {
                 movementTracker.startTracking();
-                console.log(`[LEVEL LOADER] Movement tracking started`);
+                //  console.log(`[LEVEL LOADER] Movement tracking started`);
             }
 
             // Create duplicate level for replay (20 units to the right)
@@ -316,17 +316,19 @@ class LevelLoaderManager {
                 loadingScreen.destroy();
             }
 
-            // Start crystal voyage music on loop
+            // Start crystal voyage music on loop (only if audio has been unlocked by user interaction)
             const musicManager = FundamentalSystemBridge["musicManager"];
             const activeScene = FundamentalSystemBridge["renderSceneSwapper"]?.getActiveGameLevelScene();
-            if (musicManager && activeScene) {
+            if (musicManager && activeScene && Config.audioHasBeenUnlocked) {
                 musicManager.playSong(activeScene, "crystalVoyage", true, true);
                 console.log("[LEVEL LOADER] Started crystalVoyage music on loop");
+            } else if (musicManager && activeScene && !Config.audioHasBeenUnlocked) {
+                console.log("[LEVEL LOADER] Skipping music start - waiting for user interaction to unlock audio");
             }
 
             return gameplayLevel;
         } catch (error) {
-            console.error("Error loading level from server:", error);
+            //console.error("Error loading level from server:", error);
             this.logFailedToLoadLevel();
             return null;
         }
@@ -523,7 +525,7 @@ class LevelLoaderManager {
             if (stardustEvents.length !== 4) {
                 console.warn(`[STARDUST VERIFICATION] Expected 4 stardusts, but found ${stardustEvents.length} registered for levelId: ${levelId}`);
             } else {
-                console.log(`[STARDUST VERIFICATION] ✓ Successfully registered 4 stardusts for levelId: ${levelId}`);
+                //console.log(`[STARDUST VERIFICATION] ✓ Successfully registered 4 stardusts for levelId: ${levelId}`);
             }
         }
     }

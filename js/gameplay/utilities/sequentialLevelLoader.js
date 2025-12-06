@@ -727,9 +727,9 @@ class SequentialLevelLoader {
             movementTracker.startTracking();
         }
 
-        // Start music for new level (don't restart if same song)
+        // Start music for new level (only if audio has been unlocked)
         const musicManager = FundamentalSystemBridge["musicManager"];
-        if (musicManager && this.currentScene) {
+        if (musicManager && this.currentScene && Config.audioHasBeenUnlocked) {
             musicManager.playSong(this.currentScene, "crystalVoyage", true, true);
         }
 

@@ -61,9 +61,6 @@ class BaseGameUIScene extends UISceneGeneralized {
       () => this.assembleTopUIControlsComposite(),
       "topUIControlsComposite"
     );
-
-    console.log("Failed UI elements:", this.failedUIElements);
-
     // Retry any failed UI elements
     this.retryFailedUIElements();
   }
@@ -180,6 +177,12 @@ class BaseGameUIScene extends UISceneGeneralized {
       this.refreshLevelInfoFromGameplay();
     }, 500);
 
+    // Sync the experience bar with the tracked player status (if available).
+    const playerStatusTracker = FundamentalSystemBridge["playerStatusTracker"];
+    if (playerStatusTracker instanceof PlayerStatusTracker) {
+      playerStatusTracker.updateExperienceUI();
+    }
+
   }
 
   /**
@@ -295,8 +298,6 @@ class BaseGameUIScene extends UISceneGeneralized {
 
     // Position beneath the level title, centered
     const heartBarSize = 125; // 125 pixels tall
-    const heartSpacing = 10;
-    const totalHeartBarWidth = (heartBarSize * 3) + (heartSpacing * 2);
     const levelNameOffsetY = -Config.IDEAL_UI_HEIGHT * 0.02 - 75; // Same as level name (moved 75px up)
     const heartBarOffsetY = levelNameOffsetY + Config.IDEAL_UI_HEIGHT * 0.05 + (heartBarSize / 2) - 75 + 100; // Below level name with spacing, moved 75px up, then 100px down (50px additional)
 
@@ -787,7 +788,7 @@ class BaseGameUIScene extends UISceneGeneralized {
           SoundEffectsManager.playSound("magicalSpellCastNeutral");
         } else {
           // Play different sound for insufficient mana
-          console.log("Insufficient mana to cast spell");
+          // console.log("Insufficient mana to cast spell");
         }
       } else {
         // Fallback: play sound even if mana bar isn't initialized
@@ -801,15 +802,13 @@ class BaseGameUIScene extends UISceneGeneralized {
           // Play sound effect for successful artifact usage
           SoundEffectsManager.playSound("artifactUsage");
           // Trigger fireball effect around the player
-          this.explosionEffect();
         } else {
           // Play different sound for insufficient artifacts
-          console.log("Insufficient artifacts to use");
+          //console.log("Insufficient artifacts to use");
         }
       } else {
         // Fallback: play sound and trigger effect even if artifact socket bar isn't initialized
         SoundEffectsManager.playSound("artifactUsage");
-        this.explosionEffect();
       }
     }
   }
@@ -872,7 +871,6 @@ class BaseGameUIScene extends UISceneGeneralized {
           timestamp: new Date().toISOString(),
         };
         this.failedUIElements.push(failedElement);
-        console.log(`Added to failed elements: ${elementName}`, failedElement);
 
         // If it's a rate limit error, add a delay before retry
         if (isRateLimitError) {
@@ -897,7 +895,9 @@ class BaseGameUIScene extends UISceneGeneralized {
   retryFailedUIElements() {
     if (this.failedUIElements.length === 0) return;
 
-    console.log(`Retrying ${this.failedUIElements.length} failed UI elements`);
+    if (this.failedUIElements.length > 0) {
+      console.log(`Retrying ${this.failedUIElements.length} failed UI elements`);
+    }
     const stillFailed = [];
 
     this.failedUIElements.forEach((element) => {
@@ -941,82 +941,4 @@ class BaseGameUIScene extends UISceneGeneralized {
     this.failedUIElements = stillFailed;
   }
 
-  /**
-   * Triggers a fireball effect around the player when the artifact button is clicked.
-   */
-  triggerFireballEffect() {
-    console.log("FireballEffect: Trigger function called");
-
-    // Get the game world scene (not the UI scene)
-    const gameWorldScene = FundamentalSystemBridge["renderSceneSwapper"]?.getActiveGameLevelScene();
-    if (!gameWorldScene) {
-      console.warn("FireballEffect: Cannot trigger, game world scene not found");
-      console.warn("FireballEffect: renderSceneSwapper:", FundamentalSystemBridge["renderSceneSwapper"]);
-      return;
-    }
-    console.log("FireballEffect: Game world scene found:", gameWorldScene);
-
-    // Get the player from the gameplay manager
-    const gameplayManager = FundamentalSystemBridge["gameplayManagerComposite"];
-    if (!gameplayManager || !gameplayManager.primaryActivePlayer) {
-      console.warn("FireballEffect: Cannot trigger, player not found");
-      console.warn("FireballEffect: gameplayManager:", gameplayManager);
-      console.warn("FireballEffect: primaryActivePlayer:", gameplayManager?.primaryActivePlayer);
-      return;
-    }
-
-    const player = gameplayManager.primaryActivePlayer;
-    console.log("FireballEffect: Player found:", player);
-
-    // Dispose of any existing fireball effect
-    if (this.currentFireballEffect) {
-      console.log("FireballEffect: Disposing existing effect");
-      this.currentFireballEffect.dispose();
-      this.currentFireballEffect = null;
-    }
-
-    // Create and activate a new fireball effect
-    try {
-      console.log("FireballEffect: Creating new fireball effect");
-      // Calculate fireball size based on player model size
-      let fireballRadius = 0.8; // Default larger size
-      try {
-        const playerMesh = player?.playerMovementManager?.getPlayerModelDirectly();
-        if (playerMesh) {
-          // Get the bounding box of the player to scale fireball appropriately
-          let boundingBox = null;
-          if (playerMesh instanceof BABYLON.Mesh) {
-            boundingBox = playerMesh.getBoundingInfo()?.boundingBox;
-          } else if (playerMesh.meshes && playerMesh.meshes.length > 0) {
-            boundingBox = playerMesh.meshes[0].getBoundingInfo()?.boundingBox;
-          }
-
-          if (boundingBox) {
-            // Make fireball 2x the largest dimension of the player's bounding box
-            const size = boundingBox.maximumWorld.subtract(boundingBox.minimumWorld);
-            const maxDimension = Math.max(size.x, size.y, size.z);
-            console.log("FireballEffect: Player bounding box size:", size, "Fireball radius:", fireballRadius);
-          }
-        }
-      } catch (error) {
-        console.warn("FireballEffect: Could not calculate player size, using default:", error);
-      }
-
-      this.currentFireballEffect = new FireballEffect2(
-        gameWorldScene,
-        player,
-        {
-          radius: fireballRadius * 1.0,
-          intensity: 2.0, // Even higher intensity for maximum visibility
-          duration: 10000 // 10 seconds - much longer so you can see it
-        }
-      );
-      console.log("FireballEffect: Fireball effect created, activating...");
-      this.currentFireballEffect.activate();
-      console.log("FireballEffect: Activation complete");
-    } catch (error) {
-      console.error("FireballEffect: Error creating fireball effect", error);
-      console.error("FireballEffect: Error stack:", error.stack);
-    }
-  }
 }

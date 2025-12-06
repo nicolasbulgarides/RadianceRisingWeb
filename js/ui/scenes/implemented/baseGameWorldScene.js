@@ -17,6 +17,6 @@ class BaseGameWorldScene extends GameWorldSceneGeneralized {
     // Optional: Keep the scene clear color opaque if using a background layer
     this.clearColor = new BABYLON.Color4(0, 0, 0, 1);
 
-    console.log("[BaseGameWorldScene] Background Layer created.");
+    // console.log("[BaseGameWorldScene] Background Layer created.");
   }
 }

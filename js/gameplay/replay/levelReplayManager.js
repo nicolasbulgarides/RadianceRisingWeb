@@ -9,7 +9,7 @@ class LevelReplayManager {
     constructor() {
         this.duplicateLevel = null;
         this.duplicatePlayer = null;
-        this.duplicateLevelOffset = new BABYLON.Vector3(20, 0, 0); // 20 units to the right
+        this.duplicateLevelOffset = new BABYLON.Vector3(100, 0, 0); // 20 units to the right
         this.isReplaying = false;
         this.replayIndex = 0;
         this.replayMovements = [];
@@ -62,7 +62,7 @@ class LevelReplayManager {
      * @returns {Promise<ActiveGameplayLevel>} The duplicated level
      */
     async createDuplicateLevel(originalLevel) {
-        console.log("[REPLAY] Creating duplicate level...");
+        // console.log("[REPLAY] Creating duplicate level...");
 
         const scene = originalLevel.hostingScene;
         const levelDataComposite = originalLevel.levelDataComposite;
@@ -134,10 +134,10 @@ class LevelReplayManager {
             duplicateLevel.levelMap.obstacles = duplicateObstacles;
 
             // Render the obstacles
-            console.log(`[REPLAY] Rendering ${duplicateObstacles.length} duplicate obstacles with offset`);
+            //console.log(`[REPLAY] Rendering ${duplicateObstacles.length} duplicate obstacles with offset`);
             obstacleGenerator.renderObstaclesForLevel(duplicateLevel, sceneBuilder);
         } else {
-            console.log(`[REPLAY] No obstacles to duplicate (found ${originalObstacles.length} obstacles)`);
+            // console.log(`[REPLAY] No obstacles to duplicate (found ${originalObstacles.length} obstacles)`);
         }
 
         // Create duplicate pickups (stardust)
@@ -150,7 +150,7 @@ class LevelReplayManager {
         }
 
         this.duplicateLevel = duplicateLevel;
-        console.log("[REPLAY] Duplicate level created");
+        //console.log("[REPLAY] Duplicate level created");
 
         return duplicateLevel;
     }
@@ -195,7 +195,7 @@ class LevelReplayManager {
         // Copy additional properties that might be added dynamically
         // Set player start position to (7, 0.5, 7) shifted right by 20 units = (27, 0.5, 7)
         cloned.playerStartPosition = {
-            x: 27, // 7 + 20
+            x: 107, // 7 + 20
             y: 0.5,
             z: 7
         };
@@ -221,7 +221,7 @@ class LevelReplayManager {
      * @param {ActiveGameplayLevel} originalLevel - The original level
      */
     async generateDuplicateGrid(duplicateLevel, originalLevel) {
-        console.log("[REPLAY] Generating duplicate grid with offset using thin instances...");
+        // console.log("[REPLAY] Generating duplicate grid with offset using thin instances...");
 
         // Get grid dimensions from the duplicate level
         const dimensions = duplicateLevel.getGridDimensions();
@@ -230,13 +230,13 @@ class LevelReplayManager {
         const gridManager = FundamentalSystemBridge["levelFactoryComposite"].gridManager;
 
         if (!gridManager) {
-            console.error("[REPLAY] Grid manager not found");
+            // console.error("[REPLAY] Grid manager not found");
             return;
         }
 
         // Verify tiles are loaded
         if (!gridManager.loadedTiles || gridManager.loadedTiles.length === 0) {
-            console.error("[REPLAY] No tiles loaded in grid manager");
+            // console.error("[REPLAY] No tiles loaded in grid manager");
             return;
         }
 
@@ -250,7 +250,7 @@ class LevelReplayManager {
         );
 
         if (success) {
-            console.log(`[REPLAY] Duplicate grid generated successfully using thin instances (${dimensions.width}x${dimensions.depth} with offset ${offset.x}, ${offset.y}, ${offset.z})`);
+            // console.log(`[REPLAY] Duplicate grid generated successfully using thin instances (${dimensions.width}x${dimensions.depth} with offset ${offset.x}, ${offset.y}, ${offset.z})`);
 
             // Verify thin instances were created
             let totalThinInstances = 0;
@@ -264,9 +264,9 @@ class LevelReplayManager {
                     }
                 }
             }
-            console.log(`[REPLAY] Total thin instances created: ${totalThinInstances}`);
+            // console.log(`[REPLAY] Total thin instances created: ${totalThinInstances}`);
         } else {
-            console.error("[REPLAY] Failed to generate duplicate grid");
+            // console.error("[REPLAY] Failed to generate duplicate grid");
         }
     }
 
@@ -342,7 +342,7 @@ class LevelReplayManager {
         //console.log("[REPLAY] Creating duplicate player...");
 
         // Get the starting position for duplicate player (27, 0.5, 7)
-        const startPosition = new BABYLON.Vector3(27, 0.5, 7);
+        const startPosition = new BABYLON.Vector3(107, 0.5, 7);
 
         // Create a new player using the same model
         const duplicatePlayer = PlayerLoader.getFreshPlayer(duplicateLevel);
@@ -361,9 +361,9 @@ class LevelReplayManager {
         // Verify the model is loaded
         const playerModel = duplicatePlayer.playerMovementManager.getPlayerModelDirectly();
         if (!playerModel) {
-            console.warn("[REPLAY] Player model not immediately available, will retry during replay");
+            // console.warn("[REPLAY] Player model not immediately available, will retry during replay");
         } else {
-            console.log("[REPLAY] Duplicate player model loaded successfully");
+            // console.log("[REPLAY] Duplicate player model loaded successfully");
         }
 
         this.duplicatePlayer = duplicatePlayer;
@@ -537,11 +537,11 @@ class LevelReplayManager {
             // console.log("[REPLAY] Replay sequence complete");
 
             // Transition to WorldLoaderScene (placeholder transition scene)
-            console.log("[REPLAY] Transitioning to WorldLoaderScene...");
+            //console.log("[REPLAY] Transitioning to WorldLoaderScene...");
             const renderSceneSwapper = FundamentalSystemBridge["renderSceneSwapper"];
             if (renderSceneSwapper) {
                 renderSceneSwapper.setActiveGameLevelScene("WorldLoaderScene");
-                console.log("[REPLAY] Successfully transitioned to WorldLoaderScene");
+                // console.log("[REPLAY] Successfully transitioned to WorldLoaderScene");
             } else {
                 console.error("[REPLAY] RenderSceneSwapper not found, cannot transition");
             }

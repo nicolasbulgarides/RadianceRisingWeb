@@ -142,6 +142,15 @@ class FundamentalSystemBridge {
     );
   }
 
+  static loadPlayerStatusTracker() {
+    let playerStatusTracker = new PlayerStatusTracker();
+    FundamentalSystemBridge.registerManager(
+      "playerStatusTracker",
+      playerStatusTracker,
+      PlayerStatusTracker
+    );
+  }
+
   static registerPrimaryGameplayLightingManager(
     primaryGameplayLightingManager
   ) {

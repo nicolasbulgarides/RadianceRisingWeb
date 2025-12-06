@@ -44,15 +44,32 @@ class PlayerLoader {
     }
 
     // Load the player's status with default values (full health and magic).
-    gamePlayer.loadStatusFresh(
-      Config.DEFAULT_NAME, // Player name.
-      Config.STARTING_LEVEL, // Starting level.
-      Config.STARTING_MAGICPOINTS, // Starting magic points.
-      Config.STARTING_EXP, // Starting experience.
-      Config.STARTING_HEALTH, // Base magic points (using starting health as placeholder).
-      Config.STARTING_HEALTH, // Base health points.
-      Config.DEFAULT_MAX_SPEED // Base max speed.
-    );
+    // If a persistent tracker exists, reuse it so experience persists across levels.
+    const playerStatusTracker = FundamentalSystemBridge["playerStatusTracker"];
+    if (playerStatusTracker instanceof PlayerStatusTracker) {
+      playerStatusTracker.primeWithDefaultsIfMissing({
+        name: Config.DEFAULT_NAME,
+        currentLevel: Config.STARTING_LEVEL,
+        currentExperience: Config.STARTING_EXP,
+        currentMagicLevel: Config.STARTING_MAGICPOINTS,
+        maximumMagicPoints: Config.STARTING_MAGICPOINTS,
+        maximumHealthPoints: Config.STARTING_HEALTH,
+        baseMaxSpeed: Config.DEFAULT_MAX_SPEED,
+      });
+
+      playerStatusTracker.attachStatusToPlayer(gamePlayer);
+      playerStatusTracker.updateExperienceUI();
+    } else {
+      gamePlayer.loadStatusFresh(
+        Config.DEFAULT_NAME, // Player name.
+        Config.STARTING_LEVEL, // Starting level.
+        Config.STARTING_MAGICPOINTS, // Starting magic points.
+        Config.STARTING_EXP, // Starting experience.
+        Config.STARTING_HEALTH, // Base magic points (using starting health as placeholder).
+        Config.STARTING_HEALTH, // Base health points.
+        Config.DEFAULT_MAX_SPEED // Base max speed.
+      );
+    }
 
     // Retrieve the player's starting position from the level data
     let position = this.getPlayerStartingPosition(levelData);

@@ -1,7 +1,7 @@
 class PickupOccurrenceSubManager {
   constructor() {
     this.stardustPickupCount = 0;
-    this.currentExperience = 0; // Track current experience (max 24 segments)
+    this.currentExperience = 0; // Fallback experience tracker if the global tracker is unavailable
   }
 
   /**
@@ -10,9 +10,12 @@ class PickupOccurrenceSubManager {
    */
   resetPickupProgress() {
     this.stardustPickupCount = 0;
-    this.currentExperience = 0;
+    // Only reset the local counter if no global tracker is available.
+    if (!this.getPlayerStatusTracker()) {
+      this.currentExperience = 0;
+    }
     this.updateExperienceBar();
-    console.log("[PICKUP] Reset pickup progress for new world/level");
+    //console.log("[PICKUP] Reset pickup progress for new world/level");
   }
 
   processPickupOccurrence(pickupOccurrence) {
@@ -21,7 +24,7 @@ class PickupOccurrenceSubManager {
     let occurrenceHeader = pickupOccurrence.occurrenceHeader;
     let occurrenceId = occurrenceHeader.occurrenceId;
 
-    console.log(`[PICKUP] processPickupOccurrence called with occurrenceId: ${occurrenceId}`);
+    //console.log(`[PICKUP] processPickupOccurrence called with occurrenceId: ${occurrenceId}`);
 
     if (occurrenceId === "mangoPickupOccurrence") {
       this.processBasicFruitPickup(pickupOccurrence, "mango");
@@ -29,7 +32,7 @@ class PickupOccurrenceSubManager {
     } else if (occurrenceId === "stardustPickupOccurrence") {
       // processStardustPickup is async, but we don't need to await it
       this.processStardustPickup(pickupOccurrence).catch(error => {
-        console.error(`[PICKUP] Error processing stardust pickup:`, error);
+        //console.error(`[PICKUP] Error processing stardust pickup:`, error);
       });
       processedSuccessfully = true;
     } else {
@@ -75,19 +78,25 @@ class PickupOccurrenceSubManager {
    * Updates the experience bar UI with the current experience count.
    * Caps experience at 24 (the maximum number of segments).
    */
-  updateExperienceBar() {
-    // Cap experience at 24 (maximum segments)
-    const visibleSegments = Math.min(this.currentExperience, 24);
-
-    // Get the UI scene and update the experience bar
-    const renderSceneSwapper = FundamentalSystemBridge["renderSceneSwapper"];
-    if (renderSceneSwapper) {
-      const uiScene = renderSceneSwapper.getActiveUIScene();
-      if (uiScene && uiScene.setExperienceBarSegments) {
-        uiScene.setExperienceBarSegments(visibleSegments);
-        //nsole.log(`[PICKUP] Updated experience bar to ${visibleSegments} segments (total experience: ${this.currentExperience})`);
-      }
+  updateExperienceBar(experienceOverride = null) {
+    // Prefer the centralized tracker so the UI reflects persistent player state.
+    const tracker = this.getPlayerStatusTracker();
+    if (tracker) {
+      tracker.updateExperienceUI(experienceOverride);
+      return;
     }
+  }
+
+  addExperienceToPlayer(amount) {
+    const tracker = this.getPlayerStatusTracker();
+    if (tracker) {
+      return tracker.addExperience(amount);
+    }
+  }
+
+  getPlayerStatusTracker() {
+    const tracker = FundamentalSystemBridge["playerStatusTracker"];
+    return tracker instanceof PlayerStatusTracker ? tracker : null;
   }
 
   async processStardustPickup(pickupOccurrence) {
@@ -96,8 +105,7 @@ class PickupOccurrenceSubManager {
     //  console.log(`[PICKUP] Stardust pickup #${this.stardustPickupCount} processed`);
 
     // Add 1 experience for each stardust pickup
-    this.currentExperience += 1;
-    this.updateExperienceBar();
+    this.addExperienceToPlayer(1);
 
     // Get the scene for playing sounds - try multiple methods
     let scene = FundamentalSystemBridge["renderSceneSwapper"]?.getActiveGameLevelScene();
@@ -107,12 +115,12 @@ class PickupOccurrenceSubManager {
       const gameplayManager = FundamentalSystemBridge["gameplayManagerComposite"];
       if (gameplayManager?.primaryActiveGameplayLevel?.hostingScene) {
         scene = gameplayManager.primaryActiveGameplayLevel.hostingScene;
-        console.log(`[PICKUP] Got scene from activeGameplayLevel.hostingScene`);
+        // console.log(`[PICKUP] Got scene from activeGameplayLevel.hostingScene`);
       }
     }
 
     if (!scene) {
-      console.warn(`[PICKUP] Cannot play pickup sound: scene not found (pickup count: ${this.stardustPickupCount})`);
+      //console.warn(`[PICKUP] Cannot play pickup sound: scene not found (pickup count: ${this.stardustPickupCount})`);
       // Don't return early - we still want to track the pickup count
     }
 
@@ -135,19 +143,18 @@ class PickupOccurrenceSubManager {
     if (scene) {
       try {
         await SoundEffectsManager.playSound(soundName, scene);
-        console.log(`[PICKUP] Playing sound: ${soundName} for pickup #${this.stardustPickupCount}`);
+        ////console.log(`[PICKUP] Playing sound: ${soundName} for pickup #${this.stardustPickupCount}`);
       } catch (error) {
-        console.error(`[PICKUP] Error playing sound ${soundName}:`, error);
+        // console.error(`[PICKUP] Error playing sound ${soundName}:`, error);
       }
     }
 
     // If this is the 4th pickup, trigger explosion effect, add 4 more experience, and play "endOfLevelPerfect" immediately
     if (this.stardustPickupCount === 4) {
-      console.log(`[PICKUP] 4th pickup detected! Triggering explosion effect and playing endOfLevelPerfect sound`);
+      // console.log(`[PICKUP] 4th pickup detected! Triggering explosion effect and playing endOfLevelPerfect sound`);
 
       // Add 4 more experience for level completion
-      this.currentExperience += 4;
-      this.updateExperienceBar();
+      this.addExperienceToPlayer(4);
 
       // Trigger explosion effect immediately (don't await, let it run in background)
       const effectGenerator = new EffectGenerator();
@@ -162,9 +169,9 @@ class PickupOccurrenceSubManager {
       // Play "endOfLevelPerfect" sound immediately (no delay)
       try {
         await SoundEffectsManager.playSound("endOfLevelPerfect", scene);
-        console.log(`[PICKUP] Playing endOfLevelPerfect sound`);
+        //console.log(`[PICKUP] Playing endOfLevelPerfect sound`);
       } catch (error) {
-        console.error(`[PICKUP] Error playing endOfLevelPerfect sound:`, error);
+        //console.error(`[PICKUP] Error playing endOfLevelPerfect sound:`, error);
       }
 
       // Start replay sequence after a short delay

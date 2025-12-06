@@ -131,6 +131,7 @@ class ScriptManifest {
 
   static playerScripts = [
     "/gameplay/player/datastructures/playergamestate/playerStatusComposite.js",
+    "/gameplay/player/datastructures/playergamestate/playerStatusTracker.js",
     "/gameplay/player/datastructures/playergamestate/playerCurrentActionStatus.js",
     "/gameplay/player/datastructures/playergamestate/playerUnit.js",
     "/gameplay/player/datastructures/playergamestate/playerInventory.js",

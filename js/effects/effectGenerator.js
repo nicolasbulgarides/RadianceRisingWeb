@@ -203,7 +203,7 @@ class EffectGenerator {
                 // CRITICAL STEP: Dispose to remove from memory and the scene render loop.
                 particleSystem.dispose();
 
-                console.log(`Explosion effect (${settings.type}) completed and disposed.`);
+                //console.log(`Explosion effect (${settings.type}) completed and disposed.`);
                 resolve();
             }, effectDurationInSeconds * 1000); // Wait for the calculated duration (seconds to ms)
         });

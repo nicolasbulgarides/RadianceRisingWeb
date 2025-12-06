@@ -16,7 +16,6 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
         this.setupCamera();
         this.setupLighting();
         this.setupClickHandlers();
-        this.createCameraControlUI();
     }
 
     setupBackgroundImage() {
@@ -31,7 +30,7 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
         // Optional: Keep the scene clear color opaque if using a background layer
         this.clearColor = new BABYLON.Color4(0, 0, 0, 1);
 
-        console.log("[WorldLoaderScene] Background Layer created.");
+        //     console.log("[WorldLoaderScene] Background Layer created.");
     }
 
     /**
@@ -119,7 +118,7 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
             }
         }
 
-        console.log(`[WorldLoaderScene] Created ${this.worldSpheres.length} world spheres in 3x3 grid`);
+        // console.log(`[WorldLoaderScene] Created ${this.worldSpheres.length} world spheres in 3x3 grid`);
     }
 
     /**
@@ -205,7 +204,7 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
             }
         });
 
-        console.log("[WorldLoaderScene] Click handlers set up");
+        //console.log("[WorldLoaderScene] Click handlers set up");
     }
 
     /**
@@ -214,12 +213,12 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
      */
     async onWorldSelected(sphere) {
         if (this.isLoadingWorld) {
-            console.log("[WorldLoaderScene] Level load already in progress, ignoring click");
+            //console.log("[WorldLoaderScene] Level load already in progress, ignoring click");
             return;
         }
         this.isLoadingWorld = true;
         const worldData = sphere.worldData;
-        console.log(`[WorldLoaderScene] World selected: ${worldData.name} (${worldData.levelId})`);
+        //console.log(`[WorldLoaderScene] World selected: ${worldData.name} (${worldData.levelId})`);
 
         // Visual feedback: pulse the selected sphere
         this.pulseSphere(sphere);
@@ -256,14 +255,14 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
      * @param {Object} worldData - The level data for the selected world
      */
     async loadSelectedLevel(worldData) {
-        console.log(`[WorldLoaderScene] Loading level from world selection: ${worldData.levelId}`);
+        //console.log(`[WorldLoaderScene] Loading level from world selection: ${worldData.levelId}`);
 
         // Get the level loader manager
         const levelLoaderManager = FundamentalSystemBridge["levelLoaderManager"];
         const gameplayManager = FundamentalSystemBridge["gameplayManagerComposite"];
 
         if (!levelLoaderManager || !gameplayManager) {
-            console.error("[WorldLoaderScene] Level loader or gameplay manager not found");
+            // console.error("[WorldLoaderScene] Level loader or gameplay manager not found");
             return;
         }
 
@@ -323,9 +322,9 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
             // Re-activate the UI scene to ensure it stays rendered after game scene swap
             renderSceneSwapper.setActiveUIScene("BaseUIScene");
 
-            console.log(`[WorldLoaderScene] Loaded ${worldData.name} from ${levelUrl} and activated BaseGameScene`);
+            //console.log(`[WorldLoaderScene] Loaded ${worldData.name} from ${levelUrl} and activated BaseGameScene`);
         } catch (error) {
-            console.error(`[WorldLoaderScene] Error loading level ${worldData.levelUrl}:`, error);
+            // console.error(`[WorldLoaderScene] Error loading level ${worldData.levelUrl}:`, error);
         }
     }
 
@@ -372,7 +371,7 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
             renderSceneSwapper.allStoredCameras[this] = camera;
         }
 
-        console.log("[WorldLoaderScene] Game board style camera set up - positioned at (0, 35, 0) looking straight down at (0, 0, 0)");
+        // console.log("[WorldLoaderScene] Game board style camera set up - positioned at (0, 35, 0) looking straight down at (0, 0, 0)");
     }
 
     /**
@@ -396,179 +395,7 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
         pointLight.intensity = 1.5;
         pointLight.diffuse = new BABYLON.Color3(1.0, 1.0, 1.0);
 
-        console.log("[WorldLoaderScene] Lighting set up");
-    }
-
-    /**
-     * Creates a UI panel with sliders to adjust camera parameters
-     */
-    createCameraControlUI() {
-        // Intentionally disabled; fixed camera does not need on-screen controls.
-        console.log("[WorldLoaderScene] Camera controls UI disabled");
-        return;
-
-        // Helper function to create a slider with label
-        // Step is calculated as 5% of the range
-        const createSliderControl = (label, property, min, max, topOffset = 0) => {
-            const range = max - min;
-            const step = range * 0.05; // 5% of the range
-            // Container for this slider row
-            const rowContainer = new BABYLON.GUI.StackPanel(`${property}Row`);
-            rowContainer.width = "100%";
-            rowContainer.height = "60px";
-            rowContainer.top = `${topOffset}px`;
-            rowContainer.isVertical = true;
-            panel.addControl(rowContainer);
-
-            // Label and value row
-            const labelRow = new BABYLON.GUI.StackPanel(`${property}LabelRow`);
-            labelRow.width = "100%";
-            labelRow.height = "25px";
-            labelRow.isVertical = false;
-            rowContainer.addControl(labelRow);
-
-            // Label
-            const labelText = new BABYLON.GUI.TextBlock(`${property}Label`, label);
-            labelText.width = "60%";
-            labelText.height = "25px";
-            labelText.color = "white";
-            labelText.fontSize = 14;
-            labelText.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-            labelText.paddingLeft = "10px";
-            labelRow.addControl(labelText);
-
-            // Value display
-            const valueText = new BABYLON.GUI.TextBlock(`${property}Value`, `${followCamera[property].toFixed(2)}`);
-            valueText.width = "40%";
-            valueText.height = "25px";
-            valueText.color = "yellow";
-            valueText.fontSize = 12;
-            valueText.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
-            valueText.paddingRight = "10px";
-            labelRow.addControl(valueText);
-
-            // Slider
-            const slider = new BABYLON.GUI.Slider(`${property}Slider`);
-            slider.minimum = min;
-            slider.maximum = max;
-            slider.value = followCamera[property];
-            slider.step = step; // Set step to 5% of range
-            slider.height = "20px";
-            slider.width = "90%";
-            slider.color = "white";
-            slider.background = "gray";
-            slider.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-            slider.top = "5px";
-            slider.onValueChangedObservable.add((value) => {
-                // Update the camera property
-                followCamera[property] = value;
-                valueText.text = value.toFixed(2);
-
-                // Debug: Verify the property was set
-                console.log(`[Camera Controls] Updated ${property} to ${value}, actual value: ${followCamera[property]}`);
-
-                // Ensure scene's active camera is set to the follow camera
-                if (this.activeCamera !== followCamera) {
-                    this.activeCamera = followCamera;
-                    console.log("[Camera Controls] Active camera updated");
-                }
-
-                // Output all camera variables to console for hard coding
-                console.log("[Camera Controls] Current camera settings:");
-                console.log(`  radius: ${followCamera.radius.toFixed(2)}`);
-                console.log(`  heightOffset: ${followCamera.heightOffset.toFixed(2)}`);
-                console.log(`  rotationOffset: ${followCamera.rotationOffset.toFixed(2)}`);
-                console.log(`  cameraAcceleration: ${followCamera.cameraAcceleration.toFixed(4)}`);
-                console.log(`  maxCameraSpeed: ${followCamera.maxCameraSpeed.toFixed(2)}`);
-                console.log("---");
-            });
-            rowContainer.addControl(slider);
-
-            return { slider, valueText };
-        };
-
-
-        // Create sliders for each camera parameter with proper spacing
-        let currentTop = 40; // Start below title (reduced from 50)
-        const rowHeight = 70; // Height of each row including spacing
-
-        this.cameraControls = {
-            radius: createSliderControl("Radius", "radius", 5, 50, currentTop),
-            heightOffset: createSliderControl("Height Offset", "heightOffset", 0, 40, currentTop += rowHeight),
-            rotationOffset: createSliderControl("Rotation Offset", "rotationOffset", -180, 180, currentTop += rowHeight),
-            cameraAcceleration: createSliderControl("Acceleration", "cameraAcceleration", 0, 1, currentTop += rowHeight),
-            maxCameraSpeed: createSliderControl("Max Speed", "maxCameraSpeed", 0, 10, currentTop += rowHeight)
-        };
-
-        // Create reset button
-        const resetButton = new BABYLON.GUI.Button("resetCameraButton");
-        resetButton.width = "200px";
-        resetButton.height = "40px";
-        resetButton.color = "white";
-        resetButton.background = "rgba(200, 50, 50, 0.8)";
-        resetButton.cornerRadius = 5;
-        resetButton.thickness = 2;
-        resetButton.top = `${currentTop + rowHeight + 10}px`; // Add 10px spacing after last slider
-        resetButton.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-        resetButton.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
-
-        const resetButtonText = new BABYLON.GUI.TextBlock("resetButtonText", "Reset to Defaults");
-        resetButtonText.color = "white";
-        resetButtonText.fontSize = 16;
-        resetButtonText.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-        resetButton.addControl(resetButtonText);
-
-        resetButton.onPointerClickObservable.add(() => {
-            console.log("[Camera Controls] Resetting camera to default values");
-
-            // Get fresh reference to camera in case it changed
-            const currentCamera = this.followCamera || this.activeCamera;
-            if (!currentCamera || !(currentCamera instanceof BABYLON.FollowCamera)) {
-                console.error("[Camera Controls] Cannot reset: FollowCamera not found");
-                return;
-            }
-
-            // Temporarily increase camera speed for instant reset
-            const originalAcceleration = currentCamera.cameraAcceleration;
-            const originalMaxSpeed = currentCamera.maxCameraSpeed;
-            currentCamera.cameraAcceleration = 1.0; // Maximum acceleration
-            currentCamera.maxCameraSpeed = 100; // Very high speed for instant movement
-
-            // Reset each camera property to default
-            for (const [property, defaultValue] of Object.entries(this.defaultCameraValues)) {
-                currentCamera[property] = defaultValue;
-
-                // Update the slider and value text
-                if (this.cameraControls[property]) {
-                    this.cameraControls[property].slider.value = defaultValue;
-                    this.cameraControls[property].valueText.text = defaultValue.toFixed(2);
-                }
-            }
-
-            // Restore original acceleration and speed after a brief moment
-            // This allows the camera to snap to position quickly, then return to smooth movement
-            setTimeout(() => {
-                currentCamera.cameraAcceleration = originalAcceleration;
-                currentCamera.maxCameraSpeed = originalMaxSpeed;
-            }, 100);
-
-            // Ensure scene's active camera is set to the follow camera
-            this.activeCamera = currentCamera;
-
-            // Output reset values to console
-            console.log("[Camera Controls] Camera reset to defaults:");
-            console.log(`  radius: ${currentCamera.radius.toFixed(2)}`);
-            console.log(`  heightOffset: ${currentCamera.heightOffset.toFixed(2)}`);
-            console.log(`  rotationOffset: ${currentCamera.rotationOffset.toFixed(2)}`);
-            console.log(`  cameraAcceleration: ${currentCamera.cameraAcceleration.toFixed(4)}`);
-            console.log(`  maxCameraSpeed: ${currentCamera.maxCameraSpeed.toFixed(2)}`);
-            console.log(`  lockedTarget: ${currentCamera.lockedTarget ? currentCamera.lockedTarget.name : 'null'}`);
-            console.log("[Camera Controls] Camera will update position in next frame(s)");
-        });
-
-        panel.addControl(resetButton);
-
-        console.log("[WorldLoaderScene] Camera control UI created");
+        // console.log("[WorldLoaderScene] Lighting set up");
     }
 
     /**

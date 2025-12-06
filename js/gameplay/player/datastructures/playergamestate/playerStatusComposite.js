@@ -123,7 +123,16 @@ class PlayerStatusComposite {
    */
 
   addExperience(amount) {
-    // TODO: Implement the logic to add experience and check for level up conditions.
+    const delta = Number(amount) || 0;
+
+    // Prevent negative experience accumulation.
+    this.currentExperience = Math.max(0, this.currentExperience + delta);
+
+    return this.currentExperience;
+  }
+
+  getCurrentExperience() {
+    return this.currentExperience || 0;
   }
 
   /**
