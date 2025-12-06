@@ -90,6 +90,7 @@ class ScriptManifest {
     "/ui/scenes/implemented/baseGameUIScene.js",
     "/ui/scenes/implemented/gameWorldSceneGeneralized.js",
     "/ui/scenes/implemented/baseGameWorldScene.js",
+    "/ui/scenes/implemented/worldLoaderScene.js",
     "/ui/scenes/implemented/experienceBarUIScene.js",
   ];
 
@@ -121,6 +122,7 @@ class ScriptManifest {
     "/gameplay/levelLoaderManager.js",
     "/gameplay/replay/movementTracker.js",
     "/gameplay/replay/levelReplayManager.js",
+    "/gameplay/utilities/sequentialLevelLoader.js",
 
     //to do - reorganize
     "/gameplay/player/utilities/playerMovementManager.js",

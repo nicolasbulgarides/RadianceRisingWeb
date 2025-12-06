@@ -6,6 +6,52 @@ class LevelFactoryComposite {
 
   static TILES_LOADED = false;
 
+  /**
+   * Ensures tiles are loaded for the given hosting scene. If tiles were loaded
+   * for a previous scene (e.g., before a scene recreation), we reset and reload
+   * them so new thin instances render into the current scene.
+   */
+  async ensureTilesLoadedForScene(hostingScene) {
+    if (!this.gridManager) {
+      this.gridManager = new GameGridGenerator();
+    }
+
+    // If tiles belong to a different scene or none are loaded, reset and reload
+    const hasTiles = this.gridManager.loadedTiles && this.gridManager.loadedTiles.length > 0;
+    const tilesScene =
+      hasTiles && this.gridManager.loadedTiles[0]?.meshes
+        ? this.gridManager.loadedTiles[0].meshes[0]?.getScene()
+        : null;
+
+    if (!hasTiles || tilesScene !== hostingScene) {
+      // Reset cache
+      this.gridManager.initializeStorage();
+      LevelFactoryComposite.TILES_LOADED = false;
+
+      // Get scene builder for the hosting scene
+      const renderSceneSwapper = FundamentalSystemBridge["renderSceneSwapper"];
+      const sceneBuilder =
+        renderSceneSwapper?.getSceneBuilderByScene(hostingScene) ||
+        renderSceneSwapper?.getSceneBuilderForScene("BaseGameScene");
+
+      if (!sceneBuilder) {
+        console.error("[LevelFactoryComposite] SceneBuilder not found for hosting scene; cannot load tiles");
+        return false;
+      }
+
+      const loaded = await this.gridManager.loadTilesModels(
+        sceneBuilder,
+        GameGridGenerator.getTileIdsByLevelArchetype(),
+        1
+      );
+
+      LevelFactoryComposite.TILES_LOADED = loaded;
+      return loaded;
+    }
+
+    return LevelFactoryComposite.TILES_LOADED;
+  }
+
   async loadFactorySupportSystems() {
     // Initialize level obstacle generator
     this.levelMapObstacleGenerator = new LevelMapObstacleGenerator();
@@ -34,6 +80,11 @@ class LevelFactoryComposite {
       "levelReplayManager",
       new LevelReplayManager(),
       LevelReplayManager
+    );
+    FundamentalSystemBridge.registerManager(
+      "sequentialLevelLoader",
+      new SequentialLevelLoader(),
+      SequentialLevelLoader
     );
   }
 
@@ -64,6 +115,9 @@ class LevelFactoryComposite {
     // Get dimensions for grid generation
     const dimensions = this.getLevelDimensions(gameplayLevel);
 
+    // Ensure tiles are loaded for the hosting scene (handles scene recreation)
+    await this.ensureTilesLoadedForScene(gameplayLevel.hostingScene);
+
     // Generate the grid using dimensions from the level data
     let finalizedRendering = await this.gridManager.generateGrid(
       dimensions.width,
@@ -71,7 +125,7 @@ class LevelFactoryComposite {
       1 // Scale factor
     );
 
-    return true;
+    return finalizedRendering;
   }
 
   /**

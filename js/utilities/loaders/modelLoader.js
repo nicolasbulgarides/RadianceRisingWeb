@@ -9,7 +9,7 @@ class ModelLoader {
   static loadQueue = []; // Queue for pending model loads
   static minDelayBetweenLoads = 250; // Minimum delay between model loads in ms
 
-  constructor() {}
+  constructor() { }
 
   /**
    * Gets a cached model or loads it if not in cache
@@ -81,9 +81,34 @@ class ModelLoader {
       if (useCache) {
         const cachedModel = await ModelLoader.getCachedModel(modelUrl);
         if (cachedModel) {
-          // Clone the cached model for this instance
-          const clonedModel = this.cloneModel(cachedModel, scene);
-          return clonedModel;
+          // If cached model belongs to the same scene, clone; otherwise re-import into the target scene
+          const cachedScene =
+            cachedModel.meshes && cachedModel.meshes[0]
+              ? cachedModel.meshes[0].getScene()
+              : null;
+          if (cachedScene === scene) {
+            const clonedModel = this.cloneModel(cachedModel, scene);
+            return clonedModel;
+          } else {
+            // Different scene: import into the target scene to avoid clones bound to old scenes
+            try {
+              const importResult = await BABYLON.SceneLoader.ImportMeshAsync(
+                "",
+                "",
+                modelUrl,
+                scene
+              );
+              // Optionally update cache to the latest import
+              ModelLoader.modelCache.set(modelUrl, importResult);
+              return importResult;
+            } catch (error) {
+              console.error(
+                `Failed to load model into target scene for URL: ${modelUrl}`,
+                error
+              );
+              return null;
+            }
+          }
         }
       }
 

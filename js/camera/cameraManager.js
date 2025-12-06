@@ -31,68 +31,46 @@ class CameraManager {
   }
 
   /**
-   * Sets up a default camera.
-   * @returns {BABYLON.ArcRotateCamera} The configured default camera.
+   * Creates a top-down free camera, centered on the board, with consistent orientation.
+   * All gameplay cameras should use this helper for consistency.
    */
-  setupGameLevelTestCamera() {
-    // Define the center of the game level for a 15x15 board
-    const centerX = 7; // Center of the X-axis for 15x15 board
-    const centerZ = 7; // Center of the Z-axis for 15x15 board
-
-    // Camera position - directly above the center, looking straight down
-    const cameraX = centerX; // Match X with center for orthogonal view
-    const cameraY = 35; // Height above the board (lower = bigger/closer view)
-    const cameraZ = centerZ; // Match Z with center for orthogonal view
-
-    // Create a FreeCamera positioned directly above the board center
+  createTopDownCamera(scene, name = "topDownCamera", center = new BABYLON.Vector3(7, 0, 7), height = 35) {
     const camera = new BABYLON.FreeCamera(
-      "gameLevelTestCamera",
-      new BABYLON.Vector3(cameraX, cameraY, cameraZ),
-      this.scene
+      name,
+      new BABYLON.Vector3(center.x, height, center.z),
+      scene
     );
 
-    // Set the camera to look straight down - target matches camera X/Z to keep it orthogonal
-    // This ensures the camera is perfectly orthogonal (perpendicular) to the board
-    camera.setTarget(new BABYLON.Vector3(cameraX, 0, cameraZ));
+    // Look straight down at the board center
+    camera.setTarget(new BABYLON.Vector3(center.x, 0, center.z));
 
-    // Rotate camera to look straight down (rotation around X axis)
-    camera.rotation.x = Math.PI / 2; // 90 degrees to look straight down
+    // Top-down orientation: pitch 90deg, no yaw/roll tweaks
+    camera.rotation.x = Math.PI / 2;
+    camera.rotation.y = 0;
+    camera.rotation.z = 0;
 
-    // Rotate camera 180 degrees around Z-axis (horizontal/roll) so D-pad down moves down on board
-    camera.rotation.z = Math.PI; // 180 degrees rotation
+    return camera;
+  }
 
-    // Disable camera controls to keep it fixed
-    // camera.attachControl(this.scene.getEngine().getRenderingCanvas(), true);
-
+  /**
+   * Sets up the gameplay camera using the unified top-down camera.
+   */
+  setupGameLevelTestCamera() {
+    const camera = this.createTopDownCamera(
+      this.scene,
+      "gameLevelTestCamera",
+      new BABYLON.Vector3(7, 0, 7),
+      35
+    );
     this.currentCamera = camera;
     return camera;
   }
 
   static setAndGetPlaceholderCamera(scene) {
-    // Use the same overhead view as the game camera to avoid visible transition
-    // Position directly above center (7, 40, 7) looking straight down at (7, 0, 7) for 15x15 board
-    const centerX = 7; // Center of the X-axis for 15x15 board
-    const centerZ = 7; // Center of the Z-axis for 15x15 board
-    const cameraX = centerX; // Match X with center for orthogonal view
-    const cameraY = 35; // Height above the board (lower = bigger/closer view)
-    const cameraZ = centerZ; // Match Z with center for orthogonal view
-
-    const camera = new BABYLON.FreeCamera(
-      "defaultCamera",
-      new BABYLON.Vector3(cameraX, cameraY, cameraZ),
-      scene
-    );
-
-    // Set the camera to look straight down - target matches camera X/Z to keep it orthogonal
-    camera.setTarget(new BABYLON.Vector3(cameraX, 0, cameraZ));
-
-    // Rotate camera to look straight down (rotation around X axis)
-    camera.rotation.x = Math.PI / 2; // 90 degrees to look straight down
-
-    // Rotate camera 180 degrees around Z-axis (horizontal/roll) so D-pad down moves down on board
-    camera.rotation.z = Math.PI; // 180 degrees rotation
-
-    return camera;
+    // Delegate to the unified top-down creator to avoid divergence
+    const manager = new CameraManager();
+    manager.registerPrimaryGameScene(scene);
+    return manager.createTopDownCamera(scene, "defaultCamera", new BABYLON.Vector3(7, 0, 7), 35);
   }
 
   setCameraToChase(relevantScene, modelToChase) {
@@ -130,67 +108,5 @@ class CameraManager {
     this.currentCamera = followCamera;
   }
 
-  /**
-   * Sets up a default camera.
-   * @returns {BABYLON.ArcRotateCamera} The configured default camera.
-   */
-  setupDefaultCamera() {
-    const camera = new BABYLON.ArcRotateCamera(
-      "defaultCamera",
-      Math.PI / 2,
-      Math.PI / 4,
-      10,
-      BABYLON.Vector3.Zero(),
-      this.scene
-    );
-
-    camera.attachControl(this.scene.getEngine().getRenderingCanvas(), true);
-
-    return camera;
-  }
-  setupDeviceMotionCamera() {
-    const camera = new BABYLON.DeviceOrientationCamera(
-      "motionCamera",
-      BABYLON.Vector3.Zero(),
-      this.scene
-    );
-    return camera;
-  }
-
-  /**
-   * Sets up a helicopter-style follow camera.
-   * @returns {BABYLON.FollowCamera} The configured helicopter follow camera.
-   */
-  setupHelicopterFollowCamera() {
-    if (!this.targetMesh) {
-      window.Logger.warn(
-        "CameraManager: Target mesh for helicopter camera is not defined."
-      );
-      return null;
-    }
-
-    const followCamera = new BABYLON.FollowCamera(
-      "helicopterFollowCamera",
-      new BABYLON.Vector3(0, 0, 0),
-      this.scene
-    );
-    followCamera.lockedTarget = this.targetMesh;
-    followCamera.radius = 2;
-    followCamera.heightOffset = 10;
-    followCamera.cameraAcceleration = 0.05;
-    followCamera.maxCameraSpeed = 10;
-    followCamera.rotationOffset = 180;
-
-    return followCamera;
-  }
-
-  /**
-   * Switches to a new camera preset dynamically.
-   * @param {String} presetName - The name of the new camera preset to apply.
-   */
-  switchCameraPreset(presetName) {
-    this.applyPresetCamera(presetName);
-  }
-
-  // Additional camera setup methods (setupOrthographicCamera, setupPerspectiveCamera, setupIsometricCamera)...
+  // Deprecated/legacy setup methods were removed to enforce a single camera style.
 }

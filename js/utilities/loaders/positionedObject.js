@@ -239,15 +239,6 @@ class PositionedObject {
       return;
     }
 
-    console.log(`[DISPOSE] Model structure:`, {
-      hasMeshes: !!this.model.meshes,
-      meshCount: this.model.meshes?.length || 0,
-      hasParticleSystems: !!this.model.particleSystems,
-      hasSkeletons: !!this.model.skeletons,
-      hasAnimationGroups: !!this.model.animationGroups,
-      hasDisposeMethod: typeof this.model.dispose === 'function'
-    });
-
     if (this.model.meshes && Array.isArray(this.model.meshes)) {
       // Dispose all meshes - this automatically removes them from the scene
       for (let i = 0; i < this.model.meshes.length; i++) {

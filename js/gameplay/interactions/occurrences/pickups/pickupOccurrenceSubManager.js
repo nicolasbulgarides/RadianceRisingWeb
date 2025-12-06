@@ -4,6 +4,17 @@ class PickupOccurrenceSubManager {
     this.currentExperience = 0; // Track current experience (max 24 segments)
   }
 
+  /**
+   * Resets pickup streak/experience for a new world/level load.
+   * Also updates the UI bar so the player sees a clean state.
+   */
+  resetPickupProgress() {
+    this.stardustPickupCount = 0;
+    this.currentExperience = 0;
+    this.updateExperienceBar();
+    console.log("[PICKUP] Reset pickup progress for new world/level");
+  }
+
   processPickupOccurrence(pickupOccurrence) {
     let processedSuccessfully = false;
 

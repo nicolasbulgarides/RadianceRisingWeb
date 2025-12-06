@@ -64,6 +64,9 @@ class RenderSceneSwapper {
     // Create separate SceneBuilders for each scene.
     this.loadSceneAndBuilder("BaseGameScene", new BaseGameWorldScene());
 
+    // Create world loader scene (placeholder transition scene)
+    this.loadSceneAndBuilder("WorldLoaderScene", new WorldLoaderScene());
+
     let baseUIScene =
       ResponsiveUIManager.assembleUIScreenAsInstructed("BaseGameUI");
     this.loadSceneAndBuilder("BaseUIScene", baseUIScene);
@@ -71,6 +74,44 @@ class RenderSceneSwapper {
     // Set active scenes.
     this.setActiveGameLevelScene("BaseGameScene");
     this.setActiveUIScene("BaseUIScene");
+  }
+
+  /**
+   * Disposes and recreates the BaseGameScene to ensure a clean slate
+   * (e.g., player starts at origin for each level load).
+   * @returns {BABYLON.Scene} newly created BaseGameScene instance
+   */
+  recreateBaseGameScene() {
+    const existingScene = this.allStoredScenes["BaseGameScene"];
+    if (existingScene) {
+      // If the base scene is currently active, temporarily switch to world loader to avoid render errors
+      if (this.activeGameScene === existingScene && this.allStoredScenes["WorldLoaderScene"]) {
+        this.setActiveGameLevelScene("WorldLoaderScene");
+      }
+
+      // Dispose existing camera if we stored one
+      const storedCamera = this.allStoredCameras[existingScene];
+      if (storedCamera) {
+        this.disposeAndDeleteCamera(storedCamera);
+        delete this.allStoredCameras[existingScene];
+      }
+
+      // Dispose the scene itself
+      existingScene.dispose();
+      delete this.allStoredScenes["BaseGameScene"];
+      delete this.sceneBuilders["BaseGameScene"];
+    }
+
+    // Create and register a fresh base game scene and builder
+    const newBaseScene = new BaseGameWorldScene();
+    this.loadSceneAndBuilder("BaseGameScene", newBaseScene);
+
+    // Pre-create and store a placeholder camera so the scene is render-safe if activated later
+    const placeholderCamera = CameraManager.setAndGetPlaceholderCamera(newBaseScene);
+    this.allStoredCameras[newBaseScene] = placeholderCamera;
+    newBaseScene.activeCamera = placeholderCamera;
+
+    return newBaseScene;
   }
 
   catastropicConstruction() {
@@ -127,20 +168,37 @@ class RenderSceneSwapper {
    */
 
   setActiveGameLevelScene(sceneId) {
-    // Disable rendering on all scenes first.
+    // Disable rendering on all game scenes first, but keep UI scenes untouched.
     Object.keys(this.allStoredScenes).forEach((id) => {
-      this.allStoredScenes[id].isRendering = false;
+      const scene = this.allStoredScenes[id];
+      if (scene === this.activeUIScene) {
+        return; // don't disable UI
+      }
+      scene.isRendering = false;
     });
-    if (this.allStoredScenes[sceneId]) {
-      this.allStoredScenes[sceneId].isRendering = true;
-      this.activeGameScene = this.allStoredScenes[sceneId];
+    const targetScene = this.allStoredScenes[sceneId];
+    if (targetScene) {
+      targetScene.isRendering = true;
+      this.activeGameScene = targetScene;
 
-      // Create and set the placeholder camera as the active camera immediately
-      const placeholderCamera = CameraManager.setAndGetPlaceholderCamera(this.activeGameScene);
-      this.allStoredCameras[this.activeGameScene] = placeholderCamera;
-      this.activeGameScene.activeCamera = placeholderCamera;
+      // Reuse an existing camera if the scene already configured one
+      let cameraToUse = targetScene.activeCamera;
+
+      // If no camera is present, fall back to the placeholder camera
+      if (!cameraToUse) {
+        cameraToUse = CameraManager.setAndGetPlaceholderCamera(targetScene);
+      }
+
+      // Explicitly bind the camera to the scene and cache it
+      targetScene.activeCamera = cameraToUse;
+      this.allStoredCameras[targetScene] = cameraToUse;
     } else {
       console.error(`Scene with ID '${sceneId}' not found.`);
+    }
+
+    // Ensure UI scene stays rendering if it was active
+    if (this.activeUIScene) {
+      this.activeUIScene.isRendering = true;
     }
   }
 
@@ -185,14 +243,31 @@ class RenderSceneSwapper {
    * //to do add a check for the camera.
    */
   render() {
-    if (true) {
-      // Render the game scene.
+    const ensureCamera = (scene) => {
+      if (!scene) return null;
+      let cam = scene.activeCamera;
+      if (!cam) {
+        cam = this.allStoredCameras[scene];
+      }
+      if (!cam) {
+        cam = CameraManager.setAndGetPlaceholderCamera(scene);
+      }
+      scene.activeCamera = cam;
+      this.allStoredCameras[scene] = cam;
+      return cam;
+    };
+
+    // Render game scene if available
+    if (this.activeGameScene) {
+      ensureCamera(this.activeGameScene);
       this.activeGameScene.render();
-    } else {
-      // to do add log code here
     }
+
     // Render the UI scene.
-    this.activeUIScene.render();
+    if (this.activeUIScene) {
+      ensureCamera(this.activeUIScene);
+      this.activeUIScene.render();
+    }
   }
 
   resizeUIDynamically() {

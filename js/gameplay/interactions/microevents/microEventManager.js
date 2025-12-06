@@ -41,6 +41,10 @@ class MicroEventManager {
 
     let allMicroEvents = this.gameplayLevelToMicroEventsMap[levelId];
 
+    // If no microevents are registered for this level, return early
+    if (!allMicroEvents || !Array.isArray(allMicroEvents)) {
+      return;
+    }
 
     // Filter to only incomplete pickup events for logging efficiency
     const incompletePickupEvents = allMicroEvents.filter(

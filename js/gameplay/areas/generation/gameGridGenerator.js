@@ -130,18 +130,21 @@ class GameGridGenerator {
           continue;
         }
 
-        // Assume each base tile has a primary mesh with child meshes.
-        const children = baseTile.meshes[0].getChildren(undefined, false);
+        // Prefer child meshes, fall back to all meshes if none
+        let targetMeshes = baseTile.meshes[0].getChildren(undefined, false);
+        if (!targetMeshes || targetMeshes.length === 0) {
+          targetMeshes = baseTile.meshes;
+        }
 
-        // Instance each child mesh at the correct grid position.
-        for (const mesh of children) {
+        // Instance each mesh at the correct grid position (invert Z to match builder top-left origin)
+        for (const mesh of targetMeshes) {
           if (mesh instanceof BABYLON.Mesh) {
-            // Calculate the space position based on grid coordinates.
+            if (mesh.isFrozen) {
+              mesh.unfreezeWorldMatrix();
+            }
             const xPos = x * tileSize;
-            const zPos = z * tileSize;
-            // Create a transformation matrix for placement.
+            const zPos = (depth - 1 - z) * tileSize; // flip Y from top-left builder to bottom-left world
             const matrix = BABYLON.Matrix.Translation(xPos, 0, zPos);
-            // Add the transformation as a thin instance for optimal performance.
             mesh.thinInstanceAdd(matrix);
           }
         }
@@ -194,20 +197,31 @@ class GameGridGenerator {
           continue;
         }
 
-        // Assume each base tile has a primary mesh with child meshes.
-        const children = baseTile.meshes[0].getChildren(undefined, false);
+        // Prefer child meshes, fall back to all meshes if none
+        let targetMeshes = baseTile.meshes[0].getChildren(undefined, false);
+        if (!targetMeshes || targetMeshes.length === 0) {
+          targetMeshes = baseTile.meshes;
+        }
 
-        // Instance each child mesh at the correct grid position with offset.
-        for (const mesh of children) {
+        // Instance each mesh at the correct grid position with offset (invert Z to match builder top-left origin)
+        for (const mesh of targetMeshes) {
           if (mesh instanceof BABYLON.Mesh) {
-            // Calculate the space position based on grid coordinates with offset.
+            if (mesh.isFrozen) {
+              mesh.unfreezeWorldMatrix();
+            }
+            if (!mesh.hasThinInstances) {
+              mesh.thinInstanceEnablePicking = true;
+            }
+
             const xPos = (x * tileSize) + offset.x;
             const yPos = offset.y;
-            const zPos = (z * tileSize) + offset.z;
-            // Create a transformation matrix for placement with offset.
+            const zPos = ((depth - 1 - z) * tileSize) + offset.z; // flip Y for offset grid
             const matrix = BABYLON.Matrix.Translation(xPos, yPos, zPos);
-            // Add the transformation as a thin instance for optimal performance.
-            mesh.thinInstanceAdd(matrix);
+            try {
+              mesh.thinInstanceAdd(matrix);
+            } catch (error) {
+              console.error(`[GRID] Error adding thin instance to mesh ${mesh.name}:`, error);
+            }
           }
         }
       }

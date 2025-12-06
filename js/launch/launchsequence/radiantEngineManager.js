@@ -83,7 +83,8 @@ class RadiantEngineManager {
   loadGameplayNonEssentialSystems() { }
   /**
    * Called on each render loop frame.
-   * Updates gameplay and other per-frame processes.
+   * Updates gameplay and other per-frame proce
+   * sses.
    */
   onFrameRenderUpdates() {
     FundamentalSystemBridge[

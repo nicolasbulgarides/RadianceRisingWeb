@@ -139,6 +139,10 @@ class LevelLoaderManager {
         }
     }
 
+    getLevelDepth(levelData) {
+        return levelData?.mapHeight || levelData?.mapDepth || levelData?.depth || 21;
+    }
+
     /**
      * Loads a level from JSON data received from the server/GUI
      * @param {GameplayManagerComposite} gameplayManager - The gameplay manager instance
@@ -152,6 +156,10 @@ class LevelLoaderManager {
         if (loadingScreen) {
             loadingScreen.start();
         }
+
+        // Reset pickup streak/experience for the new level so 4th pickup logic re-triggers
+        const specialOccurrenceManager = FundamentalSystemBridge["specialOccurrenceManager"];
+        specialOccurrenceManager?.pickupOccurrenceSubManager?.resetPickupProgress?.();
 
         try {
             // Parse JSON if it's a string
@@ -336,13 +344,14 @@ class LevelLoaderManager {
         const width = levelData.mapWidth || 21;
         const depth = levelData.mapHeight || 21;
 
-        // Find spawn position
+        // Find spawn position (builder space) and convert once
         const spawnElement = levelData.allMapElements?.find(el => el.element === "SPAWN_POSITION");
         const spawnCoords = spawnElement?.coordinates || { x: 10, y: 10 };
+        const spawnWorld = this.builderToWorld(spawnCoords, depth);
         const playerStart = {
-            x: spawnCoords.x,
+            x: spawnWorld.x,
             y: 0.25, // Default height above ground
-            z: spawnCoords.y // JSON y coordinate maps to 3D z coordinate
+            z: spawnWorld.z
         };
 
         // Create level data composite using TestLevelJsonBuilder
@@ -370,6 +379,8 @@ class LevelLoaderManager {
         const obstacles = [];
         const mountainElements = levelData.allMapElements?.filter(el => el.element === "MOUNTAIN") || [];
 
+        const depth = this.getLevelDepth(levelData);
+
         for (const mountainEl of mountainElements) {
             const coords = mountainEl.coordinates;
 
@@ -379,13 +390,8 @@ class LevelLoaderManager {
                 continue;
             }
 
-            // Convert 2D coordinates to 3D position (x, y=0, z)
-            // JSON uses x,y for 2D grid, where y maps to z in 3D space
-            const position = new BABYLON.Vector3(
-                coords.x,
-                0,
-                coords.y // JSON y coordinate maps to 3D z coordinate
-            );
+            const worldCoords = this.builderToWorld(coords, depth);
+            const position = new BABYLON.Vector3(worldCoords.x, 0, worldCoords.z);
 
             // Validate position was created successfully
             if (!position || position.x === undefined) {
@@ -419,6 +425,7 @@ class LevelLoaderManager {
         const stardustElements = levelData.allMapElements?.filter(el => el.element === "STAR_DUST") || [];
         const sceneBuilder = FundamentalSystemBridge["renderSceneSwapper"].getSceneBuilderForScene("BaseGameScene");
         const microEventManager = FundamentalSystemBridge["microEventManager"];
+        const depth = this.getLevelDepth(levelData);
 
         // Get levelId from the activeGameplayLevel's levelDataComposite if available
         const levelId = activeGameplayLevel?.levelDataComposite?.levelHeaderData?.levelId || levelData.levelName || "level0";
@@ -429,13 +436,8 @@ class LevelLoaderManager {
 
         for (const stardustEl of stardustElements) {
             const coords = stardustEl.coordinates;
-            // Convert 2D coordinates to 3D position
-            // JSON uses x,y for 2D grid, where y maps to z in 3D space
-            const position = new BABYLON.Vector3(
-                coords.x,
-                0.25, // Slightly above ground
-                coords.y // JSON y coordinate maps to 3D z coordinate
-            );
+            const worldCoords = this.builderToWorld(coords, depth);
+            const position = new BABYLON.Vector3(worldCoords.x, 0.25, worldCoords.z);
 
             // Create positioned object for stardust
             const offset = new BABYLON.Vector3(0, 0, 0);
@@ -493,6 +495,20 @@ class LevelLoaderManager {
             } else {
                 console.error(`[STARDUST CREATION] MicroEventManager not found!`);
             }
+
+            // Spawn arrival VFX/SFX to ensure effects exist on every level load
+            try {
+                const effectGenerator = new EffectGenerator();
+                effectGenerator.explosionEffect({
+                    type: "magic",
+                    intensity: 0.4,
+                    duration: 0.8
+                }).catch(() => { /* ignore */ });
+                // Optional: hook sound effects if desired
+                // SoundEffectsManager.playSound("stardustSpawn", sceneBuilder.scene).catch(() => {});
+            } catch (err) {
+                console.warn("[STARDUST CREATION] Spawn effect failed:", err);
+            }
         }
 
         // Verify that 4 stardusts were registered
@@ -510,6 +526,19 @@ class LevelLoaderManager {
                 console.log(`[STARDUST VERIFICATION] ✓ Successfully registered 4 stardusts for levelId: ${levelId}`);
             }
         }
+    }
+
+    /**
+     * Converts builder (top-left origin) coordinates to Babylon world coords (bottom-left origin).
+     * Optional offset allows re-use for duplicate/chamber grids.
+     */
+    builderToWorld(coords, depth, offset = { x: 0, z: 0 }) {
+        const offX = offset.x || 0;
+        const offZ = offset.z || 0;
+        return {
+            x: coords.x + offX,
+            z: (depth - 1 - coords.y) + offZ
+        };
     }
 
     /**
