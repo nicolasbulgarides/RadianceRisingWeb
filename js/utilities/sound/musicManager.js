@@ -219,7 +219,7 @@ class MusicManager {
         {
           loop: loop,
           autoplay: true,
-          volume: 1.0,
+          volume: 0.5,
           streaming: true, // Enable streaming for music files
           spatialSound: false, // Try false first (2D audio). If no sound, user can test with true
           maxDistance: 1000, // If using 3D audio, set large distance so camera position doesn't matter

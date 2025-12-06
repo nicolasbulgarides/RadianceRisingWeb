@@ -22,6 +22,71 @@ class SoundEffectsManager {
   }
 
   /**
+   * Returns the list of essential sounds that should be preloaded on game startup
+   * to eliminate latency during gameplay.
+   * For movement sounds, we create TWO instances (with _0 and _1 suffixes) to alternate between them.
+   * @returns {Array<string>} - Array of sound names to preload
+   */
+  static getInitialSoundsToLoadOnStartup() {
+    return [
+      // Player movement sounds (dual instances for alternating playback)
+      "magicLaunchNormalSpeed_0",
+      "magicLaunchNormalSpeed_1",
+      "magicLaunchTravelLoop_0",
+      "magicLaunchTravelLoop_1",
+
+      // UI interaction sounds
+      "directionalPadTap",
+      "magicalSpellCastNeutral",
+      "artifactUsage",
+
+      // Pickup and stardust collection sounds
+      "stardustAbsorptionSizzle",
+      "streakBonusStart",
+      "streakBonusCombo",
+      "streakBonusSuperCombo",
+      "streakBonusUltimateCombo",
+
+      // Level completion sounds
+      "endOfLevelPerfect",
+      "endOfLevel",
+      "endOfLevelGreat"
+    ];
+  }
+
+  /**
+   * Preloads the essential sounds needed for immediate gameplay.
+   * Call this during game initialization to eliminate sound loading latency.
+   * @param {BABYLON.Scene} scene - The scene in which to load the sounds.
+   * @returns {Promise<void>} - Resolves when all essential sounds are loaded.
+   */
+  async loadInitialSounds(scene) {
+    if (!scene) {
+      console.error("[SOUND] Cannot load initial sounds without a scene. Sounds will load on-demand instead.");
+      return;
+    }
+
+    const soundsToLoad = SoundEffectsManager.getInitialSoundsToLoadOnStartup();
+    console.log(`[SOUND] Preloading ${soundsToLoad.length} essential sounds...`);
+
+    const loadPromises = soundsToLoad.map((soundName) => {
+      return new Promise((resolve, reject) => {
+        this.loadQueue.push({ soundName, scene, resolve, reject });
+        this.processQueue();
+      });
+    });
+
+    try {
+      const results = await Promise.allSettled(loadPromises);
+      const successful = results.filter(r => r.status === 'fulfilled').length;
+      const failed = results.filter(r => r.status === 'rejected').length;
+      console.log(`[SOUND] Initial sound loading complete: ${successful} succeeded, ${failed} failed`);
+    } catch (error) {
+      console.error("[SOUND] Error during initial sound loading:", error);
+    }
+  }
+
+  /**
    * Calculates delay for exponential backoff
    * @param {number} attempt - Current retry attempt
    * @returns {number} - Delay in milliseconds
@@ -76,8 +141,10 @@ class SoundEffectsManager {
     }
 
     return new Promise((resolve, reject) => {
-      const url = SoundAssetManifest.getSoundUrl(soundName);
-      const volume = SoundAssetManifest.getSoundVolume(soundName);
+      // Strip _0 or _1 suffix to get the base sound name
+      const baseSoundName = soundName.replace(/_[01]$/, '');
+      const url = SoundAssetManifest.getSoundUrl(baseSoundName);
+      const volume = SoundAssetManifest.getSoundVolume(baseSoundName);
 
       console.log(`[SOUND] Loading sound: ${soundName}, scene has _audioEngine: ${!!scene?._audioEngine}`);
       console.log(`[SOUND] Sound URL: ${url}`);
@@ -100,7 +167,7 @@ class SoundEffectsManager {
         {
           volume: volume,
           spatialSound: false, // Sound effects should be 2D (non-spatial) like music
-          autoplay: true,
+          autoplay: false, // Changed to false to prevent autoplay on load
           // Babylon.js v8+ error handling via options
           onError: async (sound, message) => {
             console.warn(
@@ -400,6 +467,194 @@ class SoundEffectsManager {
       }
     } else {
       console.warn(`[SOUND] ✗ Sound not found or failed to load: ${soundName}`);
+    }
+  }
+
+  /**
+   * Plays a preloaded sound directly without any on-demand loading.
+   * Used for time-critical sounds that are already loaded.
+   * @param {string} soundName - The name of the sound to play (must be preloaded)
+   */
+  static playSoundDirect(soundName) {
+    const sound = SoundEffectsManager.sounds.get(soundName);
+    if (sound) {
+      console.log(`[SOUND] Playing direct: ${soundName}`);
+      try {
+        // Reset to beginning if it's an HTML5 audio element
+        if (sound._htmlAudioElement) {
+          sound._htmlAudioElement.currentTime = 0;
+          sound._htmlAudioElement.loop = false;
+        }
+        sound.loop = false;
+        sound.play();
+      } catch (playError) {
+        console.error(`[SOUND] ✗ Failed to play direct sound ${soundName}:`, playError);
+      }
+    } else {
+      console.warn(`[SOUND] ✗ Direct sound not found (not preloaded?): ${soundName}`);
+    }
+  }
+
+  /**
+   * Plays a preloaded sound in looped mode directly without any on-demand loading.
+   * @param {string} soundName - The name of the sound to play looped (must be preloaded)
+   */
+  static playSoundLoopedDirect(soundName) {
+    const sound = SoundEffectsManager.sounds.get(soundName);
+    if (sound) {
+      console.log(`[SOUND] Playing looped direct: ${soundName}`);
+      try {
+        // Always stop first to ensure clean state
+        try {
+          sound.stop();
+        } catch (e) {
+          // Ignore stop errors
+        }
+
+        // Reset to beginning if it's an HTML5 audio element
+        if (sound._htmlAudioElement) {
+          sound._htmlAudioElement.pause();
+          sound._htmlAudioElement.currentTime = 0;
+          sound._htmlAudioElement.loop = true;
+        }
+
+        sound.loop = true;
+        sound.play();
+        console.log(`[SOUND] ✓ Looped direct sound playing: ${soundName}`);
+      } catch (playError) {
+        console.error(`[SOUND] ✗ Failed to play looped direct sound ${soundName}:`, playError);
+      }
+    } else {
+      console.warn(`[SOUND] ✗ Looped direct sound not found (not preloaded?): ${soundName}`);
+    }
+  }
+
+  /**
+   * Stops a preloaded sound directly.
+   * @param {string} soundName - The name of the sound to stop
+   */
+  static stopSoundDirect(soundName) {
+    const sound = SoundEffectsManager.sounds.get(soundName);
+    if (sound) {
+      console.log(`[SOUND] Stopping direct: ${soundName}`);
+      try {
+        sound.stop();
+        sound.loop = false;
+
+        if (sound._htmlAudioElement) {
+          sound._htmlAudioElement.pause();
+          sound._htmlAudioElement.currentTime = 0;
+          sound._htmlAudioElement.loop = false;
+        }
+      } catch (e) {
+        console.warn(`[SOUND] Error stopping direct sound ${soundName}:`, e);
+      }
+    }
+  }
+
+  /**
+   * Stops a currently playing sound by name.
+   * @param {string} soundName - The name of the sound to stop.
+   */
+  static stopSound(soundName) {
+    const sound = SoundEffectsManager.sounds.get(soundName);
+    if (sound) {
+      console.log(`[SOUND] Stopping sound: ${soundName}, isPlaying: ${sound.isPlaying}`);
+
+      // Always call stop() regardless of isPlaying flag, as the flag might be stale
+      try {
+        sound.stop();
+        console.log(`[SOUND] ✓ Sound stopped: ${soundName}`);
+      } catch (e) {
+        console.warn(`[SOUND] Error stopping sound ${soundName}:`, e);
+      }
+
+      // Reset loop property so the sound can be reused normally
+      sound.loop = false;
+
+      // Reset the audio element if it exists (for HTML5 audio)
+      if (sound._htmlAudioElement) {
+        sound._htmlAudioElement.pause();
+        sound._htmlAudioElement.currentTime = 0;
+        sound._htmlAudioElement.loop = false;
+      }
+    } else {
+      console.warn(`[SOUND] ✗ Cannot stop sound - not found: ${soundName}`);
+    }
+  }
+
+  /**
+   * Plays a sound with looping enabled.
+   * @param {string} soundName - The name of the sound to play with loop.
+   * @param {BABYLON.Scene} scene - The scene in which to load/play the sound.
+   * @returns {Promise<void>}
+   */
+  static async playSoundLooped(soundName, scene) {
+    // If no scene provided, try to get the active UI scene or game scene
+    if (!scene) {
+      const renderSceneSwapper = FundamentalSystemBridge["renderSceneSwapper"];
+      scene = renderSceneSwapper?.getActiveUIScene() || renderSceneSwapper?.getActiveGameLevelScene();
+      if (!scene) {
+        console.error(`[SOUND] Cannot play looped sound ${soundName}: No scene available`);
+        return;
+      }
+    }
+
+    // Ensure audio engine is assigned to scene before playing
+    const engine = FundamentalSystemBridge["babylonEngine"];
+    if (scene && engine?.audioEngine) {
+      if (!scene._audioEngine) {
+        scene._audioEngine = engine.audioEngine;
+        console.log(`[SOUND] Assigned audio engine to scene for ${soundName}`);
+      }
+      if (!scene.audioEnabled) {
+        scene.audioEnabled = true;
+      }
+      if (!scene.audioListenerPositionProvider && scene.activeCamera) {
+        scene.audioListenerPositionProvider = () => scene.activeCamera.position;
+      }
+    } else if (!engine?.audioEngine) {
+      console.error(`[SOUND] Cannot play looped sound ${soundName}: AudioEngine not ready`);
+      return;
+    }
+
+    // If sound isn't loaded, try to load it
+    if (!SoundEffectsManager.sounds.has(soundName)) {
+      await SoundEffectsManager.attemptLoadSound(soundName, scene);
+    }
+
+    const templateSound = SoundEffectsManager.sounds.get(soundName);
+    if (templateSound) {
+      console.log(`[SOUND] Playing looped sound: ${soundName}, isPlaying: ${templateSound.isPlaying}`);
+
+      // Always stop first to ensure clean state
+      try {
+        templateSound.stop();
+      } catch (e) {
+        // Ignore errors from stopping
+      }
+
+      // Reset the sound to ensure clean playback
+      // This is important for looped sounds to work correctly on subsequent plays
+      if (templateSound._htmlAudioElement) {
+        templateSound._htmlAudioElement.pause();
+        templateSound._htmlAudioElement.currentTime = 0;
+      }
+
+      // Enable looping and play
+      templateSound.loop = true;
+      if (templateSound._htmlAudioElement) {
+        templateSound._htmlAudioElement.loop = true;
+      }
+
+      try {
+        templateSound.play();
+        console.log(`[SOUND] ✓ Looped sound playing: ${soundName}`);
+      } catch (playError) {
+        console.error(`[SOUND] ✗ Failed to play looped sound ${soundName}:`, playError);
+      }
+    } else {
+      console.warn(`[SOUND] ✗ Looped sound not found or failed to load: ${soundName}`);
     }
   }
 

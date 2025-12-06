@@ -37,6 +37,9 @@ class SequentialLevelLoader {
         // Current scene (same for all chambers)
         this.currentScene = null;
         this.currentSceneBuilder = null;
+
+        // Track total level count for music selection (0 = first level, 1 = second, etc.)
+        this.totalLevelsLoaded = 0;
     }
 
     /**
@@ -727,15 +730,45 @@ class SequentialLevelLoader {
             movementTracker.startTracking();
         }
 
-        // Start music for new level (only if audio has been unlocked)
-        const musicManager = FundamentalSystemBridge["musicManager"];
-        if (musicManager && this.currentScene && Config.audioHasBeenUnlocked) {
-            musicManager.playSong(this.currentScene, "crystalVoyage", true, true);
-        }
-
-        // Update current chamber
+        // Update current chamber BEFORE choosing music
+        const oldChamber = this.currentChamber;
         this.currentChamber = this.currentChamber === 1 ? 2 : 1;
-        console.log(`[SEQUENTIAL LOADER] Switched to Chamber ${this.currentChamber}`);
+
+        // Increment total levels loaded counter (used for music selection)
+        this.totalLevelsLoaded++;
+
+        console.log(`[SEQUENTIAL LOADER] ============================================`);
+        console.log(`[SEQUENTIAL LOADER] Switched from Chamber ${oldChamber} to Chamber ${this.currentChamber}`);
+        console.log(`[SEQUENTIAL LOADER] Total levels loaded: ${this.totalLevelsLoaded}`);
+
+        // Start music for new level (only if audio has been unlocked)
+        // First level (totalLevelsLoaded === 0) uses "crystalVoyage"
+        // All subsequent levels use "duskReverie"
+        const musicManager = FundamentalSystemBridge["musicManager"];
+        console.log(`[SEQUENTIAL LOADER] musicManager exists:`, !!musicManager);
+        console.log(`[SEQUENTIAL LOADER] this.currentScene exists:`, !!this.currentScene);
+        console.log(`[SEQUENTIAL LOADER] Config.audioHasBeenUnlocked:`, Config.audioHasBeenUnlocked);
+
+        if (musicManager && this.currentScene) {
+            // Use totalLevelsLoaded for music selection (0 = first level gets crystalVoyage)
+            const songName = this.totalLevelsLoaded === 0 ? "crystalVoyage" : "duskReverie";
+            console.log(`[SEQUENTIAL LOADER] Selected song: ${songName} (level ${this.totalLevelsLoaded}, chamber ${this.currentChamber})`);
+
+            if (Config.audioHasBeenUnlocked) {
+                console.log(`[SEQUENTIAL LOADER] Calling musicManager.playSong(scene, "${songName}", true, true)...`);
+                try {
+                    await musicManager.playSong(this.currentScene, songName, true, true);
+                    console.log(`[SEQUENTIAL LOADER] ✓ Music started successfully: ${songName}`);
+                } catch (error) {
+                    console.error(`[SEQUENTIAL LOADER] ✗ Error starting music:`, error);
+                }
+            } else {
+                console.warn(`[SEQUENTIAL LOADER] Skipping music - audio not yet unlocked by user interaction`);
+            }
+        } else {
+            console.error(`[SEQUENTIAL LOADER] Cannot play music - musicManager:${!!musicManager}, scene:${!!this.currentScene}`);
+        }
+        console.log(`[SEQUENTIAL LOADER] ============================================`);
 
         // Reset state for next transition
         this.isLoadingNextLevel = false;

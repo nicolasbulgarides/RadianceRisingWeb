@@ -3,6 +3,9 @@ class LevelLoaderManager {
         // Initialize loading screen instance
         this.loadingScreen = null;
         this.initializeLoadingScreen();
+
+        // Track which level number we're loading (for music selection)
+        this.currentLevelNumber = 0; // 0 = first level, 1 = second level, etc.
     }
 
     /**
@@ -78,7 +81,34 @@ class LevelLoaderManager {
             this.logFailedToRenderLevel();
         }
         gameplayManager.setActiveGameplayLevel(gameplayLevel);
+
+        // Preload essential sounds to eliminate latency during gameplay
+        console.log("[LEVEL LOADER] Loading initial sounds...");
+        const soundEffectsManager = FundamentalSystemBridge["soundEffectsManager"];
+        if (soundEffectsManager && gameplayLevel.hostingScene) {
+            await soundEffectsManager.loadInitialSounds(gameplayLevel.hostingScene);
+            console.log("[LEVEL LOADER] Initial sounds loaded");
+        }
+
         loadingScreen.destroy();
+
+        // Start music on loop (only if audio has been unlocked by user interaction)
+        // First level plays "crystalVoyage", all subsequent levels play "duskReverie"
+        const musicManager = FundamentalSystemBridge["musicManager"];
+        const activeScene = FundamentalSystemBridge["renderSceneSwapper"]?.getActiveGameLevelScene();
+        if (musicManager && activeScene && Config.audioHasBeenUnlocked) {
+            const songName = this.currentLevelNumber === 0 ? "crystalVoyage" : "duskReverie";
+            console.log(`[LEVEL LOADER] Starting ${songName} music for level ${this.currentLevelNumber}`);
+            await musicManager.playSong(activeScene, songName, true, true);
+            console.log(`[LEVEL LOADER] ✓ Started ${songName} music on loop`);
+
+            // Increment level number for next level
+            this.currentLevelNumber++;
+        } else if (musicManager && activeScene && !Config.audioHasBeenUnlocked) {
+            console.log("[LEVEL LOADER] Skipping music start - waiting for user interaction to unlock audio");
+        } else {
+            console.warn(`[LEVEL LOADER] Cannot start music - musicManager:${!!musicManager}, scene:${!!activeScene}`);
+        }
 
     }
 
@@ -312,16 +342,30 @@ class LevelLoaderManager {
                 });
             }
 
+            // Preload essential sounds to eliminate latency during gameplay
+            console.log("[LEVEL LOADER] Loading initial sounds...");
+            const soundEffectsManager = FundamentalSystemBridge["soundEffectsManager"];
+            if (soundEffectsManager && gameplayLevel.hostingScene) {
+                await soundEffectsManager.loadInitialSounds(gameplayLevel.hostingScene);
+                console.log("[LEVEL LOADER] Initial sounds loaded");
+            }
+
             if (loadingScreen) {
                 loadingScreen.destroy();
             }
 
-            // Start crystal voyage music on loop (only if audio has been unlocked by user interaction)
+            // Start music on loop (only if audio has been unlocked by user interaction)
+            // First level plays "crystalVoyage", all subsequent levels play "duskReverie"
             const musicManager = FundamentalSystemBridge["musicManager"];
             const activeScene = FundamentalSystemBridge["renderSceneSwapper"]?.getActiveGameLevelScene();
             if (musicManager && activeScene && Config.audioHasBeenUnlocked) {
-                musicManager.playSong(activeScene, "crystalVoyage", true, true);
-                console.log("[LEVEL LOADER] Started crystalVoyage music on loop");
+                const songName = this.currentLevelNumber === 0 ? "crystalVoyage" : "duskReverie";
+                console.log(`[LEVEL LOADER] Starting ${songName} music for level ${this.currentLevelNumber}`);
+                musicManager.playSong(activeScene, songName, true, true);
+                console.log(`[LEVEL LOADER] ✓ Started ${songName} music on loop`);
+
+                // Increment level number for next level
+                this.currentLevelNumber++;
             } else if (musicManager && activeScene && !Config.audioHasBeenUnlocked) {
                 console.log("[LEVEL LOADER] Skipping music start - waiting for user interaction to unlock audio");
             }
