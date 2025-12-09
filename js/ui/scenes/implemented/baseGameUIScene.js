@@ -438,6 +438,17 @@ class BaseGameUIScene extends UISceneGeneralized {
   }
 
   /**
+   * Sets the number of hearts displayed in the heart socket bar.
+   * @param {number} heartCount - The number of full hearts (from 0 to 3).
+   */
+  setHeartBarHearts(heartCount) {
+    if (!this.heartSocketBar) {
+      return;
+    }
+    this.heartSocketBar.setCurrentHearts(heartCount);
+  }
+
+  /**
    * Updates the level name display.
    * @param {string} levelName - The level name to display.
    * @param {string} levelHint - The level hint (stored for future use with different system).

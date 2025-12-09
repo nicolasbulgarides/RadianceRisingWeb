@@ -11,6 +11,12 @@ class MicroEventManager {
   }
 
   onFrameCheckMicroEventsForTriggered() {
+    // Check if player is dead/resetting - if so, don't process microevents
+    const levelResetHandler = FundamentalSystemBridge["levelResetHandler"];
+    if (levelResetHandler && (levelResetHandler.isResetting || levelResetHandler.hasPlayerDied())) {
+      return; // Don't process microevents during death/reset
+    }
+
     // Log that we're being called (throttled to avoid spam)
     if (!this._frameCheckCallCount) this._frameCheckCallCount = 0;
     this._frameCheckCallCount++;
@@ -51,7 +57,10 @@ class MicroEventManager {
       event => event.microEventCategory === "pickup" && !event.microEventCompletionStatus
     );
 
-
+    // Filter to only incomplete damage events
+    const incompleteDamageEvents = allMicroEvents.filter(
+      event => event.microEventCategory === "damage" && !event.microEventCompletionStatus
+    );
 
     let collectiblePlacementManager =
       FundamentalSystemBridge["collectiblePlacementManager"];
@@ -97,6 +106,29 @@ class MicroEventManager {
         }
       }
     }
+
+    // Check for damage events
+    for (let microEvent of incompleteDamageEvents) {
+      // Check if this spike has already triggered during the current movement
+      if (microEvent.hasTriggeredThisMovement) {
+        continue; // Skip this spike - it already hit during this movement
+      }
+
+      let nearADamageTrigger =
+        collectiblePlacementManager.checkCollectibleForPickupEventTrigger(
+          microEvent
+        );
+
+      if (nearADamageTrigger) {
+        // Mark as completed and flag as triggered during this movement
+        if (microEvent.microEventCompletionStatus === false) {
+          microEvent.markAsCompleted();
+          microEvent.hasTriggeredThisMovement = true; // Flag: hit during this movement
+          console.log(`[DAMAGE] ⚠ Spike hit! ${microEvent.microEventNickname} - flagged for this movement`);
+          this.processSuccessfulDamage(microEvent);
+        }
+      }
+    }
   }
 
   processSuccessfulPickup(microEvent) {
@@ -129,6 +161,67 @@ class MicroEventManager {
       "specialOccurrenceManager"
     ].processPickupOccurrence(pickupOccurrence);
     //console.log(`[PICKUP] Pickup processing complete. Event marked as completed.`);
+  }
+
+  processSuccessfulDamage(microEvent) {
+    // Event should already be marked as completed before this is called
+    if (microEvent.microEventCompletionStatus === false) {
+      microEvent.markAsCompleted();
+    }
+
+    console.log(`[DAMAGE] ⚔ Processing damage for: ${microEvent.microEventNickname}`);
+
+    // Record damage position for replay
+    const movementTracker = FundamentalSystemBridge["movementTracker"];
+    if (movementTracker && movementTracker.isTracking && microEvent.microEventLocation) {
+      movementTracker.recordDamagePosition(microEvent.microEventLocation);
+    }
+
+    // Play damage sound effect
+    SoundEffectsManager.playSound("magicWallBreak");
+
+    // Create damage occurrence and process it
+    let damageOccurrence =
+      CollectibleOccurrenceFactory.convertMicroEventToOccurrence(microEvent);
+
+    FundamentalSystemBridge[
+      "specialOccurrenceManager"
+    ].processDamageOccurrence(damageOccurrence);
+    console.log(`[DAMAGE] ✓ Damage processing complete. Event marked as completed.`);
+  }
+
+  /**
+   * Resets all damage event flags for the current level
+   * Call this at the START of each player movement
+   * This allows spike traps to hit again on a new movement
+   */
+  resetDamageEventFlagsForLevel() {
+    const gameplayManager = FundamentalSystemBridge["gameplayManagerComposite"];
+    if (!gameplayManager || !gameplayManager.primaryActiveGameplayLevel) {
+      return;
+    }
+
+    const activeLevel = gameplayManager.primaryActiveGameplayLevel;
+    const levelId = activeLevel?.levelDataComposite?.levelHeaderData?.levelId;
+
+    if (!levelId) {
+      return;
+    }
+
+    // Get all microevents for this level
+    const allMicroEvents = this.gameplayLevelToMicroEventsMap[levelId];
+    if (!allMicroEvents || allMicroEvents.length === 0) {
+      return;
+    }
+
+    // Reset flags and completion status for all damage events
+    const damageEvents = allMicroEvents.filter(event => event.microEventCategory === "damage");
+    damageEvents.forEach(microEvent => {
+      microEvent.hasTriggeredThisMovement = false; // Reset flag for new movement
+      microEvent.markAsIncomplete(); // Allow it to be triggered again
+    });
+
+    console.log(`[DAMAGE] ♻ Reset ${damageEvents.length} spike trap flags for new movement`);
   }
 
   prepareAndRegisterMicroEventsForLevel(levelDataComposite) {

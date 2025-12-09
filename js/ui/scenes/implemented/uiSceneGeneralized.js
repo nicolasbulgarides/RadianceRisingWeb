@@ -12,16 +12,16 @@ class UISceneGeneralized extends BABYLON.Scene {
     // Initialize AudioEngine asynchronously for Babylon.js v8+
     this.initializeAudioEngine();
 
-    console.log("[UI SCENE] UI scene initialized");
+    // console.log("[UI SCENE] UI scene initialized");
   }
 
   async initializeAudioEngine() {
     try {
-      console.log("[UI SCENE] Ensuring AudioEngine is ready...");
+      // console.log("[UI SCENE] Ensuring AudioEngine is ready...");
       await Config.ensureAudioEngineReady();
-      console.log("[UI SCENE] AudioEngine ready for scene");
+      // console.log("[UI SCENE] AudioEngine ready for scene");
     } catch (error) {
-      console.warn("[UI SCENE] Failed to ensure AudioEngine ready:", error);
+      // console.warn("[UI SCENE] Failed to ensure AudioEngine ready:", error);
     }
   }
 

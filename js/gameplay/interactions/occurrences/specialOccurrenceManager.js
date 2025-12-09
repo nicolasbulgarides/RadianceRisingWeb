@@ -7,4 +7,8 @@ class SpecialOccurrenceManager {
   processPickupOccurrence(occurrence) {
     this.pickupOccurrenceSubManager.processPickupOccurrence(occurrence);
   }
+
+  processDamageOccurrence(occurrence) {
+    this.pickupOccurrenceSubManager.processDamageOccurrence(occurrence);
+  }
 }

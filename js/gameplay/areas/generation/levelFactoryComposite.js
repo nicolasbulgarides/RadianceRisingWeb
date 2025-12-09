@@ -53,39 +53,70 @@ class LevelFactoryComposite {
   }
 
   async loadFactorySupportSystems() {
-    // Initialize level obstacle generator
-    this.levelMapObstacleGenerator = new LevelMapObstacleGenerator();
+    // Initialize level obstacle generator (only if not already initialized)
+    if (!this.levelMapObstacleGenerator) {
+      this.levelMapObstacleGenerator = new LevelMapObstacleGenerator();
+    }
 
-    // Instantiate grid manager for handling tile loading and grid instancing
-    this.gridManager = new GameGridGenerator();
+    // Instantiate grid manager for handling tile loading and grid instancing (only if not already initialized)
+    if (!this.gridManager) {
+      this.gridManager = new GameGridGenerator();
+    }
 
-    // Load tiles
-    LevelFactoryComposite.TILES_LOADED =
-      await this.gridManager.loadTilesModelsDefault();
+    // Load tiles (only if not already loaded)
+    if (!LevelFactoryComposite.TILES_LOADED) {
+      LevelFactoryComposite.TILES_LOADED =
+        await this.gridManager.loadTilesModelsDefault();
+    }
 
-    FundamentalSystemBridge.registerMicroEventManager(new MicroEventManager());
+    // CRITICAL: Only create these managers ONCE to prevent losing state (e.g., isResetting flag)
+    // Creating new instances would reset their state, breaking death/reset logic
+
+    if (!FundamentalSystemBridge["microEventManager"]) {
+      FundamentalSystemBridge.registerMicroEventManager(new MicroEventManager());
+    }
 
     // Initialize collectible manager (will be configured with actual gameplay level later)
-    FundamentalSystemBridge.registerCollectiblePlacementManager(
-      new CollectiblePlacementManager()
-    );
+    if (!FundamentalSystemBridge["collectiblePlacementManager"]) {
+      FundamentalSystemBridge.registerCollectiblePlacementManager(
+        new CollectiblePlacementManager()
+      );
+    }
 
     // Initialize movement tracker and replay manager
-    FundamentalSystemBridge.registerManager(
-      "movementTracker",
-      new MovementTracker(),
-      MovementTracker
-    );
-    FundamentalSystemBridge.registerManager(
-      "levelReplayManager",
-      new LevelReplayManager(),
-      LevelReplayManager
-    );
-    FundamentalSystemBridge.registerManager(
-      "sequentialLevelLoader",
-      new SequentialLevelLoader(),
-      SequentialLevelLoader
-    );
+    if (!FundamentalSystemBridge["movementTracker"]) {
+      FundamentalSystemBridge.registerManager(
+        "movementTracker",
+        new MovementTracker(),
+        MovementTracker
+      );
+    }
+
+    if (!FundamentalSystemBridge["levelReplayManager"]) {
+      FundamentalSystemBridge.registerManager(
+        "levelReplayManager",
+        new LevelReplayManager(),
+        LevelReplayManager
+      );
+    }
+
+    // CRITICAL: LevelResetHandler must only be created once!
+    // If created multiple times, the isResetting flag gets reset, allowing ghost models
+    if (!FundamentalSystemBridge["levelResetHandler"]) {
+      FundamentalSystemBridge.registerManager(
+        "levelResetHandler",
+        new LevelResetHandler(),
+        LevelResetHandler
+      );
+    }
+
+    if (!FundamentalSystemBridge["sequentialLevelLoader"]) {
+      FundamentalSystemBridge.registerManager(
+        "sequentialLevelLoader",
+        new SequentialLevelLoader(),
+        SequentialLevelLoader
+      );
+    }
   }
 
   static checkTilesLoaded() {

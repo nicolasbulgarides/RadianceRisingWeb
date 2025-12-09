@@ -246,15 +246,15 @@ class PlayerMovementManager {
 
   // Call this method once to start the movement.
   startMovement(speed) {
-    console.log("[PLAYER MOVEMENT] startMovement() called with speed:", speed);
+    // console.log("[PLAYER MOVEMENT] startMovement() called with speed:", speed);
 
     if (!this.validateMovementParameters(speed)) {
-      console.log("[PLAYER MOVEMENT] validateMovementParameters failed");
+      // console.log("[PLAYER MOVEMENT] validateMovementParameters failed");
       return;
     }
 
     if (!this.initializeMovementParameters(speed)) {
-      console.log("[PLAYER MOVEMENT] initializeMovementParameters failed");
+      // console.log("[PLAYER MOVEMENT] initializeMovementParameters failed");
       return;
     }
 
@@ -262,7 +262,7 @@ class PlayerMovementManager {
       true
     );
     this.movementActive = true;
-    console.log("[PLAYER MOVEMENT] Movement started, calling playMovementSounds()");
+    // console.log("[PLAYER MOVEMENT] Movement started, calling playMovementSounds()");
 
     // Play movement sounds
     this.playMovementSounds();
@@ -274,27 +274,27 @@ class PlayerMovementManager {
    * - After 2 seconds: magicLaunchTravelLoop (alternates between instance 0 and 1, looped)
    */
   playMovementSounds() {
-    console.log("[PLAYER MOVEMENT] playMovementSounds() called!");
+    // console.log("[PLAYER MOVEMENT] playMovementSounds() called!");
 
     // FIRST: Stop any existing movement sounds from previous movement
     this.stopMovementSounds();
 
     // Alternate between two instances of the launch sound to avoid state conflicts
     const launchSoundName = `magicLaunchNormalSpeed_${this.currentLaunchSoundIndex}`;
-    console.log(`[PLAYER MOVEMENT] Playing ${launchSoundName}`);
+    // console.log(`[PLAYER MOVEMENT] Playing ${launchSoundName}`);
     SoundEffectsManager.playSoundDirect(launchSoundName);
 
     // Switch to the other instance for next time
     this.currentLaunchSoundIndex = this.currentLaunchSoundIndex === 0 ? 1 : 0;
 
     // Schedule the travel loop sound to play after 2 seconds
-    console.log("[PLAYER MOVEMENT] Scheduling travel loop in 2 seconds");
+    // console.log("[PLAYER MOVEMENT] Scheduling travel loop in 2 seconds");
     this.travelLoopTimeoutId = setTimeout(() => {
-      console.log("[PLAYER MOVEMENT] Travel loop timeout fired! movementActive:", this.movementActive);
+      // console.log("[PLAYER MOVEMENT] Travel loop timeout fired! movementActive:", this.movementActive);
       if (this.movementActive) {
         // Alternate between two instances of the loop sound
         const loopSoundName = `magicLaunchTravelLoop_${this.currentLoopSoundIndex}`;
-        console.log(`[PLAYER MOVEMENT] Playing ${loopSoundName} (looped)`);
+        // console.log(`[PLAYER MOVEMENT] Playing ${loopSoundName} (looped)`);
         SoundEffectsManager.playSoundLoopedDirect(loopSoundName);
         this.loopSoundInstancePlaying = loopSoundName;
 
@@ -308,18 +308,18 @@ class PlayerMovementManager {
    * Stops the movement travel loop sound if it's playing.
    */
   stopMovementSounds() {
-    console.log("[PLAYER MOVEMENT] stopMovementSounds() called!");
+    // console.log("[PLAYER MOVEMENT] stopMovementSounds() called!");
 
     // Clear the timeout if movement ends before the loop starts
     if (this.travelLoopTimeoutId) {
-      console.log("[PLAYER MOVEMENT] Clearing timeout");
+      // console.log("[PLAYER MOVEMENT] Clearing timeout");
       clearTimeout(this.travelLoopTimeoutId);
       this.travelLoopTimeoutId = null;
     }
 
     // Stop whichever loop sound instance is currently playing
     if (this.loopSoundInstancePlaying) {
-      console.log(`[PLAYER MOVEMENT] Stopping ${this.loopSoundInstancePlaying}`);
+      // console.log(`[PLAYER MOVEMENT] Stopping ${this.loopSoundInstancePlaying}`);
       SoundEffectsManager.stopSoundDirect(this.loopSoundInstancePlaying);
       this.loopSoundInstancePlaying = null;
     }
@@ -392,7 +392,7 @@ class PlayerMovementManager {
       !isFinite(this.movementPerFrame.z)
     ) {
       // Log an error and reset if invalid data is encountered.
-      console.error("Invalid movement vector detected!", this.movementPerFrame);
+      //  console.error("Invalid movement vector detected!", this.movementPerFrame);
       this.resetMovement();
       return this.startPosition;
     }

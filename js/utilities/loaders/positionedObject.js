@@ -239,14 +239,64 @@ class PositionedObject {
       return;
     }
 
+    // Collect every mesh we can find for both static and animated roots
+    const meshes = [];
     if (this.model.meshes && Array.isArray(this.model.meshes)) {
-      // Dispose all meshes - this automatically removes them from the scene
-      for (let i = 0; i < this.model.meshes.length; i++) {
-        const mesh = this.model.meshes[i];
-        if (mesh) {
-          mesh.dispose();
-        }
+      meshes.push(...this.model.meshes);
+    }
+    if (typeof this.model.getChildMeshes === "function") {
+      const childMeshes = this.model.getChildMeshes();
+      if (Array.isArray(childMeshes)) {
+        meshes.push(...childMeshes);
       }
     }
+    if (this.model instanceof BABYLON.Mesh || this.model instanceof BABYLON.AbstractMesh) {
+      meshes.push(this.model);
+    }
+
+    // Dispose meshes (removes from scene); guard each call to avoid throwing
+    meshes.forEach((mesh) => {
+      if (mesh && typeof mesh.dispose === "function") {
+        try {
+          mesh.dispose(false, true); // keep shared materials, dispose textures
+        } catch (err) {
+          console.warn("PositionedObject.disposeModel: mesh dispose failed", err);
+        }
+      }
+    });
+
+    // Dispose skeletons if present
+    if (Array.isArray(this.model.skeletons)) {
+      this.model.skeletons.forEach((skeleton) => {
+        try {
+          skeleton?.dispose?.();
+        } catch (err) {
+          console.warn("PositionedObject.disposeModel: skeleton dispose failed", err);
+        }
+      });
+    }
+
+    // Dispose animation groups if they hang off the model
+    if (Array.isArray(this.model.animationGroups)) {
+      this.model.animationGroups.forEach((animGroup) => {
+        try {
+          animGroup?.dispose?.();
+        } catch (err) {
+          console.warn("PositionedObject.disposeModel: animationGroup dispose failed", err);
+        }
+      });
+    }
+
+    // Dispose the root node last
+    if (typeof this.model.dispose === "function") {
+      try {
+        this.model.dispose(false, true);
+      } catch (err) {
+        console.warn("PositionedObject.disposeModel: root dispose failed", err);
+      }
+    }
+
+    // Clear reference so future calls don’t try to reuse disposed model
+    this.model = null;
   }
 }

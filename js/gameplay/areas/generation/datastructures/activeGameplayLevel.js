@@ -92,9 +92,22 @@ class ActiveGameplayLevel {
    * This method sets up the lighting systems based on the current scene.
    */
   initializeLevelLighting() {
+    // Check if lighting needs to be initialized:
+    // 1. No directional light reference exists
+    // 2. Light reference exists but is not in the scene (scene was recreated/disposed)
+    // 3. Light's scene doesn't match current hosting scene
+    const hasLight = !!this.lightingManager.directionalLight;
+    const lightInScene = hasLight && this.hostingScene.lights.includes(this.lightingManager.directionalLight);
+    const sceneMatches = this.lightingManager.sceneToAddLightsTo === this.hostingScene;
 
+    const lightNeedsInit = !hasLight || !lightInScene || !sceneMatches;
 
-    this.lightingManager.initializeConstructSystems(false, this.hostingScene); // Initialize lighting systems.
+    if (lightNeedsInit) {
+      console.log(`[LEVEL LIGHTING] Initializing lighting (hasLight: ${hasLight}, lightInScene: ${lightInScene}, sceneMatches: ${sceneMatches})`);
+      this.lightingManager.initializeConstructSystems(false, this.hostingScene);
+    } else {
+      console.log(`[LEVEL LIGHTING] Lighting already initialized, skipping`);
+    }
   }
 
   /**

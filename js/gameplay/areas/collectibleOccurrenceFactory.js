@@ -5,6 +5,11 @@ class CollectibleOccurrenceFactory {
       let occurrenceFormed = this.createOccurrenceByPickupType(pickupCategory);
 
       return occurrenceFormed;
+    } else if (microEvent.microEventCategory === "damage") {
+      let damageType = microEvent.microEventValue;
+      let occurrenceFormed = this.createOccurrenceByDamageType(damageType);
+
+      return occurrenceFormed;
     }
   }
 
@@ -15,6 +20,18 @@ class CollectibleOccurrenceFactory {
       occurrence = this.createMangoPickupOccurrence();
     } else if (pickupType === "stardust") {
       occurrence = this.createStardustPickupOccurrence();
+    } else if (pickupType === "heart") {
+      occurrence = this.createHeartPickupOccurrence();
+    }
+
+    return occurrence;
+  }
+
+  static createOccurrenceByDamageType(damageType) {
+    let occurrence = null;
+
+    if (damageType === "spike") {
+      occurrence = this.createSpikeTrapDamageOccurrence();
     }
 
     return occurrence;
@@ -49,6 +66,36 @@ class CollectibleOccurrenceFactory {
     return stardustPickupOccurrence;
   }
 
+  static createHeartPickupOccurrence() {
+    let heartPickupHeader = this.getPickupHeader("heartPickupOccurrence");
+    // Hearts heal 1 health
+    let heartPickupBasicData = this.getPickupBasicData(false, 1, 0, 0, 0, 0);
+    let heartPickupItemData = this.getPickupItemData(true, "heart", 1, 0, 0);
+
+    let heartPickupOccurrence = new SpecialOccurrenceComposite(
+      heartPickupHeader,
+      heartPickupBasicData,
+      heartPickupItemData,
+    );
+
+    return heartPickupOccurrence;
+  }
+
+  static createSpikeTrapDamageOccurrence() {
+    let spikeHeader = this.getDamageHeader("spikePickupOccurrence");
+    // Spike traps don't give any positive effects, only deal damage
+    let spikeBasicData = this.getPickupBasicData(false, 0, 0, 0, 0, 0);
+    let spikeItemData = this.getPickupItemData(false, "spike", 0, 0, 0);
+
+    let spikeDamageOccurrence = new SpecialOccurrenceComposite(
+      spikeHeader,
+      spikeBasicData,
+      spikeItemData,
+    );
+
+    return spikeDamageOccurrence;
+  }
+
   static createBasicPickupOccurrenceGeneralized() { }
 
 
@@ -81,6 +128,19 @@ class CollectibleOccurrenceFactory {
     );
 
     return pickupHeader;
+  }
+
+  static getDamageHeader(damageId) {
+    let timeStamp = TimestampGenie.getTimestamp();
+
+    let damageHeader = new SpecialOccurrenceHeader(
+      damageId,
+      "event",
+      "damage",
+      timeStamp
+    );
+
+    return damageHeader;
   }
 
   static getPickupBasicData(

@@ -151,6 +151,27 @@ class MicroEventFactory {
     return pickupMicroEvent;
   }
 
+  static generateDamage(
+    nickName,
+    description,
+    damageType,
+    damageMagnitude,
+    damageLocation,
+    damagePositionedObject
+  ) {
+    let damageMicroEvent = new MicroEvent(
+      "damage",
+      nickName,
+      description,
+      damageType,
+      damageMagnitude,
+      damageLocation,
+      damagePositionedObject
+    );
+
+    return damageMicroEvent;
+  }
+
   //this function will take the levelDataComposite and assemble the micro events for the level
   //to do - some planning as to how to efficiently assemble the micro events for the level aka not
   //have to specify every coin pick up in the level

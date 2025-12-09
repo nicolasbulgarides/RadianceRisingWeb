@@ -24,6 +24,7 @@ class LightingManager {
 
     // Dispose existing light if any
     if (this.directionalLight) {
+      console.log("[LIGHTING] Disposing existing directional light before creating new one");
       this.directionalLight.dispose();
     }
 
@@ -34,12 +35,15 @@ class LightingManager {
       sceneToAddLightsTo
     );
 
-    // Set intensity to 10
+    // Set intensity to 15
     this.directionalLight.intensity = 15;
 
     // Set light color to white (default)
     this.directionalLight.diffuse = new BABYLON.Color3(1, 1, 1);
     this.directionalLight.specular = new BABYLON.Color3(1, 1, 1);
+
+    console.log(`[LIGHTING] Created SunLight with intensity ${this.directionalLight.intensity}`);
+    console.log(`[LIGHTING] Scene now has ${sceneToAddLightsTo.lights.length} total light(s)`);
   }
 
   dispose() {

@@ -1,6 +1,7 @@
 class PlayerStatusTracker {
   constructor() {
     this.playerStatus = null;
+    this.isDamageProcessing = false; // Prevent race conditions in damage
   }
 
   /**
@@ -97,6 +98,157 @@ class PlayerStatusTracker {
       return this.playerStatus.currentExperience || 0;
     }
     return 0;
+  }
+
+  /**
+   * Damage the player by reducing health points
+   * CRITICAL: Uses synchronous locking to prevent race conditions when multiple damage sources hit in same frame
+   * @param {number} amount - Amount of damage to deal
+   * @returns {number} Current health after damage
+   */
+  damagePlayer(amount) {
+    this.primeWithDefaultsIfMissing();
+
+    // Check if already resetting to prevent duplicate death calls
+    const levelResetHandler = FundamentalSystemBridge["levelResetHandler"];
+    if (levelResetHandler && levelResetHandler.isResetting) {
+      console.log("[DAMAGE] Ignoring damage - already resetting");
+      return this.getCurrentHealth();
+    }
+
+    // CRITICAL: Wait if damage is already being processed (prevents race conditions)
+    if (this.isDamageProcessing) {
+      console.log("[DAMAGE] Damage already processing, queueing this damage");
+      // Queue this damage to process after current damage completes
+      setTimeout(() => this.damagePlayer(amount), 10);
+      return this.getCurrentHealth();
+    }
+
+    // Lock damage processing
+    this.isDamageProcessing = true;
+
+    try {
+      const delta = Number(amount) || 0;
+      if (delta === 0) {
+        return this.getCurrentHealth();
+      }
+
+      // Read current health
+      const currentHealth = this.getCurrentHealth();
+
+      // Calculate new health
+      const newHealth = Math.max(0, currentHealth - delta);
+
+      // Write new health
+      this.setCurrentHealth(newHealth);
+
+      console.log(`[DAMAGE] Health: ${currentHealth} → ${newHealth} (delta: -${delta})`);
+
+      // Update UI
+      this.updateHealthUI();
+
+      // Check if player has died (and not already resetting)
+      if (newHealth === 0 && (!levelResetHandler || !levelResetHandler.isResetting)) {
+        console.log("[DAMAGE] ☠ Health reached 0 - triggering death");
+        this.handlePlayerDeath();
+      }
+
+      return newHealth;
+    } finally {
+      // Unlock damage processing (unless we're resetting - keep locked during reset)
+      if (!levelResetHandler || !levelResetHandler.isResetting) {
+        this.isDamageProcessing = false;
+      }
+    }
+  }
+
+  /**
+   * Handles player death sequence
+   */
+  handlePlayerDeath() {
+    console.log("[DEATH] Player has died, initiating death sequence");
+
+    // Trigger the death handler
+    const levelResetHandler = FundamentalSystemBridge["levelResetHandler"];
+    if (levelResetHandler && levelResetHandler.handlePlayerDeath) {
+      levelResetHandler.handlePlayerDeath();
+    } else {
+      console.error("[DEATH] LevelResetHandler not found!");
+    }
+  }
+
+  /**
+   * Heal the player by restoring health points
+   * @param {number} amount - Amount of health to restore
+   * @returns {number} Current health after healing
+   */
+  healPlayer(amount) {
+    this.primeWithDefaultsIfMissing();
+
+    const delta = Number(amount) || 0;
+    if (delta === 0) {
+      return this.getCurrentHealth();
+    }
+
+    // Increase health (ensure it doesn't exceed maximum)
+    const currentHealth = this.getCurrentHealth();
+    const maxHealth = this.getMaxHealth();
+    const newHealth = Math.min(maxHealth, currentHealth + delta);
+    this.setCurrentHealth(newHealth);
+
+    // Update UI
+    this.updateHealthUI();
+
+    return newHealth;
+  }
+
+  /**
+   * Update the health UI (HeartSocketBar)
+   */
+  updateHealthUI() {
+    const currentHealth = this.getCurrentHealth();
+
+    const renderSceneSwapper = FundamentalSystemBridge["renderSceneSwapper"];
+    const uiScene = renderSceneSwapper?.getActiveUIScene
+      ? renderSceneSwapper.getActiveUIScene()
+      : null;
+
+    if (uiScene && uiScene.setHeartBarHearts) {
+      uiScene.setHeartBarHearts(currentHealth);
+    }
+  }
+
+  /**
+   * Get current health points
+   * @returns {number} Current health
+   */
+  getCurrentHealth() {
+    if (this.playerStatus instanceof PlayerStatusComposite) {
+      return this.playerStatus.currentHealthPoints || 0;
+    }
+    return 0;
+  }
+
+  /**
+   * Get maximum health points
+   * @returns {number} Maximum health
+   */
+  getMaxHealth() {
+    if (this.playerStatus instanceof PlayerStatusComposite) {
+      return this.playerStatus.maximumHealthPoints || 3;
+    }
+    return 3;
+  }
+
+  /**
+   * Set current health points
+   * @param {number} health - New health value
+   */
+  setCurrentHealth(health) {
+    this.primeWithDefaultsIfMissing();
+    if (this.playerStatus instanceof PlayerStatusComposite) {
+      this.playerStatus.currentHealthPoints = Math.max(0, Math.min(this.getMaxHealth(), health));
+    }
   }
 }
 

@@ -13,6 +13,25 @@ class AnimatedModelLoader {
    * @returns {Promise<PositionedModel|null>} - A promise resolving to a PositionedModel instance or null if loading fails.
    */
   loadModel(positionedObject) {
+    // DEBUG: Check if this is the player model being loaded during reset
+    const isPlayerModel = positionedObject.modelId === "testPlayer" || 
+                          positionedObject.modelId === "player" ||
+                          positionedObject.modelId === "mechaSphereBlueBase" ||
+                          positionedObject.modelId?.toLowerCase().includes("player") ||
+                          positionedObject.modelId?.toLowerCase().includes("mecha");
+    
+    if (isPlayerModel) {
+      console.log(`[ANIMATED MODEL] ▶▶▶ Loading PLAYER model: ${positionedObject.modelId}`);
+      console.trace("[ANIMATED MODEL] Stack trace for player model load:");
+      
+      // Check if we're in reset sequence
+      const levelResetHandler = FundamentalSystemBridge?.["levelResetHandler"];
+      if (levelResetHandler && levelResetHandler.isResetting) {
+        console.error("[ANIMATED MODEL] ⛔ BLOCKED - Cannot load player model during reset!");
+        return Promise.resolve(null);
+      }
+    }
+
     // Retrieve the model URL from the centralized AssetManifest
     const modelUrl = AssetManifest.getAssetUrl(positionedObject.modelId);
     if (!modelUrl) {
@@ -42,6 +61,11 @@ class AnimatedModelLoader {
             });
           }
           positionedObject.setModel(root, positionedObject.modelId);
+          
+          if (isPlayerModel) {
+            console.log(`[ANIMATED MODEL] ✓ Player model loaded at position:`, root.position);
+          }
+          
           resolve(positionedObject.model);
         })
         .catch((error) => {

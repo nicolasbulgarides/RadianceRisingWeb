@@ -34,6 +34,17 @@ class PlayerLoader {
    * @returns {PlayerUnit} - A newly created and initialized player unit.
    */
   static getFreshPlayer(levelData) {
+    // DEBUG: Log when a new player is being created
+    console.log("[PLAYER LOADER] ▶▶▶ getFreshPlayer called - creating NEW player!");
+    console.trace("[PLAYER LOADER] Stack trace:");
+
+    // Check if we're in a death/reset sequence - if so, block player creation
+    const levelResetHandler = FundamentalSystemBridge?.["levelResetHandler"];
+    if (levelResetHandler && levelResetHandler.isResetting) {
+      console.error("[PLAYER LOADER] ⛔ BLOCKED - Cannot create new player during reset sequence!");
+      return null;
+    }
+
     // Instantiate a new PlayerUnit object.
     let gamePlayer = new PlayerUnit();
 
@@ -59,6 +70,7 @@ class PlayerLoader {
 
       playerStatusTracker.attachStatusToPlayer(gamePlayer);
       playerStatusTracker.updateExperienceUI();
+      playerStatusTracker.updateHealthUI();
     } else {
       gamePlayer.loadStatusFresh(
         Config.DEFAULT_NAME, // Player name.

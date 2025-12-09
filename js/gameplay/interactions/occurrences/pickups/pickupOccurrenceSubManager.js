@@ -35,6 +35,12 @@ class PickupOccurrenceSubManager {
         //console.error(`[PICKUP] Error processing stardust pickup:`, error);
       });
       processedSuccessfully = true;
+    } else if (occurrenceId === "heartPickupOccurrence") {
+      // processHeartPickup is async, but we don't need to await it
+      this.processHeartPickup(pickupOccurrence).catch(error => {
+        //console.error(`[PICKUP] Error processing heart pickup:`, error);
+      });
+      processedSuccessfully = true;
     } else {
       console.warn(`[PICKUP] Unknown occurrenceId: ${occurrenceId}`);
     }
@@ -151,6 +157,13 @@ class PickupOccurrenceSubManager {
 
     // If this is the 4th pickup, trigger explosion effect, add 4 more experience, and play "endOfLevelPerfect" immediately
     if (this.stardustPickupCount === 4) {
+      // Check if player died - if so, don't trigger replay
+      const levelResetHandler = FundamentalSystemBridge["levelResetHandler"];
+      if (levelResetHandler && levelResetHandler.hasPlayerDied()) {
+        //console.log(`[PICKUP] 4th pickup detected but player died - skipping replay`);
+        return; // Don't trigger completion sequence if player died
+      }
+
       // console.log(`[PICKUP] 4th pickup detected! Triggering explosion effect and playing endOfLevelPerfect sound`);
 
       // Add 4 more experience for level completion
@@ -176,6 +189,12 @@ class PickupOccurrenceSubManager {
 
       // Start replay sequence after a short delay
       setTimeout(async () => {
+        // Double-check player didn't die during the delay
+        if (levelResetHandler && levelResetHandler.hasPlayerDied()) {
+          //console.log(`[PICKUP] Player died before replay could start - aborting replay`);
+          return;
+        }
+
         const replayManager = FundamentalSystemBridge["levelReplayManager"];
         const movementTracker = FundamentalSystemBridge["movementTracker"];
         const gameplayManager = FundamentalSystemBridge["gameplayManagerComposite"];
@@ -195,5 +214,117 @@ class PickupOccurrenceSubManager {
       }, 1000); // Wait 1 second before starting replay
     }
 
+  }
+
+  /**
+   * Processes a heart pickup occurrence
+   * @param {Occurrence} pickupOccurrence - The heart pickup occurrence
+   */
+  async processHeartPickup(pickupOccurrence) {
+    //console.log(`[HEART] Processing heart pickup`);
+
+    // Get the scene for playing sounds
+    let scene = FundamentalSystemBridge["renderSceneSwapper"]?.getActiveGameLevelScene();
+
+    // Fallback: try to get scene from active gameplay level
+    if (!scene) {
+      const gameplayManager = FundamentalSystemBridge["gameplayManagerComposite"];
+      if (gameplayManager?.primaryActiveGameplayLevel?.hostingScene) {
+        scene = gameplayManager.primaryActiveGameplayLevel.hostingScene;
+      }
+    }
+
+    // Play healing sound effect
+    if (scene) {
+      try {
+        await SoundEffectsManager.playSound("healthRestoration", scene);
+        //console.log(`[HEART] Playing health restoration sound`);
+      } catch (error) {
+        //console.error(`[HEART] Error playing health restoration sound:`, error);
+      }
+    }
+
+    // Heal the player by 1 heart
+    const tracker = this.getPlayerStatusTracker();
+    if (tracker && tracker.healPlayer) {
+      tracker.healPlayer(1);
+      //console.log(`[HEART] Player healed by 1 heart`);
+    } else {
+      //console.warn(`[HEART] PlayerStatusTracker not available or doesn't have healPlayer method`);
+    }
+
+    // Update UI to reflect the healing
+    this.updateHeartUI();
+  }
+
+  /**
+   * Processes a damage occurrence
+   * @param {Occurrence} damageOccurrence - The damage occurrence
+   */
+  processDamageOccurrence(damageOccurrence) {
+    let occurrenceHeader = damageOccurrence.occurrenceHeader;
+    let occurrenceId = occurrenceHeader.occurrenceId;
+
+    //console.log(`[DAMAGE] processDamageOccurrence called with occurrenceId: ${occurrenceId}`);
+
+    if (occurrenceId === "spikePickupOccurrence" || occurrenceId === "damagePickupOccurrence") {
+      this.processSpiketrapDamage(damageOccurrence);
+      return true;
+    } else {
+      console.warn(`[DAMAGE] Unknown damage occurrenceId: ${occurrenceId}`);
+      return false;
+    }
+  }
+
+  /**
+   * Processes spike trap damage
+   * @param {Occurrence} damageOccurrence - The damage occurrence
+   */
+  processSpiketrapDamage(damageOccurrence) {
+    console.log(`[DAMAGE OCCURRENCE] ⚔ Processing spike trap damage occurrence`);
+
+    // Get the scene for playing sounds
+    let scene = FundamentalSystemBridge["renderSceneSwapper"]?.getActiveGameLevelScene();
+
+    // Fallback: try to get scene from active gameplay level
+    if (!scene) {
+      const gameplayManager = FundamentalSystemBridge["gameplayManagerComposite"];
+      if (gameplayManager?.primaryActiveGameplayLevel?.hostingScene) {
+        scene = gameplayManager.primaryActiveGameplayLevel.hostingScene;
+      }
+    }
+
+    // Play damage sound effect
+    if (scene) {
+      try {
+        SoundEffectsManager.playSound("magicWallBreak", scene);
+        console.log(`[DAMAGE OCCURRENCE] Playing magic wall break sound`);
+      } catch (error) {
+        console.error(`[DAMAGE OCCURRENCE] Error playing magic wall break sound:`, error);
+      }
+    }
+
+    // Deal 1 damage to the player
+    const tracker = this.getPlayerStatusTracker();
+    if (tracker && tracker.damagePlayer) {
+      console.log(`[DAMAGE OCCURRENCE] Calling tracker.damagePlayer(1)...`);
+      const resultingHealth = tracker.damagePlayer(1);
+      console.log(`[DAMAGE OCCURRENCE] ✓ Player damaged. Resulting health: ${resultingHealth}`);
+    } else {
+      console.error(`[DAMAGE OCCURRENCE] ✗ PlayerStatusTracker not available or doesn't have damagePlayer method`);
+    }
+
+    // Update UI to reflect the damage
+    this.updateHeartUI();
+  }
+
+  /**
+   * Updates the heart UI to reflect current health
+   */
+  updateHeartUI() {
+    const tracker = this.getPlayerStatusTracker();
+    if (tracker && tracker.updateHealthUI) {
+      tracker.updateHealthUI();
+    }
   }
 }

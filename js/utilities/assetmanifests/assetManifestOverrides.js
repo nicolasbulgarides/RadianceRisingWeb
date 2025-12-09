@@ -40,6 +40,13 @@ class AssetManifestOverrides {
   };
 
   static overrides = {
+    testStarSpike: {
+      scale: { x: 2, y: 2, z: 2 },
+    },
+    testHeartRed: {
+      rotation: { pitch: 90, roll: 0, yaw: 0 },
+      offset: { x: 0, y: 0, z: -0.25 },
+    },
     mechaSphereBronzeLowRes: {
       offset: { x: 0, y: 0.33, z: 0 },
     },

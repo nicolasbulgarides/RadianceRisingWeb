@@ -9,6 +9,7 @@ class MovementTracker {
         this.movements = []; // Array of recorded movements
         this.isTracking = false;
         this.pickupPositions = []; // Track positions where pickups occurred
+        this.damagePositions = []; // Track positions where damage occurred
     }
 
     /**
@@ -17,6 +18,7 @@ class MovementTracker {
     startTracking() {
         this.movements = [];
         this.pickupPositions = [];
+        this.damagePositions = [];
         this.isTracking = true;
         //console.log("[MOVEMENT TRACKER] Started tracking movements");
     }
@@ -63,6 +65,19 @@ class MovementTracker {
     }
 
     /**
+     * Records a damage position
+     * @param {BABYLON.Vector3} position - The position where damage occurred
+     */
+    recordDamagePosition(position) {
+        if (!this.isTracking) return;
+
+        this.damagePositions.push({
+            position: position.clone(),
+            timestamp: Date.now()
+        });
+    }
+
+    /**
      * Gets all recorded movements
      * @returns {Array} Array of movement records
      */
@@ -79,11 +94,20 @@ class MovementTracker {
     }
 
     /**
+     * Gets all recorded damage positions
+     * @returns {Array} Array of damage position records
+     */
+    getDamagePositions() {
+        return this.damagePositions;
+    }
+
+    /**
      * Clears all recorded movements
      */
     clear() {
         this.movements = [];
         this.pickupPositions = [];
+        this.damagePositions = [];
     }
 }
 

@@ -116,7 +116,11 @@ class LevelLoaderManager {
 
         await this.loadTilesAndFactorySupportSystems();
 
-        let levelDataUrl = "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/assets/" + "level0Test2.txt";
+        //level3Spike, level0Test2, level2Test, level3Spike
+
+        let levelDataUrl = "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/assets/" + "level3Spikes.txt";
+        //        let levelDataUrl = "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/assets/" + "level0Test2.txt";
+
         this.loadLevelFromUrl(gameplayManager, levelDataUrl);
 
 
@@ -187,6 +191,26 @@ class LevelLoaderManager {
             loadingScreen.start();
         }
 
+        // CRITICAL: Reset flags for new level to allow player loading
+        // This ensures the main player can be loaded and clears death-related flags
+        if (gameplayManager && gameplayManager.resetForNewLevel) {
+            gameplayManager.resetForNewLevel();
+        }
+
+        // Reset death-related flags for the new level
+        const levelResetHandler = FundamentalSystemBridge["levelResetHandler"];
+        if (levelResetHandler) {
+            levelResetHandler.hasEverDied = false;
+            levelResetHandler.isResetting = false;
+            levelResetHandler.playerDiedThisAttempt = false;
+        }
+
+        // Reset replay manager for new level
+        const replayManager = FundamentalSystemBridge["levelReplayManager"];
+        if (replayManager) {
+            replayManager.duplicatePlayerCreationBlocked = false;
+        }
+
         // Reset pickup streak/experience for the new level so 4th pickup logic re-triggers
         const specialOccurrenceManager = FundamentalSystemBridge["specialOccurrenceManager"];
         specialOccurrenceManager?.pickupOccurrenceSubManager?.resetPickupProgress?.();
@@ -239,6 +263,12 @@ class LevelLoaderManager {
 
             // Create and register stardust pickups as microevents
             await this.createStardustPickups(activeGameplayLevel, levelData);
+
+            // Create and register spike traps as microevents
+            await this.createSpikeTraps(activeGameplayLevel, levelData);
+
+            // Create and register heart pickups as microevents
+            await this.createHeartPickups(activeGameplayLevel, levelData);
 
             // Render obstacles
             const sceneBuilder = FundamentalSystemBridge["renderSceneSwapper"].getSceneBuilderForScene("BaseGameScene");
@@ -347,7 +377,7 @@ class LevelLoaderManager {
             const soundEffectsManager = FundamentalSystemBridge["soundEffectsManager"];
             if (soundEffectsManager && gameplayLevel.hostingScene) {
                 await soundEffectsManager.loadInitialSounds(gameplayLevel.hostingScene);
-                console.log("[LEVEL LOADER] Initial sounds loaded");
+                // console.log("[LEVEL LOADER] Initial sounds loaded");
             }
 
             if (loadingScreen) {
@@ -360,14 +390,14 @@ class LevelLoaderManager {
             const activeScene = FundamentalSystemBridge["renderSceneSwapper"]?.getActiveGameLevelScene();
             if (musicManager && activeScene && Config.audioHasBeenUnlocked) {
                 const songName = this.currentLevelNumber === 0 ? "crystalVoyage" : "duskReverie";
-                console.log(`[LEVEL LOADER] Starting ${songName} music for level ${this.currentLevelNumber}`);
+                // console.log(`[LEVEL LOADER] Starting ${songName} music for level ${this.currentLevelNumber}`);
                 musicManager.playSong(activeScene, songName, true, true);
-                console.log(`[LEVEL LOADER] ✓ Started ${songName} music on loop`);
+                // console.log(`[LEVEL LOADER] ✓ Started ${songName} music on loop`);
 
                 // Increment level number for next level
                 this.currentLevelNumber++;
             } else if (musicManager && activeScene && !Config.audioHasBeenUnlocked) {
-                console.log("[LEVEL LOADER] Skipping music start - waiting for user interaction to unlock audio");
+                // console.log("[LEVEL LOADER] Skipping music start - waiting for user interaction to unlock audio");
             }
 
             return gameplayLevel;
@@ -572,6 +602,139 @@ class LevelLoaderManager {
                 //console.log(`[STARDUST VERIFICATION] ✓ Successfully registered 4 stardusts for levelId: ${levelId}`);
             }
         }
+    }
+
+    /**
+     * Creates spike traps from level data and registers them as microevents
+     * @param {ActiveGameplayLevel} activeGameplayLevel - The active gameplay level
+     * @param {Object} levelData - The parsed level JSON data
+     */
+    async createSpikeTraps(activeGameplayLevel, levelData) {
+        const spikeTrapElements = levelData.allMapElements?.filter(el => el.element === "SPIKE_TRAP") || [];
+        const sceneBuilder = FundamentalSystemBridge["renderSceneSwapper"].getSceneBuilderForScene("BaseGameScene");
+        const microEventManager = FundamentalSystemBridge["microEventManager"];
+        const depth = this.getLevelDepth(levelData);
+
+        const levelId = activeGameplayLevel?.levelDataComposite?.levelHeaderData?.levelId || levelData.levelName || "level0";
+
+        //console.log(`[SPIKE TRAP CREATION] Creating ${spikeTrapElements.length} spike traps for levelId: ${levelId}`);
+
+        for (const spikeTrapEl of spikeTrapElements) {
+            const coords = spikeTrapEl.coordinates;
+            const worldCoords = this.builderToWorld(coords, depth);
+            const position = new BABYLON.Vector3(worldCoords.x, 0.25, worldCoords.z);
+
+            // Create positioned object for spike trap
+            const offset = new BABYLON.Vector3(0, 0, 0);
+            const rotation = new BABYLON.Vector3(0, 0, 0);
+            const spikeTrapObject = new PositionedObject(
+                "testStarSpike",
+                position,
+                rotation,
+                offset,
+                "", // No animations
+                "",
+                "",
+                0.5, // Scale factor for spike trap
+                false, // Don't freeze
+                true, // Interactive
+                false // Not a clone base
+            );
+
+            // Load the model
+            await sceneBuilder.loadModel(spikeTrapObject);
+
+            // Create microevent for spike trap damage
+            const spikeTrapEvent = MicroEventFactory.generateDamage(
+                "Spike Trap",
+                "Sharp spikes pierce through your defenses!",
+                "spike",
+                1,
+                position,
+                spikeTrapObject
+            );
+
+            // Initialize flag for movement-based damage system
+            spikeTrapEvent.hasTriggeredThisMovement = false;
+
+            // Register the microevent
+            if (microEventManager) {
+                const levelDataForRegistration = activeGameplayLevel?.levelDataComposite || { levelHeaderData: { levelId: levelId } };
+                microEventManager.addNewMicroEventToLevel(
+                    levelDataForRegistration,
+                    spikeTrapEvent
+                );
+            } else {
+                console.error(`[SPIKE TRAP CREATION] MicroEventManager not found!`);
+            }
+        }
+
+        //console.log(`[SPIKE TRAP CREATION] ✓ Created ${spikeTrapElements.length} spike traps for levelId: ${levelId}`);
+    }
+
+    /**
+     * Creates heart pickups from level data and registers them as microevents
+     * @param {ActiveGameplayLevel} activeGameplayLevel - The active gameplay level
+     * @param {Object} levelData - The parsed level JSON data
+     */
+    async createHeartPickups(activeGameplayLevel, levelData) {
+        const heartElements = levelData.allMapElements?.filter(el => el.element === "HEART") || [];
+        const sceneBuilder = FundamentalSystemBridge["renderSceneSwapper"].getSceneBuilderForScene("BaseGameScene");
+        const microEventManager = FundamentalSystemBridge["microEventManager"];
+        const depth = this.getLevelDepth(levelData);
+
+        const levelId = activeGameplayLevel?.levelDataComposite?.levelHeaderData?.levelId || levelData.levelName || "level0";
+
+        //console.log(`[HEART CREATION] Creating ${heartElements.length} hearts for levelId: ${levelId}`);
+
+        for (const heartEl of heartElements) {
+            const coords = heartEl.coordinates;
+            const worldCoords = this.builderToWorld(coords, depth);
+            const position = new BABYLON.Vector3(worldCoords.x, 0.25, worldCoords.z);
+
+            // Create positioned object for heart
+            const offset = new BABYLON.Vector3(0, 0, 0);
+            const rotation = new BABYLON.Vector3(0, 0, 0);
+            const heartObject = new PositionedObject(
+                "testHeartRed",
+                position,
+                rotation,
+                offset,
+                "", // No animations
+                "",
+                "",
+                0.5, // Scale factor for heart
+                false, // Don't freeze
+                true, // Interactive
+                false // Not a clone base
+            );
+
+            // Load the model
+            await sceneBuilder.loadModel(heartObject);
+
+            // Create microevent for heart pickup
+            const heartEvent = MicroEventFactory.generatePickup(
+                "Heart Pickup",
+                "You absorbed the healing energy of a radiant heart!",
+                "heart",
+                1,
+                position,
+                heartObject
+            );
+
+            // Register the microevent
+            if (microEventManager) {
+                const levelDataForRegistration = activeGameplayLevel?.levelDataComposite || { levelHeaderData: { levelId: levelId } };
+                microEventManager.addNewMicroEventToLevel(
+                    levelDataForRegistration,
+                    heartEvent
+                );
+            } else {
+                console.error(`[HEART CREATION] MicroEventManager not found!`);
+            }
+        }
+
+        //console.log(`[HEART CREATION] ✓ Created ${heartElements.length} hearts for levelId: ${levelId}`);
     }
 
     /**
