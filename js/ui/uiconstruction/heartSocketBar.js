@@ -1,19 +1,19 @@
 /**
  * HeartSocketBar
  *
- * A self-contained, modular UI element that displays a heart socket bar with 3 fixed hearts.
+ * A self-contained, modular UI element that displays a heart socket bar with 4 fixed hearts.
  * Each heart consists of layered images:
  * - heartBase (bottom layer, always visible)
  * - heartFill (top layer, only visible when heart is full)
  *
- * The bar is fixed to 3 hearts and displays health from left to right.
+ * The bar is fixed to 4 hearts and displays health from left to right.
  *
  * @example
- * // Create a heart socket bar with 3 max hearts, positioned beneath hint text
+ * // Create a heart socket bar with 4 max hearts, positioned beneath hint text
  * const heartBar = new HeartSocketBar(
  *   "playerHeartBar",
- *   3,  // maxHearts (fixed)
- *   3,  // currentHearts (starts full)
+ *   4,  // maxHearts (fixed)
+ *   4,  // currentHearts (starts full)
  *   50, // heartWidth
  *   50, // heartHeight
  *   0,  // offsetX
@@ -38,7 +38,7 @@ class HeartSocketBar {
     /**
      * Creates a new HeartSocketBar instance.
      * @param {string} barName - Unique identifier for this heart bar instance.
-     * @param {number} [maxHearts=3] - Maximum number of hearts (fixed to 3).
+     * @param {number} [maxHearts=4] - Maximum number of hearts (fixed to 4).
      * @param {number} [currentHearts] - Current number of full hearts (defaults to maxHearts).
      * @param {number} [heartWidth=50] - Width of each heart in pixels.
      * @param {number} [heartHeight=50] - Height of each heart in pixels.
@@ -49,7 +49,7 @@ class HeartSocketBar {
      */
     constructor(
         barName,
-        maxHearts = 3,
+        maxHearts = 4,
         currentHearts = null,
         heartWidth = 50,
         heartHeight = 50,
@@ -66,8 +66,8 @@ class HeartSocketBar {
         this.horizontalAlignment = horizontalAlignment;
         this.verticalAlignment = verticalAlignment;
 
-        // Heart socket bar is fixed to 3 hearts
-        this.maxHearts = 3;
+        // Heart socket bar is fixed to 4 hearts
+        this.maxHearts = 4;
         this.currentHearts = currentHearts !== null ? Math.max(0, Math.min(this.maxHearts, currentHearts)) : this.maxHearts;
 
         // Storage for UI elements - each heart has 2 layers (base and fill)
@@ -116,7 +116,7 @@ class HeartSocketBar {
     }
 
     /**
-     * Creates all 3 hearts with their layered structure.
+     * Creates all 4 hearts with their layered structure.
      */
     createHearts() {
         for (let i = 0; i < this.maxHearts; i++) {

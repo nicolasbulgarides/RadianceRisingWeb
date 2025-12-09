@@ -9,7 +9,7 @@ class LevelReplayManager {
     constructor() {
         this.duplicateLevel = null;
         this.duplicatePlayer = null;
-        this.duplicateLevelOffset = new BABYLON.Vector3(100, 0, 0); // 20 units to the right
+        this.duplicateLevelOffset = new BABYLON.Vector3(100, 0, 0); // 100 units to the right (offscreen)
         this.isReplaying = false;
         this.replayIndex = 0;
         this.replayMovements = [];
@@ -19,25 +19,27 @@ class LevelReplayManager {
         this.replayPickupCheckInterval = null; // Interval for checking pickups during replay
         this.replayPickupCount = 0; // Count of pickups collected during replay
         this.duplicatePlayerCreationBlocked = false; // Blocks duplicate player creation if death occurred during async level creation
+
+        // Separate grid generator for replay - completely isolated from main grid
+        this.replayGridGenerator = null;
     }
 
     /**
      * Clears any duplicate state/thin instances so a fresh replay can be created for the next level.
+     * NOTE: This method only cleans up REPLAY-related resources. 
+     * It does NOT touch the main gameplay grid's thin instances.
      */
     resetForNewLevel() {
-        // Clear duplicate thin instances on tiles if they exist
-        const gridManager = FundamentalSystemBridge["levelFactoryComposite"]?.gridManager;
-        if (gridManager?.loadedTiles?.length) {
-            gridManager.loadedTiles.forEach((tile) => {
-                if (!tile?.meshes) return;
-                tile.meshes.forEach((mesh) => {
-                    if (mesh?.thinInstanceCount && mesh.thinInstanceSetBuffer) {
-                        mesh.thinInstanceSetBuffer("matrix", null, 16, true);
-                        mesh.thinInstanceCount = 0;
-                    }
-                });
-            });
+        // Dispose the separate replay grid generator (this cleans up all its own tiles)
+        if (this.replayGridGenerator) {
+            console.log("[REPLAY] Disposing replay grid generator...");
+            this.replayGridGenerator.dispose();
+            this.replayGridGenerator = null;
+            console.log("[REPLAY] ✓ Replay grid generator disposed");
         }
+
+        // DO NOT clear main grid thin instances - the replay system is completely separate
+        // and should never touch the main gameplay grid
 
         this.duplicateLevel = null;
         this.duplicatePlayer = null;
@@ -60,12 +62,12 @@ class LevelReplayManager {
     }
 
     /**
-     * Creates a duplicate level 20 units to the right of the original
+     * Creates a duplicate level 100 units to the right of the original (offscreen)
      * @param {ActiveGameplayLevel} originalLevel - The original level to duplicate
      * @returns {Promise<ActiveGameplayLevel>} The duplicated level
      */
     async createDuplicateLevel(originalLevel) {
-        // console.log("[REPLAY] Creating duplicate level...");
+        console.log("[REPLAY] Creating duplicate level...");
 
         const scene = originalLevel.hostingScene;
         const levelDataComposite = originalLevel.levelDataComposite;
@@ -106,23 +108,25 @@ class LevelReplayManager {
             originalLevel.levelMap?.obstacles ||
             [];
 
+        console.log(`[REPLAY] Found ${originalObstacles.length} obstacles from original level`);
+
         if (obstacleGenerator && originalObstacles.length > 0) {
             // Create duplicate obstacles with offset positions
             const duplicateObstacles = originalObstacles.map(obs => {
                 // Clone the obstacle data
                 const clonedObs = { ...obs };
 
-                // Clone and offset the position (with 0.5 unit Y offset)
+                // Clone and offset the position (obstacles at ground level, y=0)
                 if (clonedObs.position) {
                     if (clonedObs.position instanceof BABYLON.Vector3) {
                         const offsetWithY = this.duplicateLevelOffset.clone();
-                        offsetWithY.y = 0.5; // Set y offset to 0.5
+                        offsetWithY.y = 0; // Obstacles at ground level
                         clonedObs.position = clonedObs.position.clone().add(offsetWithY);
                     } else if (clonedObs.position.x !== undefined) {
                         // If it's a plain object with x, y, z
                         clonedObs.position = {
                             x: clonedObs.position.x + this.duplicateLevelOffset.x,
-                            y: (clonedObs.position.y || 0) + 0.5, // Add 0.5 to y offset
+                            y: clonedObs.position.y || 0, // Keep original Y (should be 0 for ground)
                             z: clonedObs.position.z + this.duplicateLevelOffset.z
                         };
                     }
@@ -138,13 +142,14 @@ class LevelReplayManager {
             duplicateLevel.levelMap.obstacles = duplicateObstacles;
 
             // Render the obstacles
-            //console.log(`[REPLAY] Rendering ${duplicateObstacles.length} duplicate obstacles with offset`);
+            console.log(`[REPLAY] Rendering ${duplicateObstacles.length} duplicate obstacles with offset`);
             obstacleGenerator.renderObstaclesForLevel(duplicateLevel, sceneBuilder);
         } else {
-            // console.log(`[REPLAY] No obstacles to duplicate (found ${originalObstacles.length} obstacles)`);
+            console.log(`[REPLAY] No obstacles to duplicate (found ${originalObstacles.length} obstacles)`);
         }
 
         // Create duplicate pickups (stardust), spike traps, and hearts
+        console.log("[REPLAY] Creating duplicate pickups, spike traps, and hearts...");
         await this.createDuplicatePickups(duplicateLevel, originalLevel);
         await this.createDuplicateSpikeTraps(duplicateLevel, originalLevel);
         await this.createDuplicateHearts(duplicateLevel, originalLevel);
@@ -152,11 +157,14 @@ class LevelReplayManager {
         // Create duplicate player immediately when level is created
         const originalPlayer = originalLevel.currentPrimaryPlayer;
         if (originalPlayer) {
+            console.log("[REPLAY] Creating duplicate player at spawn position (107, 0.25, 7)...");
             await this.createDuplicatePlayer(duplicateLevel, originalPlayer);
+        } else {
+            console.warn("[REPLAY] Original player not found, skipping duplicate player creation");
         }
 
         this.duplicateLevel = duplicateLevel;
-        //console.log("[REPLAY] Duplicate level created");
+        console.log("[REPLAY] ✓ Duplicate level creation complete");
 
         return duplicateLevel;
     }
@@ -199,10 +207,10 @@ class LevelReplayManager {
         );
 
         // Copy additional properties that might be added dynamically
-        // Set player start position to (7, 0.5, 7) shifted right by 20 units = (27, 0.5, 7)
+        // Set player start position to (7, 0.25, 7) shifted right by 100 units = (107, 0.25, 7)
         cloned.playerStartPosition = {
-            x: 107, // 7 + 20
-            y: 0.5,
+            x: 107, // 7 + 100
+            y: 0.25,
             z: 7
         };
         if (original.obstacles) {
@@ -222,33 +230,36 @@ class LevelReplayManager {
     }
 
     /**
-     * Generates a duplicate grid for the duplicate level using thin instances
+     * Generates a duplicate grid for the duplicate level using the separate ReplayGridGenerator
+     * This is completely isolated from the main gameplay grid - no crossover or contamination
      * @param {ActiveGameplayLevel} duplicateLevel - The duplicate level
      * @param {ActiveGameplayLevel} originalLevel - The original level
      */
     async generateDuplicateGrid(duplicateLevel, originalLevel) {
-        // console.log("[REPLAY] Generating duplicate grid with offset using thin instances...");
+        console.log("[REPLAY] Generating duplicate grid using separate ReplayGridGenerator...");
 
         // Get grid dimensions from the duplicate level
         const dimensions = duplicateLevel.getGridDimensions();
+        console.log(`[REPLAY] Grid dimensions: ${dimensions.width}x${dimensions.depth}`);
 
-        // Get the grid manager
-        const gridManager = FundamentalSystemBridge["levelFactoryComposite"].gridManager;
+        // Create the replay grid generator if it doesn't exist
+        if (!this.replayGridGenerator) {
+            this.replayGridGenerator = new ReplayGridGenerator();
+        }
 
-        if (!gridManager) {
-            // console.error("[REPLAY] Grid manager not found");
+        // Load fresh tiles for the replay grid (completely separate from main grid)
+        const tilesLoaded = await this.replayGridGenerator.loadTiles(duplicateLevel.hostingScene);
+
+        if (!tilesLoaded) {
+            console.error("[REPLAY] Failed to load tiles for replay grid");
             return;
         }
 
-        // Verify tiles are loaded
-        if (!gridManager.loadedTiles || gridManager.loadedTiles.length === 0) {
-            // console.error("[REPLAY] No tiles loaded in grid manager");
-            return;
-        }
-
-        // Generate grid with offset (20 units to the right) using thin instances
+        // Generate the grid with offset
         const offset = this.duplicateLevelOffset;
-        const success = await gridManager.generateGridWithOffset(
+        console.log(`[REPLAY] Generating grid with offset: x=${offset.x}, y=${offset.y}, z=${offset.z}`);
+
+        const success = await this.replayGridGenerator.generateGrid(
             dimensions.width,
             dimensions.depth,
             offset,
@@ -256,23 +267,9 @@ class LevelReplayManager {
         );
 
         if (success) {
-            // console.log(`[REPLAY] Duplicate grid generated successfully using thin instances (${dimensions.width}x${dimensions.depth} with offset ${offset.x}, ${offset.y}, ${offset.z})`);
-
-            // Verify thin instances were created
-            let totalThinInstances = 0;
-            for (const tile of gridManager.loadedTiles) {
-                if (tile && tile.meshes && tile.meshes.length > 0) {
-                    const children = tile.meshes[0].getChildren(undefined, false);
-                    for (const mesh of children) {
-                        if (mesh instanceof BABYLON.Mesh && mesh.hasThinInstances) {
-                            totalThinInstances += mesh.thinInstancesCount || 0;
-                        }
-                    }
-                }
-            }
-            // console.log(`[REPLAY] Total thin instances created: ${totalThinInstances}`);
+            console.log(`[REPLAY] ✓ Duplicate grid generated successfully`);
         } else {
-            // console.error("[REPLAY] Failed to generate duplicate grid");
+            console.error("[REPLAY] ✗ Failed to generate duplicate grid");
         }
     }
 
@@ -544,21 +541,37 @@ class LevelReplayManager {
      */
     async startReplay(originalLevel, originalPlayer, movementTracker) {
         if (this.isReplaying) {
-            //  console.warn("[REPLAY] Replay already in progress");
+            console.warn("[REPLAY] Replay already in progress");
             return;
         }
 
-        //console.log("[REPLAY] Starting replay sequence...");
+        console.log("[REPLAY] Starting replay sequence...");
 
         // Wait for duplicate level to be created if it's still being created
         if (!this.duplicateLevel) {
-            //  console.log("[REPLAY] Duplicate level not ready, creating now...");
+            console.log("[REPLAY] Duplicate level not ready, creating now...");
             await this.createDuplicateLevel(originalLevel);
+        } else {
+            console.log("[REPLAY] Duplicate level already created and ready");
         }
 
         // Create duplicate player if not already created
         if (!this.duplicatePlayer) {
+            console.log("[REPLAY] Creating duplicate player...");
             await this.createDuplicatePlayer(this.duplicateLevel, originalPlayer);
+
+            if (!this.duplicatePlayer) {
+                console.error("[REPLAY] Failed to create duplicate player - aborting replay");
+                return;
+            }
+        } else {
+            console.log("[REPLAY] Duplicate player already created");
+        }
+
+        // Verify duplicate player and its movement manager
+        if (!this.duplicatePlayer.playerMovementManager) {
+            console.error("[REPLAY] Duplicate player has no movement manager - aborting replay");
+            return;
         }
 
         // Get movements, pickup positions, and damage positions
@@ -566,7 +579,26 @@ class LevelReplayManager {
         this.replayPickupPositions = movementTracker.getPickupPositions();
         this.replayDamagePositions = movementTracker.getDamagePositions();
 
+        console.log(`[REPLAY] Replay data loaded: ${this.replayMovements.length} movements, ${this.replayPickupPositions.length} pickups, ${this.replayDamagePositions.length} damage events`);
+
+        if (this.replayMovements.length === 0) {
+            console.warn("[REPLAY] No movements recorded! Replay will be empty.");
+        }
+
+        // Verify duplicate player position before starting
+        const dupPlayerPos = this.duplicatePlayer.playerMovementManager.currentPosition;
+        console.log(`[REPLAY] Duplicate player starting position: (${dupPlayerPos.x}, ${dupPlayerPos.y}, ${dupPlayerPos.z})`);
+
+        // Verify duplicate player model exists
+        const dupPlayerModel = this.duplicatePlayer.playerMovementManager.getPlayerModelDirectly();
+        if (!dupPlayerModel) {
+            console.error("[REPLAY] Duplicate player model not found!");
+        } else {
+            console.log("[REPLAY] Duplicate player model exists and is ready");
+        }
+
         // Switch camera to follow duplicate player from behind
+        console.log("[REPLAY] Switching camera to replay view...");
         await this.switchCameraToReplayView();
 
         // Start loading next level in the background
@@ -574,6 +606,7 @@ class LevelReplayManager {
         // this.startLoadingNextLevelInBackground(originalLevel);
 
         // Start replaying movements
+        console.log("[REPLAY] Starting movement replay sequence...");
         this.isReplaying = true;
         this.replayIndex = 0;
 
@@ -584,7 +617,7 @@ class LevelReplayManager {
      * Switches camera to follow the duplicate player from behind
      */
     async switchCameraToReplayView() {
-        // console.log("[REPLAY] Switching camera to replay view...");
+        console.log("[REPLAY] Switching camera to replay view...");
 
         const scene = this.duplicateLevel.hostingScene;
 
@@ -648,65 +681,73 @@ class LevelReplayManager {
         // Dispose old camera
         const oldCamera = FundamentalSystemBridge["renderSceneSwapper"].allStoredCameras[scene];
         if (oldCamera && oldCamera !== followCamera) {
+            console.log("[REPLAY] Disposing old camera...");
             FundamentalSystemBridge["renderSceneSwapper"].disposeAndDeleteCamera(oldCamera);
         }
 
         FundamentalSystemBridge["renderSceneSwapper"].allStoredCameras[scene] = followCamera;
 
-        // console.log("[REPLAY] Camera switched to replay view");
+        console.log("[REPLAY] ✓ Camera switched to replay view (following duplicate player)");
     }
 
     /**
      * Replays the movement sequence
      */
     async replayMovementsSequence() {
+        console.log("[REPLAY] ▶ Starting movement replay sequence...");
         const scene = this.duplicateLevel.hostingScene;
         this.replayPickupCount = 0;
 
         // Start checking for pickups during replay
         this.startReplayPickupDetection();
 
+        console.log(`[REPLAY] Replaying ${this.replayMovements.length} movements...`);
+
         try {
             for (let i = 0; i < this.replayMovements.length; i++) {
                 const movement = this.replayMovements[i];
+                console.log(`[REPLAY] Movement ${i + 1}/${this.replayMovements.length}: ${movement.startPosition.x},${movement.startPosition.z} → ${movement.destinationPosition.x},${movement.destinationPosition.z}`);
 
                 // Adjust positions for duplicate level offset
                 const adjustedStart = movement.startPosition.clone().add(this.duplicateLevelOffset);
-                adjustedStart.y = 0.5; // Set y offset to 0.5
+                adjustedStart.y = 0.25; // Set y to 0.25 (player height above ground)
                 const adjustedDestination = movement.destinationPosition.clone().add(this.duplicateLevelOffset);
-                adjustedDestination.y = 0.5; // Set y offset to 0.5
+                adjustedDestination.y = 0.25; // Set y to 0.25 (player height above ground)
 
-                // Set player position to start
-                this.duplicatePlayer.playerMovementManager.setPositionRelocateModelInstantly(adjustedStart);
+                console.log(`[REPLAY] Adjusted positions: (${adjustedStart.x},${adjustedStart.y},${adjustedStart.z}) → (${adjustedDestination.x},${adjustedDestination.y},${adjustedDestination.z})`);
 
-                // Move player to destination
-                this.duplicatePlayer.playerMovementManager.setDestinationAndBeginMovement(
-                    adjustedDestination,
-                    this.duplicatePlayer
-                );
+                // Verify duplicate player exists
+                if (!this.duplicatePlayer) {
+                    console.error("[REPLAY] Duplicate player is null! Cannot replay movement.");
+                    break;
+                }
 
-                // Wait for movement to complete (pickup detection happens during movement)
-                await this.waitForMovementComplete();
+                // Use smooth interpolated movement instead of the standard movement system
+                await this.animatePlayerMovement(adjustedStart, adjustedDestination);
+                console.log(`[REPLAY] Movement ${i + 1} complete`);
             }
 
             // If we collected 4 pickups, trigger explosion
             if (this.replayPickupCount >= 4) {
+                console.log("[REPLAY] Collected all 4 pickups, triggering end of level explosion");
                 await this.triggerEndOfLevelExplosion(scene);
+            } else {
+                console.log(`[REPLAY] Replay complete with ${this.replayPickupCount}/4 pickups collected`);
             }
         } catch (error) {
-            //console.error("[REPLAY] Error during replay sequence:", error);
+            console.error("[REPLAY] Error during replay sequence:", error);
         } finally {
             // Always stop checking for pickups, even if there was an error
             this.stopReplayPickupDetection();
             this.isReplaying = false;
-            // console.log("[REPLAY] Replay sequence complete");
+            console.log("[REPLAY] ✓ Replay sequence complete");
 
             // Transition to WorldLoaderScene (placeholder transition scene)
-            //console.log("[REPLAY] Transitioning to WorldLoaderScene...");
+            console.log("[REPLAY] Transitioning to WorldLoaderScene...");
             const renderSceneSwapper = FundamentalSystemBridge["renderSceneSwapper"];
             if (renderSceneSwapper) {
                 renderSceneSwapper.setActiveGameLevelScene("WorldLoaderScene");
-                // console.log("[REPLAY] Successfully transitioned to WorldLoaderScene");
+                console.log("[REPLAY] ✓ Successfully transitioned to WorldLoaderScene");
             } else {
                 console.error("[REPLAY] RenderSceneSwapper not found, cannot transition");
             }
@@ -714,14 +755,80 @@ class LevelReplayManager {
     }
 
     /**
-     * Waits for player movement to complete
+     * Animates player movement smoothly from start to destination using frame-by-frame interpolation
+     * @param {BABYLON.Vector3} startPosition - Starting position
+     * @param {BABYLON.Vector3} destinationPosition - Ending position
+     * @returns {Promise<void>}
+     */
+    async animatePlayerMovement(startPosition, destinationPosition) {
+        return new Promise((resolve) => {
+            const duration = 500; // Movement duration in milliseconds (0.5 seconds per move)
+            const startTime = Date.now();
+
+            // Calculate total distance for speed calculation
+            const distance = BABYLON.Vector3.Distance(startPosition, destinationPosition);
+            console.log(`[REPLAY] Animating movement over ${duration}ms, distance: ${distance.toFixed(2)}`);
+
+            const animateFrame = () => {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1.0); // Clamp to [0, 1]
+
+                // Use easeInOutQuad for smooth acceleration/deceleration
+                const eased = progress < 0.5
+                    ? 2 * progress * progress
+                    : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+
+                // Interpolate position
+                const currentPosition = BABYLON.Vector3.Lerp(startPosition, destinationPosition, eased);
+
+                // Update player position directly (bypass movement manager to avoid conflicts)
+                this.duplicatePlayer.playerMovementManager.setPositionRelocateModelInstantly(currentPosition);
+
+                // Also update the current position tracker
+                this.duplicatePlayer.playerMovementManager.currentPosition = currentPosition.clone();
+
+                // Continue animation or complete
+                if (progress < 1.0) {
+                    requestAnimationFrame(animateFrame);
+                } else {
+                    // Ensure we're exactly at destination
+                    this.duplicatePlayer.playerMovementManager.setPositionRelocateModelInstantly(destinationPosition);
+                    this.duplicatePlayer.playerMovementManager.currentPosition = destinationPosition.clone();
+                    console.log(`[REPLAY] Animation complete at (${destinationPosition.x.toFixed(2)}, ${destinationPosition.y.toFixed(2)}, ${destinationPosition.z.toFixed(2)})`);
+                    resolve();
+                }
+            };
+
+            // Start animation
+            requestAnimationFrame(animateFrame);
+        });
+    }
+
+    /**
+     * Waits for player movement to complete (legacy method, kept for compatibility)
      */
     async waitForMovementComplete() {
         return new Promise((resolve) => {
+            let checks = 0;
+            const maxChecks = 600; // 10 seconds max wait (600 * 16ms)
             const checkInterval = setInterval(() => {
-                if (!this.duplicatePlayer.playerMovementManager.movementActive) {
+                checks++;
+                const isMoving = this.duplicatePlayer.playerMovementManager.movementActive;
+
+                if (!isMoving) {
                     clearInterval(checkInterval);
+                    console.log(`[REPLAY] Movement completed after ${checks} checks`);
                     resolve();
+                } else if (checks >= maxChecks) {
+                    clearInterval(checkInterval);
+                    console.warn(`[REPLAY] Movement timeout after ${checks} checks - forcing completion`);
+                    resolve();
+                }
+
+                // Log every 60 checks (roughly every second)
+                if (checks % 60 === 0) {
+                    const pos = this.duplicatePlayer.playerMovementManager.currentPosition;
+                    console.log(`[REPLAY] Still moving... (${checks} checks) Position: ${pos.x.toFixed(2)},${pos.z.toFixed(2)}`);
                 }
             }, 16); // Check every frame (60fps)
         });

@@ -90,9 +90,10 @@ class SceneBuilder {
    * Loads a model with retry logic
    * @param {PositionedObject} positionedObject - The object defining the model
    * @param {number} attempt - Current retry attempt
+   * @param {boolean} useCache - Whether to use cached model (default: true)
    * @returns {Promise<BABYLON.Mesh|null>}
    */
-  async loadModelWithRetry(positionedObject, attempt = 0) {
+  async loadModelWithRetry(positionedObject, attempt = 0, useCache = true) {
     try {
       const modelUrl = AssetManifest.getAssetUrl(positionedObject.modelId);
       if (!modelUrl) {
@@ -105,7 +106,7 @@ class SceneBuilder {
       const loadedModel = await this.modelLoader.loadModelFromUrl(
         this.scene,
         modelUrl,
-        true // Enable caching
+        useCache // Pass through cache setting
       );
 
       if (loadedModel) {
@@ -162,7 +163,7 @@ class SceneBuilder {
         console.log(`Retrying ${positionedObject.modelId} in ${delay}ms...`);
 
         await SceneBuilder.delay(delay);
-        return this.loadModelWithRetry(positionedObject, attempt + 1);
+        return this.loadModelWithRetry(positionedObject, attempt + 1, useCache);
       }
 
       console.error(
@@ -251,16 +252,17 @@ class SceneBuilder {
   /**
    * Loads an individual model into the scene and applies transformations based on the PositionedObject.
    * @param {PositionedObject} positionedObject - The object defining the model and its transformations.
+   * @param {boolean} useCache - Whether to use cached model (default: true). Set to false for independent copies.
    * @returns {Promise<BABYLON.Mesh|null>} - The loaded model's root mesh or null if loading fails.
    */
-  async loadModel(positionedObject) {
+  async loadModel(positionedObject, useCache = true) {
     if (!(positionedObject instanceof PositionedObject)) {
       throw new Error(
         "SceneBuilder: Only instances of PositionedObject are allowed."
       );
     }
 
-    const model = await this.loadModelWithRetry(positionedObject);
+    const model = await this.loadModelWithRetry(positionedObject, 0, useCache);
     if (model) {
       this.loadedModels.push(model);
     }

@@ -72,7 +72,7 @@ class Config {
   static DEVELOPMENT_SCENE_TO_TEST = this.GAME_SCENES_IN_DEVELOPMENT.DEFAULT;
 
   // Player starting stats.
-  static STARTING_HEALTH = 3;
+  static STARTING_HEALTH = 4;
   static STARTING_MAGICPOINTS = 3;
   static STARTING_LEVEL = 1;
   static STARTING_EXP = 0;

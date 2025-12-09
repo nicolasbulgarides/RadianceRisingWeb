@@ -304,11 +304,11 @@ class BaseGameUIScene extends UISceneGeneralized {
     // Center the hearts so they align with the center of the level title
     const heartBarCenterOffsetX = centerOfRightSpace; // Center of heart bar aligns with center of level title
 
-    // Create the heart socket bar with 3 hearts, 100px size
+    // Create the heart socket bar with 4 hearts, 100px size
     this.heartSocketBar = new HeartSocketBar(
       "topHeartBar",
-      3, // maxHearts (fixed to 3)
-      3, // currentHearts (starts full)
+      4, // maxHearts (fixed to 4)
+      4, // currentHearts (starts full)
       heartBarSize, // heartWidth (100px)
       heartBarSize, // heartHeight (100px)
       heartBarCenterOffsetX, // offsetX (center of heart bar container aligns with center of level title)

@@ -6,6 +6,30 @@ class LevelLoaderManager {
 
         // Track which level number we're loading (for music selection)
         this.currentLevelNumber = 0; // 0 = first level, 1 = second level, etc.
+
+        // Initialize level auditor for pathfinding analysis
+        this.levelAuditor = null;
+        this.initializeLevelAuditor();
+    }
+
+    /**
+     * Initializes the level auditor if available.
+     */
+    initializeLevelAuditor() {
+        if (typeof LevelAuditor !== "undefined") {
+            this.levelAuditor = new LevelAuditor();
+        }
+    }
+
+    /**
+     * Gets or creates the level auditor instance.
+     * @returns {LevelAuditor|null} The level auditor instance or null if not available.
+     */
+    getLevelAuditor() {
+        if (!this.levelAuditor && typeof LevelAuditor !== "undefined") {
+            this.initializeLevelAuditor();
+        }
+        return this.levelAuditor;
     }
 
     /**
@@ -113,20 +137,20 @@ class LevelLoaderManager {
     }
 
     async loadLevelTest1(gameplayManager) {
-
         await this.loadTilesAndFactorySupportSystems();
 
-        //level3Spike, level0Test2, level2Test, level3Spike
+        // Load level using the LevelProfileManifest
+        // Available levels: level0Test2, level2Test, level3Spikes
+        const levelId = "level3Spikes";
 
-        let levelDataUrl = "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/assets/" + "level3Spikes.txt";
-        //        let levelDataUrl = "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/assets/" + "level0Test2.txt";
-
-        this.loadLevelFromUrl(gameplayManager, levelDataUrl);
-
-
-
-
-
+        try {
+            const levelJsonData = await LevelProfileManifest.fetchLevelById(levelId);
+            return await this.receiveLevelMapFromServer(gameplayManager, levelJsonData);
+        } catch (error) {
+            console.error(`[LEVEL LOADER] Error loading level ${levelId}:`, error);
+            this.logFailedToLoadLevel();
+            return null;
+        }
     }
 
     /**
@@ -134,27 +158,6 @@ class LevelLoaderManager {
      * @param {GameplayManagerComposite} gameplayManager - The gameplay manager instance
      * @param {Object|string} levelJsonData - The level JSON data (object or JSON string)
      */
-    /**
-     * Fetches JSON level data from a URL
-     * @param {string} url - The URL to fetch the level JSON data from
-     * @returns {Promise<Object>} The parsed JSON level data
-     * @throws {Error} If the fetch fails or the response is not valid JSON
-     */
-    async fetchLevelJsonFromUrl(url) {
-        try {
-            const response = await fetch(url);
-
-            if (!response.ok) {
-                throw new Error(`Failed to fetch level data: ${response.status} ${response.statusText}`);
-            }
-
-            const levelJsonData = await response.json();
-            return levelJsonData;
-        } catch (error) {
-            console.error("Error fetching level JSON from URL:", error);
-            throw error;
-        }
-    }
 
     /**
      * Fetches level JSON from a URL and loads it into the game
@@ -164,7 +167,7 @@ class LevelLoaderManager {
      */
     async loadLevelFromUrl(gameplayManager, url) {
         try {
-            const levelJsonData = await this.fetchLevelJsonFromUrl(url);
+            const levelJsonData = await LevelProfileManifest.fetchLevelJsonFromUrl(url);
             return await this.receiveLevelMapFromServer(gameplayManager, levelJsonData);
         } catch (error) {
             console.error("Error loading level from URL:", error);
@@ -363,12 +366,15 @@ class LevelLoaderManager {
                 //  console.log(`[LEVEL LOADER] Movement tracking started`);
             }
 
-            // Create duplicate level for replay (20 units to the right)
+            // Create duplicate level for replay (100 units to the right, offscreen)
             const replayManager = FundamentalSystemBridge["levelReplayManager"];
             if (replayManager) {
                 // Create duplicate level asynchronously (don't await to avoid blocking level load)
-                replayManager.createDuplicateLevel(activeGameplayLevel).catch(error => {
-                    console.error(`[LEVEL LOADER] Error creating duplicate level:`, error);
+                console.log("[LEVEL LOADER] Starting duplicate level creation for replay...");
+                replayManager.createDuplicateLevel(activeGameplayLevel).then(() => {
+                    console.log("[LEVEL LOADER] ✓ Duplicate level creation complete");
+                }).catch(error => {
+                    console.error(`[LEVEL LOADER] ✗ Error creating duplicate level:`, error);
                 });
             }
 
@@ -399,6 +405,9 @@ class LevelLoaderManager {
             } else if (musicManager && activeScene && !Config.audioHasBeenUnlocked) {
                 // console.log("[LEVEL LOADER] Skipping music start - waiting for user interaction to unlock audio");
             }
+
+            // Run level audit to determine minimum strokes and optimal path
+            this.runLevelAudit(levelData, activeGameplayLevel);
 
             return gameplayLevel;
         } catch (error) {
@@ -897,6 +906,32 @@ class LevelLoaderManager {
         }
 
         return activeDemoGameplayLevel;
+    }
+
+    /**
+     * Runs the level audit to determine minimum strokes and optimal path.
+     * Logs results to console for developer review.
+     * @param {Object} levelData - The raw level JSON data
+     * @param {ActiveGameplayLevel} activeGameplayLevel - The loaded gameplay level
+     */
+    runLevelAudit(levelData, activeGameplayLevel) {
+        const auditor = this.getLevelAuditor();
+        if (!auditor) {
+            console.warn("[LEVEL LOADER] Level auditor not available - skipping audit");
+            return;
+        }
+
+        try {
+            const result = auditor.auditLevel(levelData, activeGameplayLevel);
+
+            // Optionally generate visual map for debugging
+            if (result && result.valid) {
+                const parsedLevel = auditor.parseLevelData(levelData);
+                auditor.generateVisualMap(parsedLevel, result);
+            }
+        } catch (error) {
+            console.error("[LEVEL LOADER] Error running level audit:", error);
+        }
     }
 
 }

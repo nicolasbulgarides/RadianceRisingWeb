@@ -57,6 +57,7 @@ class ScriptManifest {
   static assetManifestScripts = [
     "/utilities/assetmanifests/assetManifest.js",
     "/utilities/assetmanifests/assetManifestOverrides.js",
+    "/utilities/assetmanifests/levelProfileManifest.js",
     "/utilities/assetmanifests/uiAssetManifest.js",
     "/utilities/assetmanifests/itemIconAssetManifest.js",
     "/utilities/assetmanifests/soundAssetManifest.js",
@@ -119,9 +120,11 @@ class ScriptManifest {
     "/gameplay/gameplayProgressionManager.js",
     "/gameplay/gameplayloggers/gameplayLogger.js",
     "/gameplay/gameplayloggers/movementLogger.js",
+    "/gameplay/utilities/levelAuditor.js",
     "/gameplay/levelLoaderManager.js",
     "/gameplay/levelResetHandler.js",
     "/gameplay/replay/movementTracker.js",
+    "/gameplay/replay/replayGridGenerator.js",  // Must load before levelReplayManager
     "/gameplay/replay/levelReplayManager.js",
     "/gameplay/utilities/sequentialLevelLoader.js",
 
