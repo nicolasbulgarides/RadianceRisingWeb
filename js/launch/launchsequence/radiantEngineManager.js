@@ -40,7 +40,21 @@ class RadiantEngineManager {
    */
 
   loadEngineSettings() {
-    FundamentalSystemBridge["babylonEngine"].autoClearDepthAndStencil = false;
+    const engine = FundamentalSystemBridge["babylonEngine"];
+    
+    // Performance optimizations
+    engine.autoClearDepthAndStencil = false;
+    
+    // Mobile-specific performance optimizations
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    if (isMobile) {
+      // Disable features that hurt mobile performance
+      engine.doNotHandleTouchAction = true; // Let browser handle touch
+      engine.enableOfflineSupport = false; // Disable offline caching overhead
+      
+      console.log('[ENGINE] Mobile optimizations applied');
+    }
+    
     window.addEventListener("resize", () => {
       FundamentalSystemBridge["babylonEngine"].resize();
     });

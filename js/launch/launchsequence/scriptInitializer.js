@@ -288,45 +288,54 @@ class ScriptInitializer {
   initializeBabylonEngine() {
     try {
       // Create a new Babylon engine instance with stencil enabled
-      // Note: adaptToDeviceRatio is intentionally FALSE to avoid automatic DPI scaling
-      // We'll manually control scaling via setHardwareScalingLevel for better performance
+      // adaptToDeviceRatio: true means engine targets physical pixels (e.g., 1179x2556 on iPhone)
+      // Then we use setHardwareScalingLevel to reduce actual render resolution
+      const isMobile = this.isMobileDevice();
       const babylonEngine = new BABYLON.Engine(this.canvas, true, {
         stencil: true,
-        adaptToDeviceRatio: false, // Manual control for optimal mobile performance
+        adaptToDeviceRatio: true,
+        // Mobile-specific performance optimizations
+        antialias: !isMobile, // Disable antialiasing on mobile for better performance
+        powerPreference: "high-performance", // Request high-performance GPU
+        preserveDrawingBuffer: false, // Don't preserve buffer (performance gain)
+        doNotHandleContextLost: true, // Skip context loss handling for performance
       });
 
-      // Aggressive hardware scaling for mobile devices
-      // This is the KEY to good mobile performance - render at lower resolution, then scale up
+      // Hardware scaling for mobile devices
+      // setHardwareScalingLevel(N) divides render resolution by N
+      // Example iPhone 14 Pro: 1179x2556 physical / 2 = 590x1278 render resolution
       const devicePixelRatio = window.devicePixelRatio || 1;
 
       if (this.isIOSDevice()) {
-        // iPhone/iPad optimization - these devices have VERY high DPI (often 3x)
-        // Rendering at full resolution is overkill and kills performance
+        // iPhone/iPad optimization
         if (devicePixelRatio >= 3) {
-          // iPhone 12+, Pro models: devicePixelRatio = 3
-          // Render at 1x logical resolution instead of 3x physical
-          babylonEngine.setHardwareScalingLevel(1 / devicePixelRatio);
-          console.log(`[ENGINE] iOS High-DPI detected (${devicePixelRatio}x), rendering at 1x logical resolution`);
+          // iPhone 12+, Pro models: devicePixelRatio = 3 (e.g., 1179x2556)
+          // Render at half physical resolution for good balance
+          babylonEngine.setHardwareScalingLevel(2);
+          console.log(`[ENGINE] iOS 3x DPI: Rendering at 1.5x logical resolution (physical/2)`);
         } else if (devicePixelRatio >= 2) {
-          // Older iPhones: devicePixelRatio = 2
-          // Render at 1x logical resolution
-          babylonEngine.setHardwareScalingLevel(1 / devicePixelRatio);
-          console.log(`[ENGINE] iOS Mid-DPI detected (${devicePixelRatio}x), rendering at 1x logical resolution`);
+          // Older iPhones: devicePixelRatio = 2 (e.g., 750x1334)
+          // Render at ~1.5x logical resolution
+          babylonEngine.setHardwareScalingLevel(1.5);
+          console.log(`[ENGINE] iOS 2x DPI: Rendering at ~1.33x logical resolution (physical/1.5)`);
         }
       } else if (this.isAndroidDevice()) {
-        // Android optimization - more conservative since many devices have lower DPI
+        // Android optimization - different strategy based on DPI
         if (devicePixelRatio >= 3) {
-          // High-end Android (often ~2.6-3)
-          // Render at ~1.5x instead of 3x
-          babylonEngine.setHardwareScalingLevel(1 / 2);
-          console.log(`[ENGINE] Android High-DPI detected (${devicePixelRatio}x), rendering at 1.5x logical resolution`);
+          // High-end Android (e.g., 2.625x = ~1080x2400)
+          // Render at ~1.5x logical resolution
+          babylonEngine.setHardwareScalingLevel(2);
+          console.log(`[ENGINE] Android High-DPI (${devicePixelRatio.toFixed(2)}x): Rendering at ~1.5x logical`);
         } else if (devicePixelRatio >= 2) {
-          // Mid-range Android
-          // Render at ~1.25x
-          babylonEngine.setHardwareScalingLevel(1 / 1.5);
-          console.log(`[ENGINE] Android Mid-DPI detected (${devicePixelRatio}x), rendering at ~1.33x logical resolution`);
+          // Mid-range Android (2x-2.5x)
+          // Render at ~1.5x logical resolution
+          babylonEngine.setHardwareScalingLevel(1.5);
+          console.log(`[ENGINE] Android Mid-DPI (${devicePixelRatio.toFixed(2)}x): Rendering at ~1.5x logical`);
+        } else {
+          // Low-end Android (< 2x)
+          // Render at native resolution
+          console.log(`[ENGINE] Android Low-DPI (${devicePixelRatio.toFixed(2)}x): No hardware scaling`);
         }
-        // Low-end Android (devicePixelRatio < 2) renders at native resolution (no scaling)
       } else {
         // Desktop - no hardware scaling needed
         console.log('[ENGINE] Desktop detected, no hardware scaling applied');
