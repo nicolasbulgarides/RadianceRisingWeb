@@ -57,7 +57,22 @@ class UISceneGeneralized extends BABYLON.Scene {
     this.advancedTexture.idealHeight = Config.IDEAL_UI_HEIGHT;
     this.advancedTexture.idealWidth = Config.IDEAL_UI_WIDTH;
     this.advancedTexture.useSmallestIdeal = true;
-    this.advancedTexture.renderScale = 2;
+    
+    // Adjust renderScale based on device DPI for optimal performance
+    const devicePixelRatio = window.devicePixelRatio || 1;
+    if (devicePixelRatio > 2) {
+      // High DPI devices (iPhone) - reduce renderScale for performance
+      this.advancedTexture.renderScale = 1;
+      console.log('[UI] High-DPI device detected, UI renderScale set to 1');
+    } else if (devicePixelRatio > 1.5) {
+      // Mid DPI devices - balanced quality/performance
+      this.advancedTexture.renderScale = 1.5;
+      console.log('[UI] Mid-DPI device detected, UI renderScale set to 1.5');
+    } else {
+      // Low DPI devices - keep higher quality
+      this.advancedTexture.renderScale = 2;
+      console.log('[UI] Low-DPI device detected, UI renderScale set to 2');
+    }
   }
   /**
    * Initializes the camera for the UI scene.

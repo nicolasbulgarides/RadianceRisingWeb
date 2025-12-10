@@ -119,6 +119,7 @@ class Config {
     this.RUN_LOCALLY_DETERMINED = runLocally;
   }
 
+  // UI ideal dimensions for landscape mobile gaming
   static IDEAL_UI_WIDTH = 1000;
   static IDEAL_UI_HEIGHT = 2000;
 

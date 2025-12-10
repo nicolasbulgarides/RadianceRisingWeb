@@ -272,7 +272,29 @@ class ScriptInitializer {
       // Create a new Babylon engine instance with stencil enabled
       const babylonEngine = new BABYLON.Engine(this.canvas, true, {
         stencil: true,
+        // Add adaptive device support
+        adaptToDeviceRatio: true,
       });
+
+      // Set hardware scaling based on device capabilities
+      // This renders at a lower resolution internally, then scales up
+      if (this.isMobileDevice()) {
+        // For mobile devices, use adaptive scaling based on screen size
+        const devicePixelRatio = window.devicePixelRatio || 1;
+
+        // For high-DPI devices (iPhone), scale down rendering
+        if (devicePixelRatio > 2) {
+          // Render at ~1.5x instead of 3x on high-end iPhones
+          babylonEngine.setHardwareScalingLevel(1 / 1.5);
+          console.log('[ENGINE] High-DPI mobile detected, setting hardware scaling to 1.5x');
+        } else if (devicePixelRatio > 1.5) {
+          // Render at ~1.25x on mid-range devices
+          babylonEngine.setHardwareScalingLevel(1 / 1.25);
+          console.log('[ENGINE] Mid-DPI mobile detected, setting hardware scaling to 1.25x');
+        }
+        // Low-end devices render at native resolution (no scaling needed)
+      }
+
       return babylonEngine;
     } catch (error) {
       const catastrophe =
