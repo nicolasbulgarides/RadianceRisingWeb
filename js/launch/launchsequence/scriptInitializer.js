@@ -288,23 +288,21 @@ class ScriptInitializer {
   initializeBabylonEngine() {
     try {
       // Create a new Babylon engine instance with stencil enabled
-      const isMobile = this.isMobileDevice();
       const babylonEngine = new BABYLON.Engine(this.canvas, true, {
         stencil: true,
-        adaptToDeviceRatio: false, // Render at logical pixels, not physical pixels
-        // Mobile-specific performance optimizations that don't affect visual quality
-        antialias: false, // Disable antialiasing for better performance
-        powerPreference: "high-performance", // Request high-performance GPU
-        preserveDrawingBuffer: false, // Don't preserve buffer (performance gain)
-        doNotHandleContextLost: true, // Skip context loss handling for performance
+        adaptToDeviceRatio: true,
       });
 
-      // Render at logical resolution for consistent performance across devices
-      // iPhone 3x: 393×852 logical pixels instead of 1179×2556 physical pixels
-      // This matches the approach of most Android devices and dramatically improves FPS
-      const devicePixelRatio = window.devicePixelRatio || 1;
-      console.log(`[ENGINE] Rendering at logical resolution (DPR: ${devicePixelRatio}x)`);
+      // iOS-SPECIFIC WORKAROUNDS for WebGL/Metal performance issues
+      // These are documented fixes from the Babylon.js community
+      // See: https://forum.babylonjs.com/t/ios-overall-drop-in-framerate/57995
+      if (this.isIOSDevice()) {
+        babylonEngine.disableUniformBuffers = true;
+        babylonEngine.disableVertexArrayObjects = true;
+        console.log('[ENGINE] iOS WebGL/Metal compatibility fixes applied');
+      }
 
+      console.log('[ENGINE] Engine initialized');
       return babylonEngine;
     } catch (error) {
       const catastrophe =

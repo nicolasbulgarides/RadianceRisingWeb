@@ -27,6 +27,9 @@ class GameWorldSceneGeneralized extends BABYLON.Scene {
       this.spritesEnabled = true; // Keep sprites if used
       this.particlesEnabled = true; // Keep particles if used
 
+      // DISABLE SHADOWS - Major performance impact on iOS
+      this.shadowsEnabled = false;
+
       // Material optimizations
       this.blockMaterialDirtyMechanism = true; // Reduce material update checks
 
@@ -36,9 +39,9 @@ class GameWorldSceneGeneralized extends BABYLON.Scene {
         this.audioEnabled = true; // Keep audio
         this.skeletonsEnabled = true; // Keep skeleton animations if used
 
-        console.log('[SCENE] iOS performance optimizations applied');
+        console.log('[SCENE] iOS performance optimizations applied (shadows disabled)');
       } else {
-        console.log('[SCENE] Android performance optimizations applied');
+        console.log('[SCENE] Android performance optimizations applied (shadows disabled)');
       }
     }
   }
