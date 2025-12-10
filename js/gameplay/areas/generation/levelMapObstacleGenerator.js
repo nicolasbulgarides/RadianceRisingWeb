@@ -45,11 +45,14 @@ class LevelMapObstacleGenerator {
           loadedModel.meshes.forEach((mesh) => {
             if (mesh instanceof BABYLON.Mesh) {
               mesh.freezeWorldMatrix(); // Freeze the mesh so it doesn't move
+              mesh.doNotSyncBoundingInfo = true; // Disable bounding info sync for static obstacles
+
               // Also freeze all child meshes
               if (mesh.getChildMeshes) {
                 mesh.getChildMeshes().forEach((childMesh) => {
                   if (childMesh instanceof BABYLON.Mesh) {
                     childMesh.freezeWorldMatrix();
+                    childMesh.doNotSyncBoundingInfo = true;
                   }
                 });
               }

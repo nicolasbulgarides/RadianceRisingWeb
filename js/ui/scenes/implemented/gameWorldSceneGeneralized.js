@@ -2,6 +2,9 @@ class GameWorldSceneGeneralized extends BABYLON.Scene {
   constructor() {
     super(FundamentalSystemBridge["babylonEngine"]);
 
+    // Apply scene-level performance optimizations
+    this.applySceneOptimizations();
+
     // Apply mobile-specific performance optimizations
     this.applyMobileOptimizations();
 
@@ -9,6 +12,13 @@ class GameWorldSceneGeneralized extends BABYLON.Scene {
     this.initializeAudioEngine();
 
     // console.log("[SCENE] Game world scene initialized");
+  }
+
+  applySceneOptimizations() {
+    // Core scene performance optimizations
+    this.autoClearDepthAndStencil = false;
+    this.skipPointerMovePicking = true;
+    this.performancePriority = BABYLON.ScenePerformancePriority.BackwardCompatible;
   }
 
   applyMobileOptimizations() {

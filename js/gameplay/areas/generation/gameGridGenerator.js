@@ -151,6 +151,9 @@ class GameGridGenerator {
       }
     }
 
+    // Apply performance optimizations to static meshes after all instances are added
+    this.optimizeStaticMeshes();
+
     return true;
   }
 
@@ -227,6 +230,39 @@ class GameGridGenerator {
       }
     }
 
+    // Apply performance optimizations to static meshes after all instances are added
+    this.optimizeStaticMeshes();
+
     return true;
+  }
+
+  /**
+   * Applies performance optimizations to static meshes after they are fully set up
+   */
+  optimizeStaticMeshes() {
+    // Apply optimizations to all loaded tile meshes
+    for (const baseTile of this.loadedTiles) {
+      if (baseTile && baseTile.meshes) {
+        for (const mesh of baseTile.meshes) {
+          if (mesh instanceof BABYLON.Mesh) {
+            // Freeze world matrix for static meshes (major performance boost)
+            mesh.freezeWorldMatrix();
+
+            // Disable bounding info synchronization for static meshes
+            mesh.doNotSyncBoundingInfo = true;
+
+            // Also optimize child meshes if any
+            if (mesh.getChildMeshes) {
+              mesh.getChildMeshes().forEach((childMesh) => {
+                if (childMesh instanceof BABYLON.Mesh) {
+                  childMesh.freezeWorldMatrix();
+                  childMesh.doNotSyncBoundingInfo = true;
+                }
+              });
+            }
+          }
+        }
+      }
+    }
   }
 }
