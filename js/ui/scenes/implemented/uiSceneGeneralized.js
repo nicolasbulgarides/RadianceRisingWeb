@@ -58,36 +58,11 @@ class UISceneGeneralized extends BABYLON.Scene {
     this.advancedTexture.idealWidth = Config.IDEAL_UI_WIDTH;
     this.advancedTexture.useSmallestIdeal = true;
 
-    // Adjust renderScale for optimal balance between performance and quality
-    // renderScale determines the resolution of the UI texture
-    // Lower = better performance, higher = crisper (but diminishing returns)
-    const devicePixelRatio = window.devicePixelRatio || 1;
-    const userAgent = navigator.userAgent || navigator.vendor || window.opera;
-    const isIOS = /iPhone|iPad|iPod/i.test(userAgent);
+    // Keep UI rendering simple - just use a consistent renderScale
+    // This was likely working well before we started changing things
+    this.advancedTexture.renderScale = 1;
 
-    if (isIOS && devicePixelRatio >= 3) {
-      // iPhone with 3x display (most modern iPhones)
-      // Use 1.5x for good balance of crisp UI and performance
-      this.advancedTexture.renderScale = 1.5;
-      console.log('[UI] iOS 3x detected, UI renderScale set to 1.5');
-    } else if (isIOS) {
-      // Older iPhones with 2x display
-      // Use 1.25x for balance
-      this.advancedTexture.renderScale = 1.25;
-      console.log('[UI] iOS 2x detected, UI renderScale set to 1.25');
-    } else if (devicePixelRatio >= 2.5) {
-      // High-end Android
-      this.advancedTexture.renderScale = 1.25;
-      console.log('[UI] High-DPI Android detected, UI renderScale set to 1.25');
-    } else if (devicePixelRatio >= 1.5) {
-      // Mid-range Android
-      this.advancedTexture.renderScale = 1;
-      console.log('[UI] Mid-DPI Android detected, UI renderScale set to 1');
-    } else {
-      // Low DPI devices - render at ideal resolution
-      this.advancedTexture.renderScale = 1;
-      console.log('[UI] Low-DPI device detected, UI renderScale set to 1');
-    }
+    console.log('[UI] UI renderScale set to 1 (renders at ideal resolution)');
   }
   /**
    * Initializes the camera for the UI scene.
