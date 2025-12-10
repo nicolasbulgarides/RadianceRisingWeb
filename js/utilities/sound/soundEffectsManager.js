@@ -4,7 +4,7 @@
  */
 
 // Global flag to enable sound effects manager logging (set to true for debugging)
-const SOUND_EFFECTS_MANAGER_LOGGING_ENABLED = true;
+const SOUND_EFFECTS_MANAGER_LOGGING_ENABLED = false;
 
 // Helper function for conditional sound effects manager logging
 function soundEffectsLog(...args) {

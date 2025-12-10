@@ -28,6 +28,7 @@ class BaseGameUIScene extends UISceneGeneralized {
     this.fpsFrameCount = 0; // Counter for frames since last update
     this.fpsLastUpdateTime = 0; // Last time FPS was calculated
     this.fpsUpdateInterval = 1000; // Update FPS display every 1 second (1000ms)
+    this.fpsCheckCounter = 0; // Counter for frame skipping optimization
     // Hint system removed - will be implemented differently
   }
 
@@ -381,8 +382,12 @@ class BaseGameUIScene extends UISceneGeneralized {
     }
 
     // Register before render to track FPS
+    // Optimized: only check FPS every 4 frames to reduce performance.now() overhead
     scene.registerBeforeRender(() => {
-      this.updateFPSCounter();
+      this.fpsCheckCounter++;
+      if (this.fpsCheckCounter % 4 === 0) {
+        this.updateFPSCounter();
+      }
     });
   }
 
@@ -409,10 +414,11 @@ class BaseGameUIScene extends UISceneGeneralized {
     // Only update display every second (or when interval is reached)
     if (timeElapsed >= this.fpsUpdateInterval) {
       // Calculate FPS: frames / (time in seconds)
-      const fps = Math.round((this.fpsFrameCount * 1000) / timeElapsed);
+      // Multiply by 4 because we only check every 4 frames
+      const fps = Math.round((this.fpsFrameCount * 1000 * 4) / timeElapsed);
 
-      // Update the display
-      if (this.fpsCounterText && this.fpsFrameCount % 4 == 0) {
+      // Update the display (removed unnecessary modulo check for performance)
+      if (this.fpsCounterText) {
         this.fpsCounterText.text = `FPS: ${fps}`;
       }
 

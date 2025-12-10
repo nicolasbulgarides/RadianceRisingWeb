@@ -238,34 +238,47 @@ class RenderSceneSwapper {
   }
 
   /**
+   * Ensures a scene has a valid camera
+   * Optimized to avoid redundant checks on every frame
+   */
+  ensureCamera(scene) {
+    if (!scene) return null;
+    
+    // If camera is already set and valid, skip checks (performance optimization)
+    if (scene.activeCamera) {
+      return scene.activeCamera;
+    }
+    
+    let cam = this.allStoredCameras[scene];
+    if (!cam) {
+      cam = CameraManager.setAndGetPlaceholderCamera(scene);
+    }
+    scene.activeCamera = cam;
+    this.allStoredCameras[scene] = cam;
+    return cam;
+  }
+
+  /**
    * Renders both the active game and UI scenes. It assumes that
    * the active game scene uses a specific camera (baseGameCamera).
-   * //to do add a check for the camera.
+   * Optimized to reduce per-frame overhead.
    */
   render() {
-    const ensureCamera = (scene) => {
-      if (!scene) return null;
-      let cam = scene.activeCamera;
-      if (!cam) {
-        cam = this.allStoredCameras[scene];
-      }
-      if (!cam) {
-        cam = CameraManager.setAndGetPlaceholderCamera(scene);
-      }
-      scene.activeCamera = cam;
-      this.allStoredCameras[scene] = cam;
-      return cam;
-    };
-
     // Render game scene if available
     if (this.activeGameScene) {
-      ensureCamera(this.activeGameScene);
+      // Only ensure camera if it's not already set (optimization)
+      if (!this.activeGameScene.activeCamera) {
+        this.ensureCamera(this.activeGameScene);
+      }
       this.activeGameScene.render();
     }
 
-    // Render the UI scene.
+    // Render the UI scene
     if (this.activeUIScene) {
-      ensureCamera(this.activeUIScene);
+      // Only ensure camera if it's not already set (optimization)
+      if (!this.activeUIScene.activeCamera) {
+        this.ensureCamera(this.activeUIScene);
+      }
       this.activeUIScene.render();
     }
   }

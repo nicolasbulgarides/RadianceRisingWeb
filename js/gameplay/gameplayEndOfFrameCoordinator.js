@@ -1,25 +1,34 @@
 class GameplayEndOfFrameCoordinator {
+  static frameCounter = 0;
+
   static processEndOfFrameEvents(gameplayManager) {
     if (!(gameplayManager instanceof GameplayManagerComposite)) return;
 
-    // Process player movements
-    gameplayManager.allActivePlayers
-      .filter((player) => player instanceof PlayerUnit)
-      .forEach((player) =>
-        player.playerMovementManager.updatePositionBasedOffVelocity()
-      );
+    // Increment frame counter for frame skipping optimizations
+    this.frameCounter++;
 
-    // Process gameplay level events
-    gameplayManager.allActiveGameplayLevels
-      .filter((level) => level instanceof ActiveGameplayLevel)
-      .forEach((level) => {
-        level.onFrameEvents();
-      });
+    // Process player movements - optimized with for loop instead of filter + forEach
+    const players = gameplayManager.allActivePlayers;
+    for (let i = 0; i < players.length; i++) {
+      const player = players[i];
+      if (player instanceof PlayerUnit) {
+        player.playerMovementManager.updatePositionBasedOffVelocity();
+      }
+    }
+
+    // Removed empty onFrameEvents() calls - they do nothing
 
     this.checkMicroEventsForTriggered();
-    
-    // Process replay events if replay is active
-    this.checkReplayEvents();
+
+    // Process replay events if replay is active (check every 2 frames for optimization)
+    if (this.frameCounter % 2 === 0) {
+      this.checkReplayEvents();
+    }
+
+    // Check predictive explosions (every 3 frames for optimization)
+    if (this.frameCounter % 3 === 0) {
+      this.checkPredictiveExplosions();
+    }
   }
 
   //to do, paramaterize the test level
@@ -44,10 +53,26 @@ class GameplayEndOfFrameCoordinator {
     if (!replayManager) {
       return;
     }
-    
+
     // Call the replay manager's end-of-frame tick if replay is active
     if (replayManager.isReplaying) {
       replayManager.onReplayEndOfFrameTick();
+    }
+  }
+
+  /**
+   * Check and process predictive explosions
+   * Optimized to run every 3 frames instead of every frame
+   */
+  static checkPredictiveExplosions() {
+    let predictiveExplosionManager = FundamentalSystemBridge["predictiveExplosionManager"];
+    if (!predictiveExplosionManager) {
+      return;
+    }
+
+    // Process any scheduled explosions that are ready to trigger
+    if (typeof predictiveExplosionManager.processScheduledExplosions === 'function') {
+      predictiveExplosionManager.processScheduledExplosions();
     }
   }
 }

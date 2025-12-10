@@ -42,7 +42,7 @@ class LevelReplayManager {
         window.addEventListener('keydown', (event) => {
             if (event.key === 'F1') {
                 event.preventDefault();
-                console.log("[DEBUG] F1 pressed - toggling stardust visibility");
+                replayLog("[DEBUG] F1 pressed - toggling stardust visibility");
                 this.toggleStardustVisibility();
             }
         });
@@ -52,23 +52,23 @@ class LevelReplayManager {
      * Toggles stardust visibility for debugging
      */
     toggleStardustVisibility() {
-        console.log("[DEBUG] Attempting to toggle stardust visibility...");
+        replayLog("[DEBUG] Attempting to toggle stardust visibility...");
 
         // Try multiple ways to get the active level
         const gameplayManager = FundamentalSystemBridge["gameplayManagerComposite"];
-        console.log("[DEBUG] gameplayManager exists:", !!gameplayManager);
+        replayLog("[DEBUG] gameplayManager exists:", !!gameplayManager);
 
         let level = null;
         if (gameplayManager) {
-            console.log("[DEBUG] Checking gameplayManager.currentActiveLevel...");
+            replayLog("[DEBUG] Checking gameplayManager.currentActiveLevel...");
             level = gameplayManager.currentActiveLevel;
             if (!level) {
-                console.log("[DEBUG] Checking gameplayManager.primaryActiveGameplayLevel...");
+                replayLog("[DEBUG] Checking gameplayManager.primaryActiveGameplayLevel...");
                 level = gameplayManager.primaryActiveGameplayLevel;
             }
         }
 
-        console.log("[DEBUG] Level found:", !!level);
+        replayLog("[DEBUG] Level found:", !!level);
 
         if (!level) {
             console.warn("[DEBUG] No active level found");
@@ -83,10 +83,10 @@ class LevelReplayManager {
         }
 
         const levelId = level.levelDataComposite?.levelHeaderData?.levelId || "level0";
-        console.log("[DEBUG] Level ID:", levelId);
+        replayLog("[DEBUG] Level ID:", levelId);
 
         const allEvents = microEventManager.getMicroEventsByLevelId(levelId);
-        console.log("[DEBUG] Total events found:", allEvents.length);
+        replayLog("[DEBUG] Total events found:", allEvents.length);
 
         const stardustEvents = allEvents.filter(e =>
             e.microEventCategory === "pickup" &&
@@ -170,7 +170,7 @@ class LevelReplayManager {
      * It does NOT touch the main gameplay grid or level state.
      */
     resetForNewLevel() {
-        console.log("[REPLAY] Resetting for new level...");
+        replayLog("[REPLAY] Resetting for new level...");
 
         // Clear perspective shift tracked models
         if (this.perspectiveShiftTracker) {
@@ -192,7 +192,7 @@ class LevelReplayManager {
             movementTracker.stopTracking();
         }
 
-        console.log("[REPLAY] ✓ Reset complete");
+        replayLog("[REPLAY] ✓ Reset complete");
     }
 
     // REMOVED: createDuplicateLevel, cloneLevelDataComposite, generateDuplicateGrid
@@ -270,7 +270,7 @@ class LevelReplayManager {
      * @param {ActiveGameplayLevel} level - The level whose items should be reset
      */
     resetLevelItemsVisibility(level) {
-        console.log("[REPLAY] Resetting level items to initial state for replay...");
+        replayLog("[REPLAY] Resetting level items to initial state for replay...");
 
         const microEventManager = FundamentalSystemBridge["microEventManager"];
         if (!microEventManager) {
@@ -364,7 +364,7 @@ class LevelReplayManager {
      * @param {ActiveGameplayLevel} level - The level whose items should be registered
      */
     registerLevelItemsForPerspectiveShift(level) {
-        console.log("[REPLAY] Registering original level items for perspective shift...");
+        replayLog("[REPLAY] Registering original level items for perspective shift...");
 
         const microEventManager = FundamentalSystemBridge["microEventManager"];
         if (!microEventManager) {
@@ -472,8 +472,8 @@ class LevelReplayManager {
      * @param {ActiveGameplayLevel} level - The level whose obstacles should be registered
      */
     registerObstaclesForPerspectiveShift(level) {
-        console.log("[REPLAY] ═══════════════════════════════════════════════");
-        console.log("[REPLAY] REGISTERING OBSTACLES FOR PERSPECTIVE SHIFT");
+        replayLog("[REPLAY] ═══════════════════════════════════════════════");
+        replayLog("[REPLAY] REGISTERING OBSTACLES FOR PERSPECTIVE SHIFT");
         replayLog(`[REPLAY] ═══════════════════════════════════════════════`);
 
         // Get obstacles from level (they're separate from microevents)
@@ -582,16 +582,16 @@ class LevelReplayManager {
             return;
         }
 
-        console.log("[REPLAY] ═══════════════════════════════════════════════════════");
-        console.log("[REPLAY] STARTING REPLAY SEQUENCE");
-        console.log("[REPLAY] - Using SAME board (no duplication)");
-        console.log("[REPLAY] - Using SAME player (controls disabled)");
-        console.log("[REPLAY] - Using SAME event system (items reset)");
-        console.log("[REPLAY] ═══════════════════════════════════════════════════════");
+        replayLog("[REPLAY] ═══════════════════════════════════════════════════════");
+        replayLog("[REPLAY] STARTING REPLAY SEQUENCE");
+        replayLog("[REPLAY] - Using SAME board (no duplication)");
+        replayLog("[REPLAY] - Using SAME player (controls disabled)");
+        replayLog("[REPLAY] - Using SAME event system (items reset)");
+        replayLog("[REPLAY] ═══════════════════════════════════════════════════════");
 
         // Restore player health to full before replay
         if (originalPlayer && originalPlayer.playerStatusComposite) {
-            console.log("[REPLAY] Restoring player health to full before replay...");
+            replayLog("[REPLAY] Restoring player health to full before replay...");
             originalPlayer.playerStatusComposite.restoreHealthToFull();
 
             // Lock experience gain during replay to prevent XP from stardust pickups
@@ -606,7 +606,7 @@ class LevelReplayManager {
         }
 
         // Reset original level items visibility (hearts, pickups, spikes back to visible)
-        console.log("[REPLAY] Resetting original level items for replay...");
+        replayLog("[REPLAY] Resetting original level items for replay...");
         this.resetLevelItemsVisibility(originalLevel);
 
         // Register original level items for perspective shift (microevents: hearts, stardust, spikes)
@@ -616,7 +616,7 @@ class LevelReplayManager {
         this.registerObstaclesForPerspectiveShift(originalLevel);
 
         // NO DUPLICATE LEVEL OR PLAYER - using original level and player
-        console.log("[REPLAY] Using original level and player (no duplicates)");
+        replayLog("[REPLAY] Using original level and player (no duplicates)");
 
         // Verify player and its movement manager
         if (!originalPlayer || !originalPlayer.playerMovementManager) {
@@ -645,11 +645,11 @@ class LevelReplayManager {
         if (!playerModel) {
             console.error("[REPLAY] Player model not found!");
         } else {
-            console.log("[REPLAY] Player model exists and is ready");
+            replayLog("[REPLAY] Player model exists and is ready");
         }
 
         // Switch camera to follow player from behind
-        console.log("[REPLAY] Switching camera to replay view...");
+        replayLog("[REPLAY] Switching camera to replay view...");
         await this.switchCameraToReplayView(originalLevel, originalPlayer);
 
         // Start loading next level in the background
@@ -657,7 +657,7 @@ class LevelReplayManager {
         // this.startLoadingNextLevelInBackground(originalLevel);
 
         // Start replaying movements
-        console.log("[REPLAY] Starting movement replay sequence...");
+        replayLog("[REPLAY] Starting movement replay sequence...");
         this.isReplaying = true;
         this.replayIndex = 0;
         this.replayPlayer = originalPlayer; // Store reference for end-of-frame checking
@@ -671,7 +671,7 @@ class LevelReplayManager {
      * @param {PlayerUnit} player - The player to follow
      */
     async switchCameraToReplayView(level, player) {
-        console.log("[REPLAY] Switching camera to replay view...");
+        replayLog("[REPLAY] Switching camera to replay view...");
 
         const scene = level.hostingScene;
 
@@ -683,7 +683,7 @@ class LevelReplayManager {
             const positionedObject = player.playerMovementManager.getPlayerModelPositionedObject();
             if (positionedObject && positionedObject.model) {
                 playerModel = positionedObject.model;
-                console.log("[REPLAY] Found player model via positioned object");
+                replayLog("[REPLAY] Found player model via positioned object");
             } else {
                 console.error("[REPLAY] Could not find player model, aborting camera switch");
                 return;
@@ -697,11 +697,11 @@ class LevelReplayManager {
                 // Use the first child mesh as the target
                 const childMeshes = playerModel.getChildMeshes();
                 playerModel = childMeshes.find(m => m instanceof BABYLON.Mesh) || childMeshes[0];
-                console.log("[REPLAY] Using child mesh as camera target");
+                replayLog("[REPLAY] Using child mesh as camera target");
             } else if (playerModel.meshes && playerModel.meshes.length > 0) {
                 // Use the first mesh from the meshes array
                 playerModel = playerModel.meshes[0];
-                console.log("[REPLAY] Using first mesh from meshes array as camera target");
+                replayLog("[REPLAY] Using first mesh from meshes array as camera target");
             }
         }
 
@@ -726,25 +726,25 @@ class LevelReplayManager {
         // Dispose old camera
         const oldCamera = FundamentalSystemBridge["renderSceneSwapper"].allStoredCameras[scene];
         if (oldCamera && oldCamera !== followCamera) {
-            console.log("[REPLAY] Disposing old camera...");
+            replayLog("[REPLAY] Disposing old camera...");
             FundamentalSystemBridge["renderSceneSwapper"].disposeAndDeleteCamera(oldCamera);
         }
 
         FundamentalSystemBridge["renderSceneSwapper"].allStoredCameras[scene] = followCamera;
 
-        console.log("[REPLAY] ✓ Camera switched to replay view (following player)");
+        replayLog("[REPLAY] ✓ Camera switched to replay view (following player)");
 
         // Trigger perspective shift for all registered models (instant transition)
         if (this.perspectiveShiftTracker) {
             const trackedCount = this.perspectiveShiftTracker.getTrackedModelCount();
-            console.log("[REPLAY] ═══════════════════════════════════════════════════════");
-            console.log("[REPLAY] PERSPECTIVE SHIFT TRIGGERED");
+            replayLog("[REPLAY] ═══════════════════════════════════════════════════════");
+            replayLog("[REPLAY] PERSPECTIVE SHIFT TRIGGERED");
             replayLog(`[REPLAY] - Camera changed from OVERHEAD to BEHIND-PLAYER (3D)`);
             replayLog(`[REPLAY] - ${trackedCount} model(s) will transform instantly (0ms)`);
             replayLog(`[REPLAY] - Models will show 3D profile instead of overhead view`);
-            console.log("[REPLAY] ═══════════════════════════════════════════════════════");
+            replayLog("[REPLAY] ═══════════════════════════════════════════════════════");
             this.perspectiveShiftTracker.switchToPerspectiveShift(0); // Instant transition to match camera switch
-            console.log("[REPLAY] ✓ Perspective shift complete");
+            replayLog("[REPLAY] ✓ Perspective shift complete");
         }
     }
 
@@ -754,12 +754,12 @@ class LevelReplayManager {
      * @param {PlayerUnit} player - The player to animate
      */
     async replayMovementsSequence(level, player) {
-        console.log("[REPLAY] ▶ Starting movement replay sequence...");
+        replayLog("[REPLAY] ▶ Starting movement replay sequence...");
         const scene = level.hostingScene;
         this.replayPickupCount = 0;
 
         // NOTE: No need to start interval - pickups and damage are checked via end-of-frame tick
-        console.log("[REPLAY] Pickup/damage detection will use core engine end-of-frame tick");
+        replayLog("[REPLAY] Pickup/damage detection will use core engine end-of-frame tick");
 
         replayLog(`[REPLAY] Replaying ${this.replayMovements.length} movements...`);
 
@@ -805,7 +805,7 @@ class LevelReplayManager {
 
             // If we collected 4 pickups, trigger explosion
             if (this.replayPickupCount >= 4) {
-                console.log("[REPLAY] Collected all 4 pickups, triggering end of level explosion");
+                replayLog("[REPLAY] Collected all 4 pickups, triggering end of level explosion");
                 await this.triggerEndOfLevelExplosion(scene);
             } else {
                 replayLog(`[REPLAY] Replay complete with ${this.replayPickupCount}/4 pickups collected`);
@@ -823,14 +823,14 @@ class LevelReplayManager {
             // Clear replay state
             this.isReplaying = false;
             this.replayPlayer = null;
-            console.log("[REPLAY] ✓ Replay sequence complete");
+            replayLog("[REPLAY] ✓ Replay sequence complete");
 
             // Transition to WorldLoaderScene (placeholder transition scene)
-            console.log("[REPLAY] Transitioning to WorldLoaderScene...");
+            replayLog("[REPLAY] Transitioning to WorldLoaderScene...");
             const renderSceneSwapper = FundamentalSystemBridge["renderSceneSwapper"];
             if (renderSceneSwapper) {
                 renderSceneSwapper.setActiveGameLevelScene("WorldLoaderScene");
-                console.log("[REPLAY] ✓ Successfully transitioned to WorldLoaderScene");
+                replayLog("[REPLAY] ✓ Successfully transitioned to WorldLoaderScene");
             } else {
                 console.error("[REPLAY] RenderSceneSwapper not found, cannot transition");
             }
@@ -1198,7 +1198,7 @@ class LevelReplayManager {
                 sequentialLoader.startLoadingNextLevel(nextLevelUrl, currentPlayer).catch(error => {
                     console.error("[REPLAY] Error starting next level load:", error);
                 });
-                console.log("[REPLAY] Started loading next level in background");
+                replayLog("[REPLAY] Started loading next level in background");
             } else {
                 console.warn("[REPLAY] Cannot start next level load: current player not found");
             }
