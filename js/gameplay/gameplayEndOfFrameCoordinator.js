@@ -72,7 +72,7 @@ class GameplayEndOfFrameCoordinator {
 
     // Process any scheduled explosions that are ready to trigger
     if (typeof predictiveExplosionManager.processScheduledExplosions === 'function') {
-      predictiveExplosionManager.processScheduledExplosions();
+      predictiveExplosionManager.processScheduledExplosions(this.frameCounter);
     }
   }
 }

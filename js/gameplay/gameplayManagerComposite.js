@@ -232,7 +232,8 @@ class GameplayManagerComposite {
             currentPlayer,
             startPosition,
             destinationVector,
-            speed
+            speed,
+            GameplayEndOfFrameCoordinator.frameCounter
           );
         }
 

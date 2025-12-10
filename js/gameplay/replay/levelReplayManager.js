@@ -794,7 +794,8 @@ class LevelReplayManager {
                         player,
                         adjustedStart,
                         adjustedDestination,
-                        effectiveSpeed
+                        effectiveSpeed,
+                        GameplayEndOfFrameCoordinator.frameCounter
                     );
                 }
 

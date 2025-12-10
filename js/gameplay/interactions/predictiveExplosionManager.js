@@ -18,7 +18,7 @@ function predictiveExplosionLog(...args) {
 
 class PredictiveExplosionManager {
     constructor() {
-        this.scheduledExplosions = new Map(); // Track scheduled explosions to avoid duplicates
+        this.scheduledExplosions = new Map(); // Track scheduled explosions: eventKey -> targetFrame
         this.triggeredExplosions = new Set(); // Track which events already had preemptive explosions
     }
 
@@ -28,10 +28,13 @@ class PredictiveExplosionManager {
      * @param {BABYLON.Vector3} startPosition - Starting position
      * @param {BABYLON.Vector3} destinationPosition - Destination position
      * @param {number} speed - Movement speed (from Config.DEFAULT_MAX_SPEED)
+     * @param {number} currentFrame - Current frame count for frame-based scheduling
      */
-    predictAndScheduleExplosions(player, startPosition, destinationPosition, speed) {
+    predictAndScheduleExplosions(player, startPosition, destinationPosition, speed, currentFrame) {
         const totalDistance = BABYLON.Vector3.Distance(startPosition, destinationPosition);
+        // Calculate total frames needed for movement at target speed (60 FPS)
         const totalTravelTimeMs = (totalDistance / speed) * 1000;
+        const totalTravelFrames = Math.ceil((totalTravelTimeMs / 1000) * 60); // Convert to frames at 60 FPS
 
         // Calculate the position 0.25 units into the destination tile
         // This is where we want the explosion to trigger (when player model is 1/4 into the tile)
@@ -136,7 +139,7 @@ class PredictiveExplosionManager {
                     predictiveExplosionLog(`[PREDICTIVE EXPLOSION] ✓ Found event at tile (${tileInfo.tileX}, ${tileInfo.tileZ}): ${microEvent.microEventNickname} (${microEvent.microEventCategory})`);
 
                     // Calculate when player will be 0.25 units into THIS tile
-                    const explosionTime = this.calculateExplosionTimeForTile(
+                    const explosionTimeMs = this.calculateExplosionTimeForTile(
                         startPosition,
                         destinationPosition,
                         tileInfo.tileX,
@@ -145,17 +148,58 @@ class PredictiveExplosionManager {
                         speed
                     );
 
-                    if (explosionTime >= 0) {
-                        // Schedule explosion
-                        const timeoutId = setTimeout(() => {
-                            this.triggerPreemptiveExplosion(microEvent);
-                            this.scheduledExplosions.delete(eventKey);
-                        }, Math.max(0, explosionTime));
+                    if (explosionTimeMs >= 0) {
+                        // Convert milliseconds to frames and calculate target frame
+                        const explosionFrames = Math.ceil((explosionTimeMs / 1000) * 60);
+                        const targetFrame = currentFrame + explosionFrames;
 
-                        this.scheduledExplosions.set(eventKey, timeoutId);
-                        predictiveExplosionLog(`[PREDICTIVE EXPLOSION] ⏰ Scheduled ${microEvent.microEventCategory} explosion for tile (${tileInfo.tileX}, ${tileInfo.tileZ}) in ${explosionTime.toFixed(0)}ms`);
+                        // Schedule explosion by storing target frame
+                        this.scheduledExplosions.set(eventKey, targetFrame);
+                        predictiveExplosionLog(`[PREDICTIVE EXPLOSION] ⏰ Scheduled ${microEvent.microEventCategory} explosion for tile (${tileInfo.tileX}, ${tileInfo.tileZ}) at frame ${targetFrame} (in ${explosionFrames} frames from frame ${currentFrame})`);
                     }
                 }
+            }
+        }
+    }
+
+    /**
+     * Processes scheduled explosions that are ready to trigger
+     * Called by GameplayEndOfFrameCoordinator every few frames
+     * @param {number} currentFrame - Current frame count from GameplayEndOfFrameCoordinator
+     */
+    processScheduledExplosions(currentFrame) {
+
+        // Check each scheduled explosion
+        for (const [eventKey, targetFrame] of this.scheduledExplosions) {
+            if (currentFrame >= targetFrame) {
+                // Find the microevent for this explosion
+                const gameplayManager = FundamentalSystemBridge["gameplayManagerComposite"];
+                const level = gameplayManager?.primaryActiveGameplayLevel;
+                if (!level) continue;
+
+                const levelId = level.levelDataComposite?.levelHeaderData?.levelId;
+                const microEventManager = FundamentalSystemBridge["microEventManager"];
+                const allMicroEvents = microEventManager?.getMicroEventsByLevelId(levelId);
+
+                if (!allMicroEvents) continue;
+
+                // Find the matching microevent
+                const microEvent = allMicroEvents.find(event => {
+                    const eventTile = {
+                        x: Math.floor(event.microEventLocation.x),
+                        z: Math.floor(event.microEventLocation.z)
+                    };
+                    const expectedKey = `${event.microEventNickname}_${eventTile.x}_${eventTile.z}`;
+                    return expectedKey === eventKey;
+                });
+
+                if (microEvent) {
+                    predictiveExplosionLog(`[PREDICTIVE EXPLOSION] 🎯 Triggering scheduled explosion for ${eventKey} at frame ${currentFrame}`);
+                    this.triggerPreemptiveExplosion(microEvent);
+                }
+
+                // Remove from scheduled list regardless of whether we found the event
+                this.scheduledExplosions.delete(eventKey);
             }
         }
     }
@@ -540,9 +584,6 @@ class PredictiveExplosionManager {
      */
     clearAllScheduledExplosions() {
         predictiveExplosionLog(`[PREDICTIVE EXPLOSION] Clearing ${this.scheduledExplosions.size} scheduled explosions`);
-        for (const timeoutId of this.scheduledExplosions.values()) {
-            clearTimeout(timeoutId);
-        }
         this.scheduledExplosions.clear();
     }
 
