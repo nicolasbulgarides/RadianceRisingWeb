@@ -104,7 +104,6 @@ class Config {
 
   // Mobile performance optimizations
   static DISABLE_CONSOLE_LOGGING_ON_MOBILE = true;
-  static HARDWARE_SCALING_LEVEL = 1.0; // 1.0 = native resolution (100%), 2.0 = 50% resolution, 0.5 = 200% resolution
 
   static LOGGING_COOLDOWNS_FALLBACK_DEFAULT = 10; // Default cooldown of 10s for unlisted error types.
   static LOGGING_COOLDOWNS_ABSOLUTE_OVERRIDE = 0; // 0 means no cooldown override.
@@ -122,6 +121,34 @@ class Config {
 
   static IDEAL_UI_WIDTH = 1000;
   static IDEAL_UI_HEIGHT = 2000;
+
+  /**
+   * Initializes the ideal UI dimensions based on the actual screen resolution.
+   * Should be called early during initialization.
+   * Sets IDEAL_UI_WIDTH and IDEAL_UI_HEIGHT to match the player's device resolution.
+   * Also sets up a listener to update dimensions on window resize/orientation change.
+   */
+  static initializeIdealUIDimensions() {
+    // Function to update the dimensions
+    const updateDimensions = () => {
+      // Get the actual screen dimensions
+      const screenWidth = window.innerWidth || window.screen.width;
+      const screenHeight = window.innerHeight || window.screen.height;
+
+      // Set the ideal dimensions to match the actual screen
+      Config.IDEAL_UI_WIDTH = screenWidth;
+      Config.IDEAL_UI_HEIGHT = screenHeight;
+
+      console.log(`[CONFIG] Ideal UI dimensions set to: ${Config.IDEAL_UI_WIDTH}x${Config.IDEAL_UI_HEIGHT}`);
+    };
+
+    // Initial setup
+    updateDimensions();
+
+    // Update on window resize (includes orientation changes on mobile)
+    window.addEventListener('resize', updateDimensions);
+    window.addEventListener('orientationchange', updateDimensions);
+  }
 
   // Static flag to track if audio has been unlocked by user interaction
   static audioHasBeenUnlocked = false;

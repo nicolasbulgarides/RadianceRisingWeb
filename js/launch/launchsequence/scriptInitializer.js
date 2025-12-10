@@ -18,10 +18,25 @@ class ScriptInitializer {
     this.runLocally = runLocally;
     // Disable console logging on mobile devices for performance
     this.disableLoggingOnMobile();
+    // Initialize UI dimensions based on actual screen resolution
+    this.initializeUIDimensions();
     // Retrieve core script URLs based on environment
     this.CORE_SCRIPTS = this.getCoreScripts();
     // Begin the core initialization sequence
     this.coreInitializeSequence();
+  }
+
+  /**
+   * Initializes the ideal UI dimensions to match the player's screen resolution.
+   * Calls the Config method to set these dynamically before other systems load.
+   */
+  initializeUIDimensions() {
+    // Config class is already available, so we can call its initialization method
+    if (typeof Config !== 'undefined' && Config.initializeIdealUIDimensions) {
+      Config.initializeIdealUIDimensions();
+    } else {
+      console.error('[INIT] Config class not available for UI dimension initialization');
+    }
   }
 
   /**
