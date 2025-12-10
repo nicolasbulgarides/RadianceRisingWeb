@@ -299,20 +299,9 @@ class ScriptInitializer {
         doNotHandleContextLost: true, // Skip context loss handling for performance
       });
 
-      // Subtle hardware scaling for high-DPI iPhones only
-      // This provides a significant FPS boost while maintaining crisp visuals
-      const devicePixelRatio = window.devicePixelRatio || 1;
-
-      if (this.isIOSDevice() && devicePixelRatio >= 3) {
-        // iPhone with 3x display (iPhone 12+, Pro models)
-        // Render at 75% of physical resolution
-        // Example: iPhone 14 Pro (1179×2556) renders at 885×1917
-        // This is still very crisp but gives ~40% FPS improvement
-        babylonEngine.setHardwareScalingLevel(1.33);
-        console.log('[ENGINE] iOS 3x DPI detected: Rendering at 75% resolution (1179x2556 → 885x1917)');
-      } else {
-        console.log('[ENGINE] Engine initialized at full resolution');
-      }
+      // No hardware scaling - maintain full visual quality
+      // We'll optimize performance through scene-level settings instead
+      console.log('[ENGINE] Engine initialized at full resolution');
 
       return babylonEngine;
     } catch (error) {

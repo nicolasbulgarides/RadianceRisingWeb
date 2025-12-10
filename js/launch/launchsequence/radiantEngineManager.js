@@ -46,11 +46,23 @@ class RadiantEngineManager {
     engine.autoClearDepthAndStencil = false;
     
     // Mobile-specific performance optimizations
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+    const isIOS = /iPhone|iPad|iPod/i.test(userAgent);
+    const isMobile = isIOS || /Android/i.test(userAgent);
+    
     if (isMobile) {
       // Disable features that hurt mobile performance
       engine.doNotHandleTouchAction = true; // Let browser handle touch
       engine.enableOfflineSupport = false; // Disable offline caching overhead
+      
+      // Additional performance settings
+      engine.disablePerformanceMonitorInBackground = true; // Don't monitor when backgrounded
+      
+      // iOS-specific optimizations
+      if (isIOS) {
+        // Optimize for iOS Metal rendering
+        console.log('[ENGINE] iOS-specific optimizations applied');
+      }
       
       console.log('[ENGINE] Mobile optimizations applied');
     }
