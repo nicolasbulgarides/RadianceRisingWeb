@@ -1,3 +1,13 @@
+// Global flag to disable level factory logging (set to false to enable logging)
+const LEVEL_FACTORY_LOGGING_ENABLED = false;
+
+// Helper function for conditional level factory logging
+function levelFactoryLog(...args) {
+  if (LEVEL_FACTORY_LOGGING_ENABLED) {
+    console.log(...args);
+  }
+}
+
 class LevelFactoryComposite {
   /**
    * Orchestrates the loading and setup of the game level.
@@ -12,7 +22,7 @@ class LevelFactoryComposite {
    * them so new thin instances render into the current scene.
    */
   async ensureTilesLoadedForScene(hostingScene) {
-    console.log(`[LEVEL FACTORY] ensureTilesLoadedForScene called`);
+    levelFactoryLog(`[LEVEL FACTORY] ensureTilesLoadedForScene called`);
 
     if (!this.gridManager) {
       this.gridManager = new GameGridGenerator();
@@ -25,10 +35,10 @@ class LevelFactoryComposite {
         ? this.gridManager.loadedTiles[0].meshes[0]?.getScene()
         : null;
 
-    console.log(`[LEVEL FACTORY] hasTiles: ${hasTiles}, tilesScene matches: ${tilesScene === hostingScene}`);
+    levelFactoryLog(`[LEVEL FACTORY] hasTiles: ${hasTiles}, tilesScene matches: ${tilesScene === hostingScene}`);
 
     if (!hasTiles || tilesScene !== hostingScene) {
-      console.log(`[LEVEL FACTORY] Need to reload tiles - hasTiles: ${hasTiles}, sceneMatch: ${tilesScene === hostingScene}`);
+      levelFactoryLog(`[LEVEL FACTORY] Need to reload tiles - hasTiles: ${hasTiles}, sceneMatch: ${tilesScene === hostingScene}`);
 
       // Reset cache
       this.gridManager.initializeStorage();
@@ -52,16 +62,16 @@ class LevelFactoryComposite {
       );
 
       LevelFactoryComposite.TILES_LOADED = loaded;
-      console.log(`[LEVEL FACTORY] Tiles reloaded: ${loaded}, count: ${this.gridManager.loadedTiles.length}`);
+      levelFactoryLog(`[LEVEL FACTORY] Tiles reloaded: ${loaded}, count: ${this.gridManager.loadedTiles.length}`);
       return loaded;
     }
 
-    console.log(`[LEVEL FACTORY] Tiles already loaded for this scene, skipping reload`);
+    levelFactoryLog(`[LEVEL FACTORY] Tiles already loaded for this scene, skipping reload`);
     return LevelFactoryComposite.TILES_LOADED;
   }
 
   async loadFactorySupportSystems() {
-    console.log(`[LEVEL FACTORY] loadFactorySupportSystems called`);
+    levelFactoryLog(`[LEVEL FACTORY] loadFactorySupportSystems called`);
 
     // Initialize level obstacle generator (only if not already initialized)
     if (!this.levelMapObstacleGenerator) {
@@ -75,12 +85,12 @@ class LevelFactoryComposite {
 
     // Load tiles (only if not already loaded)
     if (!LevelFactoryComposite.TILES_LOADED) {
-      console.log(`[LEVEL FACTORY] Loading tiles via loadTilesModelsDefault...`);
+      levelFactoryLog(`[LEVEL FACTORY] Loading tiles via loadTilesModelsDefault...`);
       LevelFactoryComposite.TILES_LOADED =
         await this.gridManager.loadTilesModelsDefault();
-      console.log(`[LEVEL FACTORY] Tiles loaded: ${LevelFactoryComposite.TILES_LOADED}, count: ${this.gridManager.loadedTiles.length}`);
+      levelFactoryLog(`[LEVEL FACTORY] Tiles loaded: ${LevelFactoryComposite.TILES_LOADED}, count: ${this.gridManager.loadedTiles.length}`);
     } else {
-      console.log(`[LEVEL FACTORY] Tiles already loaded, skipping`);
+      levelFactoryLog(`[LEVEL FACTORY] Tiles already loaded, skipping`);
     }
 
     // CRITICAL: Only create these managers ONCE to prevent losing state (e.g., isResetting flag)
@@ -111,6 +121,14 @@ class LevelFactoryComposite {
         "levelReplayManager",
         new LevelReplayManager(),
         LevelReplayManager
+      );
+    }
+
+    if (!FundamentalSystemBridge["predictiveExplosionManager"]) {
+      FundamentalSystemBridge.registerManager(
+        "predictiveExplosionManager",
+        new PredictiveExplosionManager(),
+        PredictiveExplosionManager
       );
     }
 

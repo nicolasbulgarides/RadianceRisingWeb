@@ -1,3 +1,13 @@
+// Global flag to disable micro event manager logging (set to false to enable logging)
+const MICRO_EVENT_MANAGER_LOGGING_ENABLED = false;
+
+// Helper function for conditional micro event manager logging
+function microEventManagerLog(...args) {
+  if (MICRO_EVENT_MANAGER_LOGGING_ENABLED) {
+    console.log(...args);
+  }
+}
+
 class MicroEventManager {
   constructor() {
     this.gameplayLevelToMicroEventsMap = {};
@@ -21,14 +31,14 @@ class MicroEventManager {
     if (!this._frameCheckCallCount) this._frameCheckCallCount = 0;
     this._frameCheckCallCount++;
     if (this._frameCheckCallCount === 1 || this._frameCheckCallCount % 60 === 0) {
-      //console.log(`[PICKUP SYSTEM] ✓ onFrameCheckMicroEventsForTriggered() called (frame ${this._frameCheckCallCount})`);
+      //microEventManagerLog(`[PICKUP SYSTEM] ✓ onFrameCheckMicroEventsForTriggered() called (frame ${this._frameCheckCallCount})`);
     }
 
     // Get the active gameplay level to determine which level's microevents to check
     const gameplayManager = FundamentalSystemBridge["gameplayManagerComposite"];
     if (!gameplayManager) {
       if (!this._lastNoManagerLog || Date.now() - this._lastNoManagerLog > 5000) {
-        //  console.warn(`[PICKUP SYSTEM] gameplayManagerComposite not found!`);
+        //  microEventManagerLog(`[PICKUP SYSTEM] gameplayManagerComposite not found!`);
         //  this._lastNoManagerLog = Date.now();
       }
       return;
@@ -36,7 +46,7 @@ class MicroEventManager {
 
     if (!gameplayManager.primaryActiveGameplayLevel) {
       if (!this._lastNoActiveLevelLog || Date.now() - this._lastNoActiveLevelLog > 5000) {
-        //console.warn(`[PICKUP SYSTEM] No primaryActiveGameplayLevel in gameplayManager!`);
+        //microEventManagerLog(`[PICKUP SYSTEM] No primaryActiveGameplayLevel in gameplayManager!`);
         //this._lastNoActiveLevelLog = Date.now();
       }
       return;
@@ -66,7 +76,7 @@ class MicroEventManager {
       FundamentalSystemBridge["collectiblePlacementManager"];
 
     if (!collectiblePlacementManager) {
-      // console.warn(`[PICKUP SYSTEM] CollectiblePlacementManager not found!`);
+      // microEventManagerLog(`[PICKUP SYSTEM] CollectiblePlacementManager not found!`);
       return;
     }
 
@@ -75,13 +85,13 @@ class MicroEventManager {
     const activeGameplayLevel = gameplayManager.primaryActiveGameplayLevel;
 
     if (!activeGameplayLevel) {
-      //console.warn(`[PICKUP SYSTEM] No primaryActiveGameplayLevel in gameplayManager!`);
+      //microEventManagerLog(`[PICKUP SYSTEM] No primaryActiveGameplayLevel in gameplayManager!`);
       return;
     }
 
     // Update CollectiblePlacementManager's reference to match
     if (collectiblePlacementManager.activeGameplayLevel !== activeGameplayLevel) {
-      //console.log(`[PICKUP SYSTEM] Updating CollectiblePlacementManager activeGameplayLevel reference`);
+      //microEventManagerLog(`[PICKUP SYSTEM] Updating CollectiblePlacementManager activeGameplayLevel reference`);
       collectiblePlacementManager.activeGameplayLevel = activeGameplayLevel;
     }
 
@@ -101,7 +111,7 @@ class MicroEventManager {
         // This must happen BEFORE any processing to prevent race conditions
         if (microEvent.microEventCompletionStatus === false) {
           microEvent.markAsCompleted();
-          //console.log(`[PICKUP] Pickup detected! Event: ${microEvent.microEventNickname}, Value: ${microEvent.microEventValue}`);
+          //microEventManagerLog(`[PICKUP] Pickup detected! Event: ${microEvent.microEventNickname}, Value: ${microEvent.microEventValue}`);
           this.processSuccessfulPickup(microEvent);
         }
       }
@@ -124,7 +134,7 @@ class MicroEventManager {
         if (microEvent.microEventCompletionStatus === false) {
           microEvent.markAsCompleted();
           microEvent.hasTriggeredThisMovement = true; // Flag: hit during this movement
-          console.log(`[DAMAGE] ⚠ Spike hit! ${microEvent.microEventNickname} - flagged for this movement`);
+          microEventManagerLog(`[DAMAGE] ⚠ Spike hit! ${microEvent.microEventNickname} - flagged for this movement`);
           this.processSuccessfulDamage(microEvent);
         }
       }
@@ -138,9 +148,9 @@ class MicroEventManager {
       microEvent.markAsCompleted();
     }
 
-    //console.log(`[PICKUP] Processing pickup for: ${microEvent.microEventNickname}`);
-    //console.log(`[PICKUP] PositionedObject exists:`, !!microEvent.microEventPositionedObject);
-    //console.log(`[PICKUP] Model exists:`, !!microEvent.microEventPositionedObject?.model);
+    //microEventManagerLog(`[PICKUP] Processing pickup for: ${microEvent.microEventNickname}`);
+    //microEventManagerLog(`[PICKUP] PositionedObject exists:`, !!microEvent.microEventPositionedObject);
+    //microEventManagerLog(`[PICKUP] Model exists:`, !!microEvent.microEventPositionedObject?.model);
 
     // Record pickup position for replay
     const movementTracker = FundamentalSystemBridge["movementTracker"];
@@ -150,9 +160,11 @@ class MicroEventManager {
 
     SoundEffectsManager.playSound("stardustAbsorptionSizzle");
 
-    //console.log(`[PICKUP] Calling disposeModel()...`);
+    // Hide the model (disposeModel doesn't actually dispose - just sets invisible)
+    // This allows the replay manager to restore visibility later
+    //microEventManagerLog(`[PICKUP] Hiding model (setting invisible)...`);
     microEvent.microEventPositionedObject.disposeModel();
-    //console.log(`[PICKUP] disposeModel() completed. Model is now:`, microEvent.microEventPositionedObject.model);
+    //microEventManagerLog(`[PICKUP] Model hidden. Can be restored for replay.`);
 
     let pickupOccurrence =
       CollectibleOccurrenceFactory.convertMicroEventToOccurrence(microEvent);
@@ -160,7 +172,7 @@ class MicroEventManager {
     FundamentalSystemBridge[
       "specialOccurrenceManager"
     ].processPickupOccurrence(pickupOccurrence);
-    //console.log(`[PICKUP] Pickup processing complete. Event marked as completed.`);
+    //microEventManagerLog(`[PICKUP] Pickup processing complete. Event marked as completed.`);
   }
 
   processSuccessfulDamage(microEvent) {
@@ -169,7 +181,7 @@ class MicroEventManager {
       microEvent.markAsCompleted();
     }
 
-    console.log(`[DAMAGE] ⚔ Processing damage for: ${microEvent.microEventNickname}`);
+    microEventManagerLog(`[DAMAGE] ⚔ Processing damage for: ${microEvent.microEventNickname}`);
 
     // Record damage position for replay
     const movementTracker = FundamentalSystemBridge["movementTracker"];
@@ -187,7 +199,7 @@ class MicroEventManager {
     FundamentalSystemBridge[
       "specialOccurrenceManager"
     ].processDamageOccurrence(damageOccurrence);
-    console.log(`[DAMAGE] ✓ Damage processing complete. Event marked as completed.`);
+    microEventManagerLog(`[DAMAGE] ✓ Damage processing complete. Event marked as completed.`);
   }
 
   /**
@@ -221,7 +233,7 @@ class MicroEventManager {
       microEvent.markAsIncomplete(); // Allow it to be triggered again
     });
 
-    console.log(`[DAMAGE] ♻ Reset ${damageEvents.length} spike trap flags for new movement`);
+    microEventManagerLog(`[DAMAGE] ♻ Reset ${damageEvents.length} spike trap flags for new movement`);
   }
 
   prepareAndRegisterMicroEventsForLevel(levelDataComposite) {
@@ -258,16 +270,16 @@ class MicroEventManager {
   addNewMicroEventToLevel(levelDataComposite, microEventToAdd) {
     const idToAddTo = levelDataComposite.levelHeaderData.levelId;
 
-    //console.log(`[MICROEVENT REGISTRATION] Adding microevent to levelId: ${idToAddTo}`);
-    //console.log(`[MICROEVENT REGISTRATION] Event: ${microEventToAdd.microEventNickname}, Category: ${microEventToAdd.microEventCategory}`);
+    //microEventManagerLog(`[MICROEVENT REGISTRATION] Adding microevent to levelId: ${idToAddTo}`);
+    //microEventManagerLog(`[MICROEVENT REGISTRATION] Event: ${microEventToAdd.microEventNickname}, Category: ${microEventToAdd.microEventCategory}`);
 
     if (this.gameplayLevelToMicroEventsMap[idToAddTo]) {
       this.gameplayLevelToMicroEventsMap[idToAddTo].push(microEventToAdd);
-      // console.log(`[MICROEVENT REGISTRATION] Added to existing array. Total events for ${idToAddTo}: ${this.gameplayLevelToMicroEventsMap[idToAddTo].length}`);
+      // microEventManagerLog(`[MICROEVENT REGISTRATION] Added to existing array. Total events for ${idToAddTo}: ${this.gameplayLevelToMicroEventsMap[idToAddTo].length}`);
     } else {
       this.gameplayLevelToMicroEventsMap[idToAddTo] = [];
       this.gameplayLevelToMicroEventsMap[idToAddTo].push(microEventToAdd);
-      //  console.log(`[MICROEVENT REGISTRATION] Created new array for levelId: ${idToAddTo}`);
+      //  microEventManagerLog(`[MICROEVENT REGISTRATION] Created new array for levelId: ${idToAddTo}`);
     }
   }
   // Filter events by category.

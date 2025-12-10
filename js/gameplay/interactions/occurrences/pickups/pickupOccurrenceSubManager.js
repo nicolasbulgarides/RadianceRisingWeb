@@ -1,7 +1,36 @@
+// Global flag to disable pickup occurrence logging (set to false to enable logging)
+const PICKUP_OCCURRENCE_LOGGING_ENABLED = false;
+
+// Helper function for conditional pickup occurrence logging
+function pickupOccurrenceLog(...args) {
+  if (PICKUP_OCCURRENCE_LOGGING_ENABLED) {
+    console.log(...args);
+  }
+}
+
+// Pre-cached particle texture to avoid loading delays
+let cachedParticleTexture = null;
+
 class PickupOccurrenceSubManager {
   constructor() {
     this.stardustPickupCount = 0;
     this.currentExperience = 0; // Fallback experience tracker if the global tracker is unavailable
+  }
+
+  /**
+   * Ensures the particle texture is loaded and cached
+   * @param {BABYLON.Scene} scene - The scene to load texture into
+   */
+  ensureParticleTextureLoaded(scene) {
+    if (!cachedParticleTexture) {
+      if (!scene) {
+        console.error("[EXPLOSION] ✗ Cannot load texture - no scene available!");
+        return null;
+      }
+      cachedParticleTexture = new BABYLON.Texture("https://assets.babylonjs.com/textures/flare.png", scene);
+      console.log("[EXPLOSION] ✓ Pre-loaded particle texture for instant explosions");
+    }
+    return cachedParticleTexture;
   }
 
   /**
@@ -24,7 +53,7 @@ class PickupOccurrenceSubManager {
     let occurrenceHeader = pickupOccurrence.occurrenceHeader;
     let occurrenceId = occurrenceHeader.occurrenceId;
 
-    //console.log(`[PICKUP] processPickupOccurrence called with occurrenceId: ${occurrenceId}`);
+    //pickupOccurrenceLog(`[PICKUP] processPickupOccurrence called with occurrenceId: ${occurrenceId}`);
 
     if (occurrenceId === "mangoPickupOccurrence") {
       this.processBasicFruitPickup(pickupOccurrence, "mango");
@@ -42,7 +71,7 @@ class PickupOccurrenceSubManager {
       });
       processedSuccessfully = true;
     } else {
-      console.warn(`[PICKUP] Unknown occurrenceId: ${occurrenceId}`);
+      pickupOccurrenceLog(`[PICKUP] Unknown occurrenceId: ${occurrenceId}`);
     }
 
     return processedSuccessfully;
@@ -108,7 +137,7 @@ class PickupOccurrenceSubManager {
   async processStardustPickup(pickupOccurrence) {
     // Increment pickup count
     this.stardustPickupCount++;
-    //  console.log(`[PICKUP] Stardust pickup #${this.stardustPickupCount} processed`);
+    //  pickupOccurrenceLog(`[PICKUP] Stardust pickup #${this.stardustPickupCount} processed`);
 
     // Add 1 experience for each stardust pickup
     this.addExperienceToPlayer(1);
@@ -121,12 +150,12 @@ class PickupOccurrenceSubManager {
       const gameplayManager = FundamentalSystemBridge["gameplayManagerComposite"];
       if (gameplayManager?.primaryActiveGameplayLevel?.hostingScene) {
         scene = gameplayManager.primaryActiveGameplayLevel.hostingScene;
-        // console.log(`[PICKUP] Got scene from activeGameplayLevel.hostingScene`);
+        // pickupOccurrenceLog(`[PICKUP] Got scene from activeGameplayLevel.hostingScene`);
       }
     }
 
     if (!scene) {
-      //console.warn(`[PICKUP] Cannot play pickup sound: scene not found (pickup count: ${this.stardustPickupCount})`);
+      //pickupOccurrenceLog(`[PICKUP] Cannot play pickup sound: scene not found (pickup count: ${this.stardustPickupCount})`);
       // Don't return early - we still want to track the pickup count
     }
 
@@ -149,22 +178,26 @@ class PickupOccurrenceSubManager {
     if (scene) {
       try {
         await SoundEffectsManager.playSound(soundName, scene);
-        ////console.log(`[PICKUP] Playing sound: ${soundName} for pickup #${this.stardustPickupCount}`);
+        ////pickupOccurrenceLog(`[PICKUP] Playing sound: ${soundName} for pickup #${this.stardustPickupCount}`);
       } catch (error) {
         // console.error(`[PICKUP] Error playing sound ${soundName}:`, error);
       }
     }
+
+    // NOTE: Explosion effects are now handled exclusively by the PredictiveExplosionManager
+    // This ensures explosions trigger at the perfect timing (0.25 units into tile) rather than
+    // after the pickup is processed. No explosion code needed here.
 
     // If this is the 4th pickup, trigger explosion effect, add 4 more experience, and play "endOfLevelPerfect" immediately
     if (this.stardustPickupCount === 4) {
       // Check if player died - if so, don't trigger replay
       const levelResetHandler = FundamentalSystemBridge["levelResetHandler"];
       if (levelResetHandler && levelResetHandler.hasPlayerDied()) {
-        //console.log(`[PICKUP] 4th pickup detected but player died - skipping replay`);
+        //pickupOccurrenceLog(`[PICKUP] 4th pickup detected but player died - skipping replay`);
         return; // Don't trigger completion sequence if player died
       }
 
-      // console.log(`[PICKUP] 4th pickup detected! Triggering explosion effect and playing endOfLevelPerfect sound`);
+      // pickupOccurrenceLog(`[PICKUP] 4th pickup detected! Triggering explosion effect and playing endOfLevelPerfect sound`);
 
       // Add 4 more experience for level completion
       this.addExperienceToPlayer(4);
@@ -182,7 +215,7 @@ class PickupOccurrenceSubManager {
       // Play "endOfLevelPerfect" sound immediately (no delay)
       try {
         await SoundEffectsManager.playSound("endOfLevelPerfect", scene);
-        //console.log(`[PICKUP] Playing endOfLevelPerfect sound`);
+        //pickupOccurrenceLog(`[PICKUP] Playing endOfLevelPerfect sound`);
       } catch (error) {
         //console.error(`[PICKUP] Error playing endOfLevelPerfect sound:`, error);
       }
@@ -191,7 +224,7 @@ class PickupOccurrenceSubManager {
       setTimeout(async () => {
         // Double-check player didn't die during the delay
         if (levelResetHandler && levelResetHandler.hasPlayerDied()) {
-          //console.log(`[PICKUP] Player died before replay could start - aborting replay`);
+          //pickupOccurrenceLog(`[PICKUP] Player died before replay could start - aborting replay`);
           return;
         }
 
@@ -221,7 +254,7 @@ class PickupOccurrenceSubManager {
    * @param {Occurrence} pickupOccurrence - The heart pickup occurrence
    */
   async processHeartPickup(pickupOccurrence) {
-    //console.log(`[HEART] Processing heart pickup`);
+    //pickupOccurrenceLog(`[HEART] Processing heart pickup`);
 
     // Get the scene for playing sounds
     let scene = FundamentalSystemBridge["renderSceneSwapper"]?.getActiveGameLevelScene();
@@ -238,7 +271,7 @@ class PickupOccurrenceSubManager {
     if (scene) {
       try {
         await SoundEffectsManager.playSound("healthRestoration", scene);
-        //console.log(`[HEART] Playing health restoration sound`);
+        //pickupOccurrenceLog(`[HEART] Playing health restoration sound`);
       } catch (error) {
         //console.error(`[HEART] Error playing health restoration sound:`, error);
       }
@@ -248,13 +281,17 @@ class PickupOccurrenceSubManager {
     const tracker = this.getPlayerStatusTracker();
     if (tracker && tracker.healPlayer) {
       tracker.healPlayer(1);
-      //console.log(`[HEART] Player healed by 1 heart`);
+      //pickupOccurrenceLog(`[HEART] Player healed by 1 heart`);
     } else {
-      //console.warn(`[HEART] PlayerStatusTracker not available or doesn't have healPlayer method`);
+      //pickupOccurrenceLog(`[HEART] PlayerStatusTracker not available or doesn't have healPlayer method`);
     }
 
     // Update UI to reflect the healing
     this.updateHeartUI();
+
+    // NOTE: Explosion effects are now handled exclusively by the PredictiveExplosionManager
+    // This ensures explosions trigger at the perfect timing (0.25 units into tile) rather than
+    // after the pickup is processed. No explosion code needed here.
   }
 
   /**
@@ -265,13 +302,13 @@ class PickupOccurrenceSubManager {
     let occurrenceHeader = damageOccurrence.occurrenceHeader;
     let occurrenceId = occurrenceHeader.occurrenceId;
 
-    //console.log(`[DAMAGE] processDamageOccurrence called with occurrenceId: ${occurrenceId}`);
+    //pickupOccurrenceLog(`[DAMAGE] processDamageOccurrence called with occurrenceId: ${occurrenceId}`);
 
     if (occurrenceId === "spikePickupOccurrence" || occurrenceId === "damagePickupOccurrence") {
       this.processSpiketrapDamage(damageOccurrence);
       return true;
     } else {
-      console.warn(`[DAMAGE] Unknown damage occurrenceId: ${occurrenceId}`);
+      pickupOccurrenceLog(`[DAMAGE] Unknown damage occurrenceId: ${occurrenceId}`);
       return false;
     }
   }
@@ -281,7 +318,7 @@ class PickupOccurrenceSubManager {
    * @param {Occurrence} damageOccurrence - The damage occurrence
    */
   processSpiketrapDamage(damageOccurrence) {
-    console.log(`[DAMAGE OCCURRENCE] ⚔ Processing spike trap damage occurrence`);
+    pickupOccurrenceLog(`[DAMAGE OCCURRENCE] ⚔ Processing spike trap damage occurrence`);
 
     // Get the scene for playing sounds
     let scene = FundamentalSystemBridge["renderSceneSwapper"]?.getActiveGameLevelScene();
@@ -298,7 +335,7 @@ class PickupOccurrenceSubManager {
     if (scene) {
       try {
         SoundEffectsManager.playSound("magicWallBreak", scene);
-        console.log(`[DAMAGE OCCURRENCE] Playing magic wall break sound`);
+        pickupOccurrenceLog(`[DAMAGE OCCURRENCE] Playing magic wall break sound`);
       } catch (error) {
         console.error(`[DAMAGE OCCURRENCE] Error playing magic wall break sound:`, error);
       }
@@ -307,15 +344,58 @@ class PickupOccurrenceSubManager {
     // Deal 1 damage to the player
     const tracker = this.getPlayerStatusTracker();
     if (tracker && tracker.damagePlayer) {
-      console.log(`[DAMAGE OCCURRENCE] Calling tracker.damagePlayer(1)...`);
+      pickupOccurrenceLog(`[DAMAGE OCCURRENCE] Calling tracker.damagePlayer(1)...`);
       const resultingHealth = tracker.damagePlayer(1);
-      console.log(`[DAMAGE OCCURRENCE] ✓ Player damaged. Resulting health: ${resultingHealth}`);
+      pickupOccurrenceLog(`[DAMAGE OCCURRENCE] ✓ Player damaged. Resulting health: ${resultingHealth}`);
     } else {
       console.error(`[DAMAGE OCCURRENCE] ✗ PlayerStatusTracker not available or doesn't have damagePlayer method`);
     }
 
     // Update UI to reflect the damage
     this.updateHeartUI();
+
+    // NOTE: Explosion effects are now handled exclusively by the PredictiveExplosionManager
+    // This ensures explosions trigger at the perfect timing (0.25 units into tile) rather than
+    // after the damage is processed. No explosion code needed here.
+  }
+
+  /**
+   * Triggers a damage explosion effect at a specific position (red/orange burst)
+   * NOTE: This is a wrapper that delegates to PredictiveExplosionManager
+   * @param {BABYLON.Vector3} position - The position for the damage explosion
+   * @param {BABYLON.Scene} scene - The scene
+   */
+  async triggerDamageExplosion(position, scene) {
+    const predictiveManager = FundamentalSystemBridge["predictiveExplosionManager"];
+    if (predictiveManager) {
+      return predictiveManager.createDamageExplosion(position, scene);
+    }
+  }
+
+  /**
+   * Triggers a stardust explosion effect at a specific position (blue/purple burst)
+   * NOTE: This is a wrapper that delegates to PredictiveExplosionManager
+   * @param {BABYLON.Vector3} position - The position for the explosion
+   * @param {BABYLON.Scene} scene - The scene
+   */
+  async triggerStardustExplosion(position, scene) {
+    const predictiveManager = FundamentalSystemBridge["predictiveExplosionManager"];
+    if (predictiveManager) {
+      return predictiveManager.createStardustExplosion(position, scene);
+    }
+  }
+
+  /**
+   * Triggers a heart explosion effect at a specific position (pink burst)
+   * NOTE: This is a wrapper that delegates to PredictiveExplosionManager
+   * @param {BABYLON.Vector3} position - The position for the explosion
+   * @param {BABYLON.Scene} scene - The scene
+   */
+  async triggerHeartExplosion(position, scene) {
+    const predictiveManager = FundamentalSystemBridge["predictiveExplosionManager"];
+    if (predictiveManager) {
+      return predictiveManager.createHeartExplosion(position, scene);
+    }
   }
 
   /**

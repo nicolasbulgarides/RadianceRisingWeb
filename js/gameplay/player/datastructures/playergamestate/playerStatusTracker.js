@@ -1,3 +1,13 @@
+// Global flag to disable player status tracker logging (set to false to enable logging)
+const PLAYER_STATUS_TRACKER_LOGGING_ENABLED = false;
+
+// Helper function for conditional player status tracker logging
+function playerStatusTrackerLog(...args) {
+    if (PLAYER_STATUS_TRACKER_LOGGING_ENABLED) {
+        console.log(...args);
+    }
+}
+
 class PlayerStatusTracker {
   constructor() {
     this.playerStatus = null;
@@ -142,7 +152,7 @@ class PlayerStatusTracker {
       // Write new health
       this.setCurrentHealth(newHealth);
 
-      console.log(`[DAMAGE] Health: ${currentHealth} → ${newHealth} (delta: -${delta})`);
+      playerStatusTrackerLog(`[DAMAGE] Health: ${currentHealth} → ${newHealth} (delta: -${delta})`);
 
       // Update UI
       this.updateHealthUI();

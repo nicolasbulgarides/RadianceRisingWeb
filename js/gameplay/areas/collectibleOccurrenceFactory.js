@@ -4,10 +4,30 @@ class CollectibleOccurrenceFactory {
       let pickupCategory = microEvent.microEventValue;
       let occurrenceFormed = this.createOccurrenceByPickupType(pickupCategory);
 
+      // Transfer location from microEvent to occurrence
+      if (microEvent.microEventLocation) {
+        occurrenceFormed.occurrenceLocation = microEvent.microEventLocation;
+      }
+
+      // Transfer preemptive explosion flag (used to prevent duplicate explosions)
+      if (microEvent.hasPreemptiveExplosion) {
+        occurrenceFormed.hasPreemptiveExplosion = true;
+      }
+
       return occurrenceFormed;
     } else if (microEvent.microEventCategory === "damage") {
       let damageType = microEvent.microEventValue;
       let occurrenceFormed = this.createOccurrenceByDamageType(damageType);
+
+      // Transfer location from microEvent to occurrence
+      if (microEvent.microEventLocation) {
+        occurrenceFormed.occurrenceLocation = microEvent.microEventLocation;
+      }
+
+      // Transfer preemptive explosion flag (used to prevent duplicate explosions)
+      if (microEvent.hasPreemptiveExplosion) {
+        occurrenceFormed.hasPreemptiveExplosion = true;
+      }
 
       return occurrenceFormed;
     }

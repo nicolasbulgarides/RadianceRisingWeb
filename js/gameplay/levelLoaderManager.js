@@ -581,16 +581,12 @@ class LevelLoaderManager {
                 console.error(`[STARDUST CREATION] MicroEventManager not found!`);
             }
 
-            // Spawn arrival VFX/SFX to ensure effects exist on every level load
+            // Spawn arrival VFX using centralized explosion system
             try {
-                const effectGenerator = new EffectGenerator();
-                effectGenerator.explosionEffect({
-                    type: "magic",
-                    intensity: 0.4,
-                    duration: 0.8
-                }).catch(() => { /* ignore */ });
-                // Optional: hook sound effects if desired
-                // SoundEffectsManager.playSound("stardustSpawn", sceneBuilder.scene).catch(() => {});
+                const predictiveManager = FundamentalSystemBridge["predictiveExplosionManager"];
+                if (predictiveManager && sceneBuilder.scene) {
+                    predictiveManager.createSpawnExplosion(position, sceneBuilder.scene, 0.4).catch(() => { /* ignore */ });
+                }
             } catch (err) {
                 console.warn("[STARDUST CREATION] Spawn effect failed:", err);
             }

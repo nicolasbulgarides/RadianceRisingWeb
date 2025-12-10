@@ -2,6 +2,17 @@
  * AnimatedModelLoader is responsible for loading animated GLB models into the Babylon.js scene.
  * It applies transformations (position, rotation, scaling) from a PositionedObject to the loaded model.
  */
+
+// Global flag to disable animated model loader logging (set to false to enable logging)
+const ANIMATED_MODEL_LOADER_LOGGING_ENABLED = false;
+
+// Helper function for conditional animated model loader logging
+function animatedModelLog(...args) {
+  if (ANIMATED_MODEL_LOADER_LOGGING_ENABLED) {
+    console.log(...args);
+  }
+}
+
 class AnimatedModelLoader {
   constructor(scene) {
     this.scene = scene;
@@ -14,20 +25,22 @@ class AnimatedModelLoader {
    */
   loadModel(positionedObject) {
     // DEBUG: Check if this is the player model being loaded during reset
-    const isPlayerModel = positionedObject.modelId === "testPlayer" || 
-                          positionedObject.modelId === "player" ||
-                          positionedObject.modelId === "mechaSphereBlueBase" ||
-                          positionedObject.modelId?.toLowerCase().includes("player") ||
-                          positionedObject.modelId?.toLowerCase().includes("mecha");
-    
+    const isPlayerModel = positionedObject.modelId === "testPlayer" ||
+      positionedObject.modelId === "player" ||
+      positionedObject.modelId === "mechaSphereBlueBase" ||
+      positionedObject.modelId?.toLowerCase().includes("player") ||
+      positionedObject.modelId?.toLowerCase().includes("mecha");
+
     if (isPlayerModel) {
-      console.log(`[ANIMATED MODEL] ▶▶▶ Loading PLAYER model: ${positionedObject.modelId}`);
-      console.trace("[ANIMATED MODEL] Stack trace for player model load:");
-      
+      animatedModelLog(`[ANIMATED MODEL] ▶▶▶ Loading PLAYER model: ${positionedObject.modelId}`);
+      if (ANIMATED_MODEL_LOADER_LOGGING_ENABLED) {
+        console.trace("[ANIMATED MODEL] Stack trace for player model load:");
+      }
+
       // Check if we're in reset sequence
       const levelResetHandler = FundamentalSystemBridge?.["levelResetHandler"];
       if (levelResetHandler && levelResetHandler.isResetting) {
-        console.error("[ANIMATED MODEL] ⛔ BLOCKED - Cannot load player model during reset!");
+        animatedModelLog("[ANIMATED MODEL] ⛔ BLOCKED - Cannot load player model during reset!");
         return Promise.resolve(null);
       }
     }
@@ -61,11 +74,11 @@ class AnimatedModelLoader {
             });
           }
           positionedObject.setModel(root, positionedObject.modelId);
-          
+
           if (isPlayerModel) {
-            console.log(`[ANIMATED MODEL] ✓ Player model loaded at position:`, root.position);
+            animatedModelLog(`[ANIMATED MODEL] ✓ Player model loaded at position:`, root.position);
           }
-          
+
           resolve(positionedObject.model);
         })
         .catch((error) => {

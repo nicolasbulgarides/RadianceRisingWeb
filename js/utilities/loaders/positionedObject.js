@@ -1,5 +1,15 @@
 // PositionedObject.js
 
+// Global flag to disable positioned object logging (set to false to enable logging)
+const POSITIONED_OBJECT_LOGGING_ENABLED = false;
+
+// Helper function for conditional positioned object logging
+function positionedObjectLog(...args) {
+  if (POSITIONED_OBJECT_LOGGING_ENABLED) {
+    console.log(...args);
+  }
+}
+
 /**
  * PositionedObject represents an object in the scene with positional, rotational, and scaling properties.
  * It is used to link a model with transformation data and optional animations.
@@ -233,9 +243,13 @@ class PositionedObject {
 
   /**
    * Disposes of the loaded model to free up resources.
+   * NOTE: This doesn't actually dispose - it just hides the model so it can be restored later.
    */
   disposeModel() {
+    positionedObjectLog(`[POSITIONED OBJECT] Hiding model: ${this.modelId}`);
+
     if (!this.model) {
+      positionedObjectLog(`[POSITIONED OBJECT]   Model already null - nothing to hide`);
       return;
     }
 
@@ -255,12 +269,16 @@ class PositionedObject {
       meshes.push(this.model);
     }
 
+    positionedObjectLog(`[POSITIONED OBJECT]   Hiding ${meshes.length} meshes`);
+
     // Make meshes invisible instead of disposing (prevents screen flicker)
+    let hiddenCount = 0;
     meshes.forEach((mesh) => {
       if (mesh) {
         try {
           mesh.isVisible = false;
           mesh.setEnabled(false);
+          hiddenCount++;
         } catch (err) {
           console.warn("PositionedObject.disposeModel: failed to hide mesh", err);
         }
@@ -271,8 +289,61 @@ class PositionedObject {
     // This prevents the screen flicker issue. The meshes are just hidden instead.
     // Memory impact is minimal since most pickups are small objects.
 
-    // Clear reference (model still exists in scene but is invisible)
-    this.model = null;
+    // CRITICAL: Keep the model reference so the replay manager can restore visibility later
+    // DO NOT set this.model = null - we need it to restore items for replay
+    // The model is just invisible, not disposed
+    positionedObjectLog(`[POSITIONED OBJECT] ✓ Model hidden (${hiddenCount} meshes) - model reference KEPT for replay`);
+  }
+
+  /**
+   * Restores the model visibility after it was hidden by disposeModel()
+   * Used by the replay system to reset level items
+   */
+  restoreModel() {
+    positionedObjectLog(`[POSITIONED OBJECT] Attempting to restore model visibility...`);
+    positionedObjectLog(`[POSITIONED OBJECT]   Model ID: ${this.modelId}`);
+    positionedObjectLog(`[POSITIONED OBJECT]   Model exists: ${this.model ? 'YES' : 'NO'}`);
+
+    if (!this.model) {
+      positionedObjectLog(`[POSITIONED OBJECT]   ✗ Cannot restore - model reference is null!`);
+      return;
+    }
+
+    // Collect every mesh we can find
+    const meshes = [];
+    if (this.model.meshes && Array.isArray(this.model.meshes)) {
+      meshes.push(...this.model.meshes);
+      positionedObjectLog(`[POSITIONED OBJECT]   Found ${this.model.meshes.length} meshes in model.meshes array`);
+    }
+    if (typeof this.model.getChildMeshes === "function") {
+      const childMeshes = this.model.getChildMeshes();
+      if (Array.isArray(childMeshes)) {
+        meshes.push(...childMeshes);
+        positionedObjectLog(`[POSITIONED OBJECT]   Found ${childMeshes.length} child meshes`);
+      }
+    }
+    if (this.model instanceof BABYLON.Mesh || this.model instanceof BABYLON.AbstractMesh) {
+      meshes.push(this.model);
+      positionedObjectLog(`[POSITIONED OBJECT]   Model itself is a mesh`);
+    }
+
+    positionedObjectLog(`[POSITIONED OBJECT]   Total meshes to restore: ${meshes.length}`);
+
+    // Make meshes visible again
+    let restoredCount = 0;
+    meshes.forEach((mesh) => {
+      if (mesh) {
+        try {
+          mesh.isVisible = true;
+          mesh.setEnabled(true);
+          restoredCount++;
+        } catch (err) {
+          console.warn("PositionedObject.restoreModel: failed to show mesh", err);
+        }
+      }
+    });
+
+    positionedObjectLog(`[POSITIONED OBJECT] ✓ Model visibility restored for replay (${restoredCount} meshes)`);
   }
 }
 

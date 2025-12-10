@@ -26,6 +26,7 @@ class ScriptManifest {
     "/gameplay/interactions/microevents/microEventManager.js",
     "/gameplay/interactions/microevents/microEventSignal.js",
     "/gameplay/interactions/microevents/microEventFactory.js",
+    "/gameplay/interactions/predictiveExplosionManager.js",
   ];
 
   static triggerScripts = [
@@ -57,6 +58,7 @@ class ScriptManifest {
   static assetManifestScripts = [
     "/utilities/assetmanifests/assetManifest.js",
     "/utilities/assetmanifests/assetManifestOverrides.js",
+    "/utilities/assetmanifests/perspectiveShiftModelTracker.js",
     "/utilities/assetmanifests/levelProfileManifest.js",
     "/utilities/assetmanifests/uiAssetManifest.js",
     "/utilities/assetmanifests/itemIconAssetManifest.js",
@@ -188,10 +190,6 @@ class ScriptManifest {
 
   static developmentScripts = [
     "/development/playerMockInventory.js",
-    "/testtools/example/mountainPathTest.js",
-    "/gameplay/areas/generation/mountainPathVisualizer.js",
-    "/gameplay/areas/generation/mountainPathGenerator.js",
-    "/gameplay/areas/generation/mountainPuzzleLevelFactory.js",
     "/gameplay/items/item.js",
     "/gameplay/items/itemManager.js"
   ];

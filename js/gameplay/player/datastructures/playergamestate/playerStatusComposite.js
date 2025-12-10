@@ -47,6 +47,9 @@ class PlayerStatusComposite {
     this.playerInventoryBackup = null;
     this.baseMaxSpeed = baseMaxSpeed;
     this.currentMaxSpeed = baseMaxSpeed;
+
+    // Experience gain lock (used during replay to prevent XP gain)
+    this.isExperienceGainLocked = false;
   }
 
   replacePlayerMainInventory(newPlayerInventory) {
@@ -123,12 +126,34 @@ class PlayerStatusComposite {
    */
 
   addExperience(amount) {
+    // Check if experience gain is locked (during replay)
+    if (this.isExperienceGainLocked) {
+      console.log(`[XP] Experience gain is LOCKED (replay mode) - ignoring ${amount} XP`);
+      return this.currentExperience;
+    }
+
     const delta = Number(amount) || 0;
 
     // Prevent negative experience accumulation.
     this.currentExperience = Math.max(0, this.currentExperience + delta);
 
     return this.currentExperience;
+  }
+
+  /**
+   * Locks experience gain (used during replay)
+   */
+  lockExperienceGain() {
+    this.isExperienceGainLocked = true;
+    console.log(`[XP] Experience gain LOCKED (replay mode)`);
+  }
+
+  /**
+   * Unlocks experience gain (used after replay)
+   */
+  unlockExperienceGain() {
+    this.isExperienceGainLocked = false;
+    console.log(`[XP] Experience gain UNLOCKED (normal mode)`);
   }
 
   getCurrentExperience() {
@@ -157,7 +182,19 @@ class PlayerStatusComposite {
    * @param {number} amount - The amount of health to restore.
    */
   heal(amount) {
-    // TODO: Implement healing logic.
+    const delta = Number(amount) || 0;
+    this.currentHealthPoints = Math.min(this.maximumHealthPoints, this.currentHealthPoints + delta);
+    return this.currentHealthPoints;
+  }
+
+  /**
+   * Restores the player's health to maximum.
+   * @returns {number} The new current health points (equal to maximum).
+   */
+  restoreHealthToFull() {
+    this.currentHealthPoints = this.maximumHealthPoints;
+    console.log(`[PLAYER HEALTH] Health restored to full: ${this.currentHealthPoints}/${this.maximumHealthPoints}`);
+    return this.currentHealthPoints;
   }
 
   /**

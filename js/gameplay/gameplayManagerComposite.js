@@ -8,6 +8,16 @@
  *
  * It is invoked by the engine initialization sequence to kickstart gameplay initialization.
  */
+// Global flag to disable gameplay manager logging (set to false to enable logging)
+const GAMEPLAY_MANAGER_LOGGING_ENABLED = false;
+
+// Helper function for conditional gameplay manager logging
+function gameplayManagerLog(...args) {
+    if (GAMEPLAY_MANAGER_LOGGING_ENABLED) {
+        console.log(...args);
+    }
+}
+
 class GameplayManagerComposite {
   /**
    * Creates an instance of GameplayManagerComposite.
@@ -167,7 +177,7 @@ class GameplayManagerComposite {
    * @param {string} clickedDirection - The direction input from the UI click.
    */
   processAttemptedMovementFromUIClick(clickedDirection) {
-    console.log(`[MOVEMENT INPUT] ▶ Received direction: ${clickedDirection}`);
+    gameplayManagerLog(`[MOVEMENT INPUT] ▶ Received direction: ${clickedDirection}`);
 
     // Verify we have a valid level
     if (!this.primaryActiveGameplayLevel) {
@@ -183,11 +193,11 @@ class GameplayManagerComposite {
       return;
     }
 
-    console.log(`[MOVEMENT INPUT] Player found:`, currentPlayer);
+    gameplayManagerLog(`[MOVEMENT INPUT] Player found:`, currentPlayer);
 
     // Check if the player can move.
     if (ValidActionChecker.canMove(currentPlayer, clickedDirection)) {
-      console.log(`[MOVEMENT INPUT] ✓ Player can move ${clickedDirection}`);
+      gameplayManagerLog(`[MOVEMENT INPUT] ✓ Player can move ${clickedDirection}`);
 
       // Calculate the proposed destination based on the clicked direction.
       let destinationVector = MovementDestinationManager.getDestinationVector(
@@ -197,7 +207,7 @@ class GameplayManagerComposite {
       );
 
       if (destinationVector instanceof BABYLON.Vector3) {
-        console.log(`[MOVEMENT INPUT] Destination: (${destinationVector.x}, ${destinationVector.y}, ${destinationVector.z})`);
+        gameplayManagerLog(`[MOVEMENT INPUT] Destination: (${destinationVector.x}, ${destinationVector.y}, ${destinationVector.z})`);
 
         // IMPORTANT: Reset all spike trap flags at the START of each movement
         // This allows each spike to hit once per movement
@@ -213,17 +223,30 @@ class GameplayManagerComposite {
           movementTracker.recordMovement(clickedDirection, startPosition, destinationVector);
         }
 
+        // Predict and schedule explosions for destination tile (triggers 150ms before arrival)
+        const predictiveExplosionManager = FundamentalSystemBridge["predictiveExplosionManager"];
+        if (predictiveExplosionManager) {
+          const startPosition = currentPlayer.playerMovementManager.getPositionVector();
+          const speed = currentPlayer.playerStatus.currentMaxSpeed;
+          predictiveExplosionManager.predictAndScheduleExplosions(
+            currentPlayer,
+            startPosition,
+            destinationVector,
+            speed
+          );
+        }
+
         currentPlayer.playerMovementManager.setDestinationAndBeginMovement(
           destinationVector,
           currentPlayer // Set the destination and start movement for the player.
         );
 
-        console.log(`[MOVEMENT INPUT] ✓ Movement started`);
+        gameplayManagerLog(`[MOVEMENT INPUT] ✓ Movement started`);
       } else {
-        console.warn(`[MOVEMENT INPUT] ✗ Invalid destination vector`);
+        gameplayManagerLog(`[MOVEMENT INPUT] ✗ Invalid destination vector`);
       }
     } else {
-      console.warn(`[MOVEMENT INPUT] ✗ Player cannot move ${clickedDirection}`);
+      gameplayManagerLog(`[MOVEMENT INPUT] ✗ Player cannot move ${clickedDirection}`);
     }
   }
 

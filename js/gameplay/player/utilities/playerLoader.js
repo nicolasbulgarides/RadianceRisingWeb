@@ -4,6 +4,17 @@
  * This class is responsible for loading a player's model and initializing its position.
  * It creates a positioned object from the default configuration and assigns it to the player.
  */
+
+// Global flag to disable player loader logging (set to false to enable logging)
+const PLAYER_LOADER_LOGGING_ENABLED = false;
+
+// Helper function for conditional player loader logging
+function playerLoaderLog(...args) {
+    if (PLAYER_LOADER_LOGGING_ENABLED) {
+        console.log(...args);
+    }
+}
+
 class PlayerLoader {
   /**
    * Loads the player's model and assigns its starting position.
@@ -35,13 +46,15 @@ class PlayerLoader {
    */
   static getFreshPlayer(levelData) {
     // DEBUG: Log when a new player is being created
-    console.log("[PLAYER LOADER] ▶▶▶ getFreshPlayer called - creating NEW player!");
-    console.trace("[PLAYER LOADER] Stack trace:");
+    playerLoaderLog("[PLAYER LOADER] ▶▶▶ getFreshPlayer called - creating NEW player!");
+    if (PLAYER_LOADER_LOGGING_ENABLED) {
+        console.trace("[PLAYER LOADER] Stack trace:");
+    }
 
     // Check if we're in a death/reset sequence - if so, block player creation
     const levelResetHandler = FundamentalSystemBridge?.["levelResetHandler"];
     if (levelResetHandler && levelResetHandler.isResetting) {
-      console.error("[PLAYER LOADER] ⛔ BLOCKED - Cannot create new player during reset sequence!");
+      playerLoaderLog("[PLAYER LOADER] ⛔ BLOCKED - Cannot create new player during reset sequence!");
       return null;
     }
 

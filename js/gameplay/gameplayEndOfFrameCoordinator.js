@@ -17,6 +17,9 @@ class GameplayEndOfFrameCoordinator {
       });
 
     this.checkMicroEventsForTriggered();
+    
+    // Process replay events if replay is active
+    this.checkReplayEvents();
   }
 
   //to do, paramaterize the test level
@@ -28,6 +31,23 @@ class GameplayEndOfFrameCoordinator {
       return;
     } else {
       microEventManager.onFrameCheckMicroEventsForTriggered();
+    }
+  }
+
+  /**
+   * Check and process replay events if a replay is active
+   * This allows replay to use the same frame tick as normal gameplay,
+   * preventing desync on devices with varying frame rates
+   */
+  static checkReplayEvents() {
+    let replayManager = FundamentalSystemBridge["levelReplayManager"];
+    if (!replayManager) {
+      return;
+    }
+    
+    // Call the replay manager's end-of-frame tick if replay is active
+    if (replayManager.isReplaying) {
+      replayManager.onReplayEndOfFrameTick();
     }
   }
 }

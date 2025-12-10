@@ -4,6 +4,17 @@
  * Manages lighting for the Babylon.js scene.
  * Creates a single directional light (sun) shining from above.
  */
+
+// Global flag to disable lighting logging (set to false to enable logging)
+const LIGHTING_LOGGING_ENABLED = false;
+
+// Helper function for conditional lighting logging
+function lightingLog(...args) {
+  if (LIGHTING_LOGGING_ENABLED) {
+    console.log(...args);
+  }
+}
+
 class LightingManager {
   /**
    * Creates a new LightingManager instance.
@@ -24,7 +35,7 @@ class LightingManager {
 
     // Dispose existing light if any
     if (this.directionalLight) {
-      console.log("[LIGHTING] Disposing existing directional light before creating new one");
+      lightingLog("[LIGHTING] Disposing existing directional light before creating new one");
       this.directionalLight.dispose();
     }
 
@@ -42,8 +53,8 @@ class LightingManager {
     this.directionalLight.diffuse = new BABYLON.Color3(1, 1, 1);
     this.directionalLight.specular = new BABYLON.Color3(1, 1, 1);
 
-    console.log(`[LIGHTING] Created SunLight with intensity ${this.directionalLight.intensity}`);
-    console.log(`[LIGHTING] Scene now has ${sceneToAddLightsTo.lights.length} total light(s)`);
+    lightingLog(`[LIGHTING] Created SunLight with intensity ${this.directionalLight.intensity}`);
+    lightingLog(`[LIGHTING] Scene now has ${sceneToAddLightsTo.lights.length} total light(s)`);
   }
 
   dispose() {
