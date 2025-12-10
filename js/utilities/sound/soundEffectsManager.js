@@ -2,6 +2,17 @@
  * SoundEffectsManager loads and manages sound effect assets.
  * It maintains a map of sound names to BABYLON.Sound instances and provides methods to play sounds.
  */
+
+// Global flag to enable sound effects manager logging (set to true for debugging)
+const SOUND_EFFECTS_MANAGER_LOGGING_ENABLED = true;
+
+// Helper function for conditional sound effects manager logging
+function soundEffectsLog(...args) {
+  if (SOUND_EFFECTS_MANAGER_LOGGING_ENABLED) {
+    console.log(...args);
+  }
+}
+
 class SoundEffectsManager {
   static sounds = new Map();
   static soundIndex = 0;
@@ -85,7 +96,7 @@ class SoundEffectsManager {
       const results = await Promise.allSettled(loadPromises);
       const successful = results.filter(r => r.status === 'fulfilled').length;
       const failed = results.filter(r => r.status === 'rejected').length;
-      // console.log(`[SOUND] Initial sound loading complete: ${successful} succeeded, ${failed} failed`);
+      soundEffectsLog(`[SOUND] Initial sound loading complete: ${successful} succeeded, ${failed} failed`);
     } catch (error) {
       // console.error("[SOUND] Error during initial sound loading:", error);
     }
@@ -146,13 +157,15 @@ class SoundEffectsManager {
     }
 
     return new Promise((resolve, reject) => {
-      // Strip _0 or _1 suffix to get the base sound name
-      const baseSoundName = soundName.replace(/_[01]$/, '');
-      const url = SoundAssetManifest.getSoundUrl(baseSoundName);
-      const volume = SoundAssetManifest.getSoundVolume(baseSoundName);
+      // Check if sound name with suffix exists in manifest first
+      // If it does, use the full name; otherwise strip the suffix
+      const hasSuffixInManifest = SoundAssetManifest.allSounds.hasOwnProperty(soundName);
+      const lookupName = hasSuffixInManifest ? soundName : soundName.replace(/_[01]$/, '');
+      const url = SoundAssetManifest.getSoundUrl(lookupName);
+      const volume = SoundAssetManifest.getSoundVolume(lookupName);
 
       //console.log(`[SOUND] Loading sound: ${soundName}, scene has _audioEngine: ${!!scene?._audioEngine}`);
-      // console.log(`[SOUND] Sound URL: ${url}`);
+      soundEffectsLog(`[SOUND] Sound URL: ${url}`);
 
       // WORKAROUND: Check if ready callback fires within timeout
       let callbackFired = false;
@@ -164,7 +177,7 @@ class SoundEffectsManager {
         () => {
           // Success callback - sound loaded successfully
           callbackFired = true;
-          // console.log(`[SOUND] ✓ Sound ready: ${soundName}`);
+          soundEffectsLog(`[SOUND] ✓ Sound ready: ${soundName}`);
           sound.setVolume(volume);
           SoundEffectsManager.sounds.set(soundName, sound);
           resolve();
@@ -210,7 +223,7 @@ class SoundEffectsManager {
       // Diagnostic: Check what audio source Babylon created
       setTimeout(() => {
         /** 
-        console.log(`[SOUND] Diagnostic for ${soundName}:`, {
+        soundEffectsLog(`[SOUND] Diagnostic for ${soundName}:`, {
           hasAudioBuffer: !!sound._audioBuffer,
           hasHtmlAudio: !!sound._htmlAudioElement,
           streaming: sound._streaming,
@@ -221,7 +234,7 @@ class SoundEffectsManager {
       // WORKAROUND: If Babylon doesn't create audio source, try manual fallback after 2 seconds
       setTimeout(() => {
         if (!callbackFired) {
-          //  console.warn(`[SOUND] Ready callback didn't fire for ${soundName} - trying manual HTML5 audio`);
+          //  soundEffectsLog(`[SOUND] Ready callback didn't fire for ${soundName} - trying manual HTML5 audio`);
           try {
             // Create HTML audio element manually as fallback
             const audio = new Audio(url);
@@ -231,7 +244,7 @@ class SoundEffectsManager {
 
             // Wait for it to be loaded
             audio.addEventListener('canplaythrough', () => {
-              // console.log(`[SOUND] ✓ Manual audio loaded for ${soundName}`);
+              soundEffectsLog(`[SOUND] ✓ Manual audio loaded for ${soundName}`);
               // Store the audio element as a pseudo-sound object
               const pseudoSound = {
                 _manualAudio: audio,
@@ -377,7 +390,7 @@ class SoundEffectsManager {
     if (scene && engine?.audioEngine) {
       if (!scene._audioEngine) {
         scene._audioEngine = engine.audioEngine;
-        // console.log(`[SOUND] Assigned audio engine to scene for ${soundName}`);
+        soundEffectsLog(`[SOUND] Assigned audio engine to scene for ${soundName}`);
       }
       if (!scene.audioEnabled) {
         scene.audioEnabled = true;
@@ -397,7 +410,7 @@ class SoundEffectsManager {
 
     const templateSound = SoundEffectsManager.sounds.get(soundName);
     if (templateSound) {
-      // console.log(`[SOUND] Playing sound: ${soundName}`);
+      soundEffectsLog(`[SOUND] Playing sound: ${soundName}`);
 
       // For pickup sequence sounds, prevent the same sound from playing multiple times in quick succession
       // This prevents duplicate playback when the same pickup is processed multiple times
@@ -441,15 +454,18 @@ class SoundEffectsManager {
         }
 
         // Create a new instance for concurrent playback
-        const url = SoundAssetManifest.getSoundUrl(soundName);
-        const volume = SoundAssetManifest.getSoundVolume(soundName);
+        // Check if sound name with suffix exists in manifest first
+        const hasSuffixInManifest = SoundAssetManifest.allSounds.hasOwnProperty(soundName);
+        const lookupName = hasSuffixInManifest ? soundName : soundName.replace(/_[01]$/, '');
+        const url = SoundAssetManifest.getSoundUrl(lookupName);
+        const volume = SoundAssetManifest.getSoundVolume(lookupName);
 
         const soundInstance = new BABYLON.Sound(
           `${soundName}_${Date.now()}_${Math.random()}`,
           url,
           scene,
           () => {
-            // console.log(`[SOUND] ✓ Concurrent instance ready for: ${soundName}`);
+            soundEffectsLog(`[SOUND] ✓ Concurrent instance ready for: ${soundName}`);
             soundInstance.setVolume(volume);
             soundInstance.play();
           },
@@ -466,13 +482,13 @@ class SoundEffectsManager {
         // Sound is not playing, we can safely use the existing instance
         try {
           templateSound.play();
-          // console.log(`[SOUND] ✓ Sound played: ${soundName}`);
+          soundEffectsLog(`[SOUND] ✓ Sound played: ${soundName}`);
         } catch (playError) {
           console.error(`[SOUND] ✗ Failed to play sound ${soundName}:`, playError);
         }
       }
     } else {
-      console.warn(`[SOUND] ✗ Sound not found or failed to load: ${soundName}`);
+      soundEffectsLog(`[SOUND] ✗ Sound not found or failed to load: ${soundName}`);
     }
   }
 
@@ -484,7 +500,7 @@ class SoundEffectsManager {
   static playSoundDirect(soundName) {
     const sound = SoundEffectsManager.sounds.get(soundName);
     if (sound) {
-      // console.log(`[SOUND] Playing direct: ${soundName}`);
+      soundEffectsLog(`[SOUND] Playing direct: ${soundName}`);
       try {
         // Reset to beginning if it's an HTML5 audio element
         if (sound._htmlAudioElement) {
@@ -497,7 +513,7 @@ class SoundEffectsManager {
         console.error(`[SOUND] ✗ Failed to play direct sound ${soundName}:`, playError);
       }
     } else {
-      console.warn(`[SOUND] ✗ Direct sound not found (not preloaded?): ${soundName}`);
+      soundEffectsLog(`[SOUND] ✗ Direct sound not found (not preloaded?): ${soundName}`);
     }
   }
 
@@ -508,7 +524,7 @@ class SoundEffectsManager {
   static playSoundLoopedDirect(soundName) {
     const sound = SoundEffectsManager.sounds.get(soundName);
     if (sound) {
-      // console.log(`[SOUND] Playing looped direct: ${soundName}`);
+      soundEffectsLog(`[SOUND] Playing looped direct: ${soundName}`);
       try {
         // Always stop first to ensure clean state
         try {
@@ -526,12 +542,12 @@ class SoundEffectsManager {
 
         sound.loop = true;
         sound.play();
-        // console.log(`[SOUND] ✓ Looped direct sound playing: ${soundName}`);
+        soundEffectsLog(`[SOUND] ✓ Looped direct sound playing: ${soundName}`);
       } catch (playError) {
         console.error(`[SOUND] ✗ Failed to play looped direct sound ${soundName}:`, playError);
       }
     } else {
-      console.warn(`[SOUND] ✗ Looped direct sound not found (not preloaded?): ${soundName}`);
+      soundEffectsLog(`[SOUND] ✗ Looped direct sound not found (not preloaded?): ${soundName}`);
     }
   }
 
@@ -542,7 +558,7 @@ class SoundEffectsManager {
   static stopSoundDirect(soundName) {
     const sound = SoundEffectsManager.sounds.get(soundName);
     if (sound) {
-      // console.log(`[SOUND] Stopping direct: ${soundName}`);
+      soundEffectsLog(`[SOUND] Stopping direct: ${soundName}`);
       try {
         sound.stop();
         sound.loop = false;
@@ -553,7 +569,7 @@ class SoundEffectsManager {
           sound._htmlAudioElement.loop = false;
         }
       } catch (e) {
-        console.warn(`[SOUND] Error stopping direct sound ${soundName}:`, e);
+        soundEffectsLog(`[SOUND] Error stopping direct sound ${soundName}:`, e);
       }
     }
   }
@@ -565,14 +581,14 @@ class SoundEffectsManager {
   static stopSound(soundName) {
     const sound = SoundEffectsManager.sounds.get(soundName);
     if (sound) {
-      // console.log(`[SOUND] Stopping sound: ${soundName}, isPlaying: ${sound.isPlaying}`);
+      soundEffectsLog(`[SOUND] Stopping sound: ${soundName}, isPlaying: ${sound.isPlaying}`);
 
       // Always call stop() regardless of isPlaying flag, as the flag might be stale
       try {
         sound.stop();
-        // console.log(`[SOUND] ✓ Sound stopped: ${soundName}`);
+        soundEffectsLog(`[SOUND] ✓ Sound stopped: ${soundName}`);
       } catch (e) {
-        console.warn(`[SOUND] Error stopping sound ${soundName}:`, e);
+        soundEffectsLog(`[SOUND] Error stopping sound ${soundName}:`, e);
       }
 
       // Reset loop property so the sound can be reused normally
@@ -585,7 +601,7 @@ class SoundEffectsManager {
         sound._htmlAudioElement.loop = false;
       }
     } else {
-      console.warn(`[SOUND] ✗ Cannot stop sound - not found: ${soundName}`);
+      soundEffectsLog(`[SOUND] ✗ Cannot stop sound - not found: ${soundName}`);
     }
   }
 
@@ -611,7 +627,7 @@ class SoundEffectsManager {
     if (scene && engine?.audioEngine) {
       if (!scene._audioEngine) {
         scene._audioEngine = engine.audioEngine;
-        // console.log(`[SOUND] Assigned audio engine to scene for ${soundName}`);
+        soundEffectsLog(`[SOUND] Assigned audio engine to scene for ${soundName}`);
       }
       if (!scene.audioEnabled) {
         scene.audioEnabled = true;
@@ -631,7 +647,7 @@ class SoundEffectsManager {
 
     const templateSound = SoundEffectsManager.sounds.get(soundName);
     if (templateSound) {
-      // console.log(`[SOUND] Playing looped sound: ${soundName}, isPlaying: ${templateSound.isPlaying}`);
+      soundEffectsLog(`[SOUND] Playing looped sound: ${soundName}, isPlaying: ${templateSound.isPlaying}`);
 
       // Always stop first to ensure clean state
       try {
@@ -655,12 +671,12 @@ class SoundEffectsManager {
 
       try {
         templateSound.play();
-        //  console.log(`[SOUND] ✓ Looped sound playing: ${soundName}`);
+        //  soundEffectsLog(`[SOUND] ✓ Looped sound playing: ${soundName}`);
       } catch (playError) {
         console.error(`[SOUND] ✗ Failed to play looped sound ${soundName}:`, playError);
       }
     } else {
-      console.warn(`[SOUND] ✗ Looped sound not found or failed to load: ${soundName}`);
+      soundEffectsLog(`[SOUND] ✗ Looped sound not found or failed to load: ${soundName}`);
     }
   }
 

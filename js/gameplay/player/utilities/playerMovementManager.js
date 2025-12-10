@@ -287,8 +287,9 @@ class PlayerMovementManager {
     // Switch to the other instance for next time
     this.currentLaunchSoundIndex = this.currentLaunchSoundIndex === 0 ? 1 : 0;
 
-    // Schedule the travel loop sound to play after 2 seconds
-    // console.log("[PLAYER MOVEMENT] Scheduling travel loop in 2 seconds");
+    // Play travel loop sound immediately after launch sound for perfect sync
+    // Use a minimal delay just to let the launch sound start first (or 0 for simultaneous)
+    // console.log("[PLAYER MOVEMENT] Scheduling travel loop immediately");
     this.travelLoopTimeoutId = setTimeout(() => {
       // console.log("[PLAYER MOVEMENT] Travel loop timeout fired! movementActive:", this.movementActive);
       if (this.movementActive) {
@@ -301,7 +302,7 @@ class PlayerMovementManager {
         // Switch to the other instance for next time
         this.currentLoopSoundIndex = this.currentLoopSoundIndex === 0 ? 1 : 0;
       }
-    }, 2000);
+    }, 0);
   }
 
   /**

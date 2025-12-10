@@ -16,10 +16,56 @@ class ScriptInitializer {
   constructor(canvas, runLocally = true) {
     this.canvas = canvas;
     this.runLocally = runLocally;
+    // Disable console logging on mobile devices for performance
+    this.disableLoggingOnMobile();
     // Retrieve core script URLs based on environment
     this.CORE_SCRIPTS = this.getCoreScripts();
     // Begin the core initialization sequence
     this.coreInitializeSequence();
+  }
+
+  /**
+   * Detects if the device is a mobile device (iPhone or Android).
+   * @returns {boolean} True if device is mobile (iPhone or Android), false otherwise.
+   */
+  isMobileDevice() {
+    const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+
+    // Check for iPhone, iPad, iPod
+    const isIOS = /iPhone|iPad|iPod/i.test(userAgent);
+
+    // Check for Android
+    const isAndroid = /Android/i.test(userAgent);
+
+    return isIOS || isAndroid;
+  }
+
+  /**
+   * Globally disables console.log on mobile devices to prevent performance issues.
+   * Preserves console.error for critical issues only.
+   * This optimization prevents performance lag during gameplay and testing on mobile devices.
+   */
+  disableLoggingOnMobile() {
+    if (this.isMobileDevice()) {
+      // Store original console methods for potential future use
+      window._originalConsole = {
+        log: console.log,
+        debug: console.debug,
+        info: console.info,
+        trace: console.trace,
+        warn: console.warn
+      };
+
+      // Replace console.log and related methods with no-ops
+      console.log = function () { };
+      console.debug = function () { };
+      console.info = function () { };
+      console.trace = function () { };
+      console.warn = function () { };
+
+      // Only console.error remains active for critical issues
+      console.error('[MOBILE] Console logging disabled for performance optimization.');
+    }
   }
 
   /**

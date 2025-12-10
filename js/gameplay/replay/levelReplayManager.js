@@ -1047,7 +1047,7 @@ class LevelReplayManager {
 
         // Play damage sound (BEFORE damage to match normal gameplay timing)
         try {
-            await SoundEffectsManager.playSound("magicWallBreak", scene);
+            SoundEffectsManager.playSound("magicWallBreak", scene); // Fire-and-forget for immediate playback
             replayLog(`[REPLAY DAMAGE] Playing magic wall break sound`);
         } catch (error) {
             replayLog(`[REPLAY DAMAGE] Error playing magic wall break sound:`, error);
@@ -1101,7 +1101,7 @@ class LevelReplayManager {
 
             // Play healing sound
             try {
-                await SoundEffectsManager.playSound("healthRestoration", scene);
+                SoundEffectsManager.playSound("healthRestoration", scene); // Fire-and-forget for immediate playback
                 replayLog(`[REPLAY] Playing health restoration sound`);
             } catch (error) {
                 replayLog(`[REPLAY] Error playing health restoration sound:`, error);
@@ -1167,7 +1167,7 @@ class LevelReplayManager {
         }
 
         try {
-            await SoundEffectsManager.playSound(soundName, scene);
+            SoundEffectsManager.playSound(soundName, scene); // Fire-and-forget for immediate playback
             //  replayLog(`[REPLAY] Playing pickup sound: ${soundName} for pickup #${pickupCount}`);
         } catch (error) {
             //   replayLog(`[REPLAY] Error playing pickup sound:`, error);
@@ -1244,7 +1244,7 @@ class LevelReplayManager {
 
         // Play end of level sound
         try {
-            await SoundEffectsManager.playSound("endOfLevelPerfect", scene);
+            SoundEffectsManager.playSound("endOfLevelPerfect", scene); // Fire-and-forget for immediate playback
         } catch (error) {
             //  replayLog(`[REPLAY] Error playing endOfLevelPerfect sound:`, error);
         }

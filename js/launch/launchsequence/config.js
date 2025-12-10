@@ -101,6 +101,10 @@ class Config {
   static LOGGING_FORCEFULLY_ENABLED = true;
   static LOGGING_OMEGA_DISABLED_GET_WRECKED = false;
   static LOGGING_ENABLED = true;
+  
+  // Mobile performance optimizations
+  static DISABLE_CONSOLE_LOGGING_ON_MOBILE = true;
+  static HARDWARE_SCALING_LEVEL = 0.5; // 0.5 = 50% pixel density for better performance
 
   static LOGGING_COOLDOWNS_FALLBACK_DEFAULT = 10; // Default cooldown of 10s for unlisted error types.
   static LOGGING_COOLDOWNS_ABSOLUTE_OVERRIDE = 0; // 0 means no cooldown override.

@@ -177,7 +177,7 @@ class PickupOccurrenceSubManager {
     // Play the sound (with error handling)
     if (scene) {
       try {
-        await SoundEffectsManager.playSound(soundName, scene);
+        SoundEffectsManager.playSound(soundName, scene); // Fire-and-forget for immediate playback
         ////pickupOccurrenceLog(`[PICKUP] Playing sound: ${soundName} for pickup #${this.stardustPickupCount}`);
       } catch (error) {
         // console.error(`[PICKUP] Error playing sound ${soundName}:`, error);
@@ -214,7 +214,7 @@ class PickupOccurrenceSubManager {
 
       // Play "endOfLevelPerfect" sound immediately (no delay)
       try {
-        await SoundEffectsManager.playSound("endOfLevelPerfect", scene);
+        SoundEffectsManager.playSound("endOfLevelPerfect", scene); // Fire-and-forget for immediate playback
         //pickupOccurrenceLog(`[PICKUP] Playing endOfLevelPerfect sound`);
       } catch (error) {
         //console.error(`[PICKUP] Error playing endOfLevelPerfect sound:`, error);
@@ -270,7 +270,7 @@ class PickupOccurrenceSubManager {
     // Play healing sound effect
     if (scene) {
       try {
-        await SoundEffectsManager.playSound("healthRestoration", scene);
+        SoundEffectsManager.playSound("healthRestoration", scene); // Fire-and-forget for immediate playback
         //pickupOccurrenceLog(`[HEART] Playing health restoration sound`);
       } catch (error) {
         //console.error(`[HEART] Error playing health restoration sound:`, error);
@@ -331,10 +331,10 @@ class PickupOccurrenceSubManager {
       }
     }
 
-    // Play damage sound effect
+    // Play damage sound effect immediately
     if (scene) {
       try {
-        SoundEffectsManager.playSound("magicWallBreak", scene);
+        SoundEffectsManager.playSound("magicWallBreak", scene); // Fire-and-forget for immediate playback
         pickupOccurrenceLog(`[DAMAGE OCCURRENCE] Playing magic wall break sound`);
       } catch (error) {
         console.error(`[DAMAGE OCCURRENCE] Error playing magic wall break sound:`, error);

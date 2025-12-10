@@ -105,7 +105,7 @@ class LevelResetHandler {
         }
 
         try {
-            await SoundEffectsManager.playSound("characterFailure", scene);
+            SoundEffectsManager.playSound("characterFailure", scene); // Fire-and-forget for immediate playback
             //console.log("[DEATH] Played characterFailure sound");
         } catch (error) {
             console.error("[DEATH] Error playing death sound:", error);

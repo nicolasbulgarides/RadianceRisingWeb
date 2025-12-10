@@ -240,7 +240,7 @@ class MusicManager {
             // Create HTML audio element manually
             const audio = new Audio(songUrl);
             audio.loop = loop;
-            audio.volume = 1.0;
+            audio.volume = 0.5; // Default music volume set to 50%
             audio.crossOrigin = "anonymous";
 
             // Try to play it
@@ -364,8 +364,8 @@ class MusicManager {
 
             // If playing but volume is 0, try setting it
             if (isPlaying && volume === 0) {
-              console.warn("[MUSIC] Sound is playing but volume is 0! Setting to 1.0...");
-              this.currentMusic.setVolume(1.0);
+              console.warn("[MUSIC] Sound is playing but volume is 0! Setting to 0.5...");
+              this.currentMusic.setVolume(0.5);
             }
 
             if (isReady || checkCount >= 10) {
