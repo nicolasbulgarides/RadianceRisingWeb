@@ -57,21 +57,32 @@ class UISceneGeneralized extends BABYLON.Scene {
     this.advancedTexture.idealHeight = Config.IDEAL_UI_HEIGHT;
     this.advancedTexture.idealWidth = Config.IDEAL_UI_WIDTH;
     this.advancedTexture.useSmallestIdeal = true;
-    
-    // Adjust renderScale based on device DPI for optimal performance
+
+    // Adjust renderScale for optimal balance between performance and quality
+    // The key insight: UI should render at ~ideal resolution for crispness,
+    // but not multiply by device pixel ratio (that's overkill)
     const devicePixelRatio = window.devicePixelRatio || 1;
-    if (devicePixelRatio > 2) {
-      // High DPI devices (iPhone) - reduce renderScale for performance
+    const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+    const isIOS = /iPhone|iPad|iPod/i.test(userAgent);
+
+    if (isIOS) {
+      // iPhone/iPad: These have very high DPI but we render 3D at lower res
+      // UI should be crisp, so we keep it at ideal resolution (1x of ideal)
+      // This gives sharp text/icons without the performance cost of 3x rendering
       this.advancedTexture.renderScale = 1;
-      console.log('[UI] High-DPI device detected, UI renderScale set to 1');
-    } else if (devicePixelRatio > 1.5) {
-      // Mid DPI devices - balanced quality/performance
-      this.advancedTexture.renderScale = 1.5;
-      console.log('[UI] Mid-DPI device detected, UI renderScale set to 1.5');
+      console.log('[UI] iOS detected, UI renderScale set to 1 (renders at ideal resolution)');
+    } else if (devicePixelRatio >= 2.5) {
+      // High-end Android - also use 1x for performance
+      this.advancedTexture.renderScale = 1;
+      console.log('[UI] High-DPI Android detected, UI renderScale set to 1');
+    } else if (devicePixelRatio >= 1.5) {
+      // Mid-range Android - can afford a bit more quality
+      this.advancedTexture.renderScale = 1.25;
+      console.log('[UI] Mid-DPI Android detected, UI renderScale set to 1.25');
     } else {
-      // Low DPI devices - keep higher quality
-      this.advancedTexture.renderScale = 2;
-      console.log('[UI] Low-DPI device detected, UI renderScale set to 2');
+      // Low DPI devices (budget phones, older devices) - higher renderScale for quality
+      this.advancedTexture.renderScale = 1.5;
+      console.log('[UI] Low-DPI device detected, UI renderScale set to 1.5');
     }
   }
   /**
