@@ -1,181 +1,235 @@
 /**
- * ReplayGridGenerator
+ * ReplayGridGenerator - Thin Instance Implementation
  * 
- * A completely separate grid generator for the replay system.
- * Uses dedicated "B" variant tile assets (tile1B, tile3B, etc.) to ensure
- * complete isolation from the main gameplay grid's thin instances.
+ * Uses thin instances for performance with complete isolation from main grid.
  * 
- * This class mirrors GameGridGenerator's structure exactly - the only difference
- * is using the B-suffix tile assets instead of the main tile assets.
+ * Key Design Points:
+ * 1. Uses completely different tiles than main grid to avoid cache/reference conflicts
+ * 2. Main grid uses: tile1, tile3
+ * 3. Replay grid uses: tile2, tile5 (completely separate tiles)
+ * 4. Loads base meshes at (0, 0, 0) - thin instance transforms are relative to this
+ * 5. Base meshes remain visible (thin instances inherit visibility from base mesh)
+ * 6. Adds thin instances at offset positions (e.g. x=100 for offscreen replay grid)
+ * 7. Filters for renderable meshes only (must have material, skips __root__)
+ * 
+ * This ensures zero conflicts - separate tiles = separate meshes = separate thin instance buffers.
  */
 class ReplayGridGenerator {
     constructor() {
-        // MATCH MAIN GRID: Simple array to store loaded tiles directly
-        this.loadedTiles = [];
+        this.tileTypes = []; // Array of loaded tile objects (same structure as main grid's loadedTiles)
     }
 
     /**
-     * Gets the replay grid tile IDs (B-suffix variants of main grid tiles)
-     * @returns {Array<string>} Array of tile IDs for replay grid
-     */
-    static getReplayTileIds() {
-        // Use B-suffix variants of the same tiles as main grid
-        // Main grid uses: ["tile1", "tile3", "tile4", "tile6"]
-        // Replay uses:    ["tile1B", "tile3B", "tile4B", "tile6B"]
-        return ["tile1B", "tile3B", "tile4B", "tile6B"];
-    }
-
-    /**
-     * Loads tile models for the replay grid.
-     * Mirrors GameGridGenerator.loadTilesModels() exactly, using B-suffix tile assets.
-     * @param {BABYLON.Scene} scene - The scene to load into (unused, kept for API compatibility)
+     * Loads base tile meshes for thin instancing
+     * 
+     * IMPORTANT: Base meshes are loaded at (0, 0, 0) because thin instance transforms
+     * are RELATIVE to the base mesh position. The base meshes remain visible (thin
+     * instances inherit parent visibility), so there will be single base tiles at (0,0,0)
+     * plus all the thin instances at the offset positions.
+     * 
+     * Uses B-variant tiles (tile1B, tile3B, tile4B, tile6B) which point to separate
+     * .glb files (tile1CompressedB.glb, etc.) to ensure completely independent meshes
+     * with their own thin instance buffers, fully isolated from the main grid.
+     * 
      * @returns {Promise<boolean>} Success status
      */
-    async loadTiles(scene) {
-        console.log("[REPLAY GRID] Loading B-variant tiles for replay grid...");
+    async loadBaseTiles() {
+        console.log("[REPLAY GRID] Loading B-variant base tiles for thin instancing...");
 
-        // Get the scene builder - MATCH MAIN GRID
-        const relevantSceneBuilder = FundamentalSystemBridge["renderSceneSwapper"].getSceneBuilderForScene("BaseGameScene");
+        const sceneBuilder = FundamentalSystemBridge["renderSceneSwapper"]
+            .getSceneBuilderForScene("BaseGameScene");
 
-        if (!relevantSceneBuilder) {
+        if (!sceneBuilder) {
             console.error("[REPLAY GRID] SceneBuilder not found");
             return false;
         }
 
-        // Get replay tile IDs (B-suffix variants)
-        const tileIds = ReplayGridGenerator.getReplayTileIds();
-        const tileSize = 1;
+        // Use completely different tiles than main grid to avoid ANY cache/reference conflicts
+        // Main grid uses: tile1, tile3
+        // Replay grid uses: tile2, tile5 (completely separate tiles)
+        const tileIds = ["tile2", "tile5"];
+        // CRITICAL: Load at (0,0,0) - thin instance transforms are RELATIVE to this position!
+        const basePosition = new BABYLON.Vector3(0, 0, 0);
 
-        // Use a zero vector position - MATCH MAIN GRID (line 52)
-        const position = new BABYLON.Vector3(0, 0, 0);
+        this.tileTypes = [];
+        const failedTiles = [];
 
-        // Clear any existing tiles
-        this.loadedTiles = [];
-
-        // MATCH MAIN GRID: Load tiles sequentially
         for (const tileId of tileIds) {
-            // Generate the configuration for a positioned tile - MATCH MAIN GRID (lines 57-64)
+            console.log(`[REPLAY GRID] Attempting to load: ${tileId}...`);
+
+            // Create positioned object at (0,0,0) - thin instances will be relative to this
             const positionedObject = PositionedObject.getPositionedObjectQuick(
                 tileId,
-                position,
-                tileSize,
-                true, // freeze position during loading - MATCH MAIN GRID
-                false, // not interactive - MATCH MAIN GRID
-                true // clone the base model for instancing if needed - MATCH MAIN GRID
+                basePosition,
+                1,
+                false, // Don't freeze - we need to manipulate it
+                false, // Not interactive
+                false  // Don't clone - separate tiles already provide isolation
             );
 
-            // Load tile - using normal cache since these are separate assets
-            const baseTile = await relevantSceneBuilder.loadModel(positionedObject);
+            // Load the base tile
+            const loadedModel = await sceneBuilder.loadModel(positionedObject);
 
-            if (baseTile) {
-                // MATCH MAIN GRID: Store the raw loaded tile directly (line 70)
-                this.loadedTiles.push(baseTile);
-                console.log(`[REPLAY GRID] ✓ Loaded tile "${tileId}"`);
-            } else {
-                console.error(`[REPLAY GRID] Failed to load tile "${tileId}"`);
+            if (!loadedModel || !loadedModel.meshes || loadedModel.meshes.length === 0) {
+                console.error(`[REPLAY GRID] ✗ Failed to load base tile: ${tileId}`);
+                failedTiles.push(tileId);
+                continue;
             }
+
+            // Since we're using completely different tiles (tile2, tile5) that main grid never uses,
+            // we can use them directly without cloning - no contamination risk!
+
+            // Debug: Log mesh structure
+            console.log(`[REPLAY GRID] ${tileId} loaded with ${loadedModel.meshes.length} mesh(es):`);
+            loadedModel.meshes.forEach((m, i) => {
+                console.log(`  [${i}] ${m.name} (${m.constructor.name}) - visible: ${m.isVisible}, material: ${m.material ? '✓' : '✗'}`);
+            });
+
+            // Check children
+            const children = loadedModel.meshes[0]?.getChildren(undefined, false);
+            console.log(`  Root has ${children ? children.length : 0} children`);
+
+            // Store the loaded model directly
+            this.tileTypes.push(loadedModel);
+
+            console.log(`[REPLAY GRID] ✓ Stored tile type "${tileId}"`);
         }
 
-        // MATCH MAIN GRID: Check if all tiles loaded (lines 81-86)
-        if (this.loadedTiles.length < tileIds.length) {
-            console.error(`[REPLAY GRID] Only loaded ${this.loadedTiles.length} out of ${tileIds.length} tiles.`);
+        if (failedTiles.length > 0) {
+            console.error(`[REPLAY GRID] Failed to load tiles: ${failedTiles.join(", ")}`);
+        }
+
+        if (this.tileTypes.length === 0) {
+            console.error("[REPLAY GRID] No tile types loaded!");
             return false;
         }
 
-        console.log(`[REPLAY GRID] ✓ Loaded ${this.loadedTiles.length} B-variant tiles successfully`);
+        console.log(`[REPLAY GRID] ✓ Loaded ${this.tileTypes.length} B-variant tile types out of ${tileIds.length} requested`);
+
+        if (this.tileTypes.length < tileIds.length) {
+            console.warn(`[REPLAY GRID] ⚠️ Missing ${tileIds.length - this.tileTypes.length} tiles - this will cause gaps in the grid!`);
+        }
+
         return true;
     }
 
     /**
-     * Generates the replay grid using thin instances at the specified offset.
-     * Mirrors GameGridGenerator.generateGridWithOffset() exactly.
+     * Generates the replay grid with thin instances at the specified offset
      * @param {number} width - Grid width
      * @param {number} depth - Grid depth
      * @param {BABYLON.Vector3} offset - Position offset for the entire grid
-     * @param {number} tileSize - Size of each tile
      * @returns {Promise<boolean>} Success status
      */
-    async generateGrid(width, depth, offset, tileSize = 1) {
-        // MATCH MAIN GRID: Validate input dimensions (lines 169-174)
+    async generateGrid(width, depth, offset) {
+        console.log(`[REPLAY GRID] Generating ${width}x${depth} grid at offset (${offset.x}, ${offset.y}, ${offset.z})`);
+
+        // Validate dimensions
         if (!width || !depth || width < 1 || depth < 1) {
             console.error(`[REPLAY GRID] Invalid grid dimensions: ${width}x${depth}`);
             return false;
         }
 
-        // MATCH MAIN GRID: Ensure tiles are loaded (lines 176-182)
-        if (this.loadedTiles.length === 0) {
-            console.error("[REPLAY GRID] No tiles loaded. Call loadTiles first.");
-            return false;
+        // Load base tiles if not already loaded
+        if (this.tileTypes.length === 0) {
+            const loaded = await this.loadBaseTiles();
+            if (!loaded) {
+                console.error("[REPLAY GRID] Failed to load base tiles");
+                return false;
+            }
         }
 
-        console.log(`[REPLAY GRID] Generating ${width}x${depth} grid at offset (${offset.x}, ${offset.y}, ${offset.z})`);
+        const tileSize = 1;
+        const numTileTypes = this.tileTypes.length;
+        let totalInstances = 0;
+        let skippedPositions = 0;
 
-        let instancesCreated = 0;
+        console.log(`[REPLAY GRID] Starting grid generation with ${numTileTypes} tile types`);
 
-        // MATCH MAIN GRID: Iterate over every grid cell position (lines 185-186)
+        // MATCH MAIN GRID: Iterate over every grid cell position
         for (let x = 0; x < width; x++) {
             for (let z = 0; z < depth; z++) {
-                // MATCH MAIN GRID: Use a pattern to vary the tile selection (lines 188-190)
-                const rowOffset = x % this.loadedTiles.length;
-                const tileIndex = (z + rowOffset) % this.loadedTiles.length;
-                const baseTile = this.loadedTiles[tileIndex];
+                // MATCH MAIN GRID: Use same pattern to vary tile selection
+                const rowOffset = x % numTileTypes;
+                const tileTypeIndex = (z + rowOffset) % numTileTypes;
+                const baseTile = this.tileTypes[tileTypeIndex];
 
-                // MATCH MAIN GRID: Ensure the base tile has meshes (lines 193-198)
+                // MATCH MAIN GRID: Ensure the base tile has meshes
                 if (!baseTile || !baseTile.meshes || baseTile.meshes.length === 0) {
-                    console.warn(`[REPLAY GRID] Missing or invalid tile at index ${tileIndex}`);
+                    console.warn(`[REPLAY GRID] Missing or invalid tile at index ${tileTypeIndex} for position (${x}, ${z})`);
+                    skippedPositions++;
                     continue;
                 }
 
-                // MATCH MAIN GRID: Prefer child meshes, fall back to all meshes if none (lines 201-203)
+                // Get child meshes only - skip the root container
                 let targetMeshes = baseTile.meshes[0].getChildren(undefined, false);
                 if (!targetMeshes || targetMeshes.length === 0) {
                     targetMeshes = baseTile.meshes;
                 }
 
-                // MATCH MAIN GRID: Instance each mesh at the correct grid position (lines 207-225)
+                // CRITICAL: Filter to only meshes with materials (skip root containers)
+                targetMeshes = targetMeshes.filter(m => m instanceof BABYLON.Mesh && m.material);
+
+                // Debug first position
+                if (x === 0 && z === 0) {
+                    console.log(`[REPLAY GRID] First position (0,0) using tileIndex=${tileTypeIndex}, found ${targetMeshes.length} renderable meshes (with materials)`);
+                }
+
+                // Calculate world position with offset (same as main grid)
+                const xPos = (x * tileSize) + offset.x;
+                const yPos = offset.y;
+                const zPos = ((depth - 1 - z) * tileSize) + offset.z; // flip Z like main grid
+
+                // MATCH MAIN GRID: Instance each mesh at the correct grid position
                 for (const mesh of targetMeshes) {
                     if (mesh instanceof BABYLON.Mesh) {
-                        // MATCH MAIN GRID: Unfreeze if frozen (lines 209-210)
+                        // MATCH MAIN GRID: Unfreeze if frozen
                         if (mesh.isFrozen) {
                             mesh.unfreezeWorldMatrix();
                         }
 
-                        // MATCH MAIN GRID: Enable thin instance picking if no thin instances yet (lines 212-213)
+                        // MATCH MAIN GRID: Enable thin instance picking if no thin instances yet
                         if (!mesh.hasThinInstances) {
-                            mesh.thinInstanceEnablePicking = true;
+                            mesh.thinInstanceEnablePicking = false;
                         }
 
-                        // MATCH MAIN GRID: Calculate position with offset (lines 216-218)
-                        const xPos = (x * tileSize) + offset.x;
-                        const yPos = offset.y;
-                        const zPos = ((depth - 1 - z) * tileSize) + offset.z;
-
-                        // MATCH MAIN GRID: Create translation matrix (line 219)
                         const matrix = BABYLON.Matrix.Translation(xPos, yPos, zPos);
 
-                        // MATCH MAIN GRID: Add thin instance (lines 220-224)
+                        // Debug first few instances
+                        if (totalInstances < 5) {
+                            console.log(`[REPLAY GRID] Adding instance #${totalInstances} to mesh "${mesh.name}" at (${xPos}, ${yPos}, ${zPos})`);
+                        }
+
                         try {
                             mesh.thinInstanceAdd(matrix);
-                            instancesCreated++;
+                            totalInstances++;
                         } catch (error) {
-                            console.error(`[REPLAY GRID] Error adding thin instance to mesh ${mesh.name}:`, error);
+                            console.error(`[REPLAY GRID] Error adding thin instance to ${mesh.name} at (${xPos}, ${yPos}, ${zPos}):`, error);
                         }
                     }
                 }
             }
         }
 
-        console.log(`[REPLAY GRID] ✓ Generated ${instancesCreated} thin instances for ${width * depth} cells`);
-        return true;
+        console.log(`[REPLAY GRID] ✓ Generated ${totalInstances} thin instances for ${width * depth} grid cells`);
+
+        if (skippedPositions > 0) {
+            console.warn(`[REPLAY GRID] ⚠️ Skipped ${skippedPositions} positions due to missing tiles`);
+        }
+
+        return totalInstances > 0;
     }
 
     /**
-     * Clears all thin instances from the replay grid tiles
+     * Clears all thin instances from replay grid
      */
     clearThinInstances() {
+        if (this.tileTypes.length === 0) {
+            return;
+        }
+
         console.log("[REPLAY GRID] Clearing thin instances...");
 
-        for (const baseTile of this.loadedTiles) {
+        for (const baseTile of this.tileTypes) {
             if (!baseTile || !baseTile.meshes) continue;
 
             // Get target meshes same way as generateGrid
@@ -200,31 +254,33 @@ class ReplayGridGenerator {
     }
 
     /**
-     * Disposes all tiles and cleans up resources
+     * Disposes all base tiles and cleans up resources
      */
     dispose() {
-        console.log("[REPLAY GRID] Disposing all tiles...");
+        if (this.tileTypes.length === 0) {
+            return;
+        }
 
-        // First clear thin instances
+        console.log(`[REPLAY GRID] Disposing replay grid...`);
+
+        // Clear thin instances first
         this.clearThinInstances();
 
-        // Dispose meshes
-        for (const baseTile of this.loadedTiles) {
+        // Dispose each tile's meshes
+        for (const baseTile of this.tileTypes) {
             if (baseTile && baseTile.meshes) {
                 for (const mesh of baseTile.meshes) {
-                    if (mesh && mesh.dispose) {
-                        try {
-                            mesh.dispose(false, false); // Don't dispose materials (shared)
-                        } catch (error) {
-                            // Ignore disposal errors
-                        }
+                    try {
+                        mesh.dispose(false, false); // Don't dispose materials (shared)
+                    } catch (error) {
+                        // Ignore disposal errors
                     }
                 }
             }
         }
 
-        this.loadedTiles = [];
-        console.log("[REPLAY GRID] ✓ All tiles disposed");
+        this.tileTypes = [];
+        console.log("[REPLAY GRID] ✓ Replay grid disposed");
     }
 }
 

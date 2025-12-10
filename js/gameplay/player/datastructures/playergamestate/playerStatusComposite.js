@@ -79,7 +79,7 @@ class PlayerStatusComposite {
     currentExp = 0,
     currentMagicLevel = 1,
     maximumMagicPoints = 2,
-    maximumHealthPoints = 3,
+    maximumHealthPoints = 4,
     baseMaxSpeed = 1
   ) {
     // Create a new instance with current magic and health reflecting the maximum values.

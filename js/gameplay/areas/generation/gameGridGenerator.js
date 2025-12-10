@@ -16,8 +16,8 @@ class GameGridGenerator {
    */
 
   static getTileIdsByLevelArchetype(archetype = Config.DEMO_LEVEL) {
-    // Default tile set.
-    let tileIds = ["tile1", "tile3", "tile4", "tile6"];
+    // Default tile set - using just 2 tile types for simplicity and performance
+    let tileIds = ["tile1", "tile3"];
     return tileIds;
   }
 

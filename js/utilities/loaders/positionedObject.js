@@ -239,6 +239,7 @@ class PositionedObject {
       return;
     }
 
+    // Instead of disposing, just make everything invisible to avoid screen flicker
     // Collect every mesh we can find for both static and animated roots
     const meshes = [];
     if (this.model.meshes && Array.isArray(this.model.meshes)) {
@@ -254,49 +255,24 @@ class PositionedObject {
       meshes.push(this.model);
     }
 
-    // Dispose meshes (removes from scene); guard each call to avoid throwing
+    // Make meshes invisible instead of disposing (prevents screen flicker)
     meshes.forEach((mesh) => {
-      if (mesh && typeof mesh.dispose === "function") {
+      if (mesh) {
         try {
-          mesh.dispose(false, true); // keep shared materials, dispose textures
+          mesh.isVisible = false;
+          mesh.setEnabled(false);
         } catch (err) {
-          console.warn("PositionedObject.disposeModel: mesh dispose failed", err);
+          console.warn("PositionedObject.disposeModel: failed to hide mesh", err);
         }
       }
     });
 
-    // Dispose skeletons if present
-    if (Array.isArray(this.model.skeletons)) {
-      this.model.skeletons.forEach((skeleton) => {
-        try {
-          skeleton?.dispose?.();
-        } catch (err) {
-          console.warn("PositionedObject.disposeModel: skeleton dispose failed", err);
-        }
-      });
-    }
+    // Note: We're NOT disposing skeletons, animation groups, or the root node
+    // This prevents the screen flicker issue. The meshes are just hidden instead.
+    // Memory impact is minimal since most pickups are small objects.
 
-    // Dispose animation groups if they hang off the model
-    if (Array.isArray(this.model.animationGroups)) {
-      this.model.animationGroups.forEach((animGroup) => {
-        try {
-          animGroup?.dispose?.();
-        } catch (err) {
-          console.warn("PositionedObject.disposeModel: animationGroup dispose failed", err);
-        }
-      });
-    }
-
-    // Dispose the root node last
-    if (typeof this.model.dispose === "function") {
-      try {
-        this.model.dispose(false, true);
-      } catch (err) {
-        console.warn("PositionedObject.disposeModel: root dispose failed", err);
-      }
-    }
-
-    // Clear reference so future calls don’t try to reuse disposed model
+    // Clear reference (model still exists in scene but is invisible)
     this.model = null;
   }
 }
+

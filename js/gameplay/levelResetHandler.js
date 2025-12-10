@@ -16,6 +16,7 @@ class LevelResetHandler {
 
     /**
      * Handles the player death sequence
+     * DISABLED FOR DEBUGGING
      */
     async handlePlayerDeath() {
         if (this.isResetting) {

@@ -236,7 +236,7 @@ class LevelReplayManager {
      * @param {ActiveGameplayLevel} originalLevel - The original level
      */
     async generateDuplicateGrid(duplicateLevel, originalLevel) {
-        console.log("[REPLAY] Generating duplicate grid using separate ReplayGridGenerator...");
+        console.log("[REPLAY] Generating duplicate grid using simplified ReplayGridGenerator...");
 
         // Get grid dimensions from the duplicate level
         const dimensions = duplicateLevel.getGridDimensions();
@@ -247,23 +247,14 @@ class LevelReplayManager {
             this.replayGridGenerator = new ReplayGridGenerator();
         }
 
-        // Load fresh tiles for the replay grid (completely separate from main grid)
-        const tilesLoaded = await this.replayGridGenerator.loadTiles(duplicateLevel.hostingScene);
-
-        if (!tilesLoaded) {
-            console.error("[REPLAY] Failed to load tiles for replay grid");
-            return;
-        }
-
-        // Generate the grid with offset
+        // Generate the grid with offset (simplified - no separate loading phase needed)
         const offset = this.duplicateLevelOffset;
         console.log(`[REPLAY] Generating grid with offset: x=${offset.x}, y=${offset.y}, z=${offset.z}`);
 
         const success = await this.replayGridGenerator.generateGrid(
             dimensions.width,
             dimensions.depth,
-            offset,
-            1 // tileSize
+            offset
         );
 
         if (success) {

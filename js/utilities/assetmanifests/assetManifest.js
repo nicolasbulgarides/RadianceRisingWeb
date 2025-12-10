@@ -135,6 +135,12 @@ class AssetManifest {
     tile4: "tile4Compressed.glb",
     tile5: "tile5Compressed.glb",
     tile6: "tile6Compressed.glb",
+    tile1B: "tile1CompressedB.glb?v=replay",
+    tile2B: "tile2CompressedB.glb?v=replay",
+    tile3B: "tile3CompressedB.glb?v=replay",
+    tile4B: "tile4CompressedB.glb?v=replay",
+    tile5B: "tile5CompressedB.glb?v=replay",
+    tile6B: "tile6CompressedB.glb?v=replay",
     mechaSphereBlueBase: "mechaSphereBlueBase.glb",
   };
 
