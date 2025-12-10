@@ -291,7 +291,7 @@ class ScriptInitializer {
       const isMobile = this.isMobileDevice();
       const babylonEngine = new BABYLON.Engine(this.canvas, true, {
         stencil: true,
-        adaptToDeviceRatio: true, // Let engine adapt to device pixel ratio naturally
+        adaptToDeviceRatio: false, // Render at logical pixels, not physical pixels
         // Mobile-specific performance optimizations that don't affect visual quality
         antialias: false, // Disable antialiasing for better performance
         powerPreference: "high-performance", // Request high-performance GPU
@@ -299,9 +299,11 @@ class ScriptInitializer {
         doNotHandleContextLost: true, // Skip context loss handling for performance
       });
 
-      // No hardware scaling - maintain full visual quality
-      // We'll optimize performance through scene-level settings instead
-      console.log('[ENGINE] Engine initialized at full resolution');
+      // Render at logical resolution for consistent performance across devices
+      // iPhone 3x: 393×852 logical pixels instead of 1179×2556 physical pixels
+      // This matches the approach of most Android devices and dramatically improves FPS
+      const devicePixelRatio = window.devicePixelRatio || 1;
+      console.log(`[ENGINE] Rendering at logical resolution (DPR: ${devicePixelRatio}x)`);
 
       return babylonEngine;
     } catch (error) {
