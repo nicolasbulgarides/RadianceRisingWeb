@@ -41,30 +41,26 @@ class RadiantEngineManager {
 
   loadEngineSettings() {
     const engine = FundamentalSystemBridge["babylonEngine"];
-    
+
     // Performance optimizations
     engine.autoClearDepthAndStencil = false;
-    
+
+    // CRITICAL: Hardware scaling based on device pixel ratio
+    // This was the working configuration from the original
+    engine.setHardwareScalingLevel(1 / (window.devicePixelRatio || 1));
+
     window.addEventListener("resize", () => {
       FundamentalSystemBridge["babylonEngine"].resize();
     });
 
-    // Move audio unlock to after systems are loaded
-
-    // Config.addAudioUnlock();
+    // Audio unlock
+    Config.addAudioUnlock();
   }
 
   loadSystems() {
     this.loadRenderingAndStartupExperienceSystems();
     this.loadGameplayEssentialSystems();
-    this.loadTestLevel();
-
-    // Now that systems are loaded, set up audio unlock
-    Config.addAudioUnlock();
-  }
-
-  loadTestLevel() {
-    FundamentalSystemBridge.loadAndActivateLevelLoaderManager();
+    FundamentalSystemBridge.possiblyLoadAndActivateTestManager();
   }
   //statistics and analytics, platform detection, regional adapation systems, partnership systems, data security / law / requirements
   loadPartnershipAndPlatformAndLegalSystems() {
@@ -83,7 +79,6 @@ class RadiantEngineManager {
 
   loadGameplayEssentialSystems() {
     FundamentalSystemBridge.loadGameplayManagerComposite();
-    FundamentalSystemBridge.loadPlayerStatusTracker();
     FundamentalSystemBridge.loadActiveTriggerManager();
   }
 
