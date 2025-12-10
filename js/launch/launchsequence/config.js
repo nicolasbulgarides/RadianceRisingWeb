@@ -104,7 +104,7 @@ class Config {
   
   // Mobile performance optimizations
   static DISABLE_CONSOLE_LOGGING_ON_MOBILE = true;
-  static HARDWARE_SCALING_LEVEL = 0.5; // 0.5 = 50% pixel density for better performance
+  static HARDWARE_SCALING_LEVEL = 2.0; // 2.0 = 50% resolution (inverse scale: higher value = lower resolution = better performance)
 
   static LOGGING_COOLDOWNS_FALLBACK_DEFAULT = 10; // Default cooldown of 10s for unlisted error types.
   static LOGGING_COOLDOWNS_ABSOLUTE_OVERRIDE = 0; // 0 means no cooldown override.

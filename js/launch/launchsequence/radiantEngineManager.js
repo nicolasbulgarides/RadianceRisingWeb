@@ -41,8 +41,10 @@ class RadiantEngineManager {
 
   loadEngineSettings() {
     FundamentalSystemBridge["babylonEngine"].autoClearDepthAndStencil = false;
-    // Set hardware scaling for better performance (0.5 = 50% pixel density)
-    // Lower values = better performance but lower visual quality
+    // Set hardware scaling for better performance
+    // Note: setHardwareScalingLevel uses INVERSE scaling
+    // 1.0 = native resolution, 2.0 = half resolution, 0.5 = double resolution
+    // Higher values = better performance but lower visual quality
     FundamentalSystemBridge["babylonEngine"].setHardwareScalingLevel(
       Config.HARDWARE_SCALING_LEVEL
     );
