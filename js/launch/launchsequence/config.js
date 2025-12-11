@@ -104,6 +104,9 @@ class Config {
   static LOGGING_FORCEFULLY_ENABLED = true;
   static LOGGING_OMEGA_DISABLED_GET_WRECKED = false;
   static LOGGING_ENABLED = true;
+  static LOGGING_OBSTACLE_CREATION = false;
+  static LOGGING_KEY_CREATION = false;
+  static LOGGING_LEVEL_LIGHTING = false;
 
   // Mobile performance optimizations
   static DISABLE_CONSOLE_LOGGING_ON_MOBILE = true;

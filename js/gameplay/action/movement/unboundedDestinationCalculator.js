@@ -178,6 +178,9 @@ class UnboundedDestinationCalculator {
         // Skip invalid obstacles
         if (!obstacle) return false;
 
+        // Skip obstacles that allow passthrough (unlocked locks)
+        if (obstacle.passthroughAllowed) return false;
+
         // Try to get position from different possible properties
         const obstaclePos =
           obstacle.position ||

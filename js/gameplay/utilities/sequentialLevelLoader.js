@@ -40,6 +40,9 @@ class SequentialLevelLoader {
 
         // Track total level count for music selection (0 = first level, 1 = second, etc.)
         this.totalLevelsLoaded = 0;
+
+        // Level mapping for world loader scene (9 spheres -> 6 levels + 3 placeholders)
+        this.WORLD_LEVEL_MAPPING = this.initializeWorldLevelMapping();
     }
 
     /**
@@ -780,6 +783,51 @@ class SequentialLevelLoader {
     }
 
     /**
+     * Initializes the mapping of 9 world spheres to level URLs
+     * First 6 spheres map to actual levels, last 3 are placeholders
+     * @returns {Object} Mapping of sphere indices to level data
+     */
+    initializeWorldLevelMapping() {
+        return {
+            // First 6 spheres map to actual levels
+            0: { levelId: "level3Spikes", levelUrl: "level3Spikes.txt", name: "Level 3: Spikes", isAvailable: true },
+            1: { levelId: "level4Spikes2", levelUrl: "level4Spikes2.txt", name: "Level 4: Spikes 2", isAvailable: true },
+            2: { levelId: "level4Spikes3", levelUrl: "level4Spikes3.txt", name: "Level 4: Spikes 3", isAvailable: true },
+            3: { levelId: "level4Spikes4", levelUrl: "level4Spikes4.txt", name: "Level 4: Spikes 4", isAvailable: true },
+            4: { levelId: "level5TrickyB", levelUrl: "level5TrickyB.txt", name: "Level 5: Tricky B", isAvailable: true },
+            5: { levelId: "level6Locks", levelUrl: "level6Locks.txt", name: "Level 6: Locks", isAvailable: true },
+            // Last 3 spheres are placeholders for future levels
+            6: { levelId: "levelNeedToBeMade", levelUrl: null, name: "Coming Soon", isAvailable: false },
+            7: { levelId: "levelNeedToBeMade", levelUrl: null, name: "Coming Soon", isAvailable: false },
+            8: { levelId: "levelNeedToBeMade", levelUrl: null, name: "Coming Soon", isAvailable: false }
+        };
+    }
+
+    /**
+     * Gets level data for a specific world sphere index
+     * @param {number} sphereIndex - Index of the sphere (0-8)
+     * @returns {Object|null} Level data or null if invalid index
+     */
+    getWorldLevelData(sphereIndex) {
+        return this.WORLD_LEVEL_MAPPING[sphereIndex] || null;
+    }
+
+    /**
+     * Gets the full level URL for a world sphere, including the base URL
+     * @param {number} sphereIndex - Index of the sphere (0-8)
+     * @returns {string|null} Full level URL or null if not available
+     */
+    getWorldLevelUrl(sphereIndex) {
+        const levelData = this.getWorldLevelData(sphereIndex);
+        if (!levelData || !levelData.levelUrl) {
+            return null;
+        }
+
+        // Construct full URL (assuming GitHub raw content URL like other levels)
+        return `https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/assets/${levelData.levelUrl}`;
+    }
+
+    /**
      * Loads a player into the new level with transferred data
      */
     async loadPlayerWithTransferredData(gameplayManager, activeGameplayLevel) {
@@ -796,7 +844,8 @@ class SequentialLevelLoader {
                 newPlayer.playerStatus.currentMagicLevel = this.originalPlayerData.currentMagicLevel;
                 newPlayer.playerStatus.currentMagicPoints = this.originalPlayerData.currentMagicPoints;
                 newPlayer.playerStatus.maximumMagicPoints = this.originalPlayerData.maximumMagicPoints;
-                newPlayer.playerStatus.currentHealthPoints = this.originalPlayerData.currentHealthPoints;
+                // Set health to full when starting a new level
+                newPlayer.playerStatus.currentHealthPoints = this.originalPlayerData.maximumHealthPoints;
                 newPlayer.playerStatus.maximumHealthPoints = this.originalPlayerData.maximumHealthPoints;
                 newPlayer.playerStatus.baseMaxSpeed = this.originalPlayerData.baseMaxSpeed;
 

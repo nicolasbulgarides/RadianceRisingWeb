@@ -93,6 +93,19 @@ class AssetManifestOverrides {
     lotus: {
       scale: { x: 0.7, y: 0.7, z: 0.7 },
     },
+    key: {
+      rotation: { pitch: 90, roll: 53, yaw: 0 },
+      scale: { x: 2.0, y: 2.0, z: 2.0 },
+      perspectiveShiftRotation: { pitch: 0, roll: 0, yaw: 0 },
+      perspectiveShiftScale: { x: 1.0, y: 1.0, z: 1.0 },
+    },
+    testLock: {
+      rotation: { pitch: 90, roll: 0, yaw: 0 },
+      offset: { x: 0, y: 0, z: -0.35 },
+      scale: { x: 0.8, y: 0.8, z: 0.8 },
+      perspectiveShiftRotation: { pitch: 0, roll: 0, yaw: 0 },
+      perspectiveShiftScale: { x: 1.0, y: 1.0, z: 1.0 },
+    }
   };
 
   /**

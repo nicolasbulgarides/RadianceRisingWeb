@@ -1,13 +1,14 @@
 /**
  * LevelAuditor
- * 
+ *
  * Utility class that simulates pathfinding through a level to determine:
  * - Minimum number of strokes (moves) to complete a level
  * - The optimal path to collect all 4 stardusts
  * - Validates paths don't result in player death
- * 
+ *
  * Uses BFS (Breadth-First Search) to find the shortest valid path.
  */
+console.log("[LEVEL AUDITOR] 📚 LevelAuditor script loaded and class defined");
 class LevelAuditor {
     constructor() {
         // Default game constants (can be overridden)
@@ -44,6 +45,8 @@ class LevelAuditor {
     auditLevel(levelData, activeGameplayLevel = null) {
         console.log("═══════════════════════════════════════════════════════════");
         console.log("[LEVEL AUDITOR] 🔍 Starting level audit...");
+        console.log("[LEVEL AUDITOR] 📥 Input levelData:", levelData ? "present" : "null");
+        console.log("[LEVEL AUDITOR] 📥 Input activeGameplayLevel:", activeGameplayLevel ? "present" : "null");
         console.log("═══════════════════════════════════════════════════════════");
 
         try {
@@ -77,8 +80,11 @@ class LevelAuditor {
      * @returns {Object} Parsed level data
      */
     parseLevelData(levelData) {
+        console.log("[LEVEL AUDITOR] 🔧 Parsing level data...");
+        console.log("[LEVEL AUDITOR] 🔧 Level data keys:", Object.keys(levelData || {}));
         const width = levelData.mapWidth || 21;
         const depth = levelData.mapHeight || levelData.mapDepth || 21;
+        console.log(`[LEVEL AUDITOR] 🔧 Level dimensions: ${width} x ${depth}`);
 
         // Find spawn position
         const spawnElement = levelData.allMapElements?.find(el => el.element === "SPAWN_POSITION");
@@ -101,6 +107,16 @@ class LevelAuditor {
             obstacles.add(`${worldCoords.x},${worldCoords.z}`);
         }
 
+        // Find all locks (unlockable obstacles)
+        const locks = new Set();
+        const lockElements = levelData.allMapElements?.filter(el => el.element === "LOCK") || [];
+        console.log(`[LEVEL AUDITOR] 🔧 Found ${lockElements.length} LOCK elements`);
+        for (const el of lockElements) {
+            const worldCoords = this.builderToWorld(el.coordinates, depth);
+            locks.add(`${worldCoords.x},${worldCoords.z}`);
+            console.log(`[LEVEL AUDITOR] 🔧 Lock at (${worldCoords.x}, ${worldCoords.z})`);
+        }
+
         // Find all spike traps
         const spikes = new Set();
         const spikeElements = levelData.allMapElements?.filter(el => el.element === "SPIKE_TRAP") || [];
@@ -117,6 +133,16 @@ class LevelAuditor {
             hearts.push({ x: worldCoords.x, z: worldCoords.z, id: hearts.length });
         }
 
+        // Find all keys
+        const keys = [];
+        const keyElements = levelData.allMapElements?.filter(el => el.element === "KEY") || [];
+        console.log(`[LEVEL AUDITOR] 🔧 Found ${keyElements.length} KEY elements`);
+        for (const el of keyElements) {
+            const worldCoords = this.builderToWorld(el.coordinates, depth);
+            keys.push({ x: worldCoords.x, z: worldCoords.z, id: keys.length });
+            console.log(`[LEVEL AUDITOR] 🔧 Key at (${worldCoords.x}, ${worldCoords.z})`);
+        }
+
         return {
             width,
             depth,
@@ -125,6 +151,8 @@ class LevelAuditor {
             obstacles,
             spikes,
             hearts,
+            locks,
+            keys,
             levelName: levelData.levelName || "Unknown"
         };
     }
@@ -148,7 +176,7 @@ class LevelAuditor {
      * @returns {Object} Result containing min strokes, path, and validity
      */
     findOptimalPath(parsedLevel) {
-        const { width, depth, spawn, stardusts, obstacles, spikes, hearts } = parsedLevel;
+        const { width, depth, spawn, stardusts, obstacles, spikes, hearts, locks, keys } = parsedLevel;
 
         if (stardusts.length === 0) {
             console.warn("[LEVEL AUDITOR] ⚠ No stardusts found in level");
@@ -164,13 +192,14 @@ class LevelAuditor {
             health: this.STARTING_HEALTH,
             collectedStardusts: 0,
             collectedHearts: 0,
+            collectedKeys: 0,
             strokes: 0,
             path: []
         };
 
         // Create visited state key
         const getStateKey = (state) => {
-            return `${state.x},${state.z},${state.health},${state.collectedStardusts},${state.collectedHearts}`;
+            return `${state.x},${state.z},${state.health},${state.collectedStardusts},${state.collectedHearts},${state.collectedKeys}`;
         };
 
         const visited = new Set();
@@ -180,8 +209,14 @@ class LevelAuditor {
         // Target: collect all stardusts
         const targetStardustMask = (1 << stardusts.length) - 1;
 
-        // Helper to check if position is an obstacle
-        const isObstacle = (x, z) => obstacles.has(`${x},${z}`);
+        // Helper to check if position is an obstacle (considering keys for locks)
+        const isObstacle = (x, z, availableKeys) => {
+            // Mountains are always obstacles
+            if (obstacles.has(`${x},${z}`)) return true;
+            // Locks are obstacles only if no keys available
+            if (locks.has(`${x},${z}`)) return availableKeys <= 0;
+            return false;
+        };
 
         // Helper to check if position is within bounds
         const isInBounds = (x, z) => x >= 0 && x < width && z >= 0 && z < depth;
@@ -194,6 +229,12 @@ class LevelAuditor {
 
         // Helper to check if position is a spike
         const isSpike = (x, z) => spikes.has(`${x},${z}`);
+
+        // Helper to check if position is a lock
+        const isLock = (x, z) => locks.has(`${x},${z}`);
+
+        // Helper to get key at position
+        const getKeyAt = (x, z) => keys.find(k => k.x === x && k.z === z);
 
         let iterations = 0;
         const MAX_ITERATIONS = 1000000; // Prevent infinite loops
@@ -228,6 +269,7 @@ class LevelAuditor {
                     path: current.path,
                     finalHealth: current.health,
                     heartsCollected: this.countBits(current.collectedHearts),
+                    keysCollected: this.countBits(current.collectedKeys),
                     iterations
                 };
             }
@@ -241,7 +283,7 @@ class LevelAuditor {
                 let nextZ = current.z + dir.dz;
 
                 // Keep moving until we hit obstacle or boundary (unlimited distance)
-                while (isInBounds(nextX, nextZ) && !isObstacle(nextX, nextZ)) {
+                while (isInBounds(nextX, nextZ) && !isObstacle(nextX, nextZ, this.countBits(current.collectedKeys))) {
                     destX = nextX;
                     destZ = nextZ;
                     nextX += dir.dx;
@@ -257,8 +299,10 @@ class LevelAuditor {
                 let newHealth = current.health;
                 let newCollectedStardusts = current.collectedStardusts;
                 let newCollectedHearts = current.collectedHearts;
+                let newCollectedKeys = current.collectedKeys;
                 let damageTaken = 0;
                 let heartsPickedUp = 0;
+                let keysPickedUp = 0;
 
                 // Walk through each tile from start to destination
                 let pathX = current.x;
@@ -276,6 +320,25 @@ class LevelAuditor {
                         const oldHealth = newHealth;
                         newHealth = Math.min(newHealth + 1, this.MAX_HEALTH);
                         if (newHealth > oldHealth) heartsPickedUp++;
+                    }
+
+                    // Check for key collection
+                    const key = getKeyAt(pathX, pathZ);
+                    if (key && !(newCollectedKeys & (1 << key.id))) {
+                        newCollectedKeys |= (1 << key.id);
+                        keysPickedUp++;
+                    }
+
+                    // Check for lock unlocking (consume key if passing through)
+                    if (isLock(pathX, pathZ)) {
+                        // We should have a key available since we passed the obstacle check
+                        // Consume one key (find first available key)
+                        for (let keyId = 0; keyId < keys.length; keyId++) {
+                            if (newCollectedKeys & (1 << keyId)) {
+                                newCollectedKeys &= ~(1 << keyId); // Remove this key
+                                break;
+                            }
+                        }
                     }
 
                     // Check for spike damage at this position
@@ -309,13 +372,15 @@ class LevelAuditor {
                     health: newHealth,
                     collectedStardusts: newCollectedStardusts,
                     collectedHearts: newCollectedHearts,
+                    collectedKeys: newCollectedKeys,
                     strokes: current.strokes + 1,
                     path: [...current.path, {
                         direction: dirName,
                         from: { x: current.x, z: current.z },
                         to: { x: destX, z: destZ },
                         healthAfter: newHealth,
-                        stardustsAfter: this.countBits(newCollectedStardusts)
+                        stardustsAfter: this.countBits(newCollectedStardusts),
+                        keysAfter: this.countBits(newCollectedKeys)
                     }]
                 };
 
@@ -375,6 +440,11 @@ class LevelAuditor {
             console.log(`    ${i + 1}. (${s.x}, ${s.z})`);
         });
         console.log(`  Obstacles: ${parsedLevel.obstacles.size}`);
+        console.log(`  Locks: ${parsedLevel.locks.size}`);
+        console.log(`  Keys: ${parsedLevel.keys.length}`);
+        parsedLevel.keys.forEach((k, i) => {
+            console.log(`    ${i + 1}. (${k.x}, ${k.z})`);
+        });
         console.log(`  Spikes: ${parsedLevel.spikes.size}`);
         console.log(`  Hearts: ${parsedLevel.hearts.length}`);
         parsedLevel.hearts.forEach((h, i) => {
@@ -426,6 +496,7 @@ class LevelAuditor {
         console.log(`  ⭐ Minimum Strokes: ${result.minStrokes}`);
         console.log(`  ❤ Final Health: ${result.finalHealth}/${this.MAX_HEALTH}`);
         console.log(`  💖 Hearts Collected: ${result.heartsCollected}`);
+        console.log(`  🔑 Keys Collected: ${result.keysCollected}`);
         console.log(`  🔍 States Explored: ${result.iterations}`);
 
         console.log(`\n  📍 OPTIMAL PATH (${result.minStrokes} moves):`);
@@ -433,7 +504,7 @@ class LevelAuditor {
 
         result.path.forEach((move, i) => {
             const dirEmoji = this.getDirectionEmoji(move.direction);
-            console.log(`  ${i + 1}. ${dirEmoji} ${move.direction.padEnd(5)} │ (${move.from.x},${move.from.z}) → (${move.to.x},${move.to.z}) │ ❤${move.healthAfter} ⭐${move.stardustsAfter}`);
+            console.log(`  ${i + 1}. ${dirEmoji} ${move.direction.padEnd(5)} │ (${move.from.x},${move.from.z}) → (${move.to.x},${move.to.z}) │ ❤${move.healthAfter} ⭐${move.stardustsAfter} 🔑${move.keysAfter || 0}`);
         });
 
         console.log("\n  📋 PATH SUMMARY:");
@@ -468,7 +539,7 @@ class LevelAuditor {
             return;
         }
 
-        const { width, depth, spawn, stardusts, obstacles, spikes, hearts } = parsedLevel;
+        const { width, depth, spawn, stardusts, obstacles, spikes, hearts, locks, keys } = parsedLevel;
 
         // Create grid
         const grid = [];
@@ -514,6 +585,23 @@ class LevelAuditor {
             }
         }
 
+        // Mark locks
+        for (const lockKey of locks) {
+            const [x, z] = lockKey.split(',').map(Number);
+            const gridZ = depth - 1 - z;
+            if (gridZ >= 0 && gridZ < depth && x >= 0 && x < width) {
+                grid[gridZ][x] = '🔒';
+            }
+        }
+
+        // Mark keys
+        for (const key of keys) {
+            const gridZ = depth - 1 - key.z;
+            if (gridZ >= 0 && gridZ < depth && key.x >= 0 && key.x < width) {
+                grid[gridZ][key.x] = '🔑';
+            }
+        }
+
         // Mark spawn
         const spawnGridZ = depth - 1 - spawn.z;
         if (spawnGridZ >= 0 && spawnGridZ < depth && spawn.x >= 0 && spawn.x < width) {
@@ -521,7 +609,7 @@ class LevelAuditor {
         }
 
         console.log("\n[LEVEL AUDITOR] 🗺 LEVEL MAP:");
-        console.log("  Legend: S=Spawn, ★=Stardust, █=Obstacle, ▲=Spike, ♥=Heart, ·=Empty");
+        console.log("  Legend: S=Spawn, ★=Stardust, █=Obstacle, ▲=Spike, ♥=Heart, 🔒=Lock, 🔑=Key, ·=Empty");
         console.log("");
 
         for (let z = 0; z < grid.length; z++) {
@@ -535,4 +623,6 @@ class LevelAuditor {
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = LevelAuditor;
 }
+
+console.log("[LEVEL AUDITOR] 🎯 LevelAuditor script fully loaded and exported");
 

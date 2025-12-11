@@ -10,9 +10,13 @@ class LevelMapObstacleGenerator {
     const obstacles = this.getObstaclesFromLevel(activeGameplayLevel);
     if (!obstacles || obstacles.length === 0) return; // Exit if there are no obstacles to initialize.
 
+    // Get all obstacle arrays that need to be updated
+    const allObstacleArrays = this.getAllObstacleArrays(activeGameplayLevel);
+
     // Get the level map for backward compatibility
 
-    for (const obstacleData of obstacles) {
+    for (let i = 0; i < obstacles.length; i++) {
+      const obstacleData = obstacles[i];
       const {
         obstacleArchetype,
         nickname,
@@ -33,6 +37,26 @@ class LevelMapObstacleGenerator {
       if (!obstacle) {
         console.error(`LevelMap: Failed to create obstacle ${nickname}`); // Log error if obstacle creation fails.
         continue; // Skip to the next obstacle.
+      }
+
+      // Copy additional properties from the data object to the Obstacle instance
+      if (obstacleData.isUnlockable !== undefined) {
+        obstacle.isUnlockable = obstacleData.isUnlockable;
+      }
+      if (obstacleData.obstacleArchetype !== undefined) {
+        obstacle.obstacleArchetype = obstacleData.obstacleArchetype;
+      }
+      if (obstacleData.isObstacle !== undefined) {
+        obstacle.isObstacle = obstacleData.isObstacle;
+      }
+
+      // Replace the data object in all obstacle arrays with the actual Obstacle instance
+      // This ensures that all obstacle arrays contain objects with positionedObject properties
+      for (const obstacleArray of allObstacleArrays) {
+        const index = obstacleArray.indexOf(obstacleData);
+        if (index > -1) {
+          obstacleArray[index] = obstacle;
+        }
       }
 
       // Ensure obstacle is set to freeze
@@ -70,6 +94,37 @@ class LevelMapObstacleGenerator {
   }
 
   /**
+   * Gets all obstacle arrays that need to be updated when obstacles are replaced
+   * @param {ActiveGameplayLevel} activeGameplayLevel - The active gameplay level
+   * @returns {Array<Array>} Array of obstacle arrays
+   */
+  getAllObstacleArrays(activeGameplayLevel) {
+    const arrays = [];
+
+    // Add levelDataComposite.obstacles
+    if (activeGameplayLevel.levelDataComposite?.obstacles) {
+      arrays.push(activeGameplayLevel.levelDataComposite.obstacles);
+    }
+
+    // Add levelDataComposite.levelGameplayTraitsData.featuredObjects
+    if (activeGameplayLevel.levelDataComposite?.levelGameplayTraitsData?.featuredObjects) {
+      arrays.push(activeGameplayLevel.levelDataComposite.levelGameplayTraitsData.featuredObjects);
+    }
+
+    // Add activeGameplayLevel.obstacles
+    if (activeGameplayLevel.obstacles) {
+      arrays.push(activeGameplayLevel.obstacles);
+    }
+
+    // Add activeGameplayLevel.levelMap.obstacles
+    if (activeGameplayLevel.levelMap?.obstacles) {
+      arrays.push(activeGameplayLevel.levelMap.obstacles);
+    }
+
+    return arrays;
+  }
+
+  /**
    * Gets obstacles from the level data, supporting both LevelDataComposite and legacy formats
    * @param {ActiveGameplayLevel} activeGameplayLevel - The active gameplay level
    * @returns {Array} Array of obstacles
@@ -88,11 +143,11 @@ class LevelMapObstacleGenerator {
       activeGameplayLevel.levelDataComposite &&
       activeGameplayLevel.levelDataComposite.levelGameplayTraitsData &&
       activeGameplayLevel.levelDataComposite.levelGameplayTraitsData
-        .allFeaturedObjects
+        .featuredObjects
     ) {
       const featuredObjects =
         activeGameplayLevel.levelDataComposite.levelGameplayTraitsData
-          .allFeaturedObjects;
+          .featuredObjects;
       // Filter for objects that are obstacles
       return featuredObjects.filter((obj) => obj.isObstacle);
     }
@@ -292,6 +347,9 @@ class LevelMapObstacleGenerator {
       switch (obstacleArchetype.toLowerCase()) {
         case "mountain":
           modelId = "testMountain"; // Set model ID for mountain archetype.
+          break;
+        case "lock":
+          modelId = "testLock"; // Set model ID for lock archetype.
           break;
 
         // Add more archetypes as needed

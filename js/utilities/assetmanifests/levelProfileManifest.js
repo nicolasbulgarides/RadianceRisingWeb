@@ -30,7 +30,7 @@ class LevelProfileManifest {
         level3Spikes: {
             levelId: "level3Spikes",
             filename: "level3Spikes.txt",
-            perfectSolutionMovementCount: 18,
+            perfectSolutionMovementCount: 11,
             obstacles: ["mountain", "spike"],
             solutionPath: [
                 "UP",
@@ -44,6 +44,110 @@ class LevelProfileManifest {
                 "RIGHT",
                 "UP",
                 "DOWN"
+            ]
+        },
+        level4Spikes2: {
+            levelId: "level4Spikes2",
+            filename: "level4Spikes2.txt",
+            perfectSolutionMovementCount: 8,
+            obstacles: ["mountain", "spike", "lock"],
+            solutionPath: [
+                "UP",
+                "RIGHT",
+                "DOWN",
+                "LEFT",
+                "DOWN",
+                "LEFT",
+                "UP",
+                "RIGHT",
+                "DOWN",
+            ]
+        },
+        level4Spikes3: {
+            levelId: "level4Spikes3",
+            filename: "level4Spikes3.txt",
+            perfectSolutionMovementCount: 13,
+            obstacles: ["mountain", "spike", "lock"],
+            solutionPath: [
+                "UP",
+                "DOWN",
+                "RIGHT",
+                "UP",
+                "RIGHT",
+                "DOWN",
+                "LEFT",
+                "UNLOCK",
+                "LEFT",
+                "DOWN",
+                "RIGHT",
+                "UP",
+                "LEFT",
+
+            ]
+        },
+        level4Spikes4: {
+            levelId: "level4Spikes4",
+            filename: "level4Spikes4D.txt",
+            perfectSolutionMovementCount: 18,
+            obstacles: ["mountain", "spike", "lock"],
+            solutionPath: [
+                "LEFT",
+                "UP",
+                "LEFT",
+                "DOWN",
+                "RIGHT",
+                "DOWN",
+                "RIGHT",
+                "LEFT",
+                "UP",
+                "LEFT",
+                "DOWN",
+                "UNLOCK",
+                "DOWN",
+                "LEFT",
+                "UP",
+                "RIGHT",
+                "UP",
+                "LEFT"
+            ]
+        },
+        level5TrickyB: {
+            levelId: "level5TrickyB",
+            filename: "level5TrickyB.txt",
+            perfectSolutionMovementCount: 8,
+            obstacles: ["mountain", "spike", "lock"],
+            solutionPath: [
+                "RIGHT",
+                "UP",
+                "LEFT",
+                "DOWN",
+                "RIGHT",
+                "DOWN",
+                "RIGHT",
+                "UP"
+            ]
+        },
+        level6Locks: {
+            levelId: "level6Locks",
+            filename: "level6Locks.txt",
+            perfectSolutionMovementCount: 15,
+            obstacles: ["mountain", "spike", "lock"],
+            solutionPath: [
+                "DOWN",
+                "LEFT",
+                "UP",
+                "DOWN",
+                "RIGHT",
+                "UP",
+                "RIGHT",
+                "DOWN",
+                "LEFT",
+                "RIGHT",
+                "DOWN",
+                "UNLOCK",
+                "DOWN",
+                "LEFT",
+                "UP"
             ]
         }
     };
@@ -144,4 +248,5 @@ class LevelProfileManifest {
 
 // Expose the class globally
 window.LevelProfileManifest = LevelProfileManifest;
+
 

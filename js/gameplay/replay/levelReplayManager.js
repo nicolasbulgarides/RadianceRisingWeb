@@ -25,6 +25,7 @@ class LevelReplayManager {
         this.replayMovements = [];
         this.replayPickupPositions = [];
         this.replayDamagePositions = [];
+        this.replayLockUnlocks = []; // Track lock unlocks during replay
         this.replayPickupCount = 0; // Count of pickups collected during replay
         this.replayPlayer = null; // Reference to the player being replayed
 
@@ -183,6 +184,7 @@ class LevelReplayManager {
         this.replayMovements = [];
         this.replayPickupPositions = [];
         this.replayDamagePositions = [];
+        this.replayLockUnlocks = [];
         this.replayPickupCount = 0;
         this.replayPlayer = null;
 
@@ -193,6 +195,19 @@ class LevelReplayManager {
         }
 
         replayLog("[REPLAY] ✓ Reset complete");
+    }
+
+    /**
+     * Records a lock unlock event for replay purposes.
+     * @param {BABYLON.Vector3} position - The position where the lock was unlocked
+     * @param {number} movementIndex - The movement index when the unlock occurred
+     */
+    recordLockUnlock(position, movementIndex) {
+        this.replayLockUnlocks.push({
+            position: position.clone(),
+            movementIndex: movementIndex
+        });
+        replayLog(`[REPLAY] Recorded lock unlock at movement ${movementIndex}, position (${position.x}, ${position.z})`);
     }
 
     // REMOVED: createDuplicateLevel, cloneLevelDataComposite, generateDuplicateGrid
@@ -624,10 +639,11 @@ class LevelReplayManager {
             return;
         }
 
-        // Get movements, pickup positions, and damage positions
+        // Get movements, pickup positions, damage positions, and lock unlocks
         this.replayMovements = movementTracker.getMovements();
         this.replayPickupPositions = movementTracker.getPickupPositions();
         this.replayDamagePositions = movementTracker.getDamagePositions();
+        this.replayLockUnlocks = movementTracker.getLockUnlocks();
 
         replayLog(`[REPLAY] Replay data loaded: ${this.replayMovements.length} movements, ${this.replayPickupPositions.length} pickups, ${this.replayDamagePositions.length} damage events`);
 
@@ -802,6 +818,9 @@ class LevelReplayManager {
                 // Use smooth interpolated movement instead of the standard movement system
                 await this.animatePlayerMovement(player, adjustedStart, adjustedDestination);
                 replayLog(`[REPLAY] Movement ${i + 1} complete`);
+
+                // Check for lock unlocks at this movement index
+                this.checkReplayLockUnlocks(i);
             }
 
             // If we collected 4 pickups, trigger explosion
@@ -836,6 +855,158 @@ class LevelReplayManager {
                 console.error("[REPLAY] RenderSceneSwapper not found, cannot transition");
             }
         }
+    }
+
+    /**
+     * Checks for and executes lock unlocks during replay at the specified movement index.
+     * @param {number} movementIndex - The current movement index in the replay
+     */
+    checkReplayLockUnlocks(movementIndex) {
+        // Find lock unlocks that should happen at this movement index
+        const unlocksAtThisStep = this.replayLockUnlocks.filter(unlock => unlock.movementIndex === movementIndex);
+
+        for (const unlock of unlocksAtThisStep) {
+            replayLog(`[REPLAY] Unlocking lock at movement ${movementIndex}, position (${unlock.position.x}, ${unlock.position.z})`);
+
+            // Find and unlock the lock at this position
+            const gameplayManager = FundamentalSystemBridge["gameplayManagerComposite"];
+            const level = gameplayManager?.currentActiveLevel || gameplayManager?.primaryActiveGameplayLevel;
+
+            if (level) {
+                // Find the lock obstacle at this position
+                let obstacles = [];
+                if (level.obstacles && Array.isArray(level.obstacles)) {
+                    obstacles = level.obstacles;
+                } else if (level.levelDataComposite?.obstacles) {
+                    obstacles = level.levelDataComposite.obstacles;
+                } else if (level.levelMap?.obstacles) {
+                    obstacles = level.levelMap.obstacles;
+                }
+
+                const lockToUnlock = obstacles.find(obstacle =>
+                    obstacle.isUnlockable &&
+                    obstacle.obstacleArchetype === "lock" &&
+                    obstacle.position &&
+                    Math.abs(obstacle.position.x - unlock.position.x) < 0.1 &&
+                    Math.abs(obstacle.position.z - unlock.position.z) < 0.1
+                );
+
+                if (lockToUnlock) {
+                    // Unlock the lock (same logic as in BaseGameUIScene)
+                    this.unlockLockForReplay(lockToUnlock, level);
+                    replayLog(`[REPLAY] ✓ Lock unlocked during replay`);
+                } else {
+                    replayLog(`[REPLAY] ✗ Could not find lock to unlock at position (${unlock.position.x}, ${unlock.position.z})`);
+                }
+            }
+        }
+    }
+
+    /**
+     * Unlocks a lock during replay (similar to BaseGameUIScene.unlockLock but for replay context).
+     * @param {Object} lockObstacle - The lock obstacle to unlock
+     * @param {ActiveGameplayLevel} activeLevel - The current level
+     */
+    unlockLockForReplay(lockObstacle, activeLevel) {
+        replayLog(`[REPLAY LOCK UNLOCK] Unlocking lock at position (${lockObstacle.position.x}, ${lockObstacle.position.z})`);
+
+        // Remove lock from ALL obstacle arrays to ensure movement systems can pass through
+
+        // 1. Remove from activeLevel.obstacles
+        if (activeLevel.obstacles && Array.isArray(activeLevel.obstacles)) {
+            const index = activeLevel.obstacles.indexOf(lockObstacle);
+            if (index > -1) {
+                replayLog(`[REPLAY LOCK UNLOCK] Removed from activeLevel.obstacles at index ${index}`);
+                activeLevel.obstacles.splice(index, 1);
+            }
+        }
+
+        // 2. Remove from activeLevel.levelDataComposite.obstacles
+        if (activeLevel.levelDataComposite?.obstacles) {
+            const index = activeLevel.levelDataComposite.obstacles.indexOf(lockObstacle);
+            if (index > -1) {
+                replayLog(`[REPLAY LOCK UNLOCK] Removed from levelDataComposite.obstacles at index ${index}`);
+                activeLevel.levelDataComposite.obstacles.splice(index, 1);
+            }
+        }
+
+        // 3. Remove from activeLevel.levelMap.obstacles
+        if (activeLevel.levelMap?.obstacles) {
+            const index = activeLevel.levelMap.obstacles.indexOf(lockObstacle);
+            if (index > -1) {
+                replayLog(`[REPLAY LOCK UNLOCK] Removed from levelMap.obstacles at index ${index}`);
+                activeLevel.levelMap.obstacles.splice(index, 1);
+            }
+        }
+
+        // 4. Remove from activeLevel.levelDataComposite.levelGameplayTraitsData.featuredObjects
+        if (activeLevel.levelDataComposite?.levelGameplayTraitsData?.featuredObjects) {
+            const featuredObjects = activeLevel.levelDataComposite.levelGameplayTraitsData.featuredObjects;
+            const index = featuredObjects.indexOf(lockObstacle);
+            if (index > -1) {
+                replayLog(`[REPLAY LOCK UNLOCK] Removed from featuredObjects at index ${index}`);
+                featuredObjects.splice(index, 1);
+            }
+        }
+
+        // Add passthroughAllowed flag to prevent future obstacle checks (belt and suspenders)
+        lockObstacle.passthroughAllowed = true;
+        lockObstacle.isObstacle = false;
+
+        // Hide the lock model completely
+        if (lockObstacle.positionedObject && lockObstacle.positionedObject.model) {
+            const model = lockObstacle.positionedObject.model;
+            replayLog(`[REPLAY LOCK UNLOCK] Hiding lock model`);
+
+            // Hide the root model
+            if (model.isVisible !== undefined) {
+                model.isVisible = false;
+            }
+            if (model.setEnabled) {
+                model.setEnabled(false);
+            }
+
+            // Hide all child meshes
+            if (model.getChildMeshes) {
+                const childMeshes = model.getChildMeshes();
+                replayLog(`[REPLAY LOCK UNLOCK] Hiding ${childMeshes.length} child meshes`);
+                childMeshes.forEach((mesh, i) => {
+                    if (mesh.isVisible !== undefined) {
+                        mesh.isVisible = false;
+                    }
+                    if (mesh.setEnabled) {
+                        mesh.setEnabled(false);
+                    }
+                });
+            }
+
+            // If model has a meshes array (root node case)
+            if (model.meshes && Array.isArray(model.meshes)) {
+                replayLog(`[REPLAY LOCK UNLOCK] Hiding ${model.meshes.length} meshes from meshes array`);
+                model.meshes.forEach((mesh, i) => {
+                    if (mesh.isVisible !== undefined) {
+                        mesh.isVisible = false;
+                    }
+                    if (mesh.setEnabled) {
+                        mesh.setEnabled(false);
+                    }
+                });
+            }
+        } else {
+            console.warn(`[REPLAY LOCK UNLOCK] No positionedObject.model found for lock obstacle`);
+        }
+
+        replayLog(`[REPLAY LOCK UNLOCK] Lock unlock complete during replay`);
+
+        // Trigger explosion effect for replay (same as triggerLockUnlockExplosion)
+        const effectGenerator = new EffectGenerator();
+        effectGenerator.explosionEffect({
+            type: 'fire', // Orange/red explosion for lock unlocking
+            intensity: 1.2,
+            duration: 3.0
+        }).catch(error => {
+            console.error("Error triggering lock unlock explosion during replay:", error);
+        });
     }
 
     /**

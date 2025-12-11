@@ -76,6 +76,7 @@ class RadiantEngineManager {
   }
   loadRenderingAndStartupExperienceSystems() {
     FundamentalSystemBridge.loadProgrammaticAnimationManager();
+    FundamentalSystemBridge.registerLevelsSolvedStatusTracker(levelsSolvedStatusTracker);
     FundamentalSystemBridge.loadRenderSceneSwapper();
     FundamentalSystemBridge.loadSoundManagers();
     FundamentalSystemBridge.loadLevelFactoryComposite();
@@ -83,6 +84,7 @@ class RadiantEngineManager {
 
   loadGameplayEssentialSystems() {
     FundamentalSystemBridge.loadGameplayManagerComposite();
+    FundamentalSystemBridge.loadPlayerStatusTracker();
     FundamentalSystemBridge.loadActiveTriggerManager();
   }
 

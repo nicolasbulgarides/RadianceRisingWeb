@@ -25,6 +25,7 @@ class BaseGameUIScene extends UISceneGeneralized {
     this.experienceBarSegments = []; // Store experience bar segments
     this.levelNameText = null; // Store level name text control
     this.fpsCounterText = null; // Store FPS counter text control
+    this.perfectionTrackerText = null; // Store perfection tracker text control
     this.fpsFrameCount = 0; // Counter for frames since last update
     this.fpsLastUpdateTime = 0; // Last time FPS was calculated
     this.fpsUpdateInterval = 1000; // Update FPS display every 1 second (1000ms)
@@ -38,6 +39,9 @@ class BaseGameUIScene extends UISceneGeneralized {
   }
 
   assembleUIBaseGameUI() {
+    // Store global reference for static method access
+    window.gameUIInstance = this;
+
     // 1) Create the bottom panel background
     this.attemptUIElementLoad(
       () => this.assembleBackBasePanel(),
@@ -151,6 +155,12 @@ class BaseGameUIScene extends UISceneGeneralized {
       "topExperienceBar"
     );
 
+    // Add restart button between experience bar and heart sockets
+    this.attemptUIElementLoad(
+      () => this.createTopRestartButton(),
+      "topRestartButton"
+    );
+
     // Add level name and hint on the right
     this.attemptUIElementLoad(
       () => this.createTopLevelInfo(),
@@ -163,20 +173,34 @@ class BaseGameUIScene extends UISceneGeneralized {
       "topHeartBar"
     );
 
-    // Add FPS counter to the right of hearts
-    this.attemptUIElementLoad(
-      () => this.createFPSCounter(),
-      "fpsCounter"
-    );
+    // FPS counter disabled - was blocking restart button
+    // this.attemptUIElementLoad(
+    //   () => this.createFPSCounter(),
+    //   "fpsCounter"
+    // );
 
     // Initialize FPS tracking
-    this.initializeFPSTracking();
+    // this.initializeFPSTracking();
 
-    // Try to refresh level info from gameplay after a short delay
+    // Add level perfection tracker below hearts, aligned with restart button
+    this.attemptUIElementLoad(
+      () => this.createLevelPerfectionTracker(),
+      "levelPerfectionTracker"
+    );
+
+    // Initialize perfection tracking
+    this.initializePerfectionTracking();
+
+    // Try to refresh level info from gameplay after a delay
     // (allows time for level to be loaded)
     setTimeout(() => {
       this.refreshLevelInfoFromGameplay();
     }, 500);
+
+    // Also try after a longer delay in case the level takes longer to load
+    setTimeout(() => {
+      this.refreshLevelInfoFromGameplay();
+    }, 2000);
 
     // Sync the experience bar with the tracked player status (if available).
     const playerStatusTracker = FundamentalSystemBridge["playerStatusTracker"];
@@ -211,7 +235,7 @@ class BaseGameUIScene extends UISceneGeneralized {
    */
   createTopExperienceBar() {
     // Calculate size based on UI dimensions (3x larger, then reduced by 30%, then increased by 20%)
-    const expBarSize = Config.IDEAL_UI_WIDTH * 0.3024; // 0.252 * 1.2 (20% bigger)
+    const expBarSize = Config.IDEAL_UI_WIDTH * 0.2024; // 0.252 * 1.2 (20% bigger)
 
     // Position on the left side of the top panel with 50px left margin
     // Calculate offset: move left from center, then add left margin
@@ -254,6 +278,52 @@ class BaseGameUIScene extends UISceneGeneralized {
   }
 
   /**
+   * Creates the restart button positioned below the heart socket bar.
+   */
+  createTopRestartButton() {
+    // Calculate position between experience bar and heart bar
+    const expBarSize = Config.IDEAL_UI_WIDTH * 0.3024; // Same size as experience bar
+    const leftMargin = 50;
+    const halfBarSize = expBarSize / 2;
+    const expBarRightEdge = -(Config.IDEAL_UI_WIDTH / 2) + halfBarSize + leftMargin + halfBarSize;
+
+    // Calculate center of right space (where hearts are positioned)
+    const rightMargin = 50;
+    const availableRightSpace = (Config.IDEAL_UI_WIDTH / 2) - rightMargin - expBarRightEdge;
+    const centerOfRightSpace = expBarRightEdge + (availableRightSpace / 2);
+
+    // Position restart button below the heart socket bar
+    const restartButtonSize = 96; // Size for restart button (80 * 1.2 = 20% bigger)
+    const heartBarSize = 87.5; // Same size as heart bar
+    const levelNameOffsetY = -Config.IDEAL_UI_HEIGHT * 0.02 - 75; // Same as level name
+    const heartBarOffsetY = levelNameOffsetY + Config.IDEAL_UI_HEIGHT * 0.05 + (heartBarSize / 2) - 75 + 100;
+
+    // Position restart button below heart bar with spacing, moved 375px to the left (25px more than before)
+    const restartOffsetX = centerOfRightSpace - 375; // Center the restart button with the hearts, then move 375px left (25px more)
+    const restartOffsetY = heartBarOffsetY + (heartBarSize / 2) + 20; // Below heart bar with 20px spacing (moved down 25px)
+
+    // Create restart button using ButtonFactory
+    const restartButtonControl = ButtonFactory.createImageButton(
+      "iconRestart",
+      restartButtonSize,
+      restartButtonSize,
+      0, // thickness
+      restartOffsetX,
+      restartOffsetY,
+      BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER,
+      BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER,
+      this.buttonFunction.bind(this),
+      "RESTART"
+    );
+
+    // Ensure restart button is on top layer (higher z-index than perfection tracker)
+    restartButtonControl.zIndex = 100;
+
+    // Add to the top UI controls container
+    this.topUIControlsContainer.addControl(restartButtonControl);
+  }
+
+  /**
    * Creates the level name and hint display centered in the space to the right of the experience bar.
    */
   createTopLevelInfo() {
@@ -288,30 +358,32 @@ class BaseGameUIScene extends UISceneGeneralized {
    * Creates the heart socket bar beneath the level title, centered.
    */
   createTopHeartBar() {
-    // Calculate the center of the right space (same as level name position)
+    // Calculate positioning - move hearts further left (closer to center)
     const expBarSize = Config.IDEAL_UI_WIDTH * 0.3024; // 20% bigger experience bar
     const leftMargin = 50;
     const halfBarSize = expBarSize / 2;
     const expBarRightEdge = -(Config.IDEAL_UI_WIDTH / 2) + halfBarSize + leftMargin + halfBarSize;
     const rightMargin = 50;
     const availableRightSpace = (Config.IDEAL_UI_WIDTH / 2) - rightMargin - expBarRightEdge;
-    const centerOfRightSpace = expBarRightEdge + (availableRightSpace / 2);
+
+    // Position hearts further to the left (use 1/3 of available space instead of 1/2)
+    const centerOfRightSpace = expBarRightEdge + (availableRightSpace / 3);
 
     // Position beneath the level title, centered
-    const heartBarSize = 125; // 125 pixels tall
+    const heartBarSize = 87.5; // Scaled down by 30% from 125px (125 * 0.7)
     const levelNameOffsetY = -Config.IDEAL_UI_HEIGHT * 0.02 - 75; // Same as level name (moved 75px up)
     const heartBarOffsetY = levelNameOffsetY + Config.IDEAL_UI_HEIGHT * 0.05 + (heartBarSize / 2) - 75 + 100; // Below level name with spacing, moved 75px up, then 100px down (50px additional)
 
-    // Center the hearts so they align with the center of the level title
-    const heartBarCenterOffsetX = centerOfRightSpace; // Center of heart bar aligns with center of level title
+    // Center the hearts further to the left
+    const heartBarCenterOffsetX = centerOfRightSpace; // Center of heart bar positioned further left
 
-    // Create the heart socket bar with 4 hearts, 100px size
+    // Create the heart socket bar with 4 hearts, scaled down size
     this.heartSocketBar = new HeartSocketBar(
       "topHeartBar",
       4, // maxHearts (fixed to 4)
       4, // currentHearts (starts full)
-      heartBarSize, // heartWidth (100px)
-      heartBarSize, // heartHeight (100px)
+      heartBarSize, // heartWidth (scaled down by 30%)
+      heartBarSize, // heartHeight (scaled down by 30%)
       heartBarCenterOffsetX, // offsetX (center of heart bar container aligns with center of level title)
       heartBarOffsetY, // offsetY (beneath level title)
       BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER,
@@ -366,6 +438,48 @@ class BaseGameUIScene extends UISceneGeneralized {
   }
 
   /**
+   * Creates the level perfection tracker text below the hearts, aligned with restart button.
+   */
+  createLevelPerfectionTracker() {
+    // Position aligned with restart button, below hearts
+    const expBarSize = Config.IDEAL_UI_WIDTH * 0.3024; // Same size as experience bar
+    const leftMargin = 50;
+    const halfBarSize = expBarSize / 2;
+    const expBarRightEdge = -(Config.IDEAL_UI_WIDTH / 2) + halfBarSize + leftMargin + halfBarSize;
+    const rightMargin = 50;
+    const availableRightSpace = (Config.IDEAL_UI_WIDTH / 2) - rightMargin - expBarRightEdge;
+    const centerOfRightSpace = expBarRightEdge + (availableRightSpace / 3);
+
+    // Calculate positions (same as restart button)
+    const restartButtonSize = 80;
+    const heartBarSize = 87.5;
+    const levelNameOffsetY = -Config.IDEAL_UI_HEIGHT * 0.02 - 75;
+    const heartBarOffsetY = levelNameOffsetY + Config.IDEAL_UI_HEIGHT * 0.05 + (heartBarSize / 2) - 75 + 100;
+    const restartOffsetY = heartBarOffsetY + (heartBarSize / 2) + 20;
+
+    // Position perfection tracker below restart button, shifted up 75px and right 300px
+    const perfectionOffsetX = centerOfRightSpace - 50; // -150 + 100 = shifted right another 100px
+    const perfectionOffsetY = restartOffsetY + restartButtonSize - 65; // -90 + 25 = shifted down 25px
+
+    // Create perfection tracker text
+    this.perfectionTrackerText = new BABYLON.GUI.TextBlock("perfectionTracker", "Moves: --/--");
+    this.perfectionTrackerText.color = "white"; // Default color
+    this.perfectionTrackerText.fontSize = Config.IDEAL_UI_HEIGHT * 0.02 + "px";
+    this.perfectionTrackerText.fontFamily = "Arial";
+    this.perfectionTrackerText.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+    this.perfectionTrackerText.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+    this.perfectionTrackerText.left = perfectionOffsetX + "px";
+    this.perfectionTrackerText.top = perfectionOffsetY + "px";
+    this.perfectionTrackerText.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+
+    // Make perfection tracker mouse transparent so clicks pass through to buttons below
+    this.perfectionTrackerText.isPointerBlocker = false;
+    this.perfectionTrackerText.isHitTestVisible = false;
+
+    this.topUIControlsContainer.addControl(this.perfectionTrackerText);
+  }
+
+  /**
    * Initializes FPS tracking by registering a before render observer.
    */
   initializeFPSTracking() {
@@ -389,6 +503,122 @@ class BaseGameUIScene extends UISceneGeneralized {
         this.updateFPSCounter();
       }
     });
+  }
+
+  /**
+   * Initializes perfection tracking by registering updates to track movement progress.
+   */
+  initializePerfectionTracking() {
+    if (!this.advancedTexture || !this.advancedTexture.getScene) {
+      // Wait for advanced texture to be ready
+      setTimeout(() => this.initializePerfectionTracking(), 100);
+      return;
+    }
+
+    const scene = this.advancedTexture.getScene();
+    if (!scene) {
+      setTimeout(() => this.initializePerfectionTracking(), 100);
+      return;
+    }
+
+    // Register before render to track perfection progress and level name
+    let levelNameUpdateCounter = 0;
+    scene.registerBeforeRender(() => {
+      this.updatePerfectionTracker();
+      this.updateUIElementVisibility();
+
+      // Also periodically try to update level name (first few seconds after load)
+      levelNameUpdateCounter++;
+      if (levelNameUpdateCounter % 60 === 0 && levelNameUpdateCounter < 600) { // Every second for first 10 seconds
+        this.refreshLevelInfoFromGameplay();
+      }
+    });
+  }
+
+  /**
+   * Updates the level perfection tracker with current movement count and color coding.
+   */
+  updatePerfectionTracker() {
+    if (!this.perfectionTrackerText) return;
+
+    try {
+      // Get current movement count
+      const movementTracker = FundamentalSystemBridge["movementTracker"];
+      const currentMoves = movementTracker ? movementTracker.movements.length : 0;
+
+      // Get current level ID and perfect solution
+      const gameplayManager = FundamentalSystemBridge["gameplayManagerComposite"];
+      if (!gameplayManager || !gameplayManager.primaryActiveGameplayLevel) {
+        this.perfectionTrackerText.text = `Moves: ${currentMoves}/--`;
+        this.perfectionTrackerText.color = "white";
+        return;
+      }
+
+      const activeLevel = gameplayManager.primaryActiveGameplayLevel;
+      const levelData = activeLevel.levelDataComposite;
+
+      if (!levelData || !levelData.levelHeaderData || !levelData.levelHeaderData.levelId) {
+        this.perfectionTrackerText.text = `Moves: ${currentMoves}/--`;
+        this.perfectionTrackerText.color = "white";
+        return;
+      }
+
+      const levelId = levelData.levelHeaderData.levelId;
+      const perfectMoves = LevelProfileManifest.getPerfectSolutionMovementCount(levelId);
+
+      if (perfectMoves === null) {
+        this.perfectionTrackerText.text = `Moves: ${currentMoves}/--`;
+        this.perfectionTrackerText.color = "white";
+        return;
+      }
+
+      // Update text
+      this.perfectionTrackerText.text = `Moves: ${currentMoves}/${perfectMoves}`;
+
+      // Set color based on performance
+      if (currentMoves <= perfectMoves) {
+        // Perfect or better - white
+        this.perfectionTrackerText.color = "white";
+      } else if (currentMoves <= perfectMoves + 3) {
+        // Within 3 moves - orange
+        this.perfectionTrackerText.color = "#FFA500"; // Orange
+      } else {
+        // More than 3 moves over - red
+        this.perfectionTrackerText.color = "#FF0000"; // Red
+      }
+
+    } catch (error) {
+      console.warn("[PERFECTION TRACKER] Error updating tracker:", error);
+      this.perfectionTrackerText.text = "Moves: --/--";
+      this.perfectionTrackerText.color = "white";
+    }
+  }
+
+  /**
+   * Updates the visibility of UI elements based on the active game scene.
+   * Hides level display and move count tracker when in WorldLoaderScene.
+   */
+  updateUIElementVisibility() {
+    const renderSceneSwapper = FundamentalSystemBridge["renderSceneSwapper"];
+    if (!renderSceneSwapper) return;
+
+    const activeGameScene = renderSceneSwapper.getActiveGameLevelScene();
+    const isInWorldLoader = activeGameScene && activeGameScene.name === "WorldLoaderScene";
+
+    // Control level name display visibility
+    if (this.levelNameText) {
+      this.levelNameText.isVisible = !isInWorldLoader;
+    }
+
+    // Control level hint display visibility
+    if (this.levelHintText) {
+      this.levelHintText.isVisible = !isInWorldLoader;
+    }
+
+    // Control perfection tracker (move count) visibility
+    if (this.perfectionTrackerText) {
+      this.perfectionTrackerText.isVisible = !isInWorldLoader;
+    }
   }
 
   /**
@@ -425,6 +655,53 @@ class BaseGameUIScene extends UISceneGeneralized {
       // Reset counters for next measurement period
       this.fpsFrameCount = 0;
       this.fpsLastUpdateTime = currentTime;
+    }
+  }
+
+  /**
+   * Static method to update level name from anywhere in the application
+   * This ensures level name updates even if the initial timing is off
+   */
+  static updateLevelNameGlobally() {
+    try {
+      // Try to find any BaseGameUIScene instance and call refresh on it
+      if (window.gameUIInstance && typeof window.gameUIInstance.refreshLevelInfoFromGameplay === 'function') {
+        window.gameUIInstance.refreshLevelInfoFromGameplay();
+      } else {
+        // Fallback: try to find the level name text control directly
+        const renderSceneSwapper = FundamentalSystemBridge["renderSceneSwapper"];
+        if (!renderSceneSwapper) return;
+
+        const activeScene = renderSceneSwapper.getActiveGameLevelScene();
+        if (!activeScene) return;
+
+        // Look through all textures in the scene
+        activeScene.getChildren().forEach(child => {
+          if (child && child.getChildren && typeof child.getChildren === 'function') {
+            const controls = child.getChildren();
+            controls.forEach(control => {
+              if (control && control.name === "topLevelName" && typeof control.text !== 'undefined') {
+                // Found the level name text control, update it directly
+                try {
+                  const gameplayManager = FundamentalSystemBridge["gameplayManagerComposite"];
+                  if (gameplayManager && gameplayManager.primaryActiveGameplayLevel) {
+                    const activeLevel = gameplayManager.primaryActiveGameplayLevel;
+                    const levelData = activeLevel.levelDataComposite;
+
+                    if (levelData && levelData.levelHeaderData && levelData.levelHeaderData.levelId) {
+                      control.text = `Level: ${levelData.levelHeaderData.levelId}`;
+                    }
+                  }
+                } catch (error) {
+                  console.warn("[UI] Error updating level name control directly:", error);
+                }
+              }
+            });
+          }
+        });
+      }
+    } catch (error) {
+      console.warn("[UI] Failed to update level name globally:", error);
     }
   }
 
@@ -492,6 +769,13 @@ class BaseGameUIScene extends UISceneGeneralized {
         levelName = levelData.levelHeaderData.levelNickname;
       } else if (levelData.levelNickname) {
         levelName = levelData.levelNickname;
+      }
+
+      // If level name is not found, try to get level ID from manifest
+      if (!levelName && levelData.levelHeaderData && levelData.levelHeaderData.levelId) {
+        const levelId = levelData.levelHeaderData.levelId;
+        // Use the level ID as the display name
+        levelName = levelId;
       }
 
       // Get level hint (stored directly on levelDataComposite)
@@ -812,6 +1096,17 @@ class BaseGameUIScene extends UISceneGeneralized {
         SoundEffectsManager.playSound("magicalSpellCastNeutral");
       }
     } else if (buttonFunctionKey === "ARTIFACT") {
+      console.log("[ARTIFACT BUTTON] Artifact button clicked");
+      // Check if player has a key and is near a lock - if so, unlock the lock
+      const lockUnlocked = this.attemptLockUnlocking();
+      console.log(`[ARTIFACT BUTTON] Lock unlocked: ${lockUnlocked}`);
+      if (lockUnlocked) {
+        // Lock was unlocked, don't do normal artifact usage
+        console.log("[ARTIFACT BUTTON] Lock was unlocked, skipping normal artifact usage");
+        return;
+      }
+
+      // Normal artifact usage (fireball effect)
       // Use artifact using artifact socket bar if available
       if (this.artifactSocketBar) {
         const artifactUsed = this.artifactSocketBar.useArtifact();
@@ -827,7 +1122,285 @@ class BaseGameUIScene extends UISceneGeneralized {
         // Fallback: play sound and trigger effect even if artifact socket bar isn't initialized
         SoundEffectsManager.playSound("artifactUsage");
       }
+    } else if (buttonFunctionKey === "RESTART") {
+      console.log("[RESTART BUTTON] Restart button clicked");
+      // Use LevelResetHandler to reset the level
+      const levelResetHandler = FundamentalSystemBridge["levelResetHandler"];
+      if (levelResetHandler) {
+        levelResetHandler.resetLevel();
+        // Play restart sound
+        SoundEffectsManager.playSound("artifactUsage"); // Reusing artifact sound for restart
+      } else {
+        console.error("[RESTART BUTTON] LevelResetHandler not found");
+      }
     }
+  }
+
+  /**
+   * Attempts to unlock a lock if the player has a key and is within 1 tile of a lock.
+   * @returns {boolean} True if a lock was unlocked, false otherwise.
+   */
+  attemptLockUnlocking() {
+    console.log("[LOCK UNLOCK] attemptLockUnlocking called");
+
+    const gameplayManager = FundamentalSystemBridge["gameplayManagerComposite"];
+    if (!gameplayManager || !gameplayManager.primaryActivePlayer) {
+      console.log("[LOCK UNLOCK] No gameplayManager or primaryActivePlayer");
+      return false;
+    }
+
+    const player = gameplayManager.primaryActivePlayer;
+    const activeLevel = gameplayManager.primaryActiveGameplayLevel;
+
+    if (!activeLevel || !player) {
+      console.log("[LOCK UNLOCK] No activeLevel or player");
+      return false;
+    }
+
+    // Check if player has a key
+    const inventory = player.mockInventory;
+    const keyCount = inventory ? inventory.getItemQuantity("key") : 0;
+    console.log(`[LOCK UNLOCK] Player has ${keyCount} keys`);
+    if (!inventory || keyCount <= 0) {
+      console.log("[LOCK UNLOCK] No key available for lock unlocking");
+      return false;
+    }
+
+    // Get player position
+    const playerPosition = player.playerMovementManager.currentPosition;
+    console.log(`[LOCK UNLOCK] Player position: (${playerPosition?.x}, ${playerPosition?.y}, ${playerPosition?.z})`);
+    if (!playerPosition) {
+      console.log("[LOCK UNLOCK] No player position");
+      return false;
+    }
+
+    // Find obstacles (including locks)
+    let obstacles = [];
+    let obstaclesSource = "";
+    if (activeLevel.obstacles && Array.isArray(activeLevel.obstacles)) {
+      obstacles = activeLevel.obstacles;
+      obstaclesSource = "activeLevel.obstacles";
+    } else if (activeLevel.levelDataComposite?.obstacles) {
+      obstacles = activeLevel.levelDataComposite.obstacles;
+      obstaclesSource = "levelDataComposite.obstacles";
+    } else if (activeLevel.levelMap?.obstacles) {
+      obstacles = activeLevel.levelMap.obstacles;
+      obstaclesSource = "levelMap.obstacles";
+    }
+
+    console.log(`[LOCK UNLOCK] Found ${obstacles.length} obstacles from ${obstaclesSource}`);
+
+    // Debug: Log all obstacles with their positions and types
+    obstacles.forEach((obstacle, index) => {
+      console.log(`[LOCK UNLOCK] Obstacle ${index}:`, {
+        archetype: obstacle.obstacleArchetype,
+        isUnlockable: obstacle.isUnlockable,
+        position: obstacle.position ? `(${obstacle.position.x}, ${obstacle.position.y}, ${obstacle.position.z})` : 'no position',
+        nickname: obstacle.nickname
+      });
+    });
+
+    // Find locks within 1 tile (adjacent tiles including diagonals)
+    const nearbyLocks = obstacles.filter(obstacle => {
+      if (!obstacle.isUnlockable || obstacle.obstacleArchetype !== "lock") {
+        return false;
+      }
+
+      // Get obstacle position (might be in obstacle.position or obstacle.positionedObject.position)
+      const obstaclePosition = obstacle.position || (obstacle.positionedObject && obstacle.positionedObject.position);
+      if (!obstaclePosition) {
+        console.log(`[LOCK UNLOCK] Obstacle has no position:`, obstacle);
+        return false;
+      }
+
+      // Use tile coordinates for distance calculation (since movement is grid-based)
+      const playerTileX = Math.floor(playerPosition.x);
+      const playerTileZ = Math.floor(playerPosition.z);
+      const lockTileX = Math.floor(obstaclePosition.x);
+      const lockTileZ = Math.floor(obstaclePosition.z);
+
+      // Check if lock is within 1 tile (Chebyshev distance <= 1 for grid-based movement)
+      const dx = Math.abs(lockTileX - playerTileX);
+      const dz = Math.abs(lockTileZ - playerTileZ);
+      const distance = Math.max(dx, dz); // Chebyshev distance for grid movement
+
+      console.log(`[LOCK UNLOCK] Checking lock at tile (${lockTileX}, ${lockTileZ}) [world: (${obstaclePosition.x}, ${obstaclePosition.z})] vs player at tile (${playerTileX}, ${playerTileZ}) [world: (${playerPosition.x}, ${playerPosition.z})] - distance: ${distance}`);
+
+      return distance <= 1.0;
+    });
+
+    console.log(`[LOCK UNLOCK] Found ${nearbyLocks.length} nearby locks at player tile position (${Math.floor(playerPosition.x)}, ${Math.floor(playerPosition.z)})`);
+
+    if (nearbyLocks.length === 0) {
+      console.log("[LOCK UNLOCK] No locks found within 1 tile");
+      return false;
+    }
+
+    // Unlock the first nearby lock found
+    const lockToUnlock = nearbyLocks[0];
+    this.unlockLock(lockToUnlock, activeLevel);
+
+    // Record lock unlock for replay
+    const movementTracker = FundamentalSystemBridge["movementTracker"];
+    if (movementTracker) {
+      const unlockPosition = lockToUnlock.position || (lockToUnlock.positionedObject && lockToUnlock.positionedObject.position);
+      if (unlockPosition) {
+        movementTracker.recordLockUnlock(unlockPosition);
+      }
+    }
+
+    // Remove key from inventory
+    // Note: We don't have a removeItem method, so we'll need to modify the inventory
+    // For now, we'll just decrement the count (this is a temporary solution)
+    const keyEntry = inventory.inventory.get("key");
+    if (keyEntry && keyEntry.quantity > 0) {
+      keyEntry.quantity--;
+      if (keyEntry.quantity <= 0) {
+        inventory.inventory.delete("key");
+      }
+    }
+
+    // Consume artifact from socket bar
+    if (this.artifactSocketBar) {
+      this.artifactSocketBar.consumeArtifact(1);
+    }
+
+    // Play unlock sound
+    const scene = activeLevel.hostingScene;
+    if (scene) {
+      try {
+        SoundEffectsManager.playSound("artifactUsage", scene); // Reusing artifact sound for unlocking
+      } catch (error) {
+        console.error("Error playing unlock sound:", error);
+      }
+    }
+
+    const unlockedPosition = lockToUnlock.position || (lockToUnlock.positionedObject && lockToUnlock.positionedObject.position);
+    console.log(`Lock unlocked at position (${unlockedPosition.x}, ${unlockedPosition.z})`);
+    return true;
+  }
+
+  /**
+   * Unlocks a lock obstacle by removing it from the level and hiding its model.
+   * @param {Object} lockObstacle - The lock obstacle to unlock
+   * @param {ActiveGameplayLevel} activeLevel - The current level
+   */
+  unlockLock(lockObstacle, activeLevel) {
+    const obstaclePosition = lockObstacle.position || (lockObstacle.positionedObject && lockObstacle.positionedObject.position);
+    console.log(`[LOCK UNLOCK] Unlocking lock at position (${obstaclePosition.x}, ${obstaclePosition.z})`);
+
+    // Remove lock from ALL obstacle arrays to ensure movement systems can pass through
+
+    // 1. Remove from activeLevel.obstacles
+    if (activeLevel.obstacles && Array.isArray(activeLevel.obstacles)) {
+      const index = activeLevel.obstacles.indexOf(lockObstacle);
+      if (index > -1) {
+        console.log(`[LOCK UNLOCK] Removed from activeLevel.obstacles at index ${index}`);
+        activeLevel.obstacles.splice(index, 1);
+      }
+    }
+
+    // 2. Remove from activeLevel.levelDataComposite.obstacles
+    if (activeLevel.levelDataComposite?.obstacles) {
+      const index = activeLevel.levelDataComposite.obstacles.indexOf(lockObstacle);
+      if (index > -1) {
+        console.log(`[LOCK UNLOCK] Removed from levelDataComposite.obstacles at index ${index}`);
+        activeLevel.levelDataComposite.obstacles.splice(index, 1);
+      }
+    }
+
+    // 3. Remove from activeLevel.levelMap.obstacles
+    if (activeLevel.levelMap?.obstacles) {
+      const index = activeLevel.levelMap.obstacles.indexOf(lockObstacle);
+      if (index > -1) {
+        console.log(`[LOCK UNLOCK] Removed from levelMap.obstacles at index ${index}`);
+        activeLevel.levelMap.obstacles.splice(index, 1);
+      }
+    }
+
+    // 4. Remove from activeLevel.levelDataComposite.levelGameplayTraitsData.featuredObjects
+    if (activeLevel.levelDataComposite?.levelGameplayTraitsData?.featuredObjects) {
+      const featuredObjects = activeLevel.levelDataComposite.levelGameplayTraitsData.featuredObjects;
+      const index = featuredObjects.indexOf(lockObstacle);
+      if (index > -1) {
+        console.log(`[LOCK UNLOCK] Removed from featuredObjects at index ${index}`);
+        featuredObjects.splice(index, 1);
+      }
+    }
+
+    // Add passthroughAllowed flag to prevent future obstacle checks (belt and suspenders)
+    lockObstacle.passthroughAllowed = true;
+    lockObstacle.isObstacle = false;
+
+    // Hide the lock model completely
+    if (lockObstacle.positionedObject) {
+      // Set a flag to ensure the model gets hidden when it loads (if not loaded yet)
+      lockObstacle.positionedObject.shouldBeHidden = true;
+
+      if (lockObstacle.positionedObject.model) {
+        const model = lockObstacle.positionedObject.model;
+        console.log(`[LOCK UNLOCK] Hiding lock model`);
+
+        // Hide the root model
+        if (model.isVisible !== undefined) {
+          model.isVisible = false;
+        }
+        if (model.setEnabled) {
+          model.setEnabled(false);
+        }
+
+        // Hide all child meshes
+        if (model.getChildMeshes) {
+          const childMeshes = model.getChildMeshes();
+          console.log(`[LOCK UNLOCK] Hiding ${childMeshes.length} child meshes`);
+          childMeshes.forEach((mesh, i) => {
+            if (mesh.isVisible !== undefined) {
+              mesh.isVisible = false;
+            }
+            if (mesh.setEnabled) {
+              mesh.setEnabled(false);
+            }
+          });
+        }
+
+        // If model has a meshes array (root node case)
+        if (model.meshes && Array.isArray(model.meshes)) {
+          console.log(`[LOCK UNLOCK] Hiding ${model.meshes.length} meshes from meshes array`);
+          model.meshes.forEach((mesh, i) => {
+            if (mesh.isVisible !== undefined) {
+              mesh.isVisible = false;
+            }
+            if (mesh.setEnabled) {
+              mesh.setEnabled(false);
+            }
+          });
+        }
+      } else {
+        console.log(`[LOCK UNLOCK] Lock model not yet loaded, will be hidden when loaded`);
+      }
+    } else {
+      console.warn(`[LOCK UNLOCK] No positionedObject found for lock obstacle`);
+    }
+
+    console.log(`[LOCK UNLOCK] Lock unlock complete`);
+
+    // Trigger orange explosion effect
+    this.triggerLockUnlockExplosion(obstaclePosition);
+  }
+
+  /**
+   * Triggers an orange particle explosion effect at the lock position.
+   * @param {BABYLON.Vector3} position - The position of the unlocked lock
+   */
+  triggerLockUnlockExplosion(position) {
+    const effectGenerator = new EffectGenerator();
+    effectGenerator.explosionEffect({
+      type: 'fire', // Orange/red explosion for lock unlocking
+      intensity: 1.2,
+      duration: 3.0
+    }).catch(error => {
+      console.error("Error triggering lock unlock explosion:", error);
+    });
   }
 
   /**

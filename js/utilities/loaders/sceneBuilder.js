@@ -143,6 +143,38 @@ class SceneBuilder {
             rootMesh.isPickable = false;
             rootMesh.doNotSyncBoundingInfo = true;
           }
+
+          // Check if this object should be hidden (e.g., unlocked lock)
+          if (positionedObject.shouldBeHidden) {
+            console.log(`[SCENE BUILDER] Hiding model ${positionedObject.modelId} that was marked for hiding`);
+            loadedModel.isVisible = false;
+            loadedModel.setEnabled(false);
+
+            // Hide all child meshes
+            if (loadedModel.getChildMeshes) {
+              const childMeshes = loadedModel.getChildMeshes();
+              childMeshes.forEach((mesh) => {
+                if (mesh.isVisible !== undefined) {
+                  mesh.isVisible = false;
+                }
+                if (mesh.setEnabled) {
+                  mesh.setEnabled(false);
+                }
+              });
+            }
+
+            // Hide meshes in the meshes array
+            if (loadedModel.meshes && Array.isArray(loadedModel.meshes)) {
+              loadedModel.meshes.forEach((mesh) => {
+                if (mesh.isVisible !== undefined) {
+                  mesh.isVisible = false;
+                }
+                if (mesh.setEnabled) {
+                  mesh.setEnabled(false);
+                }
+              });
+            }
+          }
         }
         return loadedModel;
       }

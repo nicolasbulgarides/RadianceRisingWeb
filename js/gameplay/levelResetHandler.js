@@ -234,6 +234,9 @@ class LevelResetHandler {
         // Reset microevents (marks them as incomplete so they can be triggered again)
         this.resetMicroEvents(activeLevel);
 
+        // Reset pickup progress (stardust count, experience) for fresh level attempt
+        this.resetPickupProgress();
+
         // Instead of recreating the player (which risks ghost copies), stop all movement and teleport to spawn
         this.resetExistingPlayerToSpawn(activeLevel, oldPlayer, gameplayManager);
 
@@ -783,6 +786,19 @@ class LevelResetHandler {
 
         console.log("[DEATH] Movement setup verification complete");
         console.log("[DEATH] Movement input path: UI → GameplayManager.processAttemptedMovementFromUIClick → primaryActiveGameplayLevel.currentPrimaryPlayer");
+    }
+
+    /**
+     * Resets pickup progress (stardust count, experience) for a fresh level attempt
+     */
+    resetPickupProgress() {
+        const specialOccurrenceManager = FundamentalSystemBridge["specialOccurrenceManager"];
+        if (specialOccurrenceManager && specialOccurrenceManager.pickupOccurrenceSubManager) {
+            specialOccurrenceManager.pickupOccurrenceSubManager.resetPickupProgress();
+            console.log("[DEATH] Reset stardust pickup count and experience for fresh level attempt");
+        } else {
+            console.warn("[DEATH] Cannot reset pickup progress - specialOccurrenceManager or pickupOccurrenceSubManager not found");
+        }
     }
 }
 

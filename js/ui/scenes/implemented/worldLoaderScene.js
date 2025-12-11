@@ -11,8 +11,13 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
         this.centerSphere = null; // Reference to the center sphere (at 0, 0, 0)
         this.selectedWorldIndex = null;
         this.isLoadingWorld = false;
+        this.worldSpheresInitialized = false; // Track if spheres have been created
+
+        // Register callback for level completion updates
+        this.setupLevelCompletionCallback();
         this.setupBackgroundImage();
-        this.createWorldSpheres();
+        // Delay sphere creation until sequential loader is available
+        this.initializeWorldSpheresWhenReady();
         this.setupCamera();
         this.setupLighting();
         this.setupClickHandlers();
@@ -34,6 +39,39 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
     }
 
     /**
+     * Initialize world spheres when the sequential level loader becomes available
+     * This handles the initialization order issue where the scene is created before all systems are ready
+     */
+    initializeWorldSpheresWhenReady() {
+        // Check immediately if sequential loader is available
+        if (FundamentalSystemBridge["sequentialLevelLoader"]) {
+            this.createWorldSpheres();
+            return;
+        }
+
+        // If not available yet, set up a periodic check
+        const checkInterval = setInterval(() => {
+            if (FundamentalSystemBridge["sequentialLevelLoader"]) {
+                clearInterval(checkInterval);
+                this.createWorldSpheres();
+                // Ensure camera is set after initialization
+                this.ensureWorldLoaderCamera();
+            }
+        }, 100); // Check every 100ms
+
+        // Safety timeout after 10 seconds
+        setTimeout(() => {
+            if (!this.worldSpheresInitialized) {
+                clearInterval(checkInterval);
+                console.error("[WorldLoaderScene] Sequential level loader still not available after 10 seconds - creating spheres with fallback");
+                this.createWorldSpheresWithFallback();
+                // Ensure camera is set even in fallback case
+                this.ensureWorldLoaderCamera();
+            }
+        }, 10000);
+    }
+
+    /**
      * Creates 9 spheres arranged in a 3x3 grid, centered on screen
      */
     createWorldSpheres() {
@@ -41,18 +79,12 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
         const spacing = 4; // Space between sphere centers
         const gridSize = 3; // 3x3 grid
 
-        // Define level data for each sphere (can be expanded later)
-        const levelData = [
-            { levelId: "level0", levelUrl: "level0Test.txt", name: "Level 1" },
-            { levelId: "level1", levelUrl: "level1Test.txt", name: "Level 2" },
-            { levelId: "level2", levelUrl: "level2Test.txt", name: "Level 3" },
-            { levelId: "level3", levelUrl: "level3Test.txt", name: "Level 4" },
-            { levelId: "level4", levelUrl: "level4Test.txt", name: "Level 5" },
-            { levelId: "level5", levelUrl: "level5Test.txt", name: "Level 6" },
-            { levelId: "level6", levelUrl: "level6Test.txt", name: "Level 7" },
-            { levelId: "level7", levelUrl: "level7Test.txt", name: "Level 8" },
-            { levelId: "level8", levelUrl: "level8Test.txt", name: "Level 9" }
-        ];
+        // Get level data from sequential level loader
+        const sequentialLoader = FundamentalSystemBridge["sequentialLevelLoader"];
+        if (!sequentialLoader) {
+            console.error("[WorldLoaderScene] Sequential level loader not found");
+            return;
+        }
 
         // Position spheres relative to center
         // Center sphere (row 1, col 1) will be at (0, 0, 0)
@@ -89,29 +121,27 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
                     this.centerSphere = sphere;
                 }
 
-                // Create material with consistent blue tint to indicate "not finished"
-                const material = new BABYLON.StandardMaterial(`worldSphereMaterial_${row}_${col}`, this);
-                const baseBlue = new BABYLON.Color3(0.2, 0.6, 1.0);
-                material.emissiveColor = baseBlue;
-                material.diffuseColor = baseBlue.scale(0.6);
-                material.specularColor = new BABYLON.Color3(1.0, 1.0, 1.0);
-                material.emissiveIntensity = 1.4;
-                material.roughness = 0.2;
+                // Get level data from sequential loader
+                const levelData = sequentialLoader.getWorldLevelData(sphereIndex);
+                const isCompleted = FundamentalSystemBridge["levelsSolvedStatusTracker"]?.isLevelCompleted(sphereIndex) || false;
+
+                // Create material based on level status
+                const material = this.createSphereMaterial(sphereIndex, levelData, isCompleted);
+
                 sphere.material = material;
 
-                // Make sphere pickable for clicking
-                sphere.isPickable = true;
+                // Make sphere pickable for clicking (only if level is available)
+                sphere.isPickable = levelData?.isAvailable || false;
 
                 // Store level data with the sphere
-                sphere.worldData = levelData[sphereIndex] || {
-                    levelId: `level${sphereIndex}`,
-                    levelUrl: `level${sphereIndex}Test.txt`,
-                    name: `Level ${sphereIndex + 1}`
-                };
+                sphere.worldData = levelData;
                 sphere.sphereIndex = sphereIndex;
+                sphere.isCompleted = isCompleted;
 
-                // Add hover effect (slight scale up on hover)
-                this.addHoverEffect(sphere);
+                // Add hover effect (slight scale up on hover) only for available levels
+                if (levelData?.isAvailable) {
+                    this.addHoverEffect(sphere);
+                }
 
                 this.worldSpheres.push(sphere);
                 sphereIndex++;
@@ -119,6 +149,89 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
         }
 
         // console.log(`[WorldLoaderScene] Created ${this.worldSpheres.length} world spheres in 3x3 grid`);
+
+        this.worldSpheresInitialized = true;
+    }
+
+    /**
+     * Creates world spheres with fallback data when sequential level loader is not available
+     * This provides basic sphere creation for development/testing when the full level system isn't ready
+     */
+    createWorldSpheresWithFallback() {
+        const sphereDiameter = 2;
+        const spacing = 4; // Space between sphere centers
+        const gridSize = 3; // 3x3 grid
+
+        // Position spheres relative to center
+        // Center sphere (row 1, col 1) will be at (0, 0, 0)
+        // Other spheres offset relative to center
+        const centerRow = 1; // Middle row (0-based index)
+        const centerCol = 1; // Middle column (0-based index)
+
+        let sphereIndex = 0;
+
+        // Create 3 rows
+        for (let row = 0; row < gridSize; row++) {
+            // Create 3 columns
+            for (let col = 0; col < gridSize; col++) {
+                // Calculate offset from center: (col - centerCol) * spacing for X, (row - centerRow) * spacing for Z
+                const x = (col - centerCol) * spacing;
+                const z = (row - centerRow) * spacing;
+                const y = 0; // All spheres on horizontal plane (same as game board)
+
+                // Create sphere
+                const sphere = BABYLON.MeshBuilder.CreateSphere(
+                    `worldSphere_${row}_${col}`,
+                    {
+                        diameter: sphereDiameter,
+                        segments: 32
+                    },
+                    this
+                );
+
+                // Position the sphere
+                sphere.position = new BABYLON.Vector3(x, y, z);
+
+                // Store reference to center sphere (at 0, 0, 0)
+                if (x === 0 && y === 0 && z === 0) {
+                    this.centerSphere = sphere;
+                }
+
+                // Create fallback level data for development
+                const fallbackLevelData = {
+                    levelId: `level${sphereIndex}`,
+                    name: `Level ${sphereIndex}`,
+                    isAvailable: sphereIndex < 6, // First 6 levels available
+                    levelUrl: null
+                };
+
+                // Create material based on level status (gray for all in fallback mode)
+                const material = new BABYLON.StandardMaterial(`worldSphereMaterial_${sphereIndex}`, this);
+                const notAvailableGray = new BABYLON.Color3(0.4, 0.4, 0.4);
+                material.emissiveColor = notAvailableGray;
+                material.diffuseColor = notAvailableGray.scale(0.5);
+                material.specularColor = new BABYLON.Color3(0.6, 0.6, 0.6);
+                material.emissiveIntensity = 0.8;
+                material.roughness = 0.2;
+
+                sphere.material = material;
+
+                // Make sphere pickable for available levels only
+                sphere.isPickable = fallbackLevelData.isAvailable;
+
+                // Store level data with the sphere
+                sphere.worldData = fallbackLevelData;
+                sphere.sphereIndex = sphereIndex;
+                sphere.isCompleted = false;
+
+                this.worldSpheres.push(sphere);
+                sphereIndex++;
+            }
+        }
+
+        console.log(`[WorldLoaderScene] Created ${this.worldSpheres.length} world spheres in fallback mode (sequential loader unavailable)`);
+
+        this.worldSpheresInitialized = true;
     }
 
     /**
@@ -182,6 +295,65 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
     }
 
     /**
+     * Creates appropriate material for sphere based on level status
+     * @param {number} sphereIndex - Index of the sphere
+     * @param {Object} levelData - Level data for this sphere
+     * @param {boolean} isCompleted - Whether the level is completed
+     * @returns {BABYLON.StandardMaterial} The material for the sphere
+     */
+    createSphereMaterial(sphereIndex, levelData, isCompleted) {
+        const material = new BABYLON.StandardMaterial(`worldSphereMaterial_${sphereIndex}`, this);
+
+        if (isCompleted) {
+            // Green for completed levels
+            const completedGreen = new BABYLON.Color3(0.2, 0.8, 0.3);
+            material.emissiveColor = completedGreen;
+            material.diffuseColor = completedGreen.scale(0.7);
+            material.specularColor = new BABYLON.Color3(0.8, 1.0, 0.8);
+            material.emissiveIntensity = 1.2;
+        } else if (levelData?.isAvailable) {
+            // Blue for available but not completed levels
+            const availableBlue = new BABYLON.Color3(0.2, 0.6, 1.0);
+            material.emissiveColor = availableBlue;
+            material.diffuseColor = availableBlue.scale(0.6);
+            material.specularColor = new BABYLON.Color3(1.0, 1.0, 1.0);
+            material.emissiveIntensity = 1.4;
+        } else {
+            // Gray for levels not yet made
+            const notAvailableGray = new BABYLON.Color3(0.4, 0.4, 0.4);
+            material.emissiveColor = notAvailableGray;
+            material.diffuseColor = notAvailableGray.scale(0.5);
+            material.specularColor = new BABYLON.Color3(0.6, 0.6, 0.6);
+            material.emissiveIntensity = 0.8;
+        }
+
+        material.roughness = 0.2;
+        return material;
+    }
+
+    /**
+     * Updates the color of a specific sphere based on its completion status
+     * @param {number} sphereIndex - Index of the sphere to update
+     */
+    updateSphereColor(sphereIndex) {
+        const sphere = this.worldSpheres[sphereIndex];
+        if (!sphere) return;
+
+        const levelData = sphere.worldData;
+        const isCompleted = FundamentalSystemBridge["levelsSolvedStatusTracker"]?.isLevelCompleted(sphereIndex) || false;
+
+        // Update sphere properties
+        sphere.isCompleted = isCompleted;
+        sphere.isPickable = levelData?.isAvailable || false;
+
+        // Create new material
+        const newMaterial = this.createSphereMaterial(sphereIndex, levelData, isCompleted);
+        sphere.material = newMaterial;
+
+        console.log(`[WorldLoaderScene] Updated sphere ${sphereIndex} color - completed: ${isCompleted}, available: ${levelData?.isAvailable}`);
+    }
+
+    /**
      * Sets up click handlers for all spheres
      */
     setupClickHandlers() {
@@ -217,6 +389,7 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
             return;
         }
         this.isLoadingWorld = true;
+        this.selectedWorldIndex = sphere.sphereIndex; // Track which sphere was selected
         const worldData = sphere.worldData;
         //console.log(`[WorldLoaderScene] World selected: ${worldData.name} (${worldData.levelId})`);
 
@@ -270,8 +443,16 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
         const specialOccurrenceManager = FundamentalSystemBridge["specialOccurrenceManager"];
         specialOccurrenceManager?.pickupOccurrenceSubManager?.resetPickupProgress?.();
 
-        // Construct the full URL for the level (hard-coded to level2Test.txt per request)
-        const levelUrl = "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/assets/level2Test.txt";
+        // Get the level URL from sequential loader
+
+        const sequentialLoader = FundamentalSystemBridge["sequentialLevelLoader"];
+        const levelUrl = sequentialLoader?.getWorldLevelUrl(this.selectedWorldIndex);
+
+        if (!levelUrl) {
+            console.error("[WorldLoaderScene] No level URL available for sphere", this.selectedWorldIndex);
+            this.isLoadingWorld = false;
+            return;
+        }
 
         try {
             const renderSceneSwapper = FundamentalSystemBridge["renderSceneSwapper"];
@@ -322,9 +503,41 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
             // Re-activate the UI scene to ensure it stays rendered after game scene swap
             renderSceneSwapper.setActiveUIScene("BaseUIScene");
 
+            // Store the sphere index globally so level completion can be tracked back to the sphere
+            if (!window.currentLevelSphereIndex) {
+                window.currentLevelSphereIndex = this.selectedWorldIndex;
+            }
+
             //console.log(`[WorldLoaderScene] Loaded ${worldData.name} from ${levelUrl} and activated BaseGameScene`);
         } catch (error) {
             // console.error(`[WorldLoaderScene] Error loading level ${worldData.levelUrl}:`, error);
+            // Clear the sphere index on error
+            window.currentLevelSphereIndex = null;
+        }
+    }
+
+    /**
+     * Ensures the WorldLoaderScene camera is properly set and preserved
+     * This prevents the render loop from overriding it with a placeholder camera
+     */
+    ensureWorldLoaderCamera() {
+        // Only run if render scene swapper is available (prevents issues during initialization)
+        const renderSceneSwapper = FundamentalSystemBridge["renderSceneSwapper"];
+        if (!renderSceneSwapper) return;
+
+        // If we don't have our custom camera set, restore it
+        if (!this.activeCamera || this.activeCamera.name !== "worldLoaderCamera") {
+            const storedCamera = renderSceneSwapper.allStoredCameras[this];
+
+            if (storedCamera && storedCamera.name === "worldLoaderCamera") {
+                // Restore our stored camera
+                this.activeCamera = storedCamera;
+                // console.log("[WorldLoaderScene] Restored world loader camera from storage");
+            } else if (!this.activeCamera || this.activeCamera.name !== "worldLoaderCamera") {
+                // Only recreate if we still don't have the right camera
+                // console.log("[WorldLoaderScene] World loader camera was missing, recreating...");
+                this.setupCamera();
+            }
         }
     }
 
@@ -371,6 +584,11 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
             renderSceneSwapper.allStoredCameras[this] = camera;
         }
 
+        // Ensure camera stays set during render loop (prevents placeholder camera override)
+        this.worldLoaderCameraObserver = this.onBeforeRenderObservable.add(() => {
+            this.ensureWorldLoaderCamera();
+        });
+
         // console.log("[WorldLoaderScene] Game board style camera set up - positioned at (0, 35, 0) looking straight down at (0, 0, 0)");
     }
 
@@ -411,6 +629,10 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
             this.onBeforeRenderObservable.remove(this.cameraRotationObserver);
             this.cameraRotationObserver = null;
         }
+        if (this.worldLoaderCameraObserver) {
+            this.onBeforeRenderObservable.remove(this.worldLoaderCameraObserver);
+            this.worldLoaderCameraObserver = null;
+        }
 
         // Dispose all world spheres
         if (this.worldSpheres) {
@@ -430,5 +652,21 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
         }
 
         super.dispose();
+    }
+
+    /**
+     * Sets up callback to handle level completion events
+     */
+    setupLevelCompletionCallback() {
+        const levelsSolvedStatusTracker = FundamentalSystemBridge["levelsSolvedStatusTracker"];
+        if (levelsSolvedStatusTracker) {
+            console.log("[WorldLoaderScene] Registering level completion callback with levelsSolvedStatusTracker");
+            levelsSolvedStatusTracker.registerCompletionCallback((sphereIndex, levelData) => {
+                console.log(`[WorldLoaderScene] Level completion callback triggered for sphere ${sphereIndex}`);
+                this.updateSphereColor(sphereIndex);
+            });
+        } else {
+            console.warn("[WorldLoaderScene] levelsSolvedStatusTracker not found in FundamentalSystemBridge during callback setup");
+        }
     }
 }

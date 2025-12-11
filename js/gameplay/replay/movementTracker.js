@@ -10,6 +10,7 @@ class MovementTracker {
         this.isTracking = false;
         this.pickupPositions = []; // Track positions where pickups occurred
         this.damagePositions = []; // Track positions where damage occurred
+        this.lockUnlocks = []; // Track lock unlocks with movement indices
     }
 
     /**
@@ -19,6 +20,7 @@ class MovementTracker {
         this.movements = [];
         this.pickupPositions = [];
         this.damagePositions = [];
+        this.lockUnlocks = [];
         this.isTracking = true;
         //console.log("[MOVEMENT TRACKER] Started tracking movements");
     }
@@ -102,12 +104,36 @@ class MovementTracker {
     }
 
     /**
+     * 
+     * Records a lock unlock event
+     * @param {BABYLON.Vector3} position - The position where the lock was unlocked
+     */
+    recordLockUnlock(position) {
+        if (!this.isTracking) return;
+
+        this.lockUnlocks.push({
+            position: position.clone(),
+            movementIndex: this.movements.length // Use current movement count as index
+        });
+        //console.log(`[MOVEMENT TRACKER] Recorded lock unlock at position (${position.x}, ${position.z}) at movement ${this.movements.length}`);
+    }
+
+    /**
+     * Gets all recorded lock unlock events
+     * @returns {Array} Array of lock unlock records
+     */
+    getLockUnlocks() {
+        return this.lockUnlocks;
+    }
+
+    /**
      * Clears all recorded movements
      */
     clear() {
         this.movements = [];
         this.pickupPositions = [];
         this.damagePositions = [];
+        this.lockUnlocks = [];
     }
 }
 

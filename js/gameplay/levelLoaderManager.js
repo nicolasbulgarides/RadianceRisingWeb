@@ -16,8 +16,14 @@ class LevelLoaderManager {
      * Initializes the level auditor if available.
      */
     initializeLevelAuditor() {
+        console.log("[LEVEL LOADER] 🏗️ Attempting to initialize level auditor...");
+        console.log("[LEVEL LOADER] LevelAuditor global type:", typeof LevelAuditor);
         if (typeof LevelAuditor !== "undefined") {
+            console.log("[LEVEL LOADER] ✅ LevelAuditor available, creating instance...");
             this.levelAuditor = new LevelAuditor();
+            console.log("[LEVEL LOADER] ✅ Level auditor instance created:", !!this.levelAuditor);
+        } else {
+            console.log("[LEVEL LOADER] ❌ LevelAuditor not available globally");
         }
     }
 
@@ -140,12 +146,12 @@ class LevelLoaderManager {
         await this.loadTilesAndFactorySupportSystems();
 
         // Load level using the LevelProfileManifest
-        // Available levels: level0Test2, level2Test, level3Spikes
+        // Available levels: level0Test2, level2Test, level3Spikes, level4Spikes2
         const levelId = "level3Spikes";
 
         try {
             const levelJsonData = await LevelProfileManifest.fetchLevelById(levelId);
-            return await this.receiveLevelMapFromServer(gameplayManager, levelJsonData);
+            return await this.receiveLevelMapFromServer(gameplayManager, levelJsonData, levelId);
         } catch (error) {
             console.error(`[LEVEL LOADER] Error loading level ${levelId}:`, error);
             this.logFailedToLoadLevel();
@@ -180,12 +186,14 @@ class LevelLoaderManager {
         return levelData?.mapHeight || levelData?.mapDepth || levelData?.depth || 21;
     }
 
+
     /**
      * Loads a level from JSON data received from the server/GUI
      * @param {GameplayManagerComposite} gameplayManager - The gameplay manager instance
      * @param {Object|string} levelJsonData - The level JSON data (object or JSON string)
+     * @param {string} [levelId] - Optional level ID from manifest (for proper level identification)
      */
-    async receiveLevelMapFromServer(gameplayManager, levelJsonData) {
+    async receiveLevelMapFromServer(gameplayManager, levelJsonData, levelId) {
         // Get loading screen instance
         const loadingScreen = this.getLoadingScreen();
 
@@ -228,7 +236,7 @@ class LevelLoaderManager {
             await this.loadTilesAndFactorySupportSystems();
 
             // Parse the level data and create LevelDataComposite
-            let levelDataComposite = this.parseLevelJsonToComposite(levelData);
+            let levelDataComposite = this.parseLevelJsonToComposite(levelData, levelId);
 
             if (!levelDataComposite) {
                 this.logFailedToLoadLevel();
@@ -272,6 +280,9 @@ class LevelLoaderManager {
 
             // Create and register heart pickups as microevents
             await this.createHeartPickups(activeGameplayLevel, levelData);
+
+            // Create and register key pickups as microevents
+            await this.createKeyPickups(activeGameplayLevel, levelData);
 
             // Render obstacles
             const sceneBuilder = FundamentalSystemBridge["renderSceneSwapper"].getSceneBuilderForScene("BaseGameScene");
@@ -324,11 +335,6 @@ class LevelLoaderManager {
             // Load player into the level
             let gameplayLevel = await this.loadLevelAndPlayerFromComposite(gameplayManager, activeGameplayLevel);
 
-            if (!gameplayLevel) {
-                this.logFailedToLoadLevel();
-                return null;
-            }
-
             // Register microevents for the level
             // Note: Stardust microevents are already registered in createStardustPickups
             // Only call prepareAndRegisterMicroEventsForLevel if level doesn't already have microevents
@@ -366,6 +372,14 @@ class LevelLoaderManager {
                 //  console.log(`[LEVEL LOADER] Movement tracking started`);
             }
 
+            // Update UI level name after level is fully loaded
+            setTimeout(() => {
+                if (typeof BaseGameUIScene !== 'undefined' && BaseGameUIScene.updateLevelNameGlobally) {
+                    BaseGameUIScene.updateLevelNameGlobally();
+                }
+            }, 100);
+            // this.runLevelAudit(levelData, activeGameplayLevel);
+
             // Create duplicate level for replay (100 units to the right, offscreen)
             const replayManager = FundamentalSystemBridge["levelReplayManager"];
             if (replayManager) {
@@ -390,24 +404,10 @@ class LevelLoaderManager {
                 loadingScreen.destroy();
             }
 
-            // Start music on loop (only if audio has been unlocked by user interaction)
-            // First level plays "crystalVoyage", all subsequent levels play "duskReverie"
-            const musicManager = FundamentalSystemBridge["musicManager"];
-            const activeScene = FundamentalSystemBridge["renderSceneSwapper"]?.getActiveGameLevelScene();
-            if (musicManager && activeScene && Config.audioHasBeenUnlocked) {
-                const songName = this.currentLevelNumber === 0 ? "crystalVoyage" : "duskReverie";
-                // console.log(`[LEVEL LOADER] Starting ${songName} music for level ${this.currentLevelNumber}`);
-                musicManager.playSong(activeScene, songName, true, true);
-                // console.log(`[LEVEL LOADER] ✓ Started ${songName} music on loop`);
-
-                // Increment level number for next level
-                this.currentLevelNumber++;
-            } else if (musicManager && activeScene && !Config.audioHasBeenUnlocked) {
-                // console.log("[LEVEL LOADER] Skipping music start - waiting for user interaction to unlock audio");
-            }
-
+            this.playMusic();
             // Run level audit to determine minimum strokes and optimal path
-            this.runLevelAudit(levelData, activeGameplayLevel);
+            console.log("[LEVEL AUDIT'] 🎯 About to call runLevelAudit...");
+            console.log("[LEVEL AUDIT'] ✅ runLevelAudit call completed");
 
             return gameplayLevel;
         } catch (error) {
@@ -417,14 +417,34 @@ class LevelLoaderManager {
         }
     }
 
+    playMusic() {
+        // Start music on loop (only if audio has been unlocked by user interaction)
+        // First level plays "crystalVoyage", all subsequent levels play "duskReverie"
+        const musicManager = FundamentalSystemBridge["musicManager"];
+        const activeScene = FundamentalSystemBridge["renderSceneSwapper"]?.getActiveGameLevelScene();
+        if (musicManager && activeScene && Config.audioHasBeenUnlocked) {
+            const songName = this.currentLevelNumber === 0 ? "crystalVoyage" : "duskReverie";
+            // console.log(`[LEVEL LOADER] Starting ${songName} music for level ${this.currentLevelNumber}`);
+            musicManager.playSong(activeScene, songName, true, true);
+            // console.log(`[LEVEL LOADER] ✓ Started ${songName} music on loop`);
+
+            // Increment level number for next level
+            this.currentLevelNumber++;
+        } else if (musicManager && activeScene && !Config.audioHasBeenUnlocked) {
+            // console.log("[LEVEL LOADER] Skipping music start - waiting for user interaction to unlock audio");
+        }
+
+    }
     /**
      * Parses JSON level data into a LevelDataComposite
      * @param {Object} levelData - The parsed level JSON data
+     * @param {string} [levelId] - Optional level ID from manifest
      * @returns {LevelDataComposite} The created level data composite
      */
-    parseLevelJsonToComposite(levelData) {
-        const levelId = levelData.levelName || "level0";
-        const levelNickname = levelData.levelName || "Level 0";
+    parseLevelJsonToComposite(levelData, levelId) {
+        // Use provided levelId, or fall back to levelData.levelName, or default to "level0"
+        const finalLevelId = levelId || levelData.levelName || "level0";
+        const levelNickname = levelData.levelName || finalLevelId; // Use levelId as fallback for nickname too
         const levelHint = levelData.levelHint || "";
         const width = levelData.mapWidth || 21;
         const depth = levelData.mapHeight || 21;
@@ -441,12 +461,17 @@ class LevelLoaderManager {
 
         // Create level data composite using TestLevelJsonBuilder
         const levelDataComposite = TestLevelJsonBuilder.buildCustomSizeLevel(
-            levelId,
+            finalLevelId,
             levelNickname,
             width,
             depth,
             playerStart
         );
+
+        // Ensure levelHeaderData has the correct levelId
+        if (levelDataComposite.levelHeaderData) {
+            levelDataComposite.levelHeaderData.levelId = finalLevelId;
+        }
 
         // Store custom properties
         levelDataComposite.levelHint = levelHint;
@@ -463,6 +488,31 @@ class LevelLoaderManager {
     createObstaclesFromLevelData(levelData) {
         const obstacles = [];
         const mountainElements = levelData.allMapElements?.filter(el => el.element === "MOUNTAIN") || [];
+        const lockElements = levelData.allMapElements?.filter(el => el.element === "LOCK") || [];
+
+        if (Config.LOGGING_OBSTACLE_CREATION) {
+            console.log(`[OBSTACLE CREATION] Found ${lockElements.length} LOCK elements in level data`);
+            console.log(`[OBSTACLE CREATION] LOCK elements:`, lockElements);
+            console.log(`[OBSTACLE CREATION] Creating ${lockElements.length} lock obstacles`);
+        }
+
+        // TEST: If no LOCK elements found, add a test lock at position (8, 8)
+        /*
+        if (lockElements.length === 0) {
+            if (Config.LOGGING_OBSTACLE_CREATION) {
+                console.log(`[OBSTACLE CREATION] No LOCK elements found, adding test lock at (8, 8)`);
+            }
+            if (!levelData.allMapElements) levelData.allMapElements = [];
+            levelData.allMapElements.push({
+                element: "LOCK",
+                coordinates: { x: 8, y: 8 }
+            });
+            lockElements.push({
+                element: "LOCK",
+                coordinates: { x: 8, y: 8 }
+            });
+        }
+        */
 
         const depth = this.getLevelDepth(levelData);
 
@@ -498,6 +548,50 @@ class LevelLoaderManager {
             obstacles.push(obstacleData);
         }
 
+        // Process LOCK elements as unlockable obstacles
+        for (const lockEl of lockElements) {
+            const coords = lockEl.coordinates;
+
+            // Validate coordinates exist
+            if (!coords || coords.x === undefined || coords.y === undefined) {
+                console.warn("Skipping lock obstacle with invalid coordinates:", lockEl);
+                continue;
+            }
+
+            const worldCoords = this.builderToWorld(coords, depth);
+            const position = new BABYLON.Vector3(worldCoords.x, 0, worldCoords.z);
+
+            // Validate position was created successfully
+            if (!position || position.x === undefined) {
+                console.warn("Failed to create position for lock obstacle:", coords);
+                continue;
+            }
+
+            // Create obstacle data object for lock (similar to mountain but unlockable)
+            const lockObstacleData = {
+                obstacleArchetype: "lock",
+                nickname: `lock_${coords.x}_${coords.y}`,
+                interactionId: "lock", // Special interaction ID for locks
+                directionsBlocked: "all",
+                position: position,
+                isObstacle: true,
+                isUnlockable: true // Special property to mark as unlockable
+            };
+
+            obstacles.push(lockObstacleData);
+            if (Config.LOGGING_OBSTACLE_CREATION) {
+                console.log(`[OBSTACLE CREATION] Added lock obstacle:`, {
+                    obstacleArchetype: lockObstacleData.obstacleArchetype,
+                    isUnlockable: lockObstacleData.isUnlockable,
+                    position: lockObstacleData.position,
+                    nickname: lockObstacleData.nickname
+                });
+            }
+        }
+
+        if (Config.LOGGING_OBSTACLE_CREATION) {
+            console.log(`[OBSTACLE CREATION] Total obstacles created: ${obstacles.length}`);
+        }
         return obstacles;
     }
 
@@ -743,6 +837,111 @@ class LevelLoaderManager {
     }
 
     /**
+     * Creates key pickups from level data and registers them as microevents
+     * @param {ActiveGameplayLevel} activeGameplayLevel - The active gameplay level
+     * @param {Object} levelData - The parsed level JSON data
+     */
+    async createKeyPickups(activeGameplayLevel, levelData) {
+        const keyElements = levelData.allMapElements?.filter(el => el.element === "KEY") || [];
+        const sceneBuilder = FundamentalSystemBridge["renderSceneSwapper"].getSceneBuilderForScene("BaseGameScene");
+        const microEventManager = FundamentalSystemBridge["microEventManager"];
+        const depth = this.getLevelDepth(levelData);
+
+        const levelId = activeGameplayLevel?.levelDataComposite?.levelHeaderData?.levelId || levelData.levelName || "level0";
+
+        if (Config.LOGGING_KEY_CREATION) {
+            console.log(`[KEY CREATION] Found ${keyElements.length} KEY elements in level data`);
+        }
+
+        // TEST: If no KEY elements found, add a test key at position (5, 5)
+        /*
+        if (keyElements.length === 0) {
+            if (Config.LOGGING_KEY_CREATION) {
+                console.log(`[KEY CREATION] No KEY elements found, adding test key at (5, 5)`);
+            }
+            keyElements.push({
+                element: "KEY",
+                coordinates: { x: 5, y: 5 }
+            });
+        }
+        */
+
+        if (Config.LOGGING_KEY_CREATION) {
+            console.log(`[KEY CREATION] Creating ${keyElements.length} key pickups for levelId: ${levelId}`);
+        }
+
+        for (const keyEl of keyElements) {
+            const coords = keyEl.coordinates;
+            const worldCoords = this.builderToWorld(coords, depth);
+            const position = new BABYLON.Vector3(worldCoords.x, Config.PLAYER_HEIGHT, worldCoords.z);
+
+            // Create positioned object for key
+            const offset = new BABYLON.Vector3(0, 0, 0);
+            const rotation = new BABYLON.Vector3(0, 0, 0);
+            const keyObject = new PositionedObject(
+                "key", // Using existing key model
+                position,
+                rotation,
+                offset,
+                "", // No animations
+                "",
+                "",
+                1.0, // Scale factor for key
+                false, // Don't freeze
+                true, // Interactive
+                false // Not a clone base
+            );
+
+            // Load the model
+            if (Config.LOGGING_KEY_CREATION) {
+                console.log(`[KEY CREATION] Loading model for key at position (${worldCoords.x}, ${Config.PLAYER_HEIGHT}, ${worldCoords.z})`);
+            }
+            await sceneBuilder.loadModel(keyObject);
+            if (Config.LOGGING_KEY_CREATION) {
+                console.log(`[KEY CREATION] Model loaded successfully. keyObject.model exists: ${!!keyObject.model}`);
+            }
+
+            // Create microevent for key pickup
+            const keyEvent = MicroEventFactory.generatePickup(
+                "Key Pickup",
+                "You collected a glowing key fragment!",
+                "key",
+                1,
+                position,
+                keyObject
+            );
+
+            // Register the microevent
+            if (microEventManager) {
+                const levelDataForRegistration = activeGameplayLevel?.levelDataComposite || { levelHeaderData: { levelId: levelId } };
+                microEventManager.addNewMicroEventToLevel(
+                    levelDataForRegistration,
+                    keyEvent
+                );
+                if (Config.LOGGING_KEY_CREATION) {
+                    console.log(`[KEY CREATION] Microevent registered for key pickup`);
+                }
+            } else {
+                console.error(`[KEY CREATION] MicroEventManager not found!`);
+            }
+
+            // Spawn arrival VFX using centralized explosion system
+            try {
+                const predictiveManager = FundamentalSystemBridge["predictiveExplosionManager"];
+                if (predictiveManager && sceneBuilder.scene) {
+                    predictiveManager.createSpawnExplosion(position, sceneBuilder.scene, 0.4).catch(() => { /* ignore */ });
+                }
+            } catch (err) {
+                console.warn("[KEY CREATION] Spawn effect failed:", err);
+            }
+        }
+
+        if (Config.LOGGING_KEY_CREATION) {
+            console.log(`[KEY CREATION] ✓ Created ${keyElements.length} key pickups for levelId: ${levelId}`);
+        }
+    }
+
+    /**
      * Converts builder (top-left origin) coordinates to Babylon world coords (bottom-left origin).
      * Optional offset allows re-use for duplicate/chamber grids.
      */
@@ -911,14 +1110,23 @@ class LevelLoaderManager {
      * @param {ActiveGameplayLevel} activeGameplayLevel - The loaded gameplay level
      */
     runLevelAudit(levelData, activeGameplayLevel) {
+        console.log("[LEVEL AUDIT'] 🔍 Attempting to run level audit...");
         const auditor = this.getLevelAuditor();
         if (!auditor) {
-            console.warn("[LEVEL LOADER] Level auditor not available - skipping audit");
+            console.warn("[LEVEL AUDIT'] ❌ Level auditor not available - skipping audit");
+            console.log("[LEVEL AUDIT'] LevelAuditor global available:", typeof LevelAuditor);
             return;
         }
 
+        console.log("[LEVEL AUDIT'] ✅ Level auditor found, running audit...");
+
         try {
+            // Enable debug mode to see detailed pathfinding information
+            auditor.setDebugMode(false);
+            console.log("[LEVEL AUDIT'] 🔧 Debug mode enabled on auditor");
+            console.log("[LEVEL LOADER] 📊 Calling auditor.auditLevel...");
             const result = auditor.auditLevel(levelData, activeGameplayLevel);
+            console.log("[LEVEL AUDIT'] 📊 auditor.auditLevel completed, result:", result);
 
             // Optionally generate visual map for debugging
             if (result && result.valid) {

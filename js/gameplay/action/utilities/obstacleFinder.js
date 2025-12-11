@@ -29,7 +29,7 @@ class ObstacleFinder {
     while (this.isWithinBounds(levelMap, x, y, z)) {
       // Retrieve the board slot at the current coordinates
       let boardSlot = levelMap.boardSlots[x]?.[z];
-      if (boardSlot && boardSlot.hostedObstacle) {
+      if (boardSlot && boardSlot.hostedObstacle && !boardSlot.hostedObstacle.passthroughAllowed) {
         return boardSlot.hostedObstacle;
       }
 
@@ -116,7 +116,7 @@ class ObstacleFinder {
     while (this.isWithinBounds(levelMap, x, y, z)) {
       let boardSlot = levelMap.boardSlots[x]?.[z];
 
-      if (boardSlot && boardSlot.hostedObstacle) {
+      if (boardSlot && boardSlot.hostedObstacle && !boardSlot.hostedObstacle.passthroughAllowed) {
         return lastValidPosition;
       }
 

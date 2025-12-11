@@ -70,6 +70,12 @@ class PickupOccurrenceSubManager {
         //console.error(`[PICKUP] Error processing heart pickup:`, error);
       });
       processedSuccessfully = true;
+    } else if (occurrenceId === "keyPickupOccurrence") {
+      // processKeyPickup is async, but we don't need to await it
+      this.processKeyPickup(pickupOccurrence).catch(error => {
+        //console.error(`[PICKUP] Error processing key pickup:`, error);
+      });
+      processedSuccessfully = true;
     } else {
       pickupOccurrenceLog(`[PICKUP] Unknown occurrenceId: ${occurrenceId}`);
     }
@@ -89,6 +95,41 @@ class PickupOccurrenceSubManager {
     }
   }
 
+  async processKeyPickup(pickupOccurrence) {
+    //pickupOccurrenceLog(`[KEY] Processing key pickup`);
+
+    // Add key to player inventory
+    let itemData = this.getKeyItemData();
+    let activePlayer = FundamentalSystemBridge["gameplayManagerComposite"].primaryActivePlayer;
+    let activeInventory = activePlayer.mockInventory;
+    activeInventory.addItem(itemData);
+
+    // Get the scene for playing sounds
+    let scene = FundamentalSystemBridge["renderSceneSwapper"]?.getActiveGameLevelScene();
+
+    // Fallback: try to get scene from active gameplay level
+    if (!scene) {
+      const gameplayManager = FundamentalSystemBridge["gameplayManagerComposite"];
+      if (gameplayManager?.primaryActiveGameplayLevel?.hostingScene) {
+        scene = gameplayManager.primaryActiveGameplayLevel.hostingScene;
+      }
+    }
+
+    // Play key pickup sound effect
+    if (scene) {
+      try {
+        SoundEffectsManager.playSound("stardustPickup", scene); // Reusing stardust sound for key pickup
+        //pickupOccurrenceLog(`[KEY] Playing key pickup sound`);
+      } catch (error) {
+        //console.error(`[KEY] Error playing key pickup sound:`, error);
+      }
+    }
+
+    // NOTE: Explosion effects are now handled exclusively by the PredictiveExplosionManager
+    // This ensures explosions trigger at the perfect timing (0.25 units into tile) rather than
+    // after the pickup is processed. No explosion code needed here.
+  }
+
   getMangoItemData() {
     let itemData = new Item(
       "mango",
@@ -104,6 +145,26 @@ class PickupOccurrenceSubManager {
       false,
       true,
       true
+    );
+
+    return itemData;
+  }
+
+  getKeyItemData() {
+    let itemData = new Item(
+      "key",
+      "A glowing key fragment that can unlock barriers.",
+      "rare",
+      1,
+      1,
+      0,
+      0,
+      null,
+      false,
+      false,
+      false,
+      true,
+      false // Keys are not consumable in the traditional sense
     );
 
     return itemData;
@@ -218,6 +279,23 @@ class PickupOccurrenceSubManager {
         //pickupOccurrenceLog(`[PICKUP] Playing endOfLevelPerfect sound`);
       } catch (error) {
         //console.error(`[PICKUP] Error playing endOfLevelPerfect sound:`, error);
+      }
+
+      // Mark level as completed in the world loader tracker
+      const levelsSolvedStatusTracker = FundamentalSystemBridge["levelsSolvedStatusTracker"];
+      if (levelsSolvedStatusTracker && window.currentLevelSphereIndex !== undefined) {
+        pickupOccurrenceLog(`[PICKUP] Marking sphere ${window.currentLevelSphereIndex} as completed`);
+        console.log(`[PICKUP] Found levelsSolvedStatusTracker in FundamentalSystemBridge, marking sphere ${window.currentLevelSphereIndex} as completed`);
+        levelsSolvedStatusTracker.markLevelCompleted(window.currentLevelSphereIndex);
+      } else {
+        console.warn(`[PICKUP] Cannot mark level as completed: levelsSolvedStatusTracker=${!!levelsSolvedStatusTracker}, currentLevelSphereIndex=${window.currentLevelSphereIndex}`);
+      }
+
+      // Restore player health to full upon level completion
+      const gameplayManager = FundamentalSystemBridge["gameplayManagerComposite"];
+      if (gameplayManager?.primaryActiveGameplayLevel?.playerUnit?.playerStatus) {
+        gameplayManager.primaryActiveGameplayLevel.playerUnit.playerStatus.restoreHealthToFull();
+        pickupOccurrenceLog(`[PICKUP] Player health restored to full upon level completion`);
       }
 
       // Start replay sequence after a short delay

@@ -42,6 +42,8 @@ class CollectibleOccurrenceFactory {
       occurrence = this.createStardustPickupOccurrence();
     } else if (pickupType === "heart") {
       occurrence = this.createHeartPickupOccurrence();
+    } else if (pickupType === "key") {
+      occurrence = this.createKeyPickupOccurrence();
     }
 
     return occurrence;
@@ -99,6 +101,21 @@ class CollectibleOccurrenceFactory {
     );
 
     return heartPickupOccurrence;
+  }
+
+  static createKeyPickupOccurrence() {
+    let keyPickupHeader = this.getPickupHeader("keyPickupOccurrence");
+    // Keys don't provide health or other benefits, just inventory item
+    let keyPickupBasicData = this.getPickupBasicData(false, 0, 0, 0, 0, 0);
+    let keyPickupItemData = this.getPickupItemData(true, "key", 1, 0, 0);
+
+    let keyPickupOccurrence = new SpecialOccurrenceComposite(
+      keyPickupHeader,
+      keyPickupBasicData,
+      keyPickupItemData,
+    );
+
+    return keyPickupOccurrence;
   }
 
   static createSpikeTrapDamageOccurrence() {

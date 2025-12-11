@@ -289,6 +289,14 @@ class FundamentalSystemBridge {
     );
   }
 
+  static registerLevelsSolvedStatusTracker(levelsSolvedStatusTracker) {
+    FundamentalSystemBridge.registerManager(
+      "levelsSolvedStatusTracker",
+      levelsSolvedStatusTracker,
+      LevelsSolvedStatusTracker
+    );
+  }
+
   /**
    * Logs a catastrophic registration error.
    * @param {string} systemName - The name of the system being registered.

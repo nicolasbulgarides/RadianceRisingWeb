@@ -177,7 +177,9 @@ class BoundedDestinationCalculator {
       const obstacles = activeGameplayLevel.levelDataComposite?.obstacles || [];
       const hasObstacle = obstacles.some(
         (obstacle) =>
-          obstacle.position.x === nextX && obstacle.position.z === nextZ
+          obstacle.position.x === nextX &&
+          obstacle.position.z === nextZ &&
+          !obstacle.passthroughAllowed // Skip obstacles that allow passthrough
       );
 
       if (hasObstacle) {

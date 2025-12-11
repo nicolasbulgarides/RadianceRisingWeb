@@ -103,10 +103,14 @@ class ActiveGameplayLevel {
     const lightNeedsInit = !hasLight || !lightInScene || !sceneMatches;
 
     if (lightNeedsInit) {
-      console.log(`[LEVEL LIGHTING] Initializing lighting (hasLight: ${hasLight}, lightInScene: ${lightInScene}, sceneMatches: ${sceneMatches})`);
+      if (Config.LOGGING_LEVEL_LIGHTING) {
+        console.log(`[LEVEL LIGHTING] Initializing lighting (hasLight: ${hasLight}, lightInScene: ${lightInScene}, sceneMatches: ${sceneMatches})`);
+      }
       this.lightingManager.initializeConstructSystems(false, this.hostingScene);
     } else {
-      console.log(`[LEVEL LIGHTING] Lighting already initialized, skipping`);
+      if (Config.LOGGING_LEVEL_LIGHTING) {
+        console.log(`[LEVEL LIGHTING] Lighting already initialized, skipping`);
+      }
     }
   }
 

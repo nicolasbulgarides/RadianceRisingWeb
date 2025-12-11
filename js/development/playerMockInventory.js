@@ -2,6 +2,12 @@ class PlayerMockInventory {
   constructor() {
     // Using a Map to store items with their quantities
     this.inventory = new Map();
+
+    // TEMP: Start with a key for testing lock unlocking
+    this.inventory.set("key", {
+      itemData: { itemName: "key", description: "A magical key" },
+      quantity: 1,
+    });
   }
 
   addItem(itemData) {
