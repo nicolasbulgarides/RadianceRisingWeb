@@ -3,15 +3,16 @@ const PLAYER_STATUS_TRACKER_LOGGING_ENABLED = false;
 
 // Helper function for conditional player status tracker logging
 function playerStatusTrackerLog(...args) {
-    if (PLAYER_STATUS_TRACKER_LOGGING_ENABLED) {
-        console.log(...args);
-    }
+  if (PLAYER_STATUS_TRACKER_LOGGING_ENABLED) {
+    console.log(...args);
+  }
 }
 
 class PlayerStatusTracker {
   constructor() {
     this.playerStatus = null;
     this.isDamageProcessing = false; // Prevent race conditions in damage
+    this.loadExperienceFromStorage();
   }
 
   /**
@@ -25,8 +26,8 @@ class PlayerStatusTracker {
 
     const {
       name = Config.DEFAULT_NAME,
-      currentLevel = Config.STARTING_LEVEL,
-      currentExperience = Config.STARTING_EXP,
+      currentLevel = this.loadLevelFromStorage(),
+      currentExperience = this.savedExperience,
       currentMagicLevel = Config.STARTING_MAGICPOINTS,
       maximumMagicPoints = Config.STARTING_MAGICPOINTS,
       maximumHealthPoints = Config.STARTING_HEALTH,
@@ -80,6 +81,7 @@ class PlayerStatusTracker {
     }
 
     const newExperienceTotal = this.playerStatus.addExperience(delta);
+    this.saveExperienceToStorage(); // Save to localStorage
     this.updateExperienceUI(newExperienceTotal);
     return newExperienceTotal;
   }
@@ -258,6 +260,58 @@ class PlayerStatusTracker {
     this.primeWithDefaultsIfMissing();
     if (this.playerStatus instanceof PlayerStatusComposite) {
       this.playerStatus.currentHealthPoints = Math.max(0, Math.min(this.getMaxHealth(), health));
+    }
+  }
+
+  /**
+   * Load experience from localStorage
+   */
+  loadExperienceFromStorage() {
+    try {
+      const stored = localStorage.getItem('radianceRising_playerExperience');
+      this.savedExperience = stored ? parseInt(stored, 10) : Config.STARTING_EXP;
+    } catch (error) {
+      console.warn("[PlayerStatusTracker] Failed to load experience from storage:", error);
+      this.savedExperience = Config.STARTING_EXP;
+    }
+  }
+
+  /**
+   * Save current experience to localStorage
+   */
+  saveExperienceToStorage() {
+    try {
+      if (this.playerStatus) {
+        localStorage.setItem('radianceRising_playerExperience', this.playerStatus.currentExperience.toString());
+      }
+    } catch (error) {
+      console.error("[PlayerStatusTracker] Failed to save experience to storage:", error);
+    }
+  }
+
+  /**
+   * Load level from localStorage
+   */
+  loadLevelFromStorage() {
+    try {
+      const stored = localStorage.getItem('radianceRising_playerLevel');
+      return stored ? parseInt(stored, 10) : Config.STARTING_LEVEL;
+    } catch (error) {
+      console.warn("[PlayerStatusTracker] Failed to load level from storage:", error);
+      return Config.STARTING_LEVEL;
+    }
+  }
+
+  /**
+   * Save current level to localStorage
+   */
+  saveLevelToStorage() {
+    try {
+      if (this.playerStatus) {
+        localStorage.setItem('radianceRising_playerLevel', this.playerStatus.currentLevel.toString());
+      }
+    } catch (error) {
+      console.error("[PlayerStatusTracker] Failed to save level to storage:", error);
     }
   }
 }

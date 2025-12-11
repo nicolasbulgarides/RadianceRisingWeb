@@ -260,8 +260,20 @@ class PickupOccurrenceSubManager {
 
       // pickupOccurrenceLog(`[PICKUP] 4th pickup detected! Triggering explosion effect and playing endOfLevelPerfect sound`);
 
-      // Add 4 more experience for level completion
-      this.addExperienceToPlayer(4);
+      // Add 4 more experience for level completion (only if not already granted)
+      const levelsSolvedStatusTracker = FundamentalSystemBridge["levelsSolvedStatusTracker"];
+      if (levelsSolvedStatusTracker && window.currentLevelSphereIndex !== undefined) {
+        if (!levelsSolvedStatusTracker.hasExperienceBeenGranted(window.currentLevelSphereIndex)) {
+          this.addExperienceToPlayer(4);
+          levelsSolvedStatusTracker.markExperienceGranted(window.currentLevelSphereIndex);
+          pickupOccurrenceLog(`[PICKUP] Granted 4 XP for level completion`);
+        } else {
+          pickupOccurrenceLog(`[PICKUP] Experience already granted for this level, skipping XP`);
+        }
+      } else {
+        // Fallback: grant experience if tracker not available
+        this.addExperienceToPlayer(4);
+      }
 
       // Trigger explosion effect immediately (don't await, let it run in background)
       const effectGenerator = new EffectGenerator();
@@ -282,7 +294,6 @@ class PickupOccurrenceSubManager {
       }
 
       // Mark level as completed in the world loader tracker
-      const levelsSolvedStatusTracker = FundamentalSystemBridge["levelsSolvedStatusTracker"];
       if (levelsSolvedStatusTracker && window.currentLevelSphereIndex !== undefined) {
         pickupOccurrenceLog(`[PICKUP] Marking sphere ${window.currentLevelSphereIndex} as completed`);
         console.log(`[PICKUP] Found levelsSolvedStatusTracker in FundamentalSystemBridge, marking sphere ${window.currentLevelSphereIndex} as completed`);

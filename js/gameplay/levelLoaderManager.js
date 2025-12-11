@@ -979,6 +979,29 @@ class LevelLoaderManager {
 
         demoPlayer.setMockInventory(new PlayerMockInventory());
 
+        // Reset UI bars to full for new level
+        const renderSceneSwapper = FundamentalSystemBridge["renderSceneSwapper"];
+        const uiScene = renderSceneSwapper?.getActiveUIScene();
+        if (uiScene) {
+            // Reset health bar to full (4/4)
+            if (uiScene.heartSocketBar && typeof uiScene.heartSocketBar.setCurrentHearts === 'function') {
+                uiScene.heartSocketBar.setCurrentHearts(4);
+                console.log("[LEVEL LOADER] Health bar reset to full (4/4)");
+            }
+
+            // Reset mana bar to full (3/3)
+            if (uiScene.manaBar && typeof uiScene.manaBar.setCurrentMana === 'function') {
+                uiScene.manaBar.setCurrentMana(3);
+                console.log("[LEVEL LOADER] Mana bar reset to full (3/3)");
+            }
+
+            // Reset artifact bar to full (3/3)
+            if (uiScene.artifactSocketBar && typeof uiScene.artifactSocketBar.setCurrentArtifacts === 'function') {
+                uiScene.artifactSocketBar.setCurrentArtifacts(3);
+                console.log("[LEVEL LOADER] Artifact bar reset to full (3/3)");
+            }
+        }
+
         return activeGameplayLevel;
     }
 

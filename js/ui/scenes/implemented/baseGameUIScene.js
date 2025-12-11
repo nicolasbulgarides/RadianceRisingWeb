@@ -24,6 +24,7 @@ class BaseGameUIScene extends UISceneGeneralized {
     this.heartSocketBar = null; // Store the heart socket bar instance
     this.experienceBarSegments = []; // Store experience bar segments
     this.levelNameText = null; // Store level name text control
+    this.levelText = null; // Store player level text control
     this.fpsCounterText = null; // Store FPS counter text control
     this.perfectionTrackerText = null; // Store perfection tracker text control
     this.fpsFrameCount = 0; // Counter for frames since last update
@@ -155,6 +156,12 @@ class BaseGameUIScene extends UISceneGeneralized {
       "topExperienceBar"
     );
 
+    // Add level text below experience bar
+    this.attemptUIElementLoad(
+      () => this.createTopLevelText(),
+      "topLevelText"
+    );
+
     // Add restart button between experience bar and heart sockets
     this.attemptUIElementLoad(
       () => this.createTopRestartButton(),
@@ -275,6 +282,34 @@ class BaseGameUIScene extends UISceneGeneralized {
       this.topUIControlsContainer.addControl(expBarSegment);
       this.experienceBarSegments.push(expBarSegment);
     }
+  }
+
+  /**
+   * Creates the player level text below the experience bar.
+   */
+  createTopLevelText() {
+    // Position below the experience bar
+    const expBarSize = Config.IDEAL_UI_WIDTH * 0.2024; // Same size as experience bar
+    const leftMargin = 50; // Same margin as experience bar
+    const halfBarSize = expBarSize / 2;
+    const expBarOffsetX = -(Config.IDEAL_UI_WIDTH / 2) + halfBarSize + leftMargin;
+
+    // Position below the experience bar
+    const expBarOffsetY = 0; // Experience bar is centered
+    const levelTextOffsetY = expBarOffsetY + (expBarSize / 2) + 10; // 10px below experience bar
+
+    // Create level text
+    this.levelText = new BABYLON.GUI.TextBlock("topLevelText", "Level: 1");
+    this.levelText.color = "white";
+    this.levelText.fontSize = Config.IDEAL_UI_HEIGHT * 0.025 + "px"; // Slightly smaller than level name
+    this.levelText.fontFamily = "Arial";
+    this.levelText.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+    this.levelText.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+    this.levelText.left = expBarOffsetX + "px";
+    this.levelText.top = levelTextOffsetY + "px";
+    this.levelText.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+
+    this.topUIControlsContainer.addControl(this.levelText);
   }
 
   /**
@@ -603,7 +638,7 @@ class BaseGameUIScene extends UISceneGeneralized {
     if (!renderSceneSwapper) return;
 
     const activeGameScene = renderSceneSwapper.getActiveGameLevelScene();
-    const isInWorldLoader = activeGameScene && activeGameScene.name === "WorldLoaderScene";
+    const isInWorldLoader = activeGameScene && activeGameScene instanceof WorldLoaderScene;
 
     // Control level name display visibility
     if (this.levelNameText) {
@@ -618,6 +653,19 @@ class BaseGameUIScene extends UISceneGeneralized {
     // Control perfection tracker (move count) visibility
     if (this.perfectionTrackerText) {
       this.perfectionTrackerText.isVisible = !isInWorldLoader;
+    }
+
+    // Control heart socket bar visibility
+    if (this.heartSocketBar && this.heartSocketBar.container) {
+      this.heartSocketBar.container.isVisible = !isInWorldLoader;
+    }
+
+    // Control level text visibility and update content
+    if (this.levelText) {
+      this.levelText.isVisible = !isInWorldLoader;
+      if (!isInWorldLoader) {
+        this.updateLevelText();
+      }
     }
   }
 
@@ -713,11 +761,55 @@ class BaseGameUIScene extends UISceneGeneralized {
     if (!this.experienceBarSegments || this.experienceBarSegments.length === 0) {
       return;
     }
+
+    // Handle level up when experience reaches maximum (24)
+    if (visibleCount >= 24) {
+      this.handleLevelUp();
+      visibleCount = 0; // Reset experience bar to empty after level up
+    }
+
     this.experienceBarSegments.forEach((segment, index) => {
       if (segment) {
         segment.isVisible = index < visibleCount;
       }
     });
+  }
+
+  /**
+   * Handles level up when experience reaches maximum (24).
+   */
+  handleLevelUp() {
+    // Get the player status tracker to update level
+    const playerStatusTracker = FundamentalSystemBridge["playerStatusTracker"];
+    if (playerStatusTracker && playerStatusTracker.playerStatus) {
+      // Increment level
+      playerStatusTracker.playerStatus.currentLevel += 1;
+
+      // Reset experience to 0
+      playerStatusTracker.playerStatus.currentExperience = 0;
+
+      // Save changes to localStorage
+      playerStatusTracker.saveExperienceToStorage();
+      playerStatusTracker.saveLevelToStorage();
+
+      // Update level text display
+      this.updateLevelText();
+
+      console.log(`[LEVEL UP] Player leveled up to level ${playerStatusTracker.playerStatus.currentLevel}!`);
+    }
+  }
+
+  /**
+   * Updates the level text display with current player level.
+   */
+  updateLevelText() {
+    if (!this.levelText) return;
+
+    const playerStatusTracker = FundamentalSystemBridge["playerStatusTracker"];
+    if (playerStatusTracker && playerStatusTracker.playerStatus) {
+      const currentLevel = playerStatusTracker.playerStatus.currentLevel || 1;
+      this.levelText.text = `Level: ${currentLevel}`;
+    }
   }
 
   /**
@@ -1124,14 +1216,59 @@ class BaseGameUIScene extends UISceneGeneralized {
       }
     } else if (buttonFunctionKey === "RESTART") {
       console.log("[RESTART BUTTON] Restart button clicked");
-      // Use LevelResetHandler to reset the level
-      const levelResetHandler = FundamentalSystemBridge["levelResetHandler"];
-      if (levelResetHandler) {
-        levelResetHandler.resetLevel();
-        // Play restart sound
-        SoundEffectsManager.playSound("artifactUsage"); // Reusing artifact sound for restart
+
+      // Check if we're in the world loader scene
+      const renderSceneSwapper = FundamentalSystemBridge["renderSceneSwapper"];
+      const activeGameScene = renderSceneSwapper?.getActiveGameLevelScene();
+
+      console.log("[RESTART BUTTON] Active game scene:", activeGameScene?.name, "Scene object:", activeGameScene);
+
+      if (activeGameScene && activeGameScene instanceof WorldLoaderScene) {
+        // In world loader scene: reset all level completion status, experience granted levels, and player level
+        console.log("[RESTART BUTTON] Full reset in world loader: levels, experience tracking, and player level");
+        const levelsSolvedStatusTracker = FundamentalSystemBridge["levelsSolvedStatusTracker"];
+        if (levelsSolvedStatusTracker) {
+          levelsSolvedStatusTracker.resetAllProgress();
+          // Also reset experience granted levels to allow re-granting experience
+          levelsSolvedStatusTracker.experienceGrantedLevels.clear();
+          levelsSolvedStatusTracker.saveExperienceGrantedLevels();
+
+          // Reset player level and experience
+          const playerStatusTracker = FundamentalSystemBridge["playerStatusTracker"];
+          if (playerStatusTracker && playerStatusTracker.playerStatus) {
+            playerStatusTracker.playerStatus.currentLevel = 1;
+            playerStatusTracker.playerStatus.currentExperience = 0;
+            playerStatusTracker.saveExperienceToStorage();
+            playerStatusTracker.saveLevelToStorage();
+
+            // Update UI elements
+            console.log("[RESTART BUTTON] Updating sphere colors after reset");
+            console.log("[RESTART BUTTON] WorldLoaderScene has worldSpheres:", activeGameScene.worldSpheres ? activeGameScene.worldSpheres.length : "undefined");
+            if (activeGameScene.updateSphereColor) {
+              console.log("[RESTART BUTTON] updateSphereColor method found, updating all spheres");
+              for (let i = 0; i < 9; i++) {
+                console.log(`[RESTART BUTTON] Updating sphere ${i}`);
+                activeGameScene.updateSphereColor(i);
+              }
+            } else {
+              console.warn("[RESTART BUTTON] updateSphereColor method not found on activeGameScene");
+            }
+          }
+
+          SoundEffectsManager.playSound("artifactUsage");
+        } else {
+          console.error("[RESTART BUTTON] LevelsSolvedStatusTracker not found");
+        }
       } else {
-        console.error("[RESTART BUTTON] LevelResetHandler not found");
+        // In gameplay scene: reset current level
+        const levelResetHandler = FundamentalSystemBridge["levelResetHandler"];
+        if (levelResetHandler) {
+          levelResetHandler.resetLevel();
+          // Play restart sound
+          SoundEffectsManager.playSound("artifactUsage"); // Reusing artifact sound for restart
+        } else {
+          console.error("[RESTART BUTTON] LevelResetHandler not found");
+        }
       }
     }
   }

@@ -213,6 +213,15 @@ class FundamentalSystemBridge {
     }
   }
 
+  static loadLevelLoaderManagerOnly() {
+    let levelLoaderManager = new LevelLoaderManager();
+    FundamentalSystemBridge.registerManager(
+      "levelLoaderManager",
+      levelLoaderManager,
+      LevelLoaderManager
+    );
+  }
+
   static loadAndActivateLevelLoaderManager() {
     let levelLoaderManager = new LevelLoaderManager();
     FundamentalSystemBridge.registerManager(

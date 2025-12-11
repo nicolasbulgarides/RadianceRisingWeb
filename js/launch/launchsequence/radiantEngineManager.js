@@ -64,7 +64,7 @@ class RadiantEngineManager {
   }
 
   loadTestLevel() {
-    FundamentalSystemBridge.loadAndActivateLevelLoaderManager();
+    FundamentalSystemBridge.loadLevelLoaderManagerOnly();
   }
   //statistics and analytics, platform detection, regional adapation systems, partnership systems, data security / law / requirements
   loadPartnershipAndPlatformAndLegalSystems() {

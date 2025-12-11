@@ -26,6 +26,10 @@ class LevelsSolvedStatusTracker {
         this.completedLevels = new Set();
         this.loadCompletedLevels();
 
+        // Track levels that have granted experience (persisted to localStorage)
+        this.experienceGrantedLevels = new Set();
+        this.loadExperienceGrantedLevels();
+
         // Callback system for level completion events
         this.completionCallbacks = new Set();
 
@@ -63,6 +67,36 @@ class LevelsSolvedStatusTracker {
     }
 
     /**
+     * Loads experience granted levels from localStorage
+     */
+    loadExperienceGrantedLevels() {
+        try {
+            const stored = localStorage.getItem('radianceRising_experienceGrantedLevels');
+            if (stored) {
+                const experienceArray = JSON.parse(stored);
+                this.experienceGrantedLevels = new Set(experienceArray);
+                console.log(`[LevelsSolvedStatusTracker] Loaded ${this.experienceGrantedLevels.size} experience granted levels from storage`);
+            }
+        } catch (error) {
+            console.warn("[LevelsSolvedStatusTracker] Failed to load experience granted levels from storage:", error);
+            this.experienceGrantedLevels = new Set();
+        }
+    }
+
+    /**
+     * Saves experience granted levels to localStorage
+     */
+    saveExperienceGrantedLevels() {
+        try {
+            const experienceArray = Array.from(this.experienceGrantedLevels);
+            localStorage.setItem('radianceRising_experienceGrantedLevels', JSON.stringify(experienceArray));
+            console.log(`[LevelsSolvedStatusTracker] Saved ${this.experienceGrantedLevels.size} experience granted levels to storage`);
+        } catch (error) {
+            console.error("[LevelsSolvedStatusTracker] Failed to save experience granted levels to storage:", error);
+        }
+    }
+
+    /**
      * Gets level data for a specific sphere index
      * @param {number} sphereIndex - Index of the sphere (0-8)
      * @returns {Object} Level data object
@@ -79,6 +113,29 @@ class LevelsSolvedStatusTracker {
     isLevelCompleted(sphereIndex) {
         const levelData = this.getLevelData(sphereIndex);
         return levelData && this.completedLevels.has(levelData.levelId);
+    }
+
+    /**
+     * Checks if experience has already been granted for a level
+     * @param {number} sphereIndex - Index of the sphere (0-8)
+     * @returns {boolean} True if experience has been granted
+     */
+    hasExperienceBeenGranted(sphereIndex) {
+        const levelData = this.getLevelData(sphereIndex);
+        return levelData && this.experienceGrantedLevels.has(levelData.levelId);
+    }
+
+    /**
+     * Marks that experience has been granted for a level
+     * @param {number} sphereIndex - Index of the sphere (0-8)
+     */
+    markExperienceGranted(sphereIndex) {
+        const levelData = this.getLevelData(sphereIndex);
+        if (levelData) {
+            this.experienceGrantedLevels.add(levelData.levelId);
+            this.saveExperienceGrantedLevels();
+            console.log(`[LevelsSolvedStatusTracker] Marked experience granted for level ${levelData.levelId}`);
+        }
     }
 
     /**
@@ -171,9 +228,10 @@ class LevelsSolvedStatusTracker {
      * Resets all progress (for debugging/testing)
      */
     resetAllProgress() {
+        console.log("[LevelsSolvedStatusTracker] Resetting all progress - before:", Array.from(this.completedLevels));
         this.completedLevels.clear();
         this.saveCompletedLevels();
-        console.log("[LevelsSolvedStatusTracker] All progress reset");
+        console.log("[LevelsSolvedStatusTracker] All progress reset - after:", Array.from(this.completedLevels));
     }
 
     /**

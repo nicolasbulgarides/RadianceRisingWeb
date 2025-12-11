@@ -71,8 +71,8 @@ class RenderSceneSwapper {
       ResponsiveUIManager.assembleUIScreenAsInstructed("BaseGameUI");
     this.loadSceneAndBuilder("BaseUIScene", baseUIScene);
 
-    // Set active scenes.
-    this.setActiveGameLevelScene("BaseGameScene");
+    // Set active scenes - start with world loader scene for level selection
+    this.setActiveGameLevelScene("WorldLoaderScene");
     this.setActiveUIScene("BaseUIScene");
   }
 
@@ -243,12 +243,12 @@ class RenderSceneSwapper {
    */
   ensureCamera(scene) {
     if (!scene) return null;
-    
+
     // If camera is already set and valid, skip checks (performance optimization)
     if (scene.activeCamera) {
       return scene.activeCamera;
     }
-    
+
     let cam = this.allStoredCameras[scene];
     if (!cam) {
       cam = CameraManager.setAndGetPlaceholderCamera(scene);

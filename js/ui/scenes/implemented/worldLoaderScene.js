@@ -336,11 +336,17 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
      * @param {number} sphereIndex - Index of the sphere to update
      */
     updateSphereColor(sphereIndex) {
+        console.log(`[WorldLoaderScene] updateSphereColor called for sphere ${sphereIndex}`);
         const sphere = this.worldSpheres[sphereIndex];
-        if (!sphere) return;
+        if (!sphere) {
+            console.warn(`[WorldLoaderScene] Sphere ${sphereIndex} not found in worldSpheres array`);
+            return;
+        }
 
         const levelData = sphere.worldData;
         const isCompleted = FundamentalSystemBridge["levelsSolvedStatusTracker"]?.isLevelCompleted(sphereIndex) || false;
+
+        console.log(`[WorldLoaderScene] Sphere ${sphereIndex} - completed: ${isCompleted}, available: ${levelData?.isAvailable}, levelId: ${levelData?.levelId}`);
 
         // Update sphere properties
         sphere.isCompleted = isCompleted;
@@ -350,7 +356,7 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
         const newMaterial = this.createSphereMaterial(sphereIndex, levelData, isCompleted);
         sphere.material = newMaterial;
 
-        console.log(`[WorldLoaderScene] Updated sphere ${sphereIndex} color - completed: ${isCompleted}, available: ${levelData?.isAvailable}`);
+        console.log(`[WorldLoaderScene] Updated sphere ${sphereIndex} material applied`);
     }
 
     /**
