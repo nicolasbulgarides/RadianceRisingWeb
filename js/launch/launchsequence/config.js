@@ -77,6 +77,9 @@ class Config {
   static STARTING_LEVEL = 1;
   static STARTING_EXP = 0;
 
+  // Player positioning constants
+  static PLAYER_HEIGHT = 0.5; // Height above ground level
+
   static DEFAULT_GAME_MODE = "test";
 
   // Default values (level properties) & Collision/level properties.

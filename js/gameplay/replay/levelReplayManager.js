@@ -635,8 +635,8 @@ class LevelReplayManager {
             console.warn("[REPLAY] No movements recorded! Replay will be empty.");
         }
 
-        // Reset player to starting position (7, 0.25, 7)
-        const startPosition = new BABYLON.Vector3(7, 0.25, 7);
+        // Reset player to starting position (7, PLAYER_HEIGHT, 7)
+        const startPosition = new BABYLON.Vector3(7, Config.PLAYER_HEIGHT, 7);
         originalPlayer.playerMovementManager.setPositionRelocateModelInstantly(startPosition);
         replayLog(`[REPLAY] Player reset to starting position: (7, 0.25, 7)`);
 
@@ -770,9 +770,9 @@ class LevelReplayManager {
 
                 // Use original positions (no offset - same board at x=0)
                 const adjustedStart = movement.startPosition.clone();
-                adjustedStart.y = 0.25; // Set y to 0.25 (player height above ground)
+                adjustedStart.y = Config.PLAYER_HEIGHT; // Set y to PLAYER_HEIGHT (player height above ground)
                 const adjustedDestination = movement.destinationPosition.clone();
-                adjustedDestination.y = 0.25; // Set y to 0.25 (player height above ground)
+                adjustedDestination.y = Config.PLAYER_HEIGHT; // Set y to PLAYER_HEIGHT (player height above ground)
 
                 replayLog(`[REPLAY] Using positions (same board): (${adjustedStart.x},${adjustedStart.y},${adjustedStart.z}) → (${adjustedDestination.x},${adjustedDestination.y},${adjustedDestination.z})`);
 

@@ -679,7 +679,7 @@ class LevelResetHandler {
             const dimensions = activeLevel.getGridDimensions?.() || { width: 21, depth: 21 };
             const centerX = Math.floor(dimensions.width / 2);
             const centerZ = Math.floor(dimensions.depth / 2);
-            position = new BABYLON.Vector3(centerX, 0.25, centerZ);
+            position = new BABYLON.Vector3(centerX, Config.PLAYER_HEIGHT, centerZ);
         }
 
         return position;

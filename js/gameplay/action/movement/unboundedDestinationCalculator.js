@@ -23,7 +23,7 @@ class UnboundedDestinationCalculator {
     // Ensure we have a valid current position
     if (!currentPositionVector) {
       console.error("Missing current position for player");
-      return new BABYLON.Vector3(0, 0.25, 0); // Safe fallback
+      return new BABYLON.Vector3(0, Config.PLAYER_HEIGHT, 0); // Safe fallback
     }
 
     let destinationVector = null;

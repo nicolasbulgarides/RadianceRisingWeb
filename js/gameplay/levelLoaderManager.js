@@ -522,7 +522,7 @@ class LevelLoaderManager {
         for (const stardustEl of stardustElements) {
             const coords = stardustEl.coordinates;
             const worldCoords = this.builderToWorld(coords, depth);
-            const position = new BABYLON.Vector3(worldCoords.x, 0.25, worldCoords.z);
+            const position = new BABYLON.Vector3(worldCoords.x, Config.PLAYER_HEIGHT, worldCoords.z);
 
             // Create positioned object for stardust
             const offset = new BABYLON.Vector3(0, 0, 0);
@@ -627,7 +627,7 @@ class LevelLoaderManager {
         for (const spikeTrapEl of spikeTrapElements) {
             const coords = spikeTrapEl.coordinates;
             const worldCoords = this.builderToWorld(coords, depth);
-            const position = new BABYLON.Vector3(worldCoords.x, 0.25, worldCoords.z);
+            const position = new BABYLON.Vector3(worldCoords.x, Config.PLAYER_HEIGHT, worldCoords.z);
 
             // Create positioned object for spike trap
             const offset = new BABYLON.Vector3(0, 0, 0);
@@ -695,7 +695,7 @@ class LevelLoaderManager {
         for (const heartEl of heartElements) {
             const coords = heartEl.coordinates;
             const worldCoords = this.builderToWorld(coords, depth);
-            const position = new BABYLON.Vector3(worldCoords.x, 0.25, worldCoords.z);
+            const position = new BABYLON.Vector3(worldCoords.x, Config.PLAYER_HEIGHT, worldCoords.z);
 
             // Create positioned object for heart
             const offset = new BABYLON.Vector3(0, 0, 0);

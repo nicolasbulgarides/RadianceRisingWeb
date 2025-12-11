@@ -146,6 +146,6 @@ class PlayerLoader {
     console.warn(
       "PlayerLoader: Could not determine player starting position, using default"
     );
-    return new BABYLON.Vector3(5, 0.25, 10);
+    return new BABYLON.Vector3(5, Config.PLAYER_HEIGHT, 10);
   }
 }
