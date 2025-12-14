@@ -1,5 +1,7 @@
 
 class ScriptManifest {
+  // Debug mode - set to true for detailed logging
+  static DEBUG_MODE = false;
 
   static animationScripts = [
     "/animations/datastructures/programmaticAnimation.js",
@@ -26,7 +28,7 @@ class ScriptManifest {
     "/gameplay/interactions/microevents/microEventManager.js",
     "/gameplay/interactions/microevents/microEventSignal.js",
     "/gameplay/interactions/microevents/microEventFactory.js",
-    "/gameplay/interactions/predictiveExplosionManager.js",
+    "/gameplay/interactions/explosionScheduler.js",
   ];
 
   static triggerScripts = [
@@ -52,7 +54,6 @@ class ScriptManifest {
   ];
   static testToolScripts = [
     "/testtools/testManager.js",
-    "/testtools/testLevelDataCompositeLoader.js",
     "/testtools/testLevelJsonBuilder.js",
   ];
   static assetManifestScripts = [
@@ -338,13 +339,15 @@ class ScriptManifest {
     }
 
     // Report all failures in a single console.log statement
-    if (failedScripts.length > 0) {
-      console.log(
-        `Script Loading Complete - Failed Scripts (${failedScripts.length}):\n` +
-        failedScripts.map((script, index) => `  ${index + 1}. ${script}`).join("\n")
-      );
-    } else {
-      console.log("Script Loading Complete - All scripts loaded successfully.");
+    if (this.DEBUG_MODE) {
+      if (failedScripts.length > 0) {
+        console.log(
+          `Script Loading Complete - Failed Scripts (${failedScripts.length}):\n` +
+          failedScripts.map((script, index) => `  ${index + 1}. ${script}`).join("\n")
+        );
+      } else {
+        console.log("Script Loading Complete - All scripts loaded successfully.");
+      }
     }
   }
 }

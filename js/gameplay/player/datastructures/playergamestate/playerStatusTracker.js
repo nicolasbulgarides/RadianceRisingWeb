@@ -161,7 +161,6 @@ class PlayerStatusTracker {
 
       // Check if player has died (and not already resetting)
       if (newHealth === 0 && (!levelResetHandler || !levelResetHandler.isResetting)) {
-        console.log("[DAMAGE] ☠ Health reached 0 - triggering death");
         this.handlePlayerDeath();
       }
 
@@ -178,8 +177,6 @@ class PlayerStatusTracker {
    * Handles player death sequence
    */
   handlePlayerDeath() {
-    console.log("[DEATH] Player has died, initiating death sequence");
-
     // Trigger the death handler
     const levelResetHandler = FundamentalSystemBridge["levelResetHandler"];
     if (levelResetHandler && levelResetHandler.handlePlayerDeath) {

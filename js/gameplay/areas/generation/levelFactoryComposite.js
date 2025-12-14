@@ -124,13 +124,8 @@ class LevelFactoryComposite {
       );
     }
 
-    if (!FundamentalSystemBridge["predictiveExplosionManager"]) {
-      FundamentalSystemBridge.registerManager(
-        "predictiveExplosionManager",
-        new PredictiveExplosionManager(),
-        PredictiveExplosionManager
-      );
-    }
+    // Explosion scheduling is now handled by the stateless ExplosionScheduler
+    // No manager registration needed
 
     // CRITICAL: LevelResetHandler must only be created once!
     // If created multiple times, the isResetting flag gets reset, allowing ghost models

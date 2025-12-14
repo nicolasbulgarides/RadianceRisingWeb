@@ -27,7 +27,6 @@ class LevelResetHandler {
         this.isResetting = true;
         this.playerDiedThisAttempt = true; // Mark that player died (prevents replay)
         this.hasEverDied = true; // Mark that player has died at least once (persists, prevents ghost models)
-        console.log("[DEATH] ═══════ Player death sequence initiated ═══════");
 
         try {
             // Step 0: Store player position IMMEDIATELY before anything else
@@ -36,20 +35,15 @@ class LevelResetHandler {
             const playerModel = activePlayer?.getPlayerModelDirectly?.();
             const deathPosition = playerModel?.position ? playerModel.position.clone() : null;
 
-            console.log("[DEATH] Stored death position:", deathPosition);
-
             // Step 1: Immediately stop player movement
             this.stopPlayerMovement();
-            console.log("[DEATH] Movement stopped");
 
             // Step 2: Play death sound
             await this.playDeathSound();
-            console.log("[DEATH] Death sound played");
 
             // Step 3: Play red explosion effect at stored position
             if (deathPosition) {
                 this.playDeathExplosionAtPosition(deathPosition);
-                console.log("[DEATH] Explosion effect started at position");
             } else {
                 console.warn("[DEATH] Could not get death position for explosion");
             }
@@ -57,7 +51,6 @@ class LevelResetHandler {
             // Step 5: Reset the level
             await this.resetLevel();
 
-            console.log("[DEATH] ═══════ Death sequence complete ═══════");
         } catch (error) {
             console.error("[DEATH] !!!ERROR during death sequence:", error);
         } finally {
@@ -81,7 +74,6 @@ class LevelResetHandler {
         if (movementManager.movementActive) {
             movementManager.movementActive = false;
             movementManager.cancelCurrentMovement?.();
-            //console.log("[DEATH] Player movement stopped");
         }
     }
 
@@ -147,8 +139,6 @@ class LevelResetHandler {
                 console.warn("[DEATH] Cannot play explosion: scene not found");
                 return;
             }
-
-            console.log(`[DEATH] Creating explosion at (${position.x}, ${position.y}, ${position.z})`);
 
             // Create red explosion effect manually (similar to EffectGenerator)
             const maxParticles = 4000; // 2.0 intensity * 2000
@@ -234,6 +224,10 @@ class LevelResetHandler {
         // Reset microevents (marks them as incomplete so they can be triggered again)
         this.resetMicroEvents(activeLevel);
 
+        // Clear any existing scheduled explosions after death/reset
+        if (window.ExplosionScheduler) {
+            window.ExplosionScheduler.clearAllScheduledExplosions();
+        }
         // Reset pickup progress (stardust count, experience) for fresh level attempt
         this.resetPickupProgress();
 
@@ -246,7 +240,6 @@ class LevelResetHandler {
         // Verify the level is properly set as active
         if (gameplayManager.primaryActiveGameplayLevel !== activeLevel) {
             gameplayManager.setActiveGameplayLevel(activeLevel);
-            console.log("[DEATH RESET] Re-registered level as primary active");
         }
 
         // Ensure lighting is properly initialized (recreates light if it was disposed)
@@ -258,7 +251,6 @@ class LevelResetHandler {
         // Clean up any duplicate directional lights that may have accumulated
         this.cleanupDuplicateDirectionalLights(activeLevel.hostingScene);
 
-        console.log("[DEATH] ✓✓✓ Level reset complete ✓✓✓");
     }
 
     /**
@@ -325,7 +317,6 @@ class LevelResetHandler {
         const positionedObject = movementManager.playerModelPositionedObject;
         if (positionedObject && positionedObject.model) {
             positionedObject.setPosition(startPosition);
-            console.log(`[DEATH] Teleported existing model to spawn (${startPosition.x}, ${startPosition.y}, ${startPosition.z})`);
         } else {
             console.error("[DEATH] Cannot teleport - positioned object or model is missing!");
         }
@@ -334,14 +325,10 @@ class LevelResetHandler {
         // Just set the reference directly if needed
         if (activeLevel.currentPrimaryPlayer !== player) {
             activeLevel.currentPrimaryPlayer = player; // Direct assignment, no array push
-            console.log("[DEATH] Fixed activeLevel.currentPrimaryPlayer reference");
         }
         if (gameplayManager.primaryActivePlayer !== player) {
             gameplayManager.primaryActivePlayer = player;
-            console.log("[DEATH] Fixed gameplayManager.primaryActivePlayer reference");
         }
-
-        console.log(`[DEATH] ✓ Player reset to spawn without creating new model`);
     }
 
     /**
@@ -363,15 +350,12 @@ class LevelResetHandler {
         for (let i = 0; i < directionalLights.length; i++) {
             if (directionalLights[i] !== lightToKeep) {
                 try {
-                    console.log(`[DEATH] Disposing duplicate light: ${directionalLights[i].name}`);
                     directionalLights[i].dispose();
                 } catch (err) {
                     console.warn("[DEATH] Failed to dispose duplicate directional light:", err);
                 }
             }
         }
-
-        console.log(`[DEATH] Cleaned up ${directionalLights.length - 1} duplicate directional lights, kept: ${lightToKeep.name}`);
     }
 
     /**
@@ -394,11 +378,9 @@ class LevelResetHandler {
         // Get all microevents for this level
         const allMicroEvents = microEventManager.getMicroEventsByLevelId(levelId);
         if (!allMicroEvents || allMicroEvents.length === 0) {
-            //console.log("[DEATH] No microevents to reset");
             return;
         }
 
-        //console.log(`[DEATH] Resetting ${allMicroEvents.length} microevents`);
 
         // Reset each microevent
         allMicroEvents.forEach(microEvent => {
@@ -408,8 +390,9 @@ class LevelResetHandler {
             // Reset damage event flags (for spike traps)
             if (microEvent.microEventCategory === "damage") {
                 microEvent.hasTriggeredThisMovement = false;
-                console.log(`[DEATH RESET] Reset spike trap flag: ${microEvent.microEventNickname}`);
             }
+
+            // Explosion flags are now managed by PredictiveExplosionManager per movement
 
             // For pickups (hearts, stardust), restore the model visibility
             if (microEvent.microEventCategory === "pickup" && microEvent.microEventPositionedObject) {
@@ -432,8 +415,6 @@ class LevelResetHandler {
                 }
             }
         });
-
-        //console.log("[DEATH] Microevents reset complete");
     }
 
     /**
@@ -454,7 +435,6 @@ class LevelResetHandler {
         try {
             // Reload the model using the positioned object
             await sceneBuilder.loadModel(microEvent.microEventPositionedObject);
-            //console.log(`[DEATH] Reloaded model for microevent: ${microEvent.microEventNickname}`);
         } catch (error) {
             console.error(`[DEATH] Error reloading microevent model:`, error);
         }
@@ -486,8 +466,6 @@ class LevelResetHandler {
     async _old_thoroughlyDisposeOldPlayer(player, activeLevel) {
         if (!player) return;
 
-        console.log("[DEATH] Starting thorough disposal of old player model");
-
         // Keep scene reference accessible across try/finally
         let scene = null;
         // Track disposed meshes for scene cleanup
@@ -516,14 +494,13 @@ class LevelResetHandler {
                 });
                 const removed = initialLength - sceneBuilder.loadedModels.length;
                 if (removed > 0) {
-                    console.log(`[DEATH] Removed ${removed} player model(s) from SceneBuilder.loadedModels`);
+                    console.warn(`[DEATH] Removed ${removed} player model(s) from SceneBuilder.loadedModels`);
                 }
             }
 
             // Step 2: Dispose via positioned object (this should remove meshes from scene)
             if (positionedObject) {
                 positionedObject.disposeModel();
-                console.log("[DEATH] Disposed player model via positioned object");
             }
 
             // Step 3: Direct mesh disposal from scene
@@ -553,8 +530,6 @@ class LevelResetHandler {
                 }
 
                 // Dispose all collected meshes with aggressive cleanup
-                console.log(`[DEATH] Disposing ${meshesToDispose.length} mesh(es)...`);
-
                 meshesToDispose.forEach((mesh, index) => {
                     if (mesh && mesh.dispose) {
                         try {
@@ -567,20 +542,16 @@ class LevelResetHandler {
                                 // Dispose with aggressive cleanup
                                 mesh.dispose(false, true); // Don't dispose shared materials, do dispose textures
                             }
-                            console.log(`[DEATH]   Disposed mesh ${index + 1}/${meshesToDispose.length}: ${mesh.name}`);
                         } catch (disposeError) {
                             console.error(`[DEATH]   Error disposing mesh ${index + 1}:`, disposeError);
                         }
                     }
                 });
 
-                console.log(`[DEATH] ✓ Disposed ${meshesToDispose.length} mesh(es) from scene`);
-
                 // Dispose the root model if it has a dispose method
                 if (playerModel.dispose && typeof playerModel.dispose === 'function') {
                     try {
                         playerModel.dispose();
-                        console.log("[DEATH] Disposed player model root");
                     } catch (rootDisposeError) {
                         console.warn("[DEATH] Error disposing player model root:", rootDisposeError);
                     }
@@ -592,7 +563,6 @@ class LevelResetHandler {
                 playerModel.skeletons.forEach((skeleton, index) => {
                     if (skeleton && skeleton.dispose) {
                         skeleton.dispose();
-                        console.log(`[DEATH] Disposed skeleton ${index + 1}`);
                     }
                 });
             }
@@ -602,7 +572,6 @@ class LevelResetHandler {
                 playerModel.animationGroups.forEach((animGroup, index) => {
                     if (animGroup && animGroup.dispose) {
                         animGroup.dispose();
-                        console.log(`[DEATH] Disposed animation group ${index + 1}`);
                     }
                 });
             }
@@ -614,20 +583,17 @@ class LevelResetHandler {
                     // Remove any mesh that was part of the player model
                     return !meshesToDispose.includes(mesh);
                 });
-                console.log(`[DEATH] Cleaned scene mesh cache - remaining: ${scene.meshes.length}`);
             }
 
             // Step 7: Clear all references
             if (movementManager) {
                 movementManager.playerModel = null;
                 movementManager.playerModelPositionedObject = null;
-                console.log("[DEATH] Cleared movement manager references");
             }
 
             if (positionedObject) {
                 positionedObject.model = null;
                 positionedObject.baseMesh = null;
-                console.log("[DEATH] Cleared positioned object model reference");
             }
 
         } catch (error) {
@@ -641,13 +607,10 @@ class LevelResetHandler {
                 scene.resetCachedMaterial();
                 scene.freeActiveMeshes();
                 scene.freezeActiveMeshes(false);
-                console.log("[DEATH] Forced scene cleanup and cache reset");
             } catch (cleanupError) {
                 console.warn("[DEATH] Error during scene cleanup:", cleanupError);
             }
         }
-
-        console.log("[DEATH] ✓✓✓ Thorough disposal complete ✓✓✓");
     }
 
     /**
@@ -707,8 +670,6 @@ class LevelResetHandler {
 
         // Update UI
         playerStatusTracker.updateHealthUI();
-
-        console.log(`[DEATH] ✓ Player health reset to ${maxHealth}, damage lock cleared`);
     }
 
     /**
@@ -730,7 +691,6 @@ class LevelResetHandler {
 
         // Verify 0: GameplayManager has correct level reference (CRITICAL for movement)
         if (gameplayManager.primaryActiveGameplayLevel === activeLevel) {
-            console.log("[DEATH] ✓ GameplayManager.primaryActiveGameplayLevel is correctly set");
         } else {
             console.error("[DEATH] ✗ GameplayManager.primaryActiveGameplayLevel is NOT correctly set!");
             console.error("[DEATH]   Expected:", activeLevel);
@@ -739,7 +699,6 @@ class LevelResetHandler {
 
         // Verify 1: Level has correct player reference (CRITICAL - this is where movement gets the player!)
         if (activeLevel.currentPrimaryPlayer === player) {
-            console.log("[DEATH] ✓ Level.currentPrimaryPlayer is correctly set (MOVEMENT SOURCE)");
         } else {
             console.error("[DEATH] ✗ Level.currentPrimaryPlayer is NOT correctly set! (MOVEMENT WILL FAIL)");
             console.error("[DEATH]   Expected:", player);
@@ -748,7 +707,6 @@ class LevelResetHandler {
 
         // Verify 2: GameplayManager has correct player reference
         if (gameplayManager.primaryActivePlayer === player) {
-            console.log("[DEATH] ✓ GameplayManager.primaryActivePlayer is correctly set");
         } else {
             console.error("[DEATH] ✗ GameplayManager.primaryActivePlayer is NOT correctly set!");
             console.error("[DEATH]   Expected:", player);
@@ -757,7 +715,6 @@ class LevelResetHandler {
 
         // Verify 3: Player has movement manager
         if (player.playerMovementManager) {
-            console.log("[DEATH] ✓ Player has playerMovementManager");
         } else {
             console.error("[DEATH] ✗ Player is missing playerMovementManager!");
         }
@@ -765,14 +722,12 @@ class LevelResetHandler {
         // Verify 4: Player model is loaded
         const playerModel = player.getPlayerModelDirectly?.();
         if (playerModel) {
-            console.log("[DEATH] ✓ Player model is loaded");
         } else {
             console.error("[DEATH] ✗ Player model is NOT loaded!");
         }
 
         // Verify 5: Player is in the allActivePlayers array
         if (gameplayManager.allActivePlayers && gameplayManager.allActivePlayers.includes(player)) {
-            console.log("[DEATH] ✓ Player is in allActivePlayers array");
         } else {
             console.error("[DEATH] ✗ Player is NOT in allActivePlayers array!");
         }
@@ -783,9 +738,6 @@ class LevelResetHandler {
         } else if (player.playerMovementManager && player.playerMovementManager.movementActive) {
             console.warn("[DEATH] ⚠ Movement is currently active (might block new input)");
         }
-
-        console.log("[DEATH] Movement setup verification complete");
-        console.log("[DEATH] Movement input path: UI → GameplayManager.processAttemptedMovementFromUIClick → primaryActiveGameplayLevel.currentPrimaryPlayer");
     }
 
     /**
@@ -795,7 +747,6 @@ class LevelResetHandler {
         const specialOccurrenceManager = FundamentalSystemBridge["specialOccurrenceManager"];
         if (specialOccurrenceManager && specialOccurrenceManager.pickupOccurrenceSubManager) {
             specialOccurrenceManager.pickupOccurrenceSubManager.resetPickupProgress();
-            console.log("[DEATH] Reset stardust pickup count and experience for fresh level attempt");
         } else {
             console.warn("[DEATH] Cannot reset pickup progress - specialOccurrenceManager or pickupOccurrenceSubManager not found");
         }

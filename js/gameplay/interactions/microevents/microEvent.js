@@ -31,6 +31,7 @@ class MicroEvent {
     this.microEventLocation = microEventLocation;
     this.microEventPositionedObject = microEventPositionedObject;
     this.microEventCompletionStatus = false;
+    //console.log(`[MICROEVENT] Created ${microEventNickname} (${microEventCategory}) - completion status: ${this.microEventCompletionStatus}`);
   }
 
   /**

@@ -13,9 +13,9 @@ const GAMEPLAY_MANAGER_LOGGING_ENABLED = false;
 
 // Helper function for conditional gameplay manager logging
 function gameplayManagerLog(...args) {
-    if (GAMEPLAY_MANAGER_LOGGING_ENABLED) {
-        console.log(...args);
-    }
+  if (GAMEPLAY_MANAGER_LOGGING_ENABLED) {
+    console.log(...args);
+  }
 }
 
 class GameplayManagerComposite {
@@ -24,6 +24,9 @@ class GameplayManagerComposite {
    * Initializes gameplay variables and starts the composite initialization process.
    */
   constructor() {
+    // Debug mode - set to true for detailed logging
+    this.DEBUG_MODE = false;
+
     // Initialize gameplay variables and start the composite initialization.
     this.initializeVariables();
     this.loadGameplayManagementSystems();
@@ -53,7 +56,7 @@ class GameplayManagerComposite {
    */
   resetForNewLevel() {
     this.mainPlayerLoadedForCurrentLevel = false;
-    console.log("[GAMEPLAY MANAGER] Reset for new level - main player can be loaded");
+    if (this.DEBUG_MODE) console.log("[GAMEPLAY MANAGER] Reset for new level - main player can be loaded");
   }
 
   /**
@@ -68,13 +71,12 @@ class GameplayManagerComposite {
 
   /**
    * Loads the MAIN player into the game. This should only be called ONCE per level.
-   * CRITICAL: This is for the MAIN gameboard player ONLY. 
+   * CRITICAL: This is for the MAIN gameboard player ONLY.
    * For replay duplicate players, use loadReplayDuplicatePlayer() instead.
-   * @param {Object} activeGameplayLevel - The current gameplay level where the player will be loaded.
-   * @param {Object} playerToLoad - The player instance to be loaded into the level.
+   * @param {ActiveGameplayLevel} activeGameplayLevel - The current gameplay level where the player will be loaded.
+   * @param {PlayerUnit} playerToLoad - The player instance to be loaded into the level.
    */
-  async loadPlayerToGameplayLevel(activeGameplayLevel, playerToLoad) {
-    // CRITICAL: Check if main player has already been loaded to prevent ghost models
+  async loadPlayerToGameplayLevel(activeGameplayLevel, playerToLoad) {    // CRITICAL: Check if main player has already been loaded to prevent ghost models
     if (this.mainPlayerLoadedForCurrentLevel) {
       console.error("[PLAYER LOAD] ⛔ BLOCKED - Main player already loaded for this level!");
       console.trace("[PLAYER LOAD] Blocked stack trace:");
@@ -108,14 +110,12 @@ class GameplayManagerComposite {
 
       // Mark that main player has been loaded for this level
       this.mainPlayerLoadedForCurrentLevel = true;
-      console.log("[PLAYER LOAD] ✓ Loading MAIN player (first and only time for this level)");
 
       // Retrieve demo player instance with appropriate positioning.
       this.allActivePlayers.push(playerToLoad); // Add the player to the active players list.
       this.primaryActivePlayer = playerToLoad;
       activeGameplayLevel.registerCurrentPrimaryPlayer(playerToLoad); // Register the player in the active level.
-      activeGameplayLevel.loadRegisteredPlayerModel(playerToLoad, true); // Load the player's model.
-      console.log("[PLAYER LOAD] ✓ Main player model loaded, allActivePlayers count:", this.allActivePlayers.length);
+      await activeGameplayLevel.loadRegisteredPlayerModel(playerToLoad, true); // Load the player's model.
       return proceed;
     }
     return false;
@@ -124,8 +124,8 @@ class GameplayManagerComposite {
   /**
    * Loads a REPLAY DUPLICATE player. This is separate from the main player and doesn't affect game state.
    * CRITICAL: This should ONLY be used by the LevelReplayManager for visual replay purposes.
-   * @param {Object} duplicateLevel - The duplicate level for replays.
-   * @param {Object} duplicatePlayer - The duplicate player instance for replays.
+   * @param {ActiveGameplayLevel} duplicateLevel - The duplicate level for replays.
+   * @param {PlayerUnit} duplicatePlayer - The duplicate player instance for replays.
    */
   async loadReplayDuplicatePlayer(duplicateLevel, duplicatePlayer) {
     // Check if we're in a death/reset sequence - if so, block
@@ -142,9 +142,6 @@ class GameplayManagerComposite {
         console.error("[REPLAY PLAYER] Invalid player instance");
         return false;
       }
-
-      console.log("[REPLAY PLAYER] Loading replay duplicate player (visual only, not main game)");
-
       // DO NOT add to allActivePlayers - this is only for visual replay
       // DO NOT set as primaryActivePlayer - this would break game controls
       // Register with the DUPLICATE level only
@@ -152,8 +149,6 @@ class GameplayManagerComposite {
 
       // Load the model (visual only)
       await duplicateLevel.loadRegisteredPlayerModel(duplicatePlayer, false); // false = don't switch camera
-
-      console.log("[REPLAY PLAYER] ✓ Replay duplicate player loaded (visual only)");
       return true;
     }
     return false;
@@ -223,12 +218,11 @@ class GameplayManagerComposite {
           movementTracker.recordMovement(clickedDirection, startPosition, destinationVector);
         }
 
-        // Predict and schedule explosions for destination tile (triggers 150ms before arrival)
-        const predictiveExplosionManager = FundamentalSystemBridge["predictiveExplosionManager"];
-        if (predictiveExplosionManager) {
-          const startPosition = currentPlayer.playerMovementManager.getPositionVector();
-          const speed = currentPlayer.playerStatus.currentMaxSpeed;
-          predictiveExplosionManager.predictAndScheduleExplosions(
+        // Schedule explosions for this movement based on predicted collisions
+        const startPosition = currentPlayer.playerMovementManager.getPositionVector();
+        const speed = currentPlayer.playerStatus.currentMaxSpeed;
+        if (window.ExplosionScheduler) {
+          window.ExplosionScheduler.scheduleExplosionsForMovement(
             currentPlayer,
             startPosition,
             destinationVector,
@@ -254,10 +248,11 @@ class GameplayManagerComposite {
   /**
    * Sets the active gameplay level.
    * This method can be extended to handle transitions between levels as needed.
-   * @param {Object} activeGameplayLevel - The new active gameplay level to set.
+   * @param {ActiveGameplayLevel} activeGameplayLevel - The new active gameplay level to set.
    */
   setActiveGameplayLevel(activeGameplayLevel) {
     if (activeGameplayLevel == null) {
+      console.error("[GAMEPLAY MANAGER] Active gameplay level in setter is null, cannot set active gameplay level");
       GameplayLogger.lazyLog(
         "Active gameplay level in setter is null, cannot set active gameplay level"
       );
@@ -273,6 +268,7 @@ class GameplayManagerComposite {
 
     // Set the primary active gameplay level.
     this.primaryActiveGameplayLevel = activeGameplayLevel;
+    console.log("[GAMEPLAY MANAGER] ✓ primaryActiveGameplayLevel set successfully");
 
     // Also track in allActiveGameplayLevels if not already there
     if (!this.allActiveGameplayLevels.includes(activeGameplayLevel)) {

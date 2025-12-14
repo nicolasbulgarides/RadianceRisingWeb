@@ -1,6 +1,7 @@
 // Global flag to disable micro event manager logging (set to false to enable logging)
 const MICRO_EVENT_MANAGER_LOGGING_ENABLED = false;
 
+
 // Helper function for conditional micro event manager logging
 function microEventManagerLog(...args) {
   if (MICRO_EVENT_MANAGER_LOGGING_ENABLED) {
@@ -242,20 +243,14 @@ class MicroEventManager {
         levelDataComposite
       );
 
+    // Microevents are now tracked by PredictiveExplosionManager per movement
+
     const levelId = levelDataComposite.levelHeaderData.levelId;
 
-    if (this.gameplayLevelToMicroEventsMap[levelId]) {
-      // Level already has microevents registered (e.g., from manual registration)
-      // Merge the new microevents with existing ones instead of overwriting
-      const existingMicroEvents = this.gameplayLevelToMicroEventsMap[levelId];
-      this.gameplayLevelToMicroEventsMap[levelId] = [
-        ...existingMicroEvents,
-        ...allLevelMicroEvents
-      ];
-      ;
-    } else {
-      this.gameplayLevelToMicroEventsMap[levelId] = allLevelMicroEvents;
-    }
+    // ALWAYS replace microevents for this level to ensure clean state
+    // Never merge - this prevents duplicates and stale state
+    this.gameplayLevelToMicroEventsMap[levelId] = allLevelMicroEvents;
+    microEventManagerLog(`[MICROEVENT REGISTRATION] Registered ${allLevelMicroEvents.length} microevents for level: ${levelId}`);
   }
 
   /**
@@ -264,22 +259,63 @@ class MicroEventManager {
    * @returns {Array} - Array of micro event objects.
    */
   getMicroEventsByLevelId(levelIdToSeek) {
-    return this.gameplayLevelToMicroEventsMap[levelIdToSeek] || [];
+    const events = this.gameplayLevelToMicroEventsMap[levelIdToSeek] || [];
+    microEventManagerLog(`[MICROEVENT LOOKUP] Looking up events for level: ${levelIdToSeek}, found: ${events.length}`);
+    if (events.length === 0) {
+      microEventManagerLog(`[MICROEVENT LOOKUP] Available level IDs: ${Object.keys(this.gameplayLevelToMicroEventsMap).join(', ')}`);
+    }
+    return events;
+  }
+
+  /**
+   * Clears all microevents for a specific level ID
+   * Call this when transitioning away from a level to prevent accumulation
+   * @param {string} levelId - The level ID to clear
+   */
+  clearMicroEventsForLevel(levelId) {
+    if (this.gameplayLevelToMicroEventsMap[levelId]) {
+      const count = this.gameplayLevelToMicroEventsMap[levelId].length;
+      delete this.gameplayLevelToMicroEventsMap[levelId];
+      microEventManagerLog(`[MICROEVENT CLEANUP] Cleared ${count} microevents for level: ${levelId}`);
+    }
+  }
+
+  /**
+   * Clears microevents for all levels except the specified one
+   * Useful when transitioning to a new level to prevent old level hazards from persisting
+   * @param {string} keepLevelId - The level ID to keep (optional)
+   */
+  clearMicroEventsExceptForLevel(keepLevelId = null) {
+    const levelIds = Object.keys(this.gameplayLevelToMicroEventsMap);
+    let totalCleared = 0;
+
+    for (const levelId of levelIds) {
+      if (levelId !== keepLevelId) {
+        const count = this.gameplayLevelToMicroEventsMap[levelId].length;
+        delete this.gameplayLevelToMicroEventsMap[levelId];
+        totalCleared += count;
+        microEventManagerLog(`[MICROEVENT CLEANUP] Cleared ${count} microevents for old level: ${levelId}`);
+      }
+    }
+
+    if (totalCleared > 0) {
+      microEventManagerLog(`[MICROEVENT CLEANUP] Total cleared: ${totalCleared} microevents from ${levelIds.length - (keepLevelId ? 1 : 0)} old levels`);
+    }
   }
 
   addNewMicroEventToLevel(levelDataComposite, microEventToAdd) {
     const idToAddTo = levelDataComposite.levelHeaderData.levelId;
 
-    //microEventManagerLog(`[MICROEVENT REGISTRATION] Adding microevent to levelId: ${idToAddTo}`);
-    //microEventManagerLog(`[MICROEVENT REGISTRATION] Event: ${microEventToAdd.microEventNickname}, Category: ${microEventToAdd.microEventCategory}`);
+    microEventManagerLog(`[MICROEVENT REGISTRATION] Adding microevent to levelId: ${idToAddTo}`);
+    microEventManagerLog(`[MICROEVENT REGISTRATION] Event: ${microEventToAdd.microEventNickname}, Category: ${microEventToAdd.microEventCategory}`);
 
     if (this.gameplayLevelToMicroEventsMap[idToAddTo]) {
       this.gameplayLevelToMicroEventsMap[idToAddTo].push(microEventToAdd);
-      // microEventManagerLog(`[MICROEVENT REGISTRATION] Added to existing array. Total events for ${idToAddTo}: ${this.gameplayLevelToMicroEventsMap[idToAddTo].length}`);
+      microEventManagerLog(`[MICROEVENT REGISTRATION] Added to existing array. Total events for ${idToAddTo}: ${this.gameplayLevelToMicroEventsMap[idToAddTo].length}`);
     } else {
       this.gameplayLevelToMicroEventsMap[idToAddTo] = [];
       this.gameplayLevelToMicroEventsMap[idToAddTo].push(microEventToAdd);
-      //  microEventManagerLog(`[MICROEVENT REGISTRATION] Created new array for levelId: ${idToAddTo}`);
+      microEventManagerLog(`[MICROEVENT REGISTRATION] Created new array for levelId: ${idToAddTo}`);
     }
   }
   // Filter events by category.

@@ -2,6 +2,9 @@ class UISceneGeneralized extends BABYLON.Scene {
   constructor(uiSceneType) {
     super(FundamentalSystemBridge["babylonEngine"]);
 
+    // Debug mode - set to true for detailed logging
+    this.DEBUG_MODE = false;
+
     // Initialize components synchronously first
     this.baseContainer = null;
     this.autoClear = false;
@@ -62,7 +65,7 @@ class UISceneGeneralized extends BABYLON.Scene {
     // This was likely working well before we started changing things
     this.advancedTexture.renderScale = 1;
 
-    console.log('[UI] UI renderScale set to 1 (renders at ideal resolution)');
+    if (this.DEBUG_MODE) console.log('[UI] UI renderScale set to 1 (renders at ideal resolution)');
   }
   /**
    * Initializes the camera for the UI scene.

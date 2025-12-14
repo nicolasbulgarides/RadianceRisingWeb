@@ -1,34 +1,10 @@
 class MicroEventFactory {
   static generateAllMicroEventsForLevel(levelDataComposite) {
-    let useDeveloperMicroEventPlaceholder = true;
-    let allLevelMicroEvents = [];
-    //to do / expand - for now just coin pick ups
-
-    if (useDeveloperMicroEventPlaceholder) {
-      allLevelMicroEvents = this.generatePlaceholderMicroEventArray();
-    } else {
-      allLevelMicroEvents =
-        this.generateAllMicroEventsForLevel(levelDataComposite);
-    }
-
-    return allLevelMicroEvents;
+    // Microevents are now created directly by the sequential level loader
+    // from actual level data, not from placeholders
+    return [];
   }
 
-  static generatePlaceholderMicroEventArray(levelDataComposite) {
-    let placeholderMicroEventArray = [];
-
-    let starPickupLocation1 = BABYLON.Vector3(5, 0, 10);
-    let starPickupLocation2 = BABYLON.Vector3(8, 0, 18);
-
-    placeholderMicroEventArray.push(
-      MicroEventFactory.generateSingleStardustPickup(starPickupLocation1)
-    );
-    placeholderMicroEventArray.push(
-      MicroEventFactory.generateSingleStardustPickup(starPickupLocation2)
-    );
-
-    return placeholderMicroEventArray;
-  }
 
   static generateSingleStardustPickup(pickupLocation) {
     let nickName = "Stardust Pickup";

@@ -82,7 +82,7 @@ class AnimatedModelLoader {
           resolve(positionedObject.model);
         })
         .catch((error) => {
-          console.error("Error loading model:", error);
+          console.error(`[ANIMATED MODEL] ✗ BABYLON loader FAILED for ${positionedObject.modelId}:`, error);
           reject(error);
         });
     });

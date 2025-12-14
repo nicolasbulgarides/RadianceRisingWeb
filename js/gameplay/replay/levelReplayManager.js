@@ -365,6 +365,8 @@ class LevelReplayManager {
                 damageEventsReset++;
                 replayLog(`[REPLAY] Reset damage flag for: ${event.microEventNickname}`);
             }
+
+            // Explosion flags are now managed by PredictiveExplosionManager per movement
         }
 
         replayLog(`[REPLAY] ✓ Visibility reset complete:`);
@@ -620,6 +622,12 @@ class LevelReplayManager {
             }
         }
 
+        // Clear any existing scheduled explosions for clean replay state
+        if (window.ExplosionScheduler) {
+            window.ExplosionScheduler.clearAllScheduledExplosions();
+        }
+        replayLog("[REPLAY] Cleared existing explosions for clean replay state");
+
         // Reset original level items visibility (hearts, pickups, spikes back to visible)
         replayLog("[REPLAY] Resetting original level items for replay...");
         this.resetLevelItemsVisibility(originalLevel);
@@ -804,15 +812,19 @@ class LevelReplayManager {
                 const replayDurationSeconds = 0.5; // 500ms
                 const effectiveSpeed = distance / replayDurationSeconds; // units per second
 
-                const predictiveExplosionManager = FundamentalSystemBridge["predictiveExplosionManager"];
-                if (predictiveExplosionManager) {
-                    predictiveExplosionManager.predictAndScheduleExplosions(
+                // Schedule explosions for this replay movement
+                if (window.ExplosionScheduler) {
+                    replayLog(`[REPLAY] Scheduling explosions for movement ${i} - player at (${player.playerMovementManager.currentPosition.x}, ${player.playerMovementManager.currentPosition.z})`);
+                    window.ExplosionScheduler.scheduleExplosionsForMovement(
                         player,
                         adjustedStart,
                         adjustedDestination,
                         effectiveSpeed,
                         GameplayEndOfFrameCoordinator.frameCounter
                     );
+                    replayLog(`[REPLAY] ✓ Scheduled explosions for movement ${i}`);
+                } else {
+                    replayLog(`[REPLAY] ✗ No explosion scheduler available for movement ${i}`);
                 }
 
                 // Use smooth interpolated movement instead of the standard movement system
@@ -838,12 +850,32 @@ class LevelReplayManager {
             const player = gameplayManager?.primaryActivePlayer;
             if (player && player.playerStatusComposite) {
                 player.playerStatusComposite.unlockExperienceGain();
+
+                // Restore player health to full after completing replay (similar to level completion)
+                player.playerStatusComposite.restoreHealthToFull();
+                replayLog("[REPLAY] Player health restored to full after replay completion");
+
+                // Update the health UI to reflect the restored health
+                const playerStatusTracker = FundamentalSystemBridge["playerStatusTracker"];
+                if (playerStatusTracker) {
+                    playerStatusTracker.updateHealthUI();
+                }
             }
 
             // Clear replay state
             this.isReplaying = false;
             this.replayPlayer = null;
             replayLog("[REPLAY] ✓ Replay sequence complete");
+
+            // Clear microevents to prevent hazards from persisting into new levels
+            const microEventManager = FundamentalSystemBridge["microEventManager"];
+            if (microEventManager) {
+                // Clear all microevents since we're transitioning away from gameplay
+                microEventManager.clearMicroEventsExceptForLevel(null);
+                replayLog("[REPLAY] Cleared all microevents after replay completion");
+            }
+
+            // Fresh PredictiveExplosionManager will be created for next level/world
 
             // Transition to WorldLoaderScene (placeholder transition scene)
             replayLog("[REPLAY] Transitioning to WorldLoaderScene...");

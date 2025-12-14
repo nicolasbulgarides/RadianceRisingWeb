@@ -12,6 +12,11 @@
  * such as the full-screen GUI overlay, game pad, and directional/magic buttons.
  */
 
+// Global debug flags for BaseGameUIScene
+const UI_DEBUG = false;
+const ARTIFACT_BUTTON_DEBUG = false;
+const KEY_USAGE_DEBUG = false;
+
 class BaseGameUIScene extends UISceneGeneralized {
   constructor() {
     super();
@@ -31,7 +36,35 @@ class BaseGameUIScene extends UISceneGeneralized {
     this.fpsLastUpdateTime = 0; // Last time FPS was calculated
     this.fpsUpdateInterval = 1000; // Update FPS display every 1 second (1000ms)
     this.fpsCheckCounter = 0; // Counter for frame skipping optimization
+    this.perfectionUpdateCounter = 0; // Counter for perfection tracker updates
     // Hint system removed - will be implemented differently
+  }
+
+  /**
+   * Debug logging method for UI operations
+   */
+  uiDebugLog(...args) {
+    if (UI_DEBUG) {
+      console.log("[UI DEBUG]", ...args);
+    }
+  }
+
+  /**
+   * Debug logging method for artifact button operations
+   */
+  artifactButtonLog(...args) {
+    if (ARTIFACT_BUTTON_DEBUG) {
+      console.log("[ARTIFACT BUTTON]", ...args);
+    }
+  }
+
+  /**
+   * Debug logging method for key usage operations
+   */
+  keyUsageLog(...args) {
+    if (KEY_USAGE_DEBUG) {
+      console.log("[KEY USAGE]", ...args);
+    }
   }
 
   assembleUIGeneralized(aspectRatioPreset) {
@@ -333,8 +366,8 @@ class BaseGameUIScene extends UISceneGeneralized {
     const levelNameOffsetY = -Config.IDEAL_UI_HEIGHT * 0.02 - 75; // Same as level name
     const heartBarOffsetY = levelNameOffsetY + Config.IDEAL_UI_HEIGHT * 0.05 + (heartBarSize / 2) - 75 + 100;
 
-    // Position restart button below heart bar with spacing, moved 375px to the left (25px more than before)
-    const restartOffsetX = centerOfRightSpace - 375; // Center the restart button with the hearts, then move 375px left (25px more)
+    // Position restart button below heart bar with spacing, moved 325px to the left (25px less than before)
+    const restartOffsetX = centerOfRightSpace - 325; // Center the restart button with the hearts, then move 325px left (25px less)
     const restartOffsetY = heartBarOffsetY + (heartBarSize / 2) + 20; // Below heart bar with 20px spacing (moved down 25px)
 
     // Create restart button using ButtonFactory
@@ -557,6 +590,7 @@ class BaseGameUIScene extends UISceneGeneralized {
     }
 
     // Register before render to track perfection progress and level name
+    this.uiDebugLog(`Registering updatePerfectionTracker to scene: ${scene.name}, scene is UI scene: ${scene === this.advancedTexture?.getScene()}`);
     let levelNameUpdateCounter = 0;
     scene.registerBeforeRender(() => {
       this.updatePerfectionTracker();
@@ -574,12 +608,25 @@ class BaseGameUIScene extends UISceneGeneralized {
    * Updates the level perfection tracker with current movement count and color coding.
    */
   updatePerfectionTracker() {
-    if (!this.perfectionTrackerText) return;
+    if (!this.perfectionTrackerText) {
+      return;
+    }
+
+    this.perfectionUpdateCounter++;
+    // Only log every 60 frames (about once per second at 60fps)
+    if (this.perfectionUpdateCounter % 60 === 0) {
+      this.uiDebugLog(`updatePerfectionTracker called ${this.perfectionUpdateCounter} times`);
+    }
 
     try {
       // Get current movement count
       const movementTracker = FundamentalSystemBridge["movementTracker"];
       const currentMoves = movementTracker ? movementTracker.movements.length : 0;
+
+      // Debug: Check if this is a key usage movement
+      const lastMovement = movementTracker && movementTracker.movements.length > 0
+        ? movementTracker.movements[movementTracker.movements.length - 1]
+        : null;
 
       // Get current level ID and perfect solution
       const gameplayManager = FundamentalSystemBridge["gameplayManagerComposite"];
@@ -608,7 +655,11 @@ class BaseGameUIScene extends UISceneGeneralized {
       }
 
       // Update text
-      this.perfectionTrackerText.text = `Moves: ${currentMoves}/${perfectMoves}`;
+      const newText = `Moves: ${currentMoves}/${perfectMoves}`;
+      if (this.perfectionTrackerText.text !== newText) {
+        this.uiDebugLog(`Updating perfection tracker text: "${this.perfectionTrackerText.text}" -> "${newText}", isVisible: ${this.perfectionTrackerText.isVisible}, parent: ${this.perfectionTrackerText.parent?.name || 'none'}`);
+        this.perfectionTrackerText.text = newText;
+      }
 
       // Set color based on performance
       if (currentMoves <= perfectMoves) {
@@ -1188,13 +1239,13 @@ class BaseGameUIScene extends UISceneGeneralized {
         SoundEffectsManager.playSound("magicalSpellCastNeutral");
       }
     } else if (buttonFunctionKey === "ARTIFACT") {
-      console.log("[ARTIFACT BUTTON] Artifact button clicked");
+      this.artifactButtonLog("Artifact button clicked");
       // Check if player has a key and is near a lock - if so, unlock the lock
       const lockUnlocked = this.attemptLockUnlocking();
-      console.log(`[ARTIFACT BUTTON] Lock unlocked: ${lockUnlocked}`);
+      this.artifactButtonLog(`Lock unlocked: ${lockUnlocked}`);
       if (lockUnlocked) {
         // Lock was unlocked, don't do normal artifact usage
-        console.log("[ARTIFACT BUTTON] Lock was unlocked, skipping normal artifact usage");
+        this.artifactButtonLog("Lock was unlocked, skipping normal artifact usage");
         return;
       }
 
@@ -1215,17 +1266,13 @@ class BaseGameUIScene extends UISceneGeneralized {
         SoundEffectsManager.playSound("artifactUsage");
       }
     } else if (buttonFunctionKey === "RESTART") {
-      console.log("[RESTART BUTTON] Restart button clicked");
 
       // Check if we're in the world loader scene
       const renderSceneSwapper = FundamentalSystemBridge["renderSceneSwapper"];
       const activeGameScene = renderSceneSwapper?.getActiveGameLevelScene();
 
-      console.log("[RESTART BUTTON] Active game scene:", activeGameScene?.name, "Scene object:", activeGameScene);
-
       if (activeGameScene && activeGameScene instanceof WorldLoaderScene) {
         // In world loader scene: reset all level completion status, experience granted levels, and player level
-        console.log("[RESTART BUTTON] Full reset in world loader: levels, experience tracking, and player level");
         const levelsSolvedStatusTracker = FundamentalSystemBridge["levelsSolvedStatusTracker"];
         if (levelsSolvedStatusTracker) {
           levelsSolvedStatusTracker.resetAllProgress();
@@ -1242,12 +1289,8 @@ class BaseGameUIScene extends UISceneGeneralized {
             playerStatusTracker.saveLevelToStorage();
 
             // Update UI elements
-            console.log("[RESTART BUTTON] Updating sphere colors after reset");
-            console.log("[RESTART BUTTON] WorldLoaderScene has worldSpheres:", activeGameScene.worldSpheres ? activeGameScene.worldSpheres.length : "undefined");
             if (activeGameScene.updateSphereColor) {
-              console.log("[RESTART BUTTON] updateSphereColor method found, updating all spheres");
               for (let i = 0; i < 9; i++) {
-                console.log(`[RESTART BUTTON] Updating sphere ${i}`);
                 activeGameScene.updateSphereColor(i);
               }
             } else {
@@ -1278,11 +1321,8 @@ class BaseGameUIScene extends UISceneGeneralized {
    * @returns {boolean} True if a lock was unlocked, false otherwise.
    */
   attemptLockUnlocking() {
-    console.log("[LOCK UNLOCK] attemptLockUnlocking called");
-
     const gameplayManager = FundamentalSystemBridge["gameplayManagerComposite"];
     if (!gameplayManager || !gameplayManager.primaryActivePlayer) {
-      console.log("[LOCK UNLOCK] No gameplayManager or primaryActivePlayer");
       return false;
     }
 
@@ -1290,24 +1330,19 @@ class BaseGameUIScene extends UISceneGeneralized {
     const activeLevel = gameplayManager.primaryActiveGameplayLevel;
 
     if (!activeLevel || !player) {
-      console.log("[LOCK UNLOCK] No activeLevel or player");
       return false;
     }
 
     // Check if player has a key
     const inventory = player.mockInventory;
     const keyCount = inventory ? inventory.getItemQuantity("key") : 0;
-    console.log(`[LOCK UNLOCK] Player has ${keyCount} keys`);
     if (!inventory || keyCount <= 0) {
-      console.log("[LOCK UNLOCK] No key available for lock unlocking");
       return false;
     }
 
     // Get player position
     const playerPosition = player.playerMovementManager.currentPosition;
-    console.log(`[LOCK UNLOCK] Player position: (${playerPosition?.x}, ${playerPosition?.y}, ${playerPosition?.z})`);
     if (!playerPosition) {
-      console.log("[LOCK UNLOCK] No player position");
       return false;
     }
 
@@ -1324,18 +1359,6 @@ class BaseGameUIScene extends UISceneGeneralized {
       obstacles = activeLevel.levelMap.obstacles;
       obstaclesSource = "levelMap.obstacles";
     }
-
-    console.log(`[LOCK UNLOCK] Found ${obstacles.length} obstacles from ${obstaclesSource}`);
-
-    // Debug: Log all obstacles with their positions and types
-    obstacles.forEach((obstacle, index) => {
-      console.log(`[LOCK UNLOCK] Obstacle ${index}:`, {
-        archetype: obstacle.obstacleArchetype,
-        isUnlockable: obstacle.isUnlockable,
-        position: obstacle.position ? `(${obstacle.position.x}, ${obstacle.position.y}, ${obstacle.position.z})` : 'no position',
-        nickname: obstacle.nickname
-      });
-    });
 
     // Find locks within 1 tile (adjacent tiles including diagonals)
     const nearbyLocks = obstacles.filter(obstacle => {
@@ -1361,15 +1384,11 @@ class BaseGameUIScene extends UISceneGeneralized {
       const dz = Math.abs(lockTileZ - playerTileZ);
       const distance = Math.max(dx, dz); // Chebyshev distance for grid movement
 
-      console.log(`[LOCK UNLOCK] Checking lock at tile (${lockTileX}, ${lockTileZ}) [world: (${obstaclePosition.x}, ${obstaclePosition.z})] vs player at tile (${playerTileX}, ${playerTileZ}) [world: (${playerPosition.x}, ${playerPosition.z})] - distance: ${distance}`);
-
       return distance <= 1.0;
     });
 
-    console.log(`[LOCK UNLOCK] Found ${nearbyLocks.length} nearby locks at player tile position (${Math.floor(playerPosition.x)}, ${Math.floor(playerPosition.z)})`);
 
     if (nearbyLocks.length === 0) {
-      console.log("[LOCK UNLOCK] No locks found within 1 tile");
       return false;
     }
 
@@ -1379,44 +1398,61 @@ class BaseGameUIScene extends UISceneGeneralized {
 
     // Record lock unlock for replay
     const movementTracker = FundamentalSystemBridge["movementTracker"];
+    this.keyUsageLog(`movementTracker available: ${!!movementTracker}, isTracking: ${movementTracker?.isTracking}`);
+    this.keyUsageLog(`movementTracker type:`, typeof movementTracker);
+    this.keyUsageLog(`movementTracker constructor:`, movementTracker?.constructor?.name);
+    this.keyUsageLog(`movementTracker has recordKeyUsage:`, typeof movementTracker?.recordKeyUsage);
     if (movementTracker) {
       const unlockPosition = lockToUnlock.position || (lockToUnlock.positionedObject && lockToUnlock.positionedObject.position);
+      this.keyUsageLog(`lockToUnlock.position:`, lockToUnlock.position);
+      this.keyUsageLog(`lockToUnlock.positionedObject:`, lockToUnlock.positionedObject);
+      this.keyUsageLog(`unlockPosition:`, unlockPosition);
       if (unlockPosition) {
         movementTracker.recordLockUnlock(unlockPosition);
+        // Also record key usage as a movement for the move counter
+        if (typeof movementTracker.recordKeyUsage === 'function') {
+          movementTracker.recordKeyUsage(unlockPosition);
+          this.keyUsageLog(`Recorded key usage movement. Total movements: ${movementTracker.movements.length}`);
+        } else {
+          console.error(`[KEY USAGE] recordKeyUsage method not found on movementTracker`);
+        }
+
+        // Force UI update immediately
+        setTimeout(() => this.updatePerfectionTracker(), 10);
+      } else {
+        this.keyUsageLog(`No valid unlockPosition found for movement recording`);
       }
-    }
 
-    // Remove key from inventory
-    // Note: We don't have a removeItem method, so we'll need to modify the inventory
-    // For now, we'll just decrement the count (this is a temporary solution)
-    const keyEntry = inventory.inventory.get("key");
-    if (keyEntry && keyEntry.quantity > 0) {
-      keyEntry.quantity--;
-      if (keyEntry.quantity <= 0) {
-        inventory.inventory.delete("key");
+      // Remove key from inventory
+      // Note: We don't have a removeItem method, so we'll need to modify the inventory
+      // For now, we'll just decrement the count (this is a temporary solution)
+      const keyEntry = inventory.inventory.get("key");
+      if (keyEntry && keyEntry.quantity > 0) {
+        keyEntry.quantity--;
+        if (keyEntry.quantity <= 0) {
+          inventory.inventory.delete("key");
+        }
       }
-    }
 
-    // Consume artifact from socket bar
-    if (this.artifactSocketBar) {
-      this.artifactSocketBar.consumeArtifact(1);
-    }
-
-    // Play unlock sound
-    const scene = activeLevel.hostingScene;
-    if (scene) {
-      try {
-        SoundEffectsManager.playSound("artifactUsage", scene); // Reusing artifact sound for unlocking
-      } catch (error) {
-        console.error("Error playing unlock sound:", error);
+      // Consume artifact from socket bar
+      if (this.artifactSocketBar) {
+        this.artifactSocketBar.consumeArtifact(1);
       }
-    }
 
-    const unlockedPosition = lockToUnlock.position || (lockToUnlock.positionedObject && lockToUnlock.positionedObject.position);
-    console.log(`Lock unlocked at position (${unlockedPosition.x}, ${unlockedPosition.z})`);
-    return true;
+      // Play unlock sound
+      const scene = activeLevel.hostingScene;
+      if (scene) {
+        try {
+          SoundEffectsManager.playSound("artifactUsage", scene); // Reusing artifact sound for unlocking
+        } catch (error) {
+          console.error("Error playing unlock sound:", error);
+        }
+      }
+
+      const unlockedPosition = lockToUnlock.position || (lockToUnlock.positionedObject && lockToUnlock.positionedObject.position);
+      return true;
+    }
   }
-
   /**
    * Unlocks a lock obstacle by removing it from the level and hiding its model.
    * @param {Object} lockObstacle - The lock obstacle to unlock
@@ -1424,7 +1460,6 @@ class BaseGameUIScene extends UISceneGeneralized {
    */
   unlockLock(lockObstacle, activeLevel) {
     const obstaclePosition = lockObstacle.position || (lockObstacle.positionedObject && lockObstacle.positionedObject.position);
-    console.log(`[LOCK UNLOCK] Unlocking lock at position (${obstaclePosition.x}, ${obstaclePosition.z})`);
 
     // Remove lock from ALL obstacle arrays to ensure movement systems can pass through
 
@@ -1432,7 +1467,6 @@ class BaseGameUIScene extends UISceneGeneralized {
     if (activeLevel.obstacles && Array.isArray(activeLevel.obstacles)) {
       const index = activeLevel.obstacles.indexOf(lockObstacle);
       if (index > -1) {
-        console.log(`[LOCK UNLOCK] Removed from activeLevel.obstacles at index ${index}`);
         activeLevel.obstacles.splice(index, 1);
       }
     }
@@ -1441,7 +1475,6 @@ class BaseGameUIScene extends UISceneGeneralized {
     if (activeLevel.levelDataComposite?.obstacles) {
       const index = activeLevel.levelDataComposite.obstacles.indexOf(lockObstacle);
       if (index > -1) {
-        console.log(`[LOCK UNLOCK] Removed from levelDataComposite.obstacles at index ${index}`);
         activeLevel.levelDataComposite.obstacles.splice(index, 1);
       }
     }
@@ -1450,7 +1483,6 @@ class BaseGameUIScene extends UISceneGeneralized {
     if (activeLevel.levelMap?.obstacles) {
       const index = activeLevel.levelMap.obstacles.indexOf(lockObstacle);
       if (index > -1) {
-        console.log(`[LOCK UNLOCK] Removed from levelMap.obstacles at index ${index}`);
         activeLevel.levelMap.obstacles.splice(index, 1);
       }
     }
@@ -1460,7 +1492,6 @@ class BaseGameUIScene extends UISceneGeneralized {
       const featuredObjects = activeLevel.levelDataComposite.levelGameplayTraitsData.featuredObjects;
       const index = featuredObjects.indexOf(lockObstacle);
       if (index > -1) {
-        console.log(`[LOCK UNLOCK] Removed from featuredObjects at index ${index}`);
         featuredObjects.splice(index, 1);
       }
     }
@@ -1476,7 +1507,6 @@ class BaseGameUIScene extends UISceneGeneralized {
 
       if (lockObstacle.positionedObject.model) {
         const model = lockObstacle.positionedObject.model;
-        console.log(`[LOCK UNLOCK] Hiding lock model`);
 
         // Hide the root model
         if (model.isVisible !== undefined) {
@@ -1489,7 +1519,6 @@ class BaseGameUIScene extends UISceneGeneralized {
         // Hide all child meshes
         if (model.getChildMeshes) {
           const childMeshes = model.getChildMeshes();
-          console.log(`[LOCK UNLOCK] Hiding ${childMeshes.length} child meshes`);
           childMeshes.forEach((mesh, i) => {
             if (mesh.isVisible !== undefined) {
               mesh.isVisible = false;
@@ -1502,7 +1531,6 @@ class BaseGameUIScene extends UISceneGeneralized {
 
         // If model has a meshes array (root node case)
         if (model.meshes && Array.isArray(model.meshes)) {
-          console.log(`[LOCK UNLOCK] Hiding ${model.meshes.length} meshes from meshes array`);
           model.meshes.forEach((mesh, i) => {
             if (mesh.isVisible !== undefined) {
               mesh.isVisible = false;
@@ -1513,13 +1541,10 @@ class BaseGameUIScene extends UISceneGeneralized {
           });
         }
       } else {
-        console.log(`[LOCK UNLOCK] Lock model not yet loaded, will be hidden when loaded`);
       }
     } else {
       console.warn(`[LOCK UNLOCK] No positionedObject found for lock obstacle`);
     }
-
-    console.log(`[LOCK UNLOCK] Lock unlock complete`);
 
     // Trigger orange explosion effect
     this.triggerLockUnlockExplosion(obstaclePosition);
@@ -1546,7 +1571,16 @@ class BaseGameUIScene extends UISceneGeneralized {
    */
   processMovementClick(buttonFunction) {
     const buttonFunctionKey = String(buttonFunction);
+
     if (FundamentalSystemBridge["gameplayManagerComposite"] != null) {
+      const gameplayManager = FundamentalSystemBridge["gameplayManagerComposite"];
+
+      // Check if we have a fully loaded level with a player
+      if (!gameplayManager.primaryActiveGameplayLevel || !gameplayManager.primaryActiveGameplayLevel.currentPrimaryPlayer) {
+        console.log("[UI] Movement input blocked - level or player not fully loaded");
+        return;
+      }
+
       let playerDirection = null;
 
       if (buttonFunctionKey === "LEFTCLICK") {

@@ -1,33 +1,17 @@
 /**
  * SequentialLevelLoader
  * 
- * Chamber-based level loading system that uses spatial offsets instead of scene switching.
- * 
- * Chamber System:
- * - Chamber 1: x=0 (current level) + x=20 (replay clone)
- * - Chamber 2: x=50 (next level)
- * - When loading a third level, it goes back to Chamber 1 (x=0)
- * - Transitions are done by moving the camera by x=50 instead of switching scenes
- * 
- * This avoids vertex buffer issues from scene switching by keeping everything in one scene.
+ * Handles sequential loading of levels at the origin.
+ * All levels are loaded at (0, 0, 0) for simplicity.
  */
 class SequentialLevelLoader {
     constructor() {
-        // Chamber system
-        this.CHAMBER_1_OFFSET = new BABYLON.Vector3(0, 0, 0);
-        this.CHAMBER_2_OFFSET = new BABYLON.Vector3(50, 0, 0);
-        this.currentChamber = 1; // 1 or 2
-
-        // Track which chambers have levels loaded (to prevent thin instance accumulation)
-        this.chambersWithLevels = new Set(); // Tracks chamber offsets (as strings) that have levels
-
-        // Store chamber-specific tile copies to avoid thin instance accumulation
-        this.chamberTileCopies = new Map(); // Maps chamber key (string) to array of cloned tile meshes
+        // All levels load at origin - no chamber system needed
 
         // Next level data
         this.nextLevelData = null;
         this.nextLevelActiveGameplayLevel = null;
-        this.nextLevelChamberOffset = null; // Will be CHAMBER_2_OFFSET or CHAMBER_1_OFFSET
+        // All levels load at origin
         this.isLoadingNextLevel = false;
         this.isNextLevelReady = false;
         this.isReplayComplete = false;
@@ -49,14 +33,16 @@ class SequentialLevelLoader {
      * Starts loading the next level in the background
      * @param {string} nextLevelUrl - URL to the next level JSON data
      * @param {PlayerUnit} currentPlayer - Current player to extract data from
+     * @param {number} sphereIndex - The world sphere index for level identification
      */
-    async startLoadingNextLevel(nextLevelUrl, currentPlayer) {
+    async startLoadingNextLevel(nextLevelUrl, currentPlayer, sphereIndex = 0) {
         if (this.isLoadingNextLevel) {
             console.warn("[SEQUENTIAL LOADER] Already loading next level");
             return;
         }
 
         this.nextLevelUrl = nextLevelUrl;
+        this.sphereIndex = sphereIndex;
         this.isLoadingNextLevel = true;
         this.isNextLevelReady = false;
 
@@ -74,23 +60,7 @@ class SequentialLevelLoader {
             throw new Error("[SEQUENTIAL LOADER] No scene builder found");
         }
 
-        // Determine which chamber to load into (alternate between 1 and 2)
-        // If current chamber is 1, load into chamber 2 (x=50)
-        // If current chamber is 2, load into chamber 1 (x=0)
-        if (this.currentChamber === 1) {
-            this.nextLevelChamberOffset = this.CHAMBER_2_OFFSET.clone();
-            console.log("[SEQUENTIAL LOADER] Loading next level into Chamber 2 (x=50)");
-        } else {
-            this.nextLevelChamberOffset = this.CHAMBER_1_OFFSET.clone();
-            console.log("[SEQUENTIAL LOADER] Loading next level into Chamber 1 (x=0)");
-        }
-
-        // Create or get chamber-specific tile copies to avoid thin instance accumulation
-        const chamberKey = `${this.nextLevelChamberOffset.x}_${this.nextLevelChamberOffset.y}_${this.nextLevelChamberOffset.z}`;
-        if (!this.chamberTileCopies.has(chamberKey)) {
-            console.log(`[SEQUENTIAL LOADER] Creating tile copies for chamber at ${this.nextLevelChamberOffset.x}...`);
-            await this.createChamberTileCopies(this.nextLevelChamberOffset);
-        }
+        // All levels load at origin - no special setup needed
 
         // Extract player data to transfer (but not the model)
         if (currentPlayer && currentPlayer.playerStatus) {
@@ -114,8 +84,8 @@ class SequentialLevelLoader {
             // Load the level data
             const levelJsonData = await this.fetchLevelJsonFromUrl(nextLevelUrl);
 
-            // Load the level into the current scene with chamber offset
-            await this.loadLevelIntoChamber(levelJsonData, this.currentScene, this.nextLevelChamberOffset);
+            // Load the level into the current scene at origin
+            await this.loadLevelIntoChamber(levelJsonData, this.currentScene, new BABYLON.Vector3(0, 0, 0), this.sphereIndex);
 
             // Verify the level is fully ready
             if (!this.verifyLevelReady()) {
@@ -123,7 +93,7 @@ class SequentialLevelLoader {
             }
 
             this.isNextLevelReady = true;
-            console.log(`[SEQUENTIAL LOADER] Next level loaded and verified ready in Chamber at ${this.nextLevelChamberOffset.x}`);
+            console.log(`[SEQUENTIAL LOADER] Next level loaded and verified ready at origin`);
 
             // Check if we can transition now (replay might already be complete)
             if (this.isReplayComplete) {
@@ -137,81 +107,6 @@ class SequentialLevelLoader {
             this.cleanupFailedLoad();
             throw error;
         }
-    }
-
-    /**
-     * Creates chamber-specific copies of the base tile meshes
-     * This allows each chamber to have its own set of base meshes with thin instances,
-     * preventing vertex buffer overflow from accumulating thin instances on the same meshes
-     * @param {BABYLON.Vector3} chamberOffset - The chamber offset
-     */
-    async createChamberTileCopies(chamberOffset) {
-        const gridManager = FundamentalSystemBridge["levelFactoryComposite"]?.gridManager;
-        if (!gridManager || !gridManager.loadedTiles) {
-            console.warn("[SEQUENTIAL LOADER] Cannot create tile copies - grid manager or tiles not available");
-            return;
-        }
-
-        const chamberKey = `${chamberOffset.x}_${chamberOffset.y}_${chamberOffset.z}`;
-        const scene = this.currentScene;
-
-        if (!scene) {
-            console.error("[SEQUENTIAL LOADER] Cannot create tile copies - scene not available");
-            return;
-        }
-
-        console.log(`[SEQUENTIAL LOADER] Creating tile copies for chamber at ${chamberOffset.x}...`);
-
-        const chamberTiles = [];
-
-        // Clone each base tile for this chamber
-        for (const originalTile of gridManager.loadedTiles) {
-            if (originalTile && originalTile.meshes && originalTile.meshes.length > 0) {
-                const originalRootMesh = originalTile.meshes[0];
-
-                // Clone the root mesh and all its children
-                const clonedRootMesh = originalRootMesh.clone(`${originalRootMesh.name}_chamber_${chamberOffset.x}`, null, false);
-                clonedRootMesh.setEnabled(true);
-
-                // Clone all child meshes
-                const originalChildren = originalRootMesh.getChildren(undefined, false);
-                const clonedChildren = [];
-
-                for (const child of originalChildren) {
-                    if (child instanceof BABYLON.Mesh) {
-                        const clonedChild = child.clone(`${child.name}_chamber_${chamberOffset.x}`, clonedRootMesh, false);
-                        clonedChild.setEnabled(true);
-
-                        // Clear any thin instances that may have been copied from the original
-                        // This ensures we start with clean meshes for this chamber
-                        if (clonedChild.hasThinInstances && clonedChild.thinInstanceCount > 0) {
-                            try {
-                                clonedChild.thinInstanceSetBuffer("matrix", null);
-                                console.log(`[SEQUENTIAL LOADER] Cleared ${clonedChild.thinInstanceCount} thin instances from cloned mesh ${clonedChild.name}`);
-                            } catch (error) {
-                                console.warn(`[SEQUENTIAL LOADER] Could not clear thin instances from ${clonedChild.name}:`, error);
-                            }
-                        }
-
-                        clonedChildren.push(clonedChild);
-                    }
-                }
-
-                // Create a tile object similar to the original structure
-                const clonedTile = {
-                    meshes: [clonedRootMesh],
-                    // Store reference to cloned children for thin instance generation
-                    clonedChildren: clonedChildren
-                };
-
-                chamberTiles.push(clonedTile);
-            }
-        }
-
-        // Store the chamber-specific tiles
-        this.chamberTileCopies.set(chamberKey, chamberTiles);
-
-        console.log(`[SEQUENTIAL LOADER] Created ${chamberTiles.length} tile copies for chamber at ${chamberOffset.x}`);
     }
 
     /**
@@ -258,7 +153,6 @@ class SequentialLevelLoader {
         // Clean up any partially loaded level data
         this.nextLevelActiveGameplayLevel = null;
         this.nextLevelData = null;
-        this.nextLevelChamberOffset = null;
         this.isLoadingNextLevel = false;
         this.isNextLevelReady = false;
     }
@@ -283,12 +177,13 @@ class SequentialLevelLoader {
     }
 
     /**
-     * Loads a level into a specific chamber (spatial offset) in the same scene
+     * Loads a level into the scene at origin
      * @param {Object} levelJsonData - The level JSON data
-     * @param {BABYLON.Scene} targetScene - The scene to load the level into (same scene for all chambers)
-     * @param {BABYLON.Vector3} chamberOffset - The spatial offset for this chamber (x=0 or x=50)
+     * @param {BABYLON.Scene} targetScene - The scene to load the level into
+     * @param {BABYLON.Vector3} offset - The spatial offset (always 0,0,0)
+     * @param {number} sphereIndex - The world sphere index for level identification
      */
-    async loadLevelIntoChamber(levelJsonData, targetScene, chamberOffset) {
+    async loadLevelIntoChamber(levelJsonData, targetScene, chamberOffset, sphereIndex = 0) {
         // Parse JSON if it's a string
         let levelData = typeof levelJsonData === 'string'
             ? JSON.parse(levelJsonData)
@@ -298,13 +193,13 @@ class SequentialLevelLoader {
         await FundamentalSystemBridge["levelFactoryComposite"].loadFactorySupportSystems();
 
         // Parse the level data and create LevelDataComposite
-        let levelDataComposite = this.parseLevelJsonToComposite(levelData, chamberOffset);
+        let levelDataComposite = this.parseLevelJsonToComposite(levelData, chamberOffset, sphereIndex);
 
         if (!levelDataComposite) {
             throw new Error("Failed to parse level data");
         }
 
-        // Create obstacles from the level data (with chamber offset)
+        // Create obstacles from the level data
         let obstacles = this.createObstaclesFromLevelData(levelData, chamberOffset);
         if (obstacles.length > 0) {
             levelDataComposite.obstacles = obstacles;
@@ -333,7 +228,7 @@ class SequentialLevelLoader {
             lightingManager.initializeConstructSystems(false, targetScene);
         }
 
-        // Create active gameplay level for the chamber
+        // Create active gameplay level
         let gameMode = GamemodeFactory.initializeSpecifiedGamemode("test");
         let activeGameplayLevel = new ActiveGameplayLevel(
             targetScene,
@@ -352,10 +247,10 @@ class SequentialLevelLoader {
             activeGameplayLevel.levelMap.obstacles = levelDataComposite.obstacles;
         }
 
-        // Create stardust pickups (with chamber offset)
+        // Create stardust pickups
         await this.createStardustPickups(activeGameplayLevel, levelData, this.currentSceneBuilder, chamberOffset);
 
-        // Render obstacles (with chamber offset)
+        // Render obstacles
         const obstacleGenerator = FundamentalSystemBridge["levelFactoryComposite"].levelMapObstacleGenerator;
         if (obstacleGenerator && obstacles.length > 0) {
             const validObstacles = obstacles.filter(obs => {
@@ -371,122 +266,47 @@ class SequentialLevelLoader {
             }
         }
 
-        // Render the level grid (with chamber offset)
+        // Render the level grid at origin
         // Get dimensions for grid generation
         const dimensions = this.getLevelDimensions(activeGameplayLevel);
 
-        // Generate grid with offset for this chamber using chamber-specific tile copies
-        const chamberKey = `${chamberOffset.x}_${chamberOffset.y}_${chamberOffset.z}`;
-        const chamberTiles = this.chamberTileCopies.get(chamberKey);
+        // Generate grid using the level factory
+        const levelFactory = FundamentalSystemBridge["levelFactoryComposite"];
+        if (levelFactory && levelFactory.generateLevelGrid) {
+            const gridSuccess = await levelFactory.generateLevelGrid(
+                activeGameplayLevel,
+                dimensions.width,
+                dimensions.depth,
+                1 // tileSize
+            );
 
-        if (!chamberTiles) {
-            throw new Error(`Chamber tile copies not found for chamber at ${chamberOffset.x}`);
-        }
-
-        const gridSuccess = await this.generateGridWithChamberTiles(
-            chamberTiles,
-            dimensions.width,
-            dimensions.depth,
-            chamberOffset.clone(),
-            1 // tileSize
-        );
-
-        if (!gridSuccess) {
-            throw new Error("Failed to generate grid for chamber");
+            if (!gridSuccess) {
+                throw new Error("Failed to generate grid");
+            }
+        } else {
+            console.warn("[SEQUENTIAL LOADER] Level factory not available for grid generation");
         }
 
         // Initialize lighting for the level
         activeGameplayLevel.initializeLevelLighting();
 
-        // Register microevents
-        const microEventManager = FundamentalSystemBridge["microEventManager"];
-        if (microEventManager) {
-            const levelId = levelDataComposite.levelHeaderData?.levelId;
-            if (!microEventManager.gameplayLevelToMicroEventsMap[levelId]) {
-                microEventManager.prepareAndRegisterMicroEventsForLevel(levelDataComposite);
-            }
+        // Register microevents - clear ALL old microevents and create fresh ones
+        // Microevents are already created by createStardustPickups above
+        // No additional microevent management needed
+
+        // Clear any existing scheduled explosions for clean level state
+        if (window.ExplosionScheduler) {
+            window.ExplosionScheduler.clearAllScheduledExplosions();
         }
+        console.log("[SEQUENTIAL LOADER] Cleared existing explosions for clean level state");
 
         // Store references
         this.nextLevelActiveGameplayLevel = activeGameplayLevel;
         this.nextLevelData = levelDataComposite;
 
-        // Mark this chamber as having a level (chamberKey already declared above)
-        this.chambersWithLevels.add(chamberKey);
-
-        console.log(`[SEQUENTIAL LOADER] Level loaded into chamber at offset ${chamberOffset.x}, ${chamberOffset.y}, ${chamberOffset.z}`);
+        console.log(`[SEQUENTIAL LOADER] Level loaded at origin`);
     }
 
-    /**
-     * Generates a grid using chamber-specific tile copies
-     * @param {Array} chamberTiles - The chamber-specific tile copies
-     * @param {number} width - Grid width
-     * @param {number} depth - Grid depth
-     * @param {BABYLON.Vector3} offset - Chamber offset
-     * @param {number} tileSize - Tile size
-     * @returns {Promise<boolean>} Success status
-     */
-    async generateGridWithChamberTiles(chamberTiles, width, depth, offset, tileSize = 1) {
-        // Validate input dimensions
-        if (!width || !depth || width < 1 || depth < 1) {
-            console.error(`[SEQUENTIAL LOADER] Invalid grid dimensions: ${width}x${depth}`);
-            return false;
-        }
-
-        if (!chamberTiles || chamberTiles.length === 0) {
-            console.error("[SEQUENTIAL LOADER] No chamber tiles provided");
-            return false;
-        }
-
-        // Iterate over every grid cell position
-        for (let x = 0; x < width; x++) {
-            for (let z = 0; z < depth; z++) {
-                // Use a pattern to vary the tile selection
-                const rowOffset = x % chamberTiles.length;
-                const tileIndex = (z + rowOffset) % chamberTiles.length;
-                const baseTile = chamberTiles[tileIndex];
-
-                if (!baseTile || !baseTile.meshes || baseTile.meshes.length === 0) {
-                    console.warn(`[SEQUENTIAL LOADER] Missing or invalid tile at index ${tileIndex}`);
-                    continue;
-                }
-
-                // Get the cloned children meshes for thin instancing
-                const children = baseTile.clonedChildren || baseTile.meshes[0].getChildren(undefined, false);
-
-                // Instance each child mesh at the correct grid position with offset
-                for (const mesh of children) {
-                    if (mesh instanceof BABYLON.Mesh) {
-                        // Ensure the mesh is set up for thin instancing
-                        if (mesh.isFrozen) {
-                            mesh.unfreezeWorldMatrix();
-                        }
-
-                        // Enable thin instances if not already enabled
-                        if (!mesh.hasThinInstances) {
-                            mesh.thinInstanceEnablePicking = true;
-                        }
-
-                        // Calculate the space position based on grid coordinates with offset
-                        const xPos = (x * tileSize) + offset.x;
-                        const yPos = offset.y;
-                        // Flip builder Y to Babylon Z for grid as well
-                        const zPos = ((depth - 1 - z) * tileSize) + offset.z;
-                        // Create a transformation matrix for placement with offset
-                        const matrix = BABYLON.Matrix.Translation(xPos, yPos, zPos);
-                        // Add the transformation as a thin instance
-                        try {
-                            mesh.thinInstanceAdd(matrix);
-                        } catch (error) {
-                            console.error(`[SEQUENTIAL LOADER] Error adding thin instance to mesh ${mesh.name}:`, error);
-                        }
-                    }
-                }
-            }
-        }
-
-        return true;
-    }
 
     /**
      * Gets the dimensions of the level for grid generation
@@ -525,11 +345,15 @@ class SequentialLevelLoader {
     }
 
     /**
-     * Parses JSON level data into a LevelDataComposite with chamber offset
+     * Parses JSON level data into a LevelDataComposite
      */
-    parseLevelJsonToComposite(levelData, chamberOffset) {
-        const levelId = levelData.levelName || "level0";
-        const levelNickname = levelData.levelName || "Level 0";
+    parseLevelJsonToComposite(levelData, chamberOffset, sphereIndex = 0) {
+        // Get the correct level ID from the world mapping instead of relying on levelData.levelName
+        const worldLevelData = this.WORLD_LEVEL_MAPPING[sphereIndex];
+        const levelId = worldLevelData?.levelId || levelData.levelName || "level0";
+        const levelNickname = worldLevelData?.name || levelData.levelName || "Level 0";
+
+        console.log(`[SEQUENTIAL LOADER] Using level ID: ${levelId} for sphere index ${sphereIndex}`);
         const levelHint = levelData.levelHint || "";
         const width = levelData.mapWidth || 21;
         const depth = levelData.mapHeight || 21;
@@ -559,7 +383,7 @@ class SequentialLevelLoader {
     }
 
     /**
-     * Creates obstacle data objects from level JSON data with chamber offset
+     * Creates obstacle data objects from level JSON data
      */
     createObstaclesFromLevelData(levelData, chamberOffset) {
         const obstacles = [];
@@ -595,7 +419,7 @@ class SequentialLevelLoader {
     }
 
     /**
-     * Creates stardust pickups from level data with chamber offset
+     * Creates stardust pickups from level data
      */
     async createStardustPickups(activeGameplayLevel, levelData, sceneBuilder, chamberOffset) {
         const stardustElements = levelData.allMapElements?.filter(el => el.element === "STAR_DUST") || [];
@@ -603,6 +427,25 @@ class SequentialLevelLoader {
         const depth = this.getLevelDepth(levelData);
 
         const levelId = activeGameplayLevel?.levelDataComposite?.levelHeaderData?.levelId || levelData.levelName || "level0";
+
+        // Clear any existing microevents for this level to ensure clean state
+        if (microEventManager) {
+            microEventManager.clearMicroEventsExceptForLevel(levelId); // Keep other levels, clear this one
+            console.log(`[STARDUST PICKUPS] Cleared existing microevents for level ${levelId}`);
+
+            // Debug: Log current microevent state
+            if (microEventManager.gameplayLevelToMicroEventsMap) {
+                const allLevelIds = Object.keys(microEventManager.gameplayLevelToMicroEventsMap);
+                console.log(`[STARDUST PICKUPS] Microevent levels after clear: ${allLevelIds.join(', ')}`);
+            }
+        }
+
+        if (stardustElements.length === 0) {
+            console.log(`[STARDUST PICKUPS] No STAR_DUST elements found in level ${levelId}`);
+            return;
+        }
+
+        console.log(`[STARDUST PICKUPS] Creating ${stardustElements.length} stardust pickups for level ${levelId}`);
 
         for (const stardustEl of stardustElements) {
             const coords = stardustEl.coordinates;
@@ -642,6 +485,8 @@ class SequentialLevelLoader {
 
             if (microEventManager) {
                 const levelDataForRegistration = activeGameplayLevel?.levelDataComposite || { levelHeaderData: { levelId: levelId } };
+                const registrationLevelId = levelDataForRegistration.levelHeaderData?.levelId;
+                console.log(`[STARDUST PICKUPS] Registering microevent for level ${registrationLevelId} (stardust at ${position.x.toFixed(1)}, ${position.z.toFixed(1)})`);
                 microEventManager.addNewMicroEventToLevel(
                     levelDataForRegistration,
                     stardustEvent
@@ -667,10 +512,10 @@ class SequentialLevelLoader {
     }
 
     /**
-     * Transitions to the next level: shows explosion, then teleports camera to new chamber
+     * Transitions to the next level: shows explosion effect
      */
     async transitionToNextLevel() {
-        if (!this.isNextLevelReady || !this.nextLevelActiveGameplayLevel || !this.nextLevelChamberOffset) {
+        if (!this.isNextLevelReady || !this.nextLevelActiveGameplayLevel) {
             console.error("[SEQUENTIAL LOADER] Cannot transition - level not ready");
             return;
         }
@@ -686,33 +531,8 @@ class SequentialLevelLoader {
             duration: 3.0
         });
 
-        // Teleport camera to the new chamber by adjusting its position
-        const scene = this.currentScene;
-        const camera = scene.activeCamera;
-
-        if (camera) {
-            // Calculate the offset needed to move camera to new chamber
-            const currentChamberOffset = this.currentChamber === 1 ? this.CHAMBER_1_OFFSET.clone() : this.CHAMBER_2_OFFSET.clone();
-            const offsetDelta = this.nextLevelChamberOffset.clone().subtract(currentChamberOffset);
-
-            // Move camera instantly to new chamber
-            if (camera.position) {
-                camera.position = camera.position.add(offsetDelta);
-            }
-
-            // If camera has a target, move that too
-            if (camera.target) {
-                if (camera.setTarget) {
-                    const newTarget = camera.target.clone().add(offsetDelta);
-                    camera.setTarget(newTarget);
-                } else {
-                    // For cameras without setTarget, directly modify target
-                    camera.target = camera.target.add(offsetDelta);
-                }
-            }
-
-            console.log(`[SEQUENTIAL LOADER] Camera teleported to chamber at ${this.nextLevelChamberOffset.x}`);
-        }
+        // Since we always load at the origin, no camera movement is needed
+        console.log("[SEQUENTIAL LOADER] Level loaded at origin - no camera movement required");
 
         // Load player with transferred data
         await this.loadPlayerWithTransferredData(gameplayManager, this.nextLevelActiveGameplayLevel);
@@ -733,16 +553,11 @@ class SequentialLevelLoader {
             movementTracker.startTracking();
         }
 
-        // Update current chamber BEFORE choosing music
-        const oldChamber = this.currentChamber;
-        this.currentChamber = this.currentChamber === 1 ? 2 : 1;
-
         // Increment total levels loaded counter (used for music selection)
         this.totalLevelsLoaded++;
 
         console.log(`[SEQUENTIAL LOADER] ============================================`);
-        console.log(`[SEQUENTIAL LOADER] Switched from Chamber ${oldChamber} to Chamber ${this.currentChamber}`);
-        console.log(`[SEQUENTIAL LOADER] Total levels loaded: ${this.totalLevelsLoaded}`);
+        console.log(`[SEQUENTIAL LOADER] Level loaded (total levels loaded: ${this.totalLevelsLoaded})`);
 
         // Start music for new level (only if audio has been unlocked)
         // First level (totalLevelsLoaded === 0) uses "crystalVoyage"
@@ -755,7 +570,7 @@ class SequentialLevelLoader {
         if (musicManager && this.currentScene) {
             // Use totalLevelsLoaded for music selection (0 = first level gets crystalVoyage)
             const songName = this.totalLevelsLoaded === 0 ? "crystalVoyage" : "duskReverie";
-            console.log(`[SEQUENTIAL LOADER] Selected song: ${songName} (level ${this.totalLevelsLoaded}, chamber ${this.currentChamber})`);
+            console.log(`[SEQUENTIAL LOADER] Selected song: ${songName} (level ${this.totalLevelsLoaded})`);
 
             if (Config.audioHasBeenUnlocked) {
                 console.log(`[SEQUENTIAL LOADER] Calling musicManager.playSong(scene, "${songName}", true, true)...`);
@@ -777,7 +592,6 @@ class SequentialLevelLoader {
         this.isLoadingNextLevel = false;
         this.isNextLevelReady = false;
         this.isReplayComplete = false;
-        this.nextLevelChamberOffset = null;
 
         console.log("[SEQUENTIAL LOADER] Transition to next level complete");
     }
@@ -832,10 +646,10 @@ class SequentialLevelLoader {
      */
     async loadPlayerWithTransferredData(gameplayManager, activeGameplayLevel) {
         // Create a new player instance
-        let newPlayer = PlayerLoader.getFreshPlayer(activeGameplayLevel);
+        let newPlayer = PlayerLoader.getFreshPlayer(activeGameplayLevel.levelDataComposite);
         newPlayer.playerMovementManager.setMaxMovementDistance(5);
 
-        // Transfer player data if available
+        // Transfer player data if available (EXCEPT health - always reset to full)
         if (this.originalPlayerData) {
             if (newPlayer.playerStatus) {
                 newPlayer.playerStatus.name = this.originalPlayerData.name;
@@ -844,9 +658,6 @@ class SequentialLevelLoader {
                 newPlayer.playerStatus.currentMagicLevel = this.originalPlayerData.currentMagicLevel;
                 newPlayer.playerStatus.currentMagicPoints = this.originalPlayerData.currentMagicPoints;
                 newPlayer.playerStatus.maximumMagicPoints = this.originalPlayerData.maximumMagicPoints;
-                // Set health to full when starting a new level
-                newPlayer.playerStatus.currentHealthPoints = this.originalPlayerData.maximumHealthPoints;
-                newPlayer.playerStatus.maximumHealthPoints = this.originalPlayerData.maximumHealthPoints;
                 newPlayer.playerStatus.baseMaxSpeed = this.originalPlayerData.baseMaxSpeed;
 
                 // Transfer inventory if available
@@ -860,11 +671,40 @@ class SequentialLevelLoader {
                 newPlayer.setMockInventory(this.originalPlayerData.mockInventory);
             }
 
-            console.log("[SEQUENTIAL LOADER] Player data transferred to new player");
+            console.log("[SEQUENTIAL LOADER] Player data transferred (health will be set by PlayerStatusTracker)");
+        }
+
+        // Ensure PlayerStatusTracker is attached BEFORE loading player into level
+        const playerStatusTracker = FundamentalSystemBridge["playerStatusTracker"];
+        if (playerStatusTracker instanceof PlayerStatusTracker) {
+            console.log("[SEQUENTIAL LOADER] Attaching PlayerStatusTracker - current tracker health:", playerStatusTracker.getCurrentHealth());
+            // Only attach if not already attached (player should already have tracker status from PlayerLoader)
+            if (newPlayer.playerStatus !== playerStatusTracker.playerStatus) {
+                playerStatusTracker.attachStatusToPlayer(newPlayer);
+                console.log("[SEQUENTIAL LOADER] PlayerStatusTracker attached (was not already attached)");
+            } else {
+                console.log("[SEQUENTIAL LOADER] PlayerStatusTracker already attached from PlayerLoader");
+            }
+            // Force health to full before loading into level
+            if (playerStatusTracker.playerStatus) {
+                console.log("[SEQUENTIAL LOADER] Before health reset - tracker shows:", playerStatusTracker.getCurrentHealth());
+                playerStatusTracker.playerStatus.currentHealthPoints = Config.STARTING_HEALTH;
+                playerStatusTracker.playerStatus.maximumHealthPoints = Config.STARTING_HEALTH;
+                console.log("[SEQUENTIAL LOADER] PlayerStatusTracker health forced to:", Config.STARTING_HEALTH, "- tracker now shows:", playerStatusTracker.getCurrentHealth());
+            }
+            playerStatusTracker.updateHealthUI();
         }
 
         // Load the player into the level
         await gameplayManager.loadPlayerToGameplayLevel(activeGameplayLevel, newPlayer);
+
+        // Final verification that health is correct
+        if (newPlayer.playerStatus) {
+            console.log("[SEQUENTIAL LOADER] Final health check - player status health:", newPlayer.playerStatus.currentHealthPoints, "/", newPlayer.playerStatus.maximumHealthPoints);
+        }
+        if (playerStatusTracker) {
+            console.log("[SEQUENTIAL LOADER] Final health check - tracker health:", playerStatusTracker.getCurrentHealth());
+        }
 
         // Reset UI bars to full for new level
         const renderSceneSwapper = FundamentalSystemBridge["renderSceneSwapper"];

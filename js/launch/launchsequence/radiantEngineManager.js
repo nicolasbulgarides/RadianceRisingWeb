@@ -65,6 +65,31 @@ class RadiantEngineManager {
 
   loadTestLevel() {
     FundamentalSystemBridge.loadLevelLoaderManagerOnly();
+
+    // If developer override is enabled, automatically load a test level
+    if (Config.LOAD_LEVEL_FROM_DEVELOPER_OVERRIDE) {
+      this.loadDeveloperTestLevel();
+    }
+  }
+
+  async loadDeveloperTestLevel() {
+    console.log("[DEVELOPER OVERRIDE] Loading test level automatically...");
+
+    const levelLoaderManager = FundamentalSystemBridge["levelLoaderManager"];
+    const gameplayManager = FundamentalSystemBridge["gameplayManagerComposite"];
+
+    if (!levelLoaderManager || !gameplayManager) {
+      console.error("[DEVELOPER OVERRIDE] Level loader or gameplay manager not available");
+      return;
+    }
+
+    try {
+      // Load a test level using the existing test level method
+      await levelLoaderManager.loadLevelTest1(gameplayManager);
+      console.log("[DEVELOPER OVERRIDE] ✓ Test level loaded successfully");
+    } catch (error) {
+      console.error("[DEVELOPER OVERRIDE] ✗ Failed to load test level:", error);
+    }
   }
   //statistics and analytics, platform detection, regional adapation systems, partnership systems, data security / law / requirements
   loadPartnershipAndPlatformAndLegalSystems() {

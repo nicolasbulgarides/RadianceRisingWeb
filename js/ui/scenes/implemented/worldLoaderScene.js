@@ -1,9 +1,13 @@
 /**
  * WorldLoaderScene
- * 
+ *
  * A world selection scene with 9 clickable spheres arranged in a 3x3 grid.
  * Each sphere represents a level/world that can be selected.
  */
+
+// Global debug flag for WorldLoaderScene
+const WORLD_LOADER_DEBUG = false;
+
 class WorldLoaderScene extends GameWorldSceneGeneralized {
     constructor() {
         super();
@@ -12,6 +16,11 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
         this.selectedWorldIndex = null;
         this.isLoadingWorld = false;
         this.worldSpheresInitialized = false; // Track if spheres have been created
+
+        // Debug logging method
+        this.worldLoaderDebugLog = (...args) => {
+            if (WORLD_LOADER_DEBUG) this.worldLoaderDebugLog("", ...args);
+        };
 
         // Register callback for level completion updates
         this.setupLevelCompletionCallback();
@@ -35,7 +44,6 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
         // Optional: Keep the scene clear color opaque if using a background layer
         this.clearColor = new BABYLON.Color4(0, 0, 0, 1);
 
-        //     console.log("[WorldLoaderScene] Background Layer created.");
     }
 
     /**
@@ -148,8 +156,6 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
             }
         }
 
-        // console.log(`[WorldLoaderScene] Created ${this.worldSpheres.length} world spheres in 3x3 grid`);
-
         this.worldSpheresInitialized = true;
     }
 
@@ -229,7 +235,7 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
             }
         }
 
-        console.log(`[WorldLoaderScene] Created ${this.worldSpheres.length} world spheres in fallback mode (sequential loader unavailable)`);
+        this.worldLoaderDebugLog(`Created ${this.worldSpheres.length} world spheres in fallback mode (sequential loader unavailable)`);
 
         this.worldSpheresInitialized = true;
     }
@@ -336,7 +342,6 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
      * @param {number} sphereIndex - Index of the sphere to update
      */
     updateSphereColor(sphereIndex) {
-        console.log(`[WorldLoaderScene] updateSphereColor called for sphere ${sphereIndex}`);
         const sphere = this.worldSpheres[sphereIndex];
         if (!sphere) {
             console.warn(`[WorldLoaderScene] Sphere ${sphereIndex} not found in worldSpheres array`);
@@ -346,8 +351,6 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
         const levelData = sphere.worldData;
         const isCompleted = FundamentalSystemBridge["levelsSolvedStatusTracker"]?.isLevelCompleted(sphereIndex) || false;
 
-        console.log(`[WorldLoaderScene] Sphere ${sphereIndex} - completed: ${isCompleted}, available: ${levelData?.isAvailable}, levelId: ${levelData?.levelId}`);
-
         // Update sphere properties
         sphere.isCompleted = isCompleted;
         sphere.isPickable = levelData?.isAvailable || false;
@@ -355,8 +358,6 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
         // Create new material
         const newMaterial = this.createSphereMaterial(sphereIndex, levelData, isCompleted);
         sphere.material = newMaterial;
-
-        console.log(`[WorldLoaderScene] Updated sphere ${sphereIndex} material applied`);
     }
 
     /**
@@ -382,7 +383,7 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
             }
         });
 
-        //console.log("[WorldLoaderScene] Click handlers set up");
+        //this.worldLoaderDebugLog(" Click handlers set up");
     }
 
     /**
@@ -391,13 +392,12 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
      */
     async onWorldSelected(sphere) {
         if (this.isLoadingWorld) {
-            //console.log("[WorldLoaderScene] Level load already in progress, ignoring click");
+            //this.worldLoaderDebugLog(" Level load already in progress, ignoring click");
             return;
         }
         this.isLoadingWorld = true;
         this.selectedWorldIndex = sphere.sphereIndex; // Track which sphere was selected
         const worldData = sphere.worldData;
-        //console.log(`[WorldLoaderScene] World selected: ${worldData.name} (${worldData.levelId})`);
 
         // Visual feedback: pulse the selected sphere
         this.pulseSphere(sphere);
@@ -434,8 +434,6 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
      * @param {Object} worldData - The level data for the selected world
      */
     async loadSelectedLevel(worldData) {
-        //console.log(`[WorldLoaderScene] Loading level from world selection: ${worldData.levelId}`);
-
         // Get the level loader manager
         const levelLoaderManager = FundamentalSystemBridge["levelLoaderManager"];
         const gameplayManager = FundamentalSystemBridge["gameplayManagerComposite"];
@@ -449,16 +447,26 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
         const specialOccurrenceManager = FundamentalSystemBridge["specialOccurrenceManager"];
         specialOccurrenceManager?.pickupOccurrenceSubManager?.resetPickupProgress?.();
 
-        // Get the level URL from sequential loader
+        // Clear any existing scheduled explosions for fresh level start
+        if (window.ExplosionScheduler) {
+            window.ExplosionScheduler.clearAllScheduledExplosions();
+        }
+        this.worldLoaderDebugLog(" Cleared existing explosions for fresh level start");
+
+        // Get the level URL and level ID from sequential loader
 
         const sequentialLoader = FundamentalSystemBridge["sequentialLevelLoader"];
         const levelUrl = sequentialLoader?.getWorldLevelUrl(this.selectedWorldIndex);
+        const worldLevelData = sequentialLoader?.getWorldLevelData(this.selectedWorldIndex);
+        const levelId = worldLevelData?.levelId;
 
         if (!levelUrl) {
             console.error("[WorldLoaderScene] No level URL available for sphere", this.selectedWorldIndex);
             this.isLoadingWorld = false;
             return;
         }
+
+        if (WORLD_LOADER_DEBUG) console.log(`[WorldLoaderScene] Loading level: ${levelId} from sphere ${this.selectedWorldIndex}`);
 
         try {
             const renderSceneSwapper = FundamentalSystemBridge["renderSceneSwapper"];
@@ -495,7 +503,7 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
             }
 
             // Load the level via URL using the loader manager helper
-            await levelLoaderManager.loadLevelFromUrl(gameplayManager, levelUrl);
+            await levelLoaderManager.loadLevelFromUrl(gameplayManager, levelUrl, levelId);
 
             // After load, ensure the gameplay scene is active (redundant safety)
             renderSceneSwapper.setActiveGameLevelScene("BaseGameScene");
@@ -538,10 +546,10 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
             if (storedCamera && storedCamera.name === "worldLoaderCamera") {
                 // Restore our stored camera
                 this.activeCamera = storedCamera;
-                // console.log("[WorldLoaderScene] Restored world loader camera from storage");
+                // this.worldLoaderDebugLog(" Restored world loader camera from storage");
             } else if (!this.activeCamera || this.activeCamera.name !== "worldLoaderCamera") {
                 // Only recreate if we still don't have the right camera
-                // console.log("[WorldLoaderScene] World loader camera was missing, recreating...");
+                // this.worldLoaderDebugLog(" World loader camera was missing, recreating...");
                 this.setupCamera();
             }
         }
@@ -595,7 +603,7 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
             this.ensureWorldLoaderCamera();
         });
 
-        // console.log("[WorldLoaderScene] Game board style camera set up - positioned at (0, 35, 0) looking straight down at (0, 0, 0)");
+        // this.worldLoaderDebugLog(" Game board style camera set up - positioned at (0, 35, 0) looking straight down at (0, 0, 0)");
     }
 
     /**
@@ -619,7 +627,7 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
         pointLight.intensity = 1.5;
         pointLight.diffuse = new BABYLON.Color3(1.0, 1.0, 1.0);
 
-        // console.log("[WorldLoaderScene] Lighting set up");
+        // this.worldLoaderDebugLog(" Lighting set up");
     }
 
     /**
@@ -666,9 +674,8 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
     setupLevelCompletionCallback() {
         const levelsSolvedStatusTracker = FundamentalSystemBridge["levelsSolvedStatusTracker"];
         if (levelsSolvedStatusTracker) {
-            console.log("[WorldLoaderScene] Registering level completion callback with levelsSolvedStatusTracker");
+            this.worldLoaderDebugLog(" Registering level completion callback with levelsSolvedStatusTracker");
             levelsSolvedStatusTracker.registerCompletionCallback((sphereIndex, levelData) => {
-                console.log(`[WorldLoaderScene] Level completion callback triggered for sphere ${sphereIndex}`);
                 this.updateSphereColor(sphereIndex);
             });
         } else {

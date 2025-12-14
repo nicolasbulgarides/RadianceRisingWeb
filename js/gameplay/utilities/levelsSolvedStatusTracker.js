@@ -7,6 +7,9 @@
  */
 class LevelsSolvedStatusTracker {
     constructor() {
+        // Debug mode - set to true for detailed logging
+        this.DEBUG_MODE = false;
+
         // Available levels mapping (6 levels + 3 placeholders for future expansion)
         this.LEVEL_MAPPING = {
             // First 6 spheres map to actual levels
@@ -33,7 +36,7 @@ class LevelsSolvedStatusTracker {
         // Callback system for level completion events
         this.completionCallbacks = new Set();
 
-        console.log("[LevelsSolvedStatusTracker] Initialized with level mapping and completion tracking");
+        if (this.DEBUG_MODE) console.log("[LevelsSolvedStatusTracker] Initialized with level mapping and completion tracking");
     }
 
     /**
@@ -45,7 +48,7 @@ class LevelsSolvedStatusTracker {
             if (stored) {
                 const completedArray = JSON.parse(stored);
                 this.completedLevels = new Set(completedArray);
-                console.log(`[LevelsSolvedStatusTracker] Loaded ${this.completedLevels.size} completed levels from storage`);
+                if (this.DEBUG_MODE) console.log(`[LevelsSolvedStatusTracker] Loaded ${this.completedLevels.size} completed levels from storage`);
             }
         } catch (error) {
             console.warn("[LevelsSolvedStatusTracker] Failed to load completed levels from storage:", error);
@@ -60,7 +63,7 @@ class LevelsSolvedStatusTracker {
         try {
             const completedArray = Array.from(this.completedLevels);
             localStorage.setItem('radianceRising_completedLevels', JSON.stringify(completedArray));
-            console.log(`[LevelsSolvedStatusTracker] Saved ${this.completedLevels.size} completed levels to storage`);
+            if (this.DEBUG_MODE) console.log(`[LevelsSolvedStatusTracker] Saved ${this.completedLevels.size} completed levels to storage`);
         } catch (error) {
             console.error("[LevelsSolvedStatusTracker] Failed to save completed levels to storage:", error);
         }
@@ -75,7 +78,7 @@ class LevelsSolvedStatusTracker {
             if (stored) {
                 const experienceArray = JSON.parse(stored);
                 this.experienceGrantedLevels = new Set(experienceArray);
-                console.log(`[LevelsSolvedStatusTracker] Loaded ${this.experienceGrantedLevels.size} experience granted levels from storage`);
+                if (this.DEBUG_MODE) console.log(`[LevelsSolvedStatusTracker] Loaded ${this.experienceGrantedLevels.size} experience granted levels from storage`);
             }
         } catch (error) {
             console.warn("[LevelsSolvedStatusTracker] Failed to load experience granted levels from storage:", error);
@@ -90,7 +93,7 @@ class LevelsSolvedStatusTracker {
         try {
             const experienceArray = Array.from(this.experienceGrantedLevels);
             localStorage.setItem('radianceRising_experienceGrantedLevels', JSON.stringify(experienceArray));
-            console.log(`[LevelsSolvedStatusTracker] Saved ${this.experienceGrantedLevels.size} experience granted levels to storage`);
+            if (this.DEBUG_MODE) console.log(`[LevelsSolvedStatusTracker] Saved ${this.experienceGrantedLevels.size} experience granted levels to storage`);
         } catch (error) {
             console.error("[LevelsSolvedStatusTracker] Failed to save experience granted levels to storage:", error);
         }
@@ -134,7 +137,7 @@ class LevelsSolvedStatusTracker {
         if (levelData) {
             this.experienceGrantedLevels.add(levelData.levelId);
             this.saveExperienceGrantedLevels();
-            console.log(`[LevelsSolvedStatusTracker] Marked experience granted for level ${levelData.levelId}`);
+            if (this.DEBUG_MODE) console.log(`[LevelsSolvedStatusTracker] Marked experience granted for level ${levelData.levelId}`);
         }
     }
 
@@ -147,13 +150,13 @@ class LevelsSolvedStatusTracker {
         if (levelData && levelData.isAvailable) {
             this.completedLevels.add(levelData.levelId);
             this.saveCompletedLevels();
-            console.log(`[LevelsSolvedStatusTracker] Marked level ${levelData.levelId} as completed`);
+            if (this.DEBUG_MODE) console.log(`[LevelsSolvedStatusTracker] Marked level ${levelData.levelId} as completed`);
 
             // Trigger any completion callbacks
             this.onLevelCompleted?.(sphereIndex, levelData);
 
             // Notify registered callbacks
-            console.log(`[LevelsSolvedStatusTracker] Notifying ${this.completionCallbacks.size} registered callbacks`);
+            if (this.DEBUG_MODE) console.log(`[LevelsSolvedStatusTracker] Notifying ${this.completionCallbacks.size} registered callbacks`);
             this.notifyLevelCompleted(sphereIndex, levelData);
         } else {
             console.warn(`[LevelsSolvedStatusTracker] Cannot mark level as completed: sphereIndex=${sphereIndex}, levelData=${levelData}, isAvailable=${levelData?.isAvailable}`);
@@ -213,10 +216,10 @@ class LevelsSolvedStatusTracker {
      * @param {Object} levelData - Data of completed level
      */
     notifyLevelCompleted(sphereIndex, levelData) {
-        console.log(`[LevelsSolvedStatusTracker] Calling ${this.completionCallbacks.size} completion callbacks`);
+        if (this.DEBUG_MODE) console.log(`[LevelsSolvedStatusTracker] Calling ${this.completionCallbacks.size} completion callbacks`);
         this.completionCallbacks.forEach((callback, index) => {
             try {
-                console.log(`[LevelsSolvedStatusTracker] Calling callback ${index + 1}`);
+                if (this.DEBUG_MODE) console.log(`[LevelsSolvedStatusTracker] Calling callback ${index + 1}`);
                 callback(sphereIndex, levelData);
             } catch (error) {
                 console.error("[LevelsSolvedStatusTracker] Error in completion callback:", error);
@@ -228,10 +231,10 @@ class LevelsSolvedStatusTracker {
      * Resets all progress (for debugging/testing)
      */
     resetAllProgress() {
-        console.log("[LevelsSolvedStatusTracker] Resetting all progress - before:", Array.from(this.completedLevels));
+        if (this.DEBUG_MODE) console.log("[LevelsSolvedStatusTracker] Resetting all progress - before:", Array.from(this.completedLevels));
         this.completedLevels.clear();
         this.saveCompletedLevels();
-        console.log("[LevelsSolvedStatusTracker] All progress reset - after:", Array.from(this.completedLevels));
+        if (this.DEBUG_MODE) console.log("[LevelsSolvedStatusTracker] All progress reset - after:", Array.from(this.completedLevels));
     }
 
     /**
@@ -241,7 +244,7 @@ class LevelsSolvedStatusTracker {
      */
     onLevelCompleted(sphereIndex, levelData) {
         // Override this method to handle level completion events
-        console.log(`[LevelsSolvedStatusTracker] Level completed: ${levelData.name} (sphere ${sphereIndex})`);
+        if (this.DEBUG_MODE) console.log(`[LevelsSolvedStatusTracker] Level completed: ${levelData.name} (sphere ${sphereIndex})`);
     }
 }
 

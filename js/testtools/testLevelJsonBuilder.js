@@ -17,6 +17,9 @@ class TestLevelJsonBuilder {
   }
 
   constructor() {
+    // Debug mode - set to true for detailed logging
+    this.DEBUG_MODE = false;
+
     // Only allow instantiation through getInstance
     if (TestLevelJsonBuilder.#instance) {
       throw new Error(
@@ -226,7 +229,7 @@ class TestLevelJsonBuilder {
     depth,
     playerStart
   ) {
-    console.log("Building custom size level with id: ", levelId);
+    if (this.DEBUG_MODE) console.log("Building custom size level with id: ", levelId);
 
     // Build the header data
     const levelHeaderData = this.buildLevelHeaderData(levelId, levelNickname);

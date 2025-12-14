@@ -28,7 +28,8 @@ class PickupOccurrenceSubManager {
         return null;
       }
       cachedParticleTexture = new BABYLON.Texture("https://assets.babylonjs.com/textures/flare.png", scene);
-      console.log("[EXPLOSION] ✓ Pre-loaded particle texture for instant explosions");
+      // Debug logging disabled by default
+      // console.log("[EXPLOSION] ✓ Pre-loaded particle texture for instant explosions");
     }
     return cachedParticleTexture;
   }

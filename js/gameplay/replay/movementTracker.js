@@ -1,9 +1,13 @@
 /**
  * MovementTracker
- * 
+ *
  * Tracks all player movements during gameplay for replay purposes.
  * Records direction, destination, and timing information for each move.
  */
+
+// Global debug flag for MovementTracker
+const MOVEMENT_TRACKER_DEBUG = false;
+
 class MovementTracker {
     constructor() {
         this.movements = []; // Array of recorded movements
@@ -11,6 +15,15 @@ class MovementTracker {
         this.pickupPositions = []; // Track positions where pickups occurred
         this.damagePositions = []; // Track positions where damage occurred
         this.lockUnlocks = []; // Track lock unlocks with movement indices
+    }
+
+    /**
+     * Debug logging method for MovementTracker operations
+     */
+    movementTrackerDebugLog(...args) {
+        if (MOVEMENT_TRACKER_DEBUG) {
+            console.log("[MOVEMENT TRACKER]", ...args);
+        }
     }
 
     /**
@@ -116,6 +129,26 @@ class MovementTracker {
             movementIndex: this.movements.length // Use current movement count as index
         });
         //console.log(`[MOVEMENT TRACKER] Recorded lock unlock at position (${position.x}, ${position.z}) at movement ${this.movements.length}`);
+    }
+
+    /**
+     * Records key usage as a movement (for move counter)
+     * @param {BABYLON.Vector3} position - The position where the key was used
+     */
+    recordKeyUsage(position) {
+        if (!this.isTracking) return;
+
+        // Record key usage as a special movement
+        const movement = {
+            direction: "key_usage", // Special direction for key usage
+            startPosition: position.clone(),
+            destinationPosition: position.clone(), // Same position for key usage
+            timestamp: Date.now(),
+            isKeyUsage: true // Flag to identify key usage movements
+        };
+
+        this.movements.push(movement);
+        this.movementTrackerDebugLog(`Recorded key usage movement at position (${position.x}, ${position.z}) - total moves: ${this.movements.length}`);
     }
 
     /**

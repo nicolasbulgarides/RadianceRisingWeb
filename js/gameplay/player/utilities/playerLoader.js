@@ -5,17 +5,21 @@
  * It creates a positioned object from the default configuration and assigns it to the player.
  */
 
-// Global flag to disable player loader logging (set to false to enable logging)
+// Global debug flags for PlayerLoader
+
+const PLAYER_LOADER_DEBUG = false;
 const PLAYER_LOADER_LOGGING_ENABLED = false;
 
-// Helper function for conditional player loader logging
-function playerLoaderLog(...args) {
-    if (PLAYER_LOADER_LOGGING_ENABLED) {
-        console.log(...args);
-    }
-}
-
 class PlayerLoader {
+  constructor() {
+    // Debug logging method
+    this.playerLoaderDebugLog = (...args) => {
+      if (PLAYER_LOADER_DEBUG) {
+        console.log("[PLAYER LOADER]", ...args);
+      }
+    };
+  }
+
   /**
    * Loads the player's model and assigns its starting position.
    *
@@ -32,7 +36,6 @@ class PlayerLoader {
       false, // No physics simulation.
       false // No additional flags.
     );
-
     // Load the player's position manager with the created model object and the provided position.
     player.loadMovementManager(playerModelObject, position);
   }
@@ -45,28 +48,22 @@ class PlayerLoader {
    * @returns {PlayerUnit} - A newly created and initialized player unit.
    */
   static getFreshPlayer(levelData) {
+    console.log("[PLAYER LOADER] getFreshPlayer called with levelData:", levelData?.constructor?.name, levelData);
     // DEBUG: Log when a new player is being created
-    playerLoaderLog("[PLAYER LOADER] ▶▶▶ getFreshPlayer called - creating NEW player!");
     if (PLAYER_LOADER_LOGGING_ENABLED) {
-        console.trace("[PLAYER LOADER] Stack trace:");
+      console.trace("[PLAYER LOADER] Stack trace:");
     }
 
     // Check if we're in a death/reset sequence - if so, block player creation
     const levelResetHandler = FundamentalSystemBridge?.["levelResetHandler"];
     if (levelResetHandler && levelResetHandler.isResetting) {
-      playerLoaderLog("[PLAYER LOADER] ⛔ BLOCKED - Cannot create new player during reset sequence!");
+      this.playerLoaderDebugLog("[PLAYER LOADER] ⛔ BLOCKED - Cannot create new player during reset sequence!");
+      console.log("[PLAYER LOADER] ⛔ BLOCKED - Cannot create new player during reset sequence!");
       return null;
     }
 
     // Instantiate a new PlayerUnit object.
     let gamePlayer = new PlayerUnit();
-
-    // Validate the player instance
-    if (!(gamePlayer instanceof PlayerUnit)) {
-      console.error("Failed to create valid PlayerUnit instance");
-      return null;
-    }
-
     // Load the player's status with default values (full health and magic).
     // If a persistent tracker exists, reuse it so experience persists across levels.
     const playerStatusTracker = FundamentalSystemBridge["playerStatusTracker"];
@@ -82,6 +79,13 @@ class PlayerLoader {
       });
 
       playerStatusTracker.attachStatusToPlayer(gamePlayer);
+
+      // CRITICAL: Always reset health to full when creating a new player for a level
+      if (playerStatusTracker.playerStatus) {
+        playerStatusTracker.playerStatus.currentHealthPoints = Config.STARTING_HEALTH;
+        playerStatusTracker.playerStatus.maximumHealthPoints = Config.STARTING_HEALTH;
+      }
+
       playerStatusTracker.updateExperienceUI();
       playerStatusTracker.updateHealthUI();
     } else {
