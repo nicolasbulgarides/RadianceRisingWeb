@@ -7,7 +7,6 @@
 
 // Global debug flag for WorldLoaderScene
 const WORLD_LOADER_DEBUG = false;
-
 class WorldLoaderScene extends GameWorldSceneGeneralized {
     constructor() {
         super();
@@ -17,6 +16,15 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
         this.isLoadingWorld = false;
         this.worldSpheresInitialized = false; // Track if spheres have been created
 
+        // Double click detection properties
+        this.lastClickTime = 0;
+        this.lastClickedSphere = null;
+        this.doubleClickDelay = 300; // milliseconds
+
+        // Hover tracking properties
+        this.currentlyHoveredSphere = null;
+
+
         // Debug logging method
         this.worldLoaderDebugLog = (...args) => {
             if (WORLD_LOADER_DEBUG) this.worldLoaderDebugLog("", ...args);
@@ -25,18 +33,16 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
         // Register callback for level completion updates
         this.setupLevelCompletionCallback();
         this.setupBackgroundImage();
-        // Delay sphere creation until sequential loader is available
-        this.initializeWorldSpheresWhenReady();
         this.setupCamera();
         this.setupLighting();
-        this.setupClickHandlers();
+        // Delay sphere creation and click handler setup until sequential loader is available
+        this.initializeWorldSpheresWhenReady();
     }
+
+
 
     setupBackgroundImage() {
         const backgroundImageUrl = "https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/assets/spaceBackground.jpg";
-
-        // Create a background texture
-        const backgroundTexture = new BABYLON.Texture(backgroundImageUrl, this);
 
         // Create a layer to display the texture
         const backgroundLayer = new BABYLON.Layer("backgroundLayer", backgroundImageUrl, this, true);
@@ -54,6 +60,7 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
         // Check immediately if sequential loader is available
         if (FundamentalSystemBridge["sequentialLevelLoader"]) {
             this.createWorldSpheres();
+            this.setupClickHandlers();
             return;
         }
 
@@ -62,6 +69,7 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
             if (FundamentalSystemBridge["sequentialLevelLoader"]) {
                 clearInterval(checkInterval);
                 this.createWorldSpheres();
+                this.setupClickHandlers();
                 // Ensure camera is set after initialization
                 this.ensureWorldLoaderCamera();
             }
@@ -73,6 +81,7 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
                 clearInterval(checkInterval);
                 console.error("[WorldLoaderScene] Sequential level loader still not available after 10 seconds - creating spheres with fallback");
                 this.createWorldSpheresWithFallback();
+                this.setupClickHandlers();
                 // Ensure camera is set even in fallback case
                 this.ensureWorldLoaderCamera();
             }
@@ -146,10 +155,8 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
                 sphere.sphereIndex = sphereIndex;
                 sphere.isCompleted = isCompleted;
 
-                // Add hover effect (slight scale up on hover) only for available levels
-                if (levelData?.isAvailable) {
-                    this.addHoverEffect(sphere);
-                }
+                // Add hover effect (slight scale up and change to orange on hover) to all spheres
+                this.addHoverEffect(sphere);
 
                 this.worldSpheres.push(sphere);
                 sphereIndex++;
@@ -266,39 +273,27 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
     }
 
     /**
-     * Adds hover effect to a sphere (scale up slightly when mouse is over it)
+     * Adds hover effect preparation to a sphere (materials are managed centrally)
      */
     addHoverEffect(sphere) {
-        const originalScale = 1.0;
-        const hoverScale = 1.2;
 
-        // Store original scaling
+        // Store original scaling and material
         sphere.originalScaling = sphere.scaling.clone();
+        sphere.originalMaterial = sphere.material.clone();
 
-        // Use action manager for pointer enter/exit
-        const actionManager = new BABYLON.ActionManager(this);
-        sphere.actionManager = actionManager;
+        // Create orange hover material
+        const hoverMaterial = sphere.material.clone();
+        const hoverOrange = new BABYLON.Color3(1.0, 0.6, 0.0); // Orange color
+        hoverMaterial.emissiveColor = hoverOrange;
+        hoverMaterial.diffuseColor = hoverOrange.scale(0.8);
+        hoverMaterial.specularColor = new BABYLON.Color3(1.0, 0.8, 0.4);
+        hoverMaterial.emissiveIntensity = 1.5;
+        sphere.hoverMaterial = hoverMaterial;
 
-        // On pointer over, scale up
-        actionManager.registerAction(
-            new BABYLON.ExecuteCodeAction(
-                BABYLON.ActionManager.OnPointerOverTrigger,
-                () => {
-                    sphere.scaling = new BABYLON.Vector3(hoverScale, hoverScale, hoverScale);
-                }
-            )
-        );
-
-        // On pointer out, scale back
-        actionManager.registerAction(
-            new BABYLON.ExecuteCodeAction(
-                BABYLON.ActionManager.OnPointerOutTrigger,
-                () => {
-                    sphere.scaling = sphere.originalScaling.clone();
-                }
-            )
-        );
+        // Ensure sphere is pickable for hover detection
+        sphere.isPickable = true;
     }
+
 
     /**
      * Creates appropriate material for sphere based on level status
@@ -364,8 +359,31 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
      * Sets up click handlers for all spheres
      */
     setupClickHandlers() {
+        // Ensure pointer events are enabled for picking
+        this.preventDefaultOnPointerDown = false;
+        this.preventDefaultOnPointerUp = false;
+
         // Enable pointer events on the scene
         this.onPointerObservable.add((pointerInfo) => {
+
+            // Handle hover effects centrally
+            if (pointerInfo.type === BABYLON.PointerEventTypes.POINTERMOVE) {
+                // Use Babylon.js standard approach: pointerInfo.pickInfo.pickedMesh
+                let hoveredSphere = null;
+
+                if (pointerInfo.pickInfo && pointerInfo.pickInfo.hit && pointerInfo.pickInfo.pickedMesh) {
+                    hoveredSphere = this.worldSpheres.find(sphere =>
+                        sphere === pointerInfo.pickInfo.pickedMesh ||
+                        pointerInfo.pickInfo.pickedMesh.parent === sphere ||
+                        (typeof pointerInfo.pickInfo.pickedMesh.getParent === "function" && pointerInfo.pickInfo.pickedMesh.getParent() === sphere)
+                    );
+                }
+
+                // Handle hover state changes
+                this.handleHoverChange(hoveredSphere);
+            }
+
+            // Handle clicks
             if (pointerInfo.type === BABYLON.PointerEventTypes.POINTERDOWN) {
                 const pickResult = pointerInfo.pickInfo || this.pick(pointerInfo.event.pointerX, pointerInfo.event.pointerY);
 
@@ -377,13 +395,72 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
                     );
 
                     if (clickedSphere && clickedSphere.worldData) {
-                        this.onWorldSelected(clickedSphere);
+                        this.handleSphereClick(clickedSphere);
                     }
                 }
             }
         });
 
         //this.worldLoaderDebugLog(" Click handlers set up");
+    }
+
+    /**
+     * Handles sphere clicks with double-click detection
+     * @param {BABYLON.Mesh} sphere - The clicked sphere
+     */
+    handleSphereClick(sphere) {
+        const currentTime = Date.now();
+
+        // Check if this is a double click (within time window and same sphere)
+        if (this.lastClickedSphere === sphere &&
+            (currentTime - this.lastClickTime) < this.doubleClickDelay) {
+            // Double click detected - load the level
+            this.onWorldSelected(sphere);
+            // Reset click tracking
+            this.lastClickedSphere = null;
+            this.lastClickTime = 0;
+        } else {
+            // Single click - store for potential double click
+            this.lastClickedSphere = sphere;
+            this.lastClickTime = currentTime;
+        }
+    }
+
+    /**
+     * Handles hover state changes centrally
+     * @param {BABYLON.Mesh|null} newHoveredSphere - The sphere currently being hovered, or null
+     */
+    handleHoverChange(newHoveredSphere) {
+        if (WORLD_LOADER_DEBUG) {
+            console.log("[WorldLoaderScene] handleHoverChange called with:", newHoveredSphere ? newHoveredSphere.name : "null");
+        }
+
+        // If hovering over the same sphere, do nothing
+        if (this.currentlyHoveredSphere === newHoveredSphere) {
+            return;
+        }
+
+        // Reset previous hover state
+        if (this.currentlyHoveredSphere) {
+            if (WORLD_LOADER_DEBUG) {
+                console.log("[WorldLoaderScene] Resetting hover state for:", this.currentlyHoveredSphere.name);
+            }
+            this.currentlyHoveredSphere.scaling = this.currentlyHoveredSphere.originalScaling.clone();
+            this.currentlyHoveredSphere.material = this.currentlyHoveredSphere.originalMaterial;
+        }
+
+        // Apply new hover state
+        if (newHoveredSphere) {
+            if (WORLD_LOADER_DEBUG) {
+                console.log("[WorldLoaderScene] Applying hover state to:", newHoveredSphere.name);
+            }
+            const hoverScale = 1.2;
+            newHoveredSphere.scaling = new BABYLON.Vector3(hoverScale, hoverScale, hoverScale);
+            newHoveredSphere.material = newHoveredSphere.hoverMaterial;
+        }
+
+        // Update current hover tracking
+        this.currentlyHoveredSphere = newHoveredSphere;
     }
 
     /**
@@ -587,8 +664,9 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
         // Rotate camera 180 degrees around Z-axis (horizontal/roll) - same as game board
         camera.rotation.z = 0; // No roll; data flip handles orientation
 
-        // Disable camera controls to keep it fixed (matching game board behavior)
-        // camera.attachControl(this.getEngine().getRenderingCanvas(), true);
+        // Attach camera to canvas for pointer events to work properly
+        // Use false to attach for picking but not enable camera controls
+        camera.attachControl(this.getEngine().getRenderingCanvas(), false);
 
         this.activeCamera = camera;
 
@@ -647,6 +725,7 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
             this.onBeforeRenderObservable.remove(this.worldLoaderCameraObserver);
             this.worldLoaderCameraObserver = null;
         }
+
 
         // Dispose all world spheres
         if (this.worldSpheres) {

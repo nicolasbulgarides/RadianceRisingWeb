@@ -149,8 +149,72 @@ class LevelProfileManifest {
                 "LEFT",
                 "UP"
             ]
+        },
+        level7FlipsE: {
+            levelId: "level7FlipsE",
+            filename: "level7FlipsE.txt",
+            perfectSolutionMovementCount: 10,
+            obstacles: ["mountain", "spike", "lock"],
+            solutionPath: [
+                "DOWN",
+                "RIGHT",
+                "UP",
+                "RIGHT",
+                "UP",
+                "DOWN",
+                "LEFT",
+                "DOWN",
+                "UP",
+                "RIGHT"
+            ]
+        },
+        level8SpookyB: {
+            levelId: "level8SpookyB",
+            filename: "level8SpookyB.txt",
+            perfectSolutionMovementCount: 14,
+            obstacles: ["mountain", "spike", "lock"],
+            solutionPath: [
+                "LEFT",
+                "UP",
+                "RIGHT",
+                "LEFT",
+                "UP",
+                "DOWN",
+                "RIGHT",
+                "DOWN",
+                "RIGHT",
+                "UP",
+                "LEFT",
+                "RIGHT",
+                "UNLOCK",
+                "LEFT"
+            ]
+        },
+        level9Wow: {
+            levelId: "level9Wow",
+            filename: "level9Wow.txt",
+            perfectSolutionMovementCount: 16,
+            obstacles: ["mountain", "spike", "lock"],
+            solutionPath: [
+                "RIGHT",
+                "UP",
+                "RIGHT",
+                "DOWN",
+                "RIGHT",
+                "DOWN",
+                "LEFT",
+                "UP",
+                "LEFT",
+                "DOWN",
+                "LEFT",
+                "UP",
+                "RIGHT",
+                "UP",
+                "UNLOCK",
+                "UP"
+            ]
         }
-    };
+    }
 
     /**
      * Retrieves the full URL for a level's data file

@@ -611,9 +611,9 @@ class SequentialLevelLoader {
             4: { levelId: "level5TrickyB", levelUrl: "level5TrickyB.txt", name: "Level 5: Tricky B", isAvailable: true },
             5: { levelId: "level6Locks", levelUrl: "level6Locks.txt", name: "Level 6: Locks", isAvailable: true },
             // Last 3 spheres are placeholders for future levels
-            6: { levelId: "levelNeedToBeMade", levelUrl: null, name: "Coming Soon", isAvailable: false },
-            7: { levelId: "levelNeedToBeMade", levelUrl: null, name: "Coming Soon", isAvailable: false },
-            8: { levelId: "levelNeedToBeMade", levelUrl: null, name: "Coming Soon", isAvailable: false }
+            6: { levelId: "level7FlipsE", levelUrl: "level7FlipsE.txt", name: "Level 7 Flips", isAvailable: true },
+            7: { levelId: "level8SpookyB", levelUrl: "level8SpookyB.txt", name: "Level 8 Spooky", isAvailable: true },
+            8: { levelId: "level9Wow", levelUrl: "level9Wow.txt", name: "Level 9 Wow", isAvailable: true }
         };
     }
 
