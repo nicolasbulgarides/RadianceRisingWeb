@@ -60,7 +60,7 @@ class CameraManager {
       this.scene,
       "gameLevelTestCamera",
       new BABYLON.Vector3(7, 0, 7),
-      35
+      40 // 15% further out than original 35
     );
     this.currentCamera = camera;
     return camera;
@@ -70,7 +70,7 @@ class CameraManager {
     // Delegate to the unified top-down creator to avoid divergence
     const manager = new CameraManager();
     manager.registerPrimaryGameScene(scene);
-    return manager.createTopDownCamera(scene, "defaultCamera", new BABYLON.Vector3(7, 0, 7), 35);
+    return manager.createTopDownCamera(scene, "defaultCamera", new BABYLON.Vector3(7, 0, 7), 40);
   }
 
   setCameraToChase(relevantScene, modelToChase) {
