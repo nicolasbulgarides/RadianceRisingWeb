@@ -29,6 +29,9 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
         // Hover tracking properties
         this.currentlyHoveredSphere = null;
 
+        // Tooltip DOM element (PC only — null on touch devices)
+        this._tooltipEl = null;
+
 
         // Debug logging method
         this.worldLoaderDebugLog = (...args) => {
@@ -539,6 +542,51 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
         sphere.material = newMaterial;
     }
 
+    // ── Tooltip helpers (PC only) ────────────────────────────────────────────
+
+    /** Creates and appends the tooltip DOM element. */
+    _createTooltip() {
+        const div = document.createElement("div");
+        div.style.cssText = [
+            "position:fixed",
+            "pointer-events:none",
+            "display:none",
+            "background:rgba(0,0,0,0.78)",
+            "color:#d8e8ff",
+            "font-family:sans-serif",
+            "font-size:13px",
+            "padding:5px 11px",
+            "border-radius:5px",
+            "border:1px solid rgba(120,160,255,0.45)",
+            "white-space:nowrap",
+            "z-index:9999",
+            "letter-spacing:0.03em",
+            "box-shadow:0 2px 8px rgba(0,0,0,0.5)",
+        ].join(";");
+        document.body.appendChild(div);
+        return div;
+    }
+
+    /** Shows (or repositions) the tooltip for the given sphere near the mouse cursor. */
+    _showTooltip(sphere, event) {
+        if (!this._tooltipEl) return;
+        const entry = (typeof ConstellationStarToLevelManifest !== "undefined")
+            ? ConstellationStarToLevelManifest.get(this._activeConstellationId, sphere.sphereIndex)
+            : null;
+        const label = entry?.levelName || sphere.worldData?.name || sphere.name;
+        this._tooltipEl.textContent = label;
+        this._tooltipEl.style.display = "block";
+        this._tooltipEl.style.left = (event.clientX + 16) + "px";
+        this._tooltipEl.style.top  = (event.clientY - 34) + "px";
+    }
+
+    /** Hides the tooltip. */
+    _hideTooltip() {
+        if (this._tooltipEl) this._tooltipEl.style.display = "none";
+    }
+
+    // ────────────────────────────────────────────────────────────────────────
+
     /**
      * Sets up click handlers for all spheres
      */
@@ -546,6 +594,12 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
         // Ensure pointer events are enabled for picking
         this.preventDefaultOnPointerDown = false;
         this.preventDefaultOnPointerUp = false;
+
+        // Create tooltip only on non-touch (PC) devices
+        const isTouch = ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+        if (!isTouch) {
+            this._tooltipEl = this._createTooltip();
+        }
 
         // Enable pointer events on the scene
         this.onPointerObservable.add((pointerInfo) => {
@@ -565,6 +619,15 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
 
                 // Handle hover state changes
                 this.handleHoverChange(hoveredSphere);
+
+                // Update tooltip (PC only — _tooltipEl is null on touch)
+                if (this._tooltipEl) {
+                    if (this.currentlyHoveredSphere) {
+                        this._showTooltip(this.currentlyHoveredSphere, pointerInfo.event);
+                    } else {
+                        this._hideTooltip();
+                    }
+                }
             }
 
             // Handle clicks
@@ -951,6 +1014,12 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
         if (this.cameraControlUI) {
             this.cameraControlUI.dispose();
             this.cameraControlUI = null;
+        }
+
+        // Remove tooltip DOM element
+        if (this._tooltipEl) {
+            document.body.removeChild(this._tooltipEl);
+            this._tooltipEl = null;
         }
 
         super.dispose();
