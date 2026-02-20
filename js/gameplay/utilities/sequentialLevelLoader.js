@@ -639,12 +639,38 @@ class SequentialLevelLoader {
     }
 
     /**
-     * Gets level data for a specific world sphere index
+     * Gets level data for a specific world sphere index (Orion / default constellation only).
+     * Prefer getWorldLevelDataForConstellation() when the active constellation is known.
      * @param {number} sphereIndex - Index of the sphere (0-8)
      * @returns {Object|null} Level data or null if invalid index
      */
     getWorldLevelData(sphereIndex) {
         return this.WORLD_LEVEL_MAPPING[sphereIndex] || null;
+    }
+
+    /**
+     * Gets level data for a star in any constellation, looked up live from the manifests.
+     * @param {string} constellationId - The active constellation id (e.g. "ursa_major")
+     * @param {number} starId          - The star index within that constellation
+     * @returns {Object} Level data object (isAvailable:false for placeholders)
+     */
+    getWorldLevelDataForConstellation(constellationId, starId) {
+        const entry = ConstellationStarToLevelManifest.get(constellationId, starId);
+        if (!entry || entry.isPlaceholder) {
+            return {
+                levelId: entry?.levelId || `placeholder_${constellationId}_${starId}`,
+                levelUrl: null,
+                name: entry?.levelName || `Star ${starId}`,
+                isAvailable: false,
+            };
+        }
+        const profile = LevelProfileManifest.levelProfiles?.[entry.levelId];
+        return {
+            levelId: entry.levelId,
+            levelUrl: profile?.filename || (entry.levelId + ".txt"),
+            name: entry.levelName,
+            isAvailable: !!profile,
+        };
     }
 
     /**
@@ -660,6 +686,10 @@ class SequentialLevelLoader {
 
         // Construct full URL (assuming GitHub raw content URL like other levels)
         return `https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/assets/${levelData.levelUrl}`;
+    }
+
+    static buildFullLevelUrl(filename) {
+        return `https://raw.githubusercontent.com/nicolasbulgarides/testmodels/main/assets/${filename}`;
     }
 
     /**

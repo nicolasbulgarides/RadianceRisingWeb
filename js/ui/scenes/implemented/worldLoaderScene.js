@@ -15,7 +15,7 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
         this.constellationLineMesh = null; // Line system connecting the constellation stars
         this.shimmerParticleSystems = []; // One particle system per star sphere
         this._sparkleTexture = null;      // Shared texture for all shimmer particles
-        this._activeConstellationId = "orion"; // Currently displayed constellation
+        this._activeConstellationId = "ursa_major"; // Currently displayed constellation
         this._constellationQueue = [];          // Non-repeating shuffle queue
         this.selectedWorldIndex = null;
         this.isLoadingWorld = false;
@@ -105,7 +105,7 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
             return;
         }
 
-        const constellation = ConstellationManifest.get("orion");
+        const constellation = ConstellationManifest.get(this._activeConstellationId);
         if (!constellation) {
             console.error("[WorldLoaderScene] Orion constellation not found in ConstellationManifest");
             return;
@@ -125,14 +125,15 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
 
             sphere.position = new BABYLON.Vector3(starData.worldX, 0, starData.worldZ);
 
-            const levelData  = sequentialLoader.getWorldLevelData(sphereIndex);
+            const levelData = sequentialLoader.getWorldLevelDataForConstellation(this._activeConstellationId, sphereIndex);
             const isCompleted = FundamentalSystemBridge["levelsSolvedStatusTracker"]?.isLevelCompleted(sphereIndex) || false;
 
-            sphere.material   = this.createSphereMaterial(sphereIndex, levelData, isCompleted);
-            sphere.isPickable = levelData?.isAvailable || false;
-            sphere.worldData  = levelData;
-            sphere.sphereIndex = sphereIndex;
-            sphere.isCompleted = isCompleted;
+            sphere.material        = this.createSphereMaterial(sphereIndex, levelData, isCompleted);
+            sphere.isPickable      = levelData?.isAvailable || false;
+            sphere.worldData       = levelData;
+            sphere.sphereIndex     = sphereIndex;
+            sphere.constellationId = this._activeConstellationId;
+            sphere.isCompleted     = isCompleted;
 
             this.addHoverEffect(sphere);
             this._addStarShimmer(sphere);
@@ -148,7 +149,7 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
      * Uses the same constellation layout as createWorldSpheres().
      */
     createWorldSpheresWithFallback() {
-        const constellation = ConstellationManifest.get("orion");
+        const constellation = ConstellationManifest.get(this._activeConstellationId);
         if (!constellation) {
             console.error("[WorldLoaderScene] Orion constellation not found — cannot create fallback spheres");
             return;
@@ -169,23 +170,23 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
             sphere.position = new BABYLON.Vector3(starData.worldX, 0, starData.worldZ);
 
             const fallbackLevelData = {
-                levelId:     `level${sphereIndex}`,
-                name:        `Level ${sphereIndex}`,
+                levelId: `level${sphereIndex}`,
+                name: `Level ${sphereIndex}`,
                 isAvailable: sphereIndex < 6,
-                levelUrl:    null,
+                levelUrl: null,
             };
 
             const material = new BABYLON.StandardMaterial(`worldSphereMaterial_${sphereIndex}`, this);
             const gray = new BABYLON.Color3(0.4, 0.4, 0.4);
             material.emissiveColor = gray;
-            material.diffuseColor  = gray.scale(0.5);
+            material.diffuseColor = gray.scale(0.5);
             material.specularColor = new BABYLON.Color3(0.6, 0.6, 0.6);
             material.emissiveIntensity = 0.8;
             material.roughness = 0.2;
 
-            sphere.material    = material;
-            sphere.isPickable  = fallbackLevelData.isAvailable;
-            sphere.worldData   = fallbackLevelData;
+            sphere.material = material;
+            sphere.isPickable = fallbackLevelData.isAvailable;
+            sphere.worldData = fallbackLevelData;
             sphere.sphereIndex = sphereIndex;
             sphere.isCompleted = false;
 
@@ -263,18 +264,18 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
         const radial = ctx.createRadialGradient(c, c, 0, c, c, c);
         radial.addColorStop(0.0, "rgba(255, 255, 255, 1.0)");
         radial.addColorStop(0.25, "rgba(200, 220, 255, 0.85)");
-        radial.addColorStop(0.6,  "rgba(120, 160, 255, 0.3)");
-        radial.addColorStop(1.0,  "rgba(80,  120, 255, 0.0)");
+        radial.addColorStop(0.6, "rgba(120, 160, 255, 0.3)");
+        radial.addColorStop(1.0, "rgba(80,  120, 255, 0.0)");
         ctx.fillStyle = radial;
         ctx.fillRect(0, 0, size, size);
 
         // Cross-hair spike lines for the classic "star twinkle" look
         ctx.strokeStyle = "rgba(255, 255, 255, 0.55)";
         ctx.lineWidth = 1.5;
-        ctx.beginPath(); ctx.moveTo(c, 0);      ctx.lineTo(c, size);  ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(0, c);      ctx.lineTo(size, c);  ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(4, 4);      ctx.lineTo(size-4, size-4); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(size-4, 4); ctx.lineTo(4, size-4);      ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(c, 0); ctx.lineTo(c, size); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0, c); ctx.lineTo(size, c); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(4, 4); ctx.lineTo(size - 4, size - 4); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(size - 4, 4); ctx.lineTo(4, size - 4); ctx.stroke();
 
         tex.update();
         return tex;
@@ -298,9 +299,9 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
         ps.createSphereEmitter(1.0, 0); // radius 1.0, direction outward
 
         // Particle colours — white core fading to blue-white then transparent
-        ps.color1    = new BABYLON.Color4(1.0,  1.0,  1.0,  1.0);
-        ps.color2    = new BABYLON.Color4(0.75, 0.88, 1.0,  0.85);
-        ps.colorDead = new BABYLON.Color4(0.4,  0.6,  1.0,  0.0);
+        ps.color1 = new BABYLON.Color4(1.0, 1.0, 1.0, 1.0);
+        ps.color2 = new BABYLON.Color4(0.75, 0.88, 1.0, 0.85);
+        ps.colorDead = new BABYLON.Color4(0.4, 0.6, 1.0, 0.0);
 
         // Varied sizes so sparks feel organic
         ps.minSize = 0.08;
@@ -316,7 +317,7 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
         // Slow drift outward so particles gently float away
         ps.minEmitPower = 0.15;
         ps.maxEmitPower = 0.45;
-        ps.updateSpeed  = 0.012;
+        ps.updateSpeed = 0.012;
 
         // No gravity — sparks drift freely in space
         ps.gravity = BABYLON.Vector3.Zero();
@@ -403,25 +404,26 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
             sphere.sphereIndex = sphereIndex;
 
             if (sequentialLoader) {
-                const levelData = sequentialLoader.getWorldLevelData(sphereIndex);
+                const levelData = sequentialLoader.getWorldLevelDataForConstellation(this._activeConstellationId, sphereIndex);
                 const isCompleted = FundamentalSystemBridge["levelsSolvedStatusTracker"]
                     ?.isLevelCompleted(sphereIndex) || false;
-                sphere.material   = this.createSphereMaterial(sphereIndex, levelData, isCompleted);
-                sphere.isPickable = levelData?.isAvailable || false;
-                sphere.worldData  = levelData;
-                sphere.isCompleted = isCompleted;
+                sphere.material        = this.createSphereMaterial(sphereIndex, levelData, isCompleted);
+                sphere.isPickable      = levelData?.isAvailable || false;
+                sphere.worldData       = levelData;
+                sphere.constellationId = this._activeConstellationId;
+                sphere.isCompleted     = isCompleted;
                 this.addHoverEffect(sphere);
             } else {
                 const mat = new BABYLON.StandardMaterial(`worldSphereMaterial_${sphereIndex}`, this);
                 const gray = new BABYLON.Color3(0.4, 0.4, 0.4);
                 mat.emissiveColor = gray;
-                mat.diffuseColor  = gray.scale(0.5);
+                mat.diffuseColor = gray.scale(0.5);
                 mat.specularColor = new BABYLON.Color3(0.6, 0.6, 0.6);
                 mat.emissiveIntensity = 0.8;
                 mat.roughness = 0.2;
-                sphere.material   = mat;
+                sphere.material = mat;
                 sphere.isPickable = false;
-                sphere.worldData  = { levelId: `level${sphereIndex}`, isAvailable: false };
+                sphere.worldData = { levelId: `level${sphereIndex}`, isAvailable: false };
                 sphere.isCompleted = false;
             }
 
@@ -724,9 +726,13 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
         // Get the level URL and level ID from sequential loader
 
         const sequentialLoader = FundamentalSystemBridge["sequentialLevelLoader"];
-        const levelUrl = sequentialLoader?.getWorldLevelUrl(this.selectedWorldIndex);
-        const worldLevelData = sequentialLoader?.getWorldLevelData(this.selectedWorldIndex);
+        const selectedSphere = this.worldSpheres.find(s => s.sphereIndex === this.selectedWorldIndex);
+        const constellationId = selectedSphere?.constellationId || this._activeConstellationId;
+        const worldLevelData = sequentialLoader?.getWorldLevelDataForConstellation(constellationId, this.selectedWorldIndex);
         const levelId = worldLevelData?.levelId;
+        const levelUrl = worldLevelData?.levelUrl
+            ? SequentialLevelLoader.buildFullLevelUrl(worldLevelData.levelUrl)
+            : null;
 
         if (!levelUrl) {
             console.error("[WorldLoaderScene] No level URL available for sphere", this.selectedWorldIndex);
