@@ -597,24 +597,45 @@ class SequentialLevelLoader {
     }
 
     /**
-     * Initializes the mapping of 9 world spheres to level URLs
-     * First 6 spheres map to actual levels, last 3 are placeholders
+     * Builds the world sphere → level mapping dynamically from ConstellationManifest,
+     * ConstellationStarToLevelManifest, and LevelProfileManifest.
+     * One entry is created per star in the default constellation, keyed by star id.
+     * A sphere is marked isAvailable only when LevelProfileManifest has a matching profile.
      * @returns {Object} Mapping of sphere indices to level data
      */
     initializeWorldLevelMapping() {
-        return {
-            // First 6 spheres map to actual levels
-            0: { levelId: "level3Spikes", levelUrl: "level3Spikes.txt", name: "Level 3: Spikes", isAvailable: true },
-            1: { levelId: "level4Spikes2", levelUrl: "level4Spikes2.txt", name: "Level 4: Spikes 2", isAvailable: true },
-            2: { levelId: "level4Spikes3", levelUrl: "level4Spikes3.txt", name: "Level 4: Spikes 3", isAvailable: true },
-            3: { levelId: "level4Spikes4", levelUrl: "level4Spikes4.txt", name: "Level 4: Spikes 4", isAvailable: true },
-            4: { levelId: "level5TrickyB", levelUrl: "level5TrickyB.txt", name: "Level 5: Tricky B", isAvailable: true },
-            5: { levelId: "level6Locks", levelUrl: "level6Locks.txt", name: "Level 6: Locks", isAvailable: true },
-            // Last 3 spheres are placeholders for future levels
-            6: { levelId: "level7FlipsE", levelUrl: "level7FlipsE.txt", name: "Level 7 Flips", isAvailable: true },
-            7: { levelId: "level8SpookyB", levelUrl: "level8SpookyB.txt", name: "Level 8 Spooky", isAvailable: true },
-            8: { levelId: "level9Wow", levelUrl: "level9Wow.txt", name: "Level 9 Wow", isAvailable: true }
-        };
+        const constellation = ConstellationManifest.getDefault();
+        if (!constellation) {
+            console.warn("[SequentialLevelLoader] No default constellation found — world mapping empty");
+            return {};
+        }
+
+        const mapping = {};
+        const stars = [...constellation.stars].sort((a, b) => a.id - b.id);
+
+        for (const star of stars) {
+            const entry = ConstellationStarToLevelManifest.get(constellation.id, star.id);
+
+            if (!entry || entry.isPlaceholder) {
+                mapping[star.id] = {
+                    levelId: entry?.levelId || `placeholder_${constellation.id}_${star.id}`,
+                    levelUrl: null,
+                    name: entry?.levelName || star.name,
+                    isAvailable: false,
+                };
+                continue;
+            }
+
+            const profile = LevelProfileManifest.levelProfiles?.[entry.levelId];
+            mapping[star.id] = {
+                levelId: entry.levelId,
+                levelUrl: profile?.filename || (entry.levelId + ".txt"),
+                name: entry.levelName,
+                isAvailable: !!profile,
+            };
+        }
+
+        return mapping;
     }
 
     /**
