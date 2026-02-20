@@ -568,6 +568,7 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
                     cam = CameraManager.setAndGetPlaceholderCamera(baseScene);
                     renderSceneSwapper.allStoredCameras[baseScene] = cam;
                 }
+
                 // Ensure orientation matches game board: top-down with 180 roll (no yaw flip)
                 cam.rotation.x = Math.PI / 2;
                 cam.rotation.y = 0;
@@ -665,8 +666,8 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
         camera.rotation.z = 0; // No roll; data flip handles orientation
 
         // Attach camera to canvas for pointer events to work properly
-        // Use false to attach for picking but not enable camera controls
         camera.attachControl(this.getEngine().getRenderingCanvas(), false);
+        camera.inputs.clear(); // Disable all camera movement — camera should be fully locked
 
         this.activeCamera = camera;
 
