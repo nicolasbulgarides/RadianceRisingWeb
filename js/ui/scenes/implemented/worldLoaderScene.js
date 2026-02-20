@@ -15,6 +15,8 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
         this.constellationLineMesh = null; // Line system connecting the constellation stars
         this.shimmerParticleSystems = []; // One particle system per star sphere
         this._sparkleTexture = null;      // Shared texture for all shimmer particles
+        this._activeConstellationId = "orion"; // Currently displayed constellation
+        this._constellationQueue = [];          // Non-repeating shuffle queue
         this.selectedWorldIndex = null;
         this.isLoadingWorld = false;
         this.worldSpheresInitialized = false; // Track if spheres have been created
@@ -323,6 +325,110 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
 
         ps.start();
         this.shimmerParticleSystems.push(ps);
+    }
+
+    /**
+     * Returns a Fisher-Yates-shuffled array of all constellation IDs, excluding the
+     * currently active one so the display never repeats back-to-back (unless only one
+     * constellation is registered, in which case it is allowed to cycle to itself).
+     */
+    _buildShuffleQueue() {
+        const allIds = [...ConstellationManifest._registry.keys()];
+        for (let i = allIds.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [allIds[i], allIds[j]] = [allIds[j], allIds[i]];
+        }
+        const withoutCurrent = allIds.filter(id => id !== this._activeConstellationId);
+        return withoutCurrent.length > 0 ? withoutCurrent : allIds;
+    }
+
+    /** Pops the next constellation ID, rebuilding the shuffle queue when exhausted. */
+    _nextConstellationId() {
+        if (this._constellationQueue.length === 0) {
+            this._constellationQueue = this._buildShuffleQueue();
+        }
+        return this._constellationQueue.shift() ?? this._activeConstellationId;
+    }
+
+    /**
+     * Disposes all current star spheres, shimmer particle systems, and the constellation
+     * line mesh so the scene can be populated with a fresh constellation.
+     * The shared sparkle texture and glow layer are intentionally kept alive.
+     */
+    _clearConstellationDisplay() {
+        this.shimmerParticleSystems.forEach(ps => { ps.stop(); ps.dispose(); });
+        this.shimmerParticleSystems = [];
+
+        if (this.constellationLineMesh) {
+            this.constellationLineMesh.dispose();
+            this.constellationLineMesh = null;
+        }
+
+        this.worldSpheres.forEach(sphere => {
+            if (sphere.actionManager) sphere.actionManager.dispose();
+            if (sphere.hoverMaterial) sphere.hoverMaterial.dispose();
+            if (sphere.originalMaterial) sphere.originalMaterial.dispose();
+            if (sphere.material) sphere.material.dispose();
+            sphere.dispose();
+        });
+        this.worldSpheres = [];
+    }
+
+    /**
+     * Called when the magic button is pressed while the world loader is active.
+     * Picks the next constellation from the non-repeating shuffle queue,
+     * clears the current display, and rebuilds the scene for the new constellation.
+     */
+    onMagicButtonPressed() {
+        const nextId = this._nextConstellationId();
+        const constellation = ConstellationManifest.get(nextId);
+        if (!constellation) return;
+
+        this._activeConstellationId = nextId;
+        this._clearConstellationDisplay();
+
+        const starPositions = this._buildStarWorldPositions(constellation.stars);
+        const posById = new Map(starPositions.map(s => [s.id, s]));
+        const sequentialLoader = FundamentalSystemBridge["sequentialLevelLoader"];
+
+        for (const starData of starPositions) {
+            const sphereIndex = starData.id;
+            const sphere = BABYLON.MeshBuilder.CreateSphere(
+                starData.name,
+                { diameter: 1.5, segments: 24 },
+                this
+            );
+            sphere.position = new BABYLON.Vector3(starData.worldX, 0, starData.worldZ);
+            sphere.sphereIndex = sphereIndex;
+
+            if (sequentialLoader) {
+                const levelData = sequentialLoader.getWorldLevelData(sphereIndex);
+                const isCompleted = FundamentalSystemBridge["levelsSolvedStatusTracker"]
+                    ?.isLevelCompleted(sphereIndex) || false;
+                sphere.material   = this.createSphereMaterial(sphereIndex, levelData, isCompleted);
+                sphere.isPickable = levelData?.isAvailable || false;
+                sphere.worldData  = levelData;
+                sphere.isCompleted = isCompleted;
+                this.addHoverEffect(sphere);
+            } else {
+                const mat = new BABYLON.StandardMaterial(`worldSphereMaterial_${sphereIndex}`, this);
+                const gray = new BABYLON.Color3(0.4, 0.4, 0.4);
+                mat.emissiveColor = gray;
+                mat.diffuseColor  = gray.scale(0.5);
+                mat.specularColor = new BABYLON.Color3(0.6, 0.6, 0.6);
+                mat.emissiveIntensity = 0.8;
+                mat.roughness = 0.2;
+                sphere.material   = mat;
+                sphere.isPickable = false;
+                sphere.worldData  = { levelId: `level${sphereIndex}`, isAvailable: false };
+                sphere.isCompleted = false;
+            }
+
+            this._addStarShimmer(sphere);
+            this.worldSpheres.push(sphere);
+        }
+
+        this._drawConstellationLines(posById, constellation.lines);
     }
 
     /**

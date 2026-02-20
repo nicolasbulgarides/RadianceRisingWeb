@@ -1233,6 +1233,13 @@ class BaseGameUIScene extends UISceneGeneralized {
       this.processMovementClick(buttonFunctionKey);
       SoundEffectsManager.playSound("directionalPadTap");
     } else if (buttonFunctionKey === "MAGIC") {
+      // In the world loader scene, magic button cycles constellations instead
+      const _rss = FundamentalSystemBridge["renderSceneSwapper"];
+      const _activeScene = _rss?.getActiveGameLevelScene();
+      if (_activeScene instanceof WorldLoaderScene) {
+        _activeScene.onMagicButtonPressed();
+        return;
+      }
       // Cast spell using mana bar if available
       if (this.manaBar) {
         const spellCast = this.manaBar.castSpell();
