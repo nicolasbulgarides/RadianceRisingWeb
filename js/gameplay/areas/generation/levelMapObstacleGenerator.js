@@ -6,20 +6,13 @@ class LevelMapObstacleGenerator {
    * @param {Object} relevantSceneBuilder - The scene builder for loading models.
    */
   async renderObstaclesForLevel(activeGameplayLevel, relevantSceneBuilder) {
-    // Get obstacles from the level data
     const obstacles = this.getObstaclesFromLevel(activeGameplayLevel);
     if (!obstacles || obstacles.length === 0) return;
 
     const allObstacleArrays = this.getAllObstacleArrays(activeGameplayLevel);
 
-    // Separate obstacles into: locks (need individual model refs for show/hide) and mountains (thin-instanced)
-    const lockObstacles = [];
-    const mountainData = []; // { obstacle, rawPosition }
-
     for (const obstacleData of obstacles) {
       const { obstacleArchetype, nickname, interactionId, directionsBlocked, position } = obstacleData;
-      // Save raw grid position before PositionedObject applies config offsets
-      const rawPosition = position;
 
       const obstacle = LevelMapObstacleGenerator.getObstacleByPreset(
         obstacleArchetype, nickname, interactionId, directionsBlocked, position
@@ -41,103 +34,32 @@ class LevelMapObstacleGenerator {
 
       obstacle.positionedObject.freeze = true;
 
-      // Locks need individual model references so the unlock animation can hide them
-      if (obstacle.isUnlockable || obstacle.obstacleArchetype === "lock") {
-        lockObstacles.push(obstacle);
-      } else {
-        mountainData.push({ obstacle, rawPosition });
-      }
-    }
+      const isLock = obstacle.isUnlockable || obstacle.obstacleArchetype === "lock";
 
-    // Load locks individually (model reference required for show/hide on unlock)
-    for (const obstacle of lockObstacles) {
+      // Load every obstacle with an explicit model reference — thin instances caused
+      // double-application of config offsets and are no longer used for obstacles.
       relevantSceneBuilder.loadModel(obstacle.positionedObject).then((loadedModel) => {
-        if (loadedModel && loadedModel.meshes) {
-          loadedModel.meshes.forEach((mesh) => {
-            if (mesh instanceof BABYLON.Mesh) {
-              mesh.freezeWorldMatrix();
-              mesh.doNotSyncBoundingInfo = true;
-              if (mesh.getChildMeshes) {
-                mesh.getChildMeshes().forEach((childMesh) => {
-                  if (childMesh instanceof BABYLON.Mesh) {
-                    childMesh.freezeWorldMatrix();
-                    childMesh.doNotSyncBoundingInfo = true;
-                  }
-                });
+        if (!loadedModel || !loadedModel.meshes) return;
+        loadedModel.meshes.forEach((mesh) => {
+          if (!(mesh instanceof BABYLON.Mesh)) return;
+          // Locks are kept unfrozen so the unlock animation can hide them
+          if (!isLock) {
+            mesh.freezeWorldMatrix();
+            mesh.doNotSyncBoundingInfo = true;
+          }
+          if (mesh.getChildMeshes) {
+            mesh.getChildMeshes().forEach((childMesh) => {
+              if (childMesh instanceof BABYLON.Mesh && !isLock) {
+                childMesh.freezeWorldMatrix();
+                childMesh.doNotSyncBoundingInfo = true;
               }
-              if (mesh.physicsImpostor) mesh.physicsImpostor.dispose();
-            }
-          });
-        }
+            });
+          }
+          if (mesh.physicsImpostor) mesh.physicsImpostor.dispose();
+        });
       }).catch((error) => {
-        console.warn(`Failed to load lock obstacle:`, error);
+        console.warn(`Failed to load obstacle ${nickname}:`, error);
       });
-    }
-
-    // Load mountains as thin instances: one model load for all positions of each archetype
-    if (mountainData.length > 0) {
-      await this.renderMountainsAsThinInstances(mountainData, relevantSceneBuilder);
-    }
-  }
-
-  /**
-   * Renders static (non-lock) obstacles as thin instances — one GPU draw call per mesh type.
-   * Loads a single base model at origin, reads each child mesh's world matrix (which includes
-   * all AssetManifestOverrides config: position offset, rotation, scale), then composes a
-   * per-instance matrix by adding each obstacle's raw grid position to that base translation.
-   */
-  async renderMountainsAsThinInstances(mountainData, relevantSceneBuilder) {
-    // Group raw positions by modelId so we load each base model only once
-    const byModel = new Map();
-    for (const { obstacle, rawPosition } of mountainData) {
-      const modelId = obstacle.positionedObject.modelId;
-      if (!byModel.has(modelId)) byModel.set(modelId, []);
-      byModel.get(modelId).push(rawPosition);
-    }
-
-    for (const [modelId, rawPositions] of byModel) {
-      // Load base model at (0,0,0) — config offsets/rotation/scale are applied to root by sceneBuilder
-      const basePosObj = PositionedObject.getPositionedObjectQuick(
-        modelId, { x: 0, y: 0, z: 0 }, 1, false, false, false
-      );
-      const baseModel = await relevantSceneBuilder.loadModel(basePosObj);
-      if (!baseModel || !baseModel.meshes || !baseModel.meshes.length) continue;
-
-      // Get renderable child meshes (same pattern as tile grid)
-      let targetMeshes = baseModel.meshes[0].getChildren
-        ? baseModel.meshes[0].getChildren(undefined, false)
-        : [];
-      if (!targetMeshes || targetMeshes.length === 0) targetMeshes = baseModel.meshes;
-
-      // Pre-read each child mesh world matrix as a flat float array.
-      // The base translation (m[12..14]) encodes config position + config offset + child local pos.
-      // Adding raw position P to those indices gives the correct world position for each instance.
-      const meshSnapshots = [];
-      for (const mesh of targetMeshes) {
-        if (!(mesh instanceof BABYLON.Mesh)) continue;
-        mesh.computeWorldMatrix(true);
-        // Copy the 16 floats so we can safely read them after any freeze/unfreeze
-        const baseFloats = Array.from(mesh.getWorldMatrix().m);
-        meshSnapshots.push({ mesh, baseFloats });
-      }
-
-      for (const { mesh, baseFloats } of meshSnapshots) {
-        if (mesh.isFrozen) mesh.unfreezeWorldMatrix();
-
-        const buffer = new Float32Array(rawPositions.length * 16);
-        for (let i = 0; i < rawPositions.length; i++) {
-          const P = rawPositions[i];
-          for (let j = 0; j < 16; j++) buffer[i * 16 + j] = baseFloats[j];
-          // m[12..14] is the world-space translation in Babylon.js matrices
-          buffer[i * 16 + 12] += P.x;
-          buffer[i * 16 + 13] += P.y;
-          buffer[i * 16 + 14] += P.z;
-        }
-
-        mesh.thinInstanceSetBuffer("matrix", buffer, 16, true);
-        mesh.doNotSyncBoundingInfo = true;
-        mesh.freezeWorldMatrix();
-      }
     }
   }
 
