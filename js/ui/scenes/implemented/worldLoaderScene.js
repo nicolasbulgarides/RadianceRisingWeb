@@ -13,6 +13,8 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
         this.worldSpheres = []; // Array to store all world spheres
         this.centerSphere = null; // Reference to the center sphere (at 0, 0, 0)
         this.constellationLineMesh = null; // Line system connecting the constellation stars
+        this.shimmerParticleSystems = []; // One particle system per star sphere
+        this._sparkleTexture = null;      // Shared texture for all shimmer particles
         this.selectedWorldIndex = null;
         this.isLoadingWorld = false;
         this.worldSpheresInitialized = false; // Track if spheres have been created
@@ -130,6 +132,7 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
             sphere.isCompleted = isCompleted;
 
             this.addHoverEffect(sphere);
+            this._addStarShimmer(sphere);
             this.worldSpheres.push(sphere);
         }
 
@@ -183,6 +186,7 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
             sphere.sphereIndex = sphereIndex;
             sphere.isCompleted = false;
 
+            this._addStarShimmer(sphere);
             this.worldSpheres.push(sphere);
         }
 
@@ -240,6 +244,85 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
         );
         this.constellationLineMesh.color = new BABYLON.Color3(0.45, 0.65, 1.0); // faint blue-white
         this.constellationLineMesh.isPickable = false;
+    }
+
+    /**
+     * Builds a shared radial-gradient DynamicTexture used for all sparkle particles.
+     * Created once and reused across all star particle systems.
+     */
+    _createSparkleTexture() {
+        const size = 64;
+        const tex = new BABYLON.DynamicTexture("sparkleTexture", { width: size, height: size }, this, false);
+        const ctx = tex.getContext();
+        const c = size / 2;
+
+        // Soft radial glow
+        const radial = ctx.createRadialGradient(c, c, 0, c, c, c);
+        radial.addColorStop(0.0, "rgba(255, 255, 255, 1.0)");
+        radial.addColorStop(0.25, "rgba(200, 220, 255, 0.85)");
+        radial.addColorStop(0.6,  "rgba(120, 160, 255, 0.3)");
+        radial.addColorStop(1.0,  "rgba(80,  120, 255, 0.0)");
+        ctx.fillStyle = radial;
+        ctx.fillRect(0, 0, size, size);
+
+        // Cross-hair spike lines for the classic "star twinkle" look
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.55)";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(c, 0);      ctx.lineTo(c, size);  ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0, c);      ctx.lineTo(size, c);  ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(4, 4);      ctx.lineTo(size-4, size-4); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(size-4, 4); ctx.lineTo(4, size-4);      ctx.stroke();
+
+        tex.update();
+        return tex;
+    }
+
+    /**
+     * Attaches a small particle system to a star sphere that continuously emits
+     * soft sparkle flares, giving the sphere a twinkling star appearance.
+     * @param {BABYLON.Mesh} sphere
+     */
+    _addStarShimmer(sphere) {
+        if (!this._sparkleTexture) {
+            this._sparkleTexture = this._createSparkleTexture();
+        }
+
+        const ps = new BABYLON.ParticleSystem(`shimmer_${sphere.name}`, 18, this);
+        ps.particleTexture = this._sparkleTexture;
+
+        // Emit from a sphere shell just outside the star sphere's surface
+        ps.emitter = sphere;
+        ps.createSphereEmitter(1.0, 0); // radius 1.0, direction outward
+
+        // Particle colours — white core fading to blue-white then transparent
+        ps.color1    = new BABYLON.Color4(1.0,  1.0,  1.0,  1.0);
+        ps.color2    = new BABYLON.Color4(0.75, 0.88, 1.0,  0.85);
+        ps.colorDead = new BABYLON.Color4(0.4,  0.6,  1.0,  0.0);
+
+        // Varied sizes so sparks feel organic
+        ps.minSize = 0.08;
+        ps.maxSize = 0.28;
+
+        // Short, varied lifetimes for a flickering rhythm
+        ps.minLifeTime = 0.4;
+        ps.maxLifeTime = 1.3;
+
+        // Steady trickle of sparks
+        ps.emitRate = 10;
+
+        // Slow drift outward so particles gently float away
+        ps.minEmitPower = 0.15;
+        ps.maxEmitPower = 0.45;
+        ps.updateSpeed  = 0.012;
+
+        // No gravity — sparks drift freely in space
+        ps.gravity = BABYLON.Vector3.Zero();
+
+        // Blend additively so overlapping sparks brighten rather than occlude
+        ps.blendMode = BABYLON.ParticleSystem.BLENDMODE_ADD;
+
+        ps.start();
+        this.shimmerParticleSystems.push(ps);
     }
 
     /**
@@ -701,6 +784,10 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
         pointLight.intensity = 1.5;
         pointLight.diffuse = new BABYLON.Color3(1.0, 1.0, 1.0);
 
+        // Glow layer — makes emissive star spheres bloom like real stars
+        this.glowLayer = new BABYLON.GlowLayer("starGlow", this);
+        this.glowLayer.intensity = 0.7;
+
         // this.worldLoaderDebugLog(" Lighting set up");
     }
 
@@ -722,6 +809,20 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
             this.worldLoaderCameraObserver = null;
         }
 
+
+        // Stop and dispose shimmer particle systems
+        if (this.shimmerParticleSystems) {
+            this.shimmerParticleSystems.forEach(ps => { ps.stop(); ps.dispose(); });
+            this.shimmerParticleSystems = [];
+        }
+        if (this._sparkleTexture) {
+            this._sparkleTexture.dispose();
+            this._sparkleTexture = null;
+        }
+        if (this.glowLayer) {
+            this.glowLayer.dispose();
+            this.glowLayer = null;
+        }
 
         // Dispose constellation line system
         if (this.constellationLineMesh) {
