@@ -723,7 +723,7 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
         // Camera position - directly above the center, looking straight down
         // Using same height as game board camera (35 units) to match the view
         const cameraX = centerX;
-        const cameraY = 42; // Height above the board (zoomed out 20% from 35 to show full constellation)
+        const cameraY = 46; // Height above the board (zoomed out 10% from 42)
         const cameraZ = centerZ;
 
         // Create a FreeCamera positioned directly above the board center (matching game board camera)

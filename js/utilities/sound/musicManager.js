@@ -215,6 +215,8 @@ class MusicManager {
 
       // WORKAROUND: If Babylon didn't create an audio source, try manual creation
       setTimeout(() => {
+        // Bail if a newer playSong call has taken over.
+        if (this._songCallId !== thisSongCallId) return;
         if (this.currentMusic && !this.currentMusic._htmlAudioElement && !this.currentMusic._audioBuffer) {
           // console.warn("[MUSIC] Babylon didn't create audio source. Trying manual fallback...");
           try {
