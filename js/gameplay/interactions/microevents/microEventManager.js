@@ -12,6 +12,10 @@ function microEventManagerLog(...args) {
 class MicroEventManager {
   constructor() {
     this.gameplayLevelToMicroEventsMap = {};
+    // Pre-split by category so onFrameCheck never allocates per-frame filter arrays
+    this._pickupEvents = {};
+    this._damageEvents = {};
+    this._frameCheckCallCount = 0;
   }
 
   static convertLevelDataCompositeToMicroEvents(levelDataComposite) {
@@ -29,7 +33,6 @@ class MicroEventManager {
     }
 
     // Log that we're being called (throttled to avoid spam)
-    if (!this._frameCheckCallCount) this._frameCheckCallCount = 0;
     this._frameCheckCallCount++;
     if (this._frameCheckCallCount === 1 || this._frameCheckCallCount % 60 === 0) {
       //microEventManagerLog(`[PICKUP SYSTEM] ✓ onFrameCheckMicroEventsForTriggered() called (frame ${this._frameCheckCallCount})`);
@@ -63,15 +66,9 @@ class MicroEventManager {
       return;
     }
 
-    // Filter to only incomplete pickup events for logging efficiency
-    const incompletePickupEvents = allMicroEvents.filter(
-      event => event.microEventCategory === "pickup" && !event.microEventCompletionStatus
-    );
-
-    // Filter to only incomplete damage events
-    const incompleteDamageEvents = allMicroEvents.filter(
-      event => event.microEventCategory === "damage" && !event.microEventCompletionStatus
-    );
+    // Use pre-split caches — avoids allocating 2 filter arrays every frame
+    const incompletePickupEvents = this._pickupEvents[levelId] || [];
+    const incompleteDamageEvents = this._damageEvents[levelId] || [];
 
     let collectiblePlacementManager =
       FundamentalSystemBridge["collectiblePlacementManager"];
@@ -220,7 +217,7 @@ class MicroEventManager {
     }
 
     // Reset flags and completion status for all damage events
-    const damageEvents = allMicroEvents.filter(event => event.microEventCategory === "damage");
+    const damageEvents = this._damageEvents[levelId] || [];
     damageEvents.forEach(microEvent => {
       microEvent.hasTriggeredThisMovement = false; // Reset flag for new movement
       microEvent.markAsIncomplete(); // Allow it to be triggered again
@@ -242,6 +239,9 @@ class MicroEventManager {
     // ALWAYS replace microevents for this level to ensure clean state
     // Never merge - this prevents duplicates and stale state
     this.gameplayLevelToMicroEventsMap[levelId] = allLevelMicroEvents;
+    // Rebuild pre-split caches so onFrameCheck never allocates per-frame arrays
+    this._pickupEvents[levelId] = allLevelMicroEvents.filter(e => e.microEventCategory === "pickup");
+    this._damageEvents[levelId] = allLevelMicroEvents.filter(e => e.microEventCategory === "damage");
     microEventManagerLog(`[MICROEVENT REGISTRATION] Registered ${allLevelMicroEvents.length} microevents for level: ${levelId}`);
   }
 
@@ -268,6 +268,8 @@ class MicroEventManager {
     if (this.gameplayLevelToMicroEventsMap[levelId]) {
       const count = this.gameplayLevelToMicroEventsMap[levelId].length;
       delete this.gameplayLevelToMicroEventsMap[levelId];
+      delete this._pickupEvents[levelId];
+      delete this._damageEvents[levelId];
       microEventManagerLog(`[MICROEVENT CLEANUP] Cleared ${count} microevents for level: ${levelId}`);
     }
   }
@@ -285,6 +287,8 @@ class MicroEventManager {
       if (levelId !== keepLevelId) {
         const count = this.gameplayLevelToMicroEventsMap[levelId].length;
         delete this.gameplayLevelToMicroEventsMap[levelId];
+        delete this._pickupEvents[levelId];
+        delete this._damageEvents[levelId];
         totalCleared += count;
         microEventManagerLog(`[MICROEVENT CLEANUP] Cleared ${count} microevents for old level: ${levelId}`);
       }

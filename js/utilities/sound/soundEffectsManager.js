@@ -383,6 +383,26 @@ class SoundEffectsManager {
   }
 
   /**
+   * Ensures a scene has the Babylon audio engine wired up. Returns true on success.
+   * Extracted from playSound/playSoundLooped to avoid duplicating the setup block.
+   */
+  static _ensureSceneAudio(scene) {
+    const engine = FundamentalSystemBridge["babylonEngine"];
+    if (!engine?.audioEngine) return false;
+    if (scene) {
+      if (!scene._audioEngine) {
+        scene._audioEngine = engine.audioEngine;
+        soundEffectsLog(`[SOUND] Assigned audio engine to scene`);
+      }
+      if (!scene.audioEnabled) scene.audioEnabled = true;
+      if (!scene.audioListenerPositionProvider && scene.activeCamera) {
+        scene.audioListenerPositionProvider = () => scene.activeCamera.position;
+      }
+    }
+    return true;
+  }
+
+  /**
    * Plays a sound effect by name. Attempts to load the sound if it hasn't been loaded yet.
    * Creates a new sound instance for concurrent playback to prevent clipping when the same sound
    * is triggered multiple times quickly.
@@ -402,19 +422,7 @@ class SoundEffectsManager {
     }
 
     // Ensure audio engine is assigned to scene before playing
-    const engine = FundamentalSystemBridge["babylonEngine"];
-    if (scene && engine?.audioEngine) {
-      if (!scene._audioEngine) {
-        scene._audioEngine = engine.audioEngine;
-        soundEffectsLog(`[SOUND] Assigned audio engine to scene for ${soundName}`);
-      }
-      if (!scene.audioEnabled) {
-        scene.audioEnabled = true;
-      }
-      if (!scene.audioListenerPositionProvider && scene.activeCamera) {
-        scene.audioListenerPositionProvider = () => scene.activeCamera.position;
-      }
-    } else if (!engine?.audioEngine) {
+    if (!SoundEffectsManager._ensureSceneAudio(scene)) {
       console.error(`[SOUND] Cannot play sound ${soundName}: AudioEngine not ready`);
       return;
     }
@@ -442,10 +450,12 @@ class SoundEffectsManager {
       // Update the last played timestamp
       SoundEffectsManager.recentlyPlayedSounds.set(soundName, now);
 
-      // Clean up old entries (older than 1 second)
-      for (const [name, timestamp] of SoundEffectsManager.recentlyPlayedSounds.entries()) {
-        if (now - timestamp > 1000) {
-          SoundEffectsManager.recentlyPlayedSounds.delete(name);
+      // Clean up old entries only when the map grows large — avoids O(N) scan on every play
+      if (SoundEffectsManager.recentlyPlayedSounds.size > 20) {
+        for (const [name, timestamp] of SoundEffectsManager.recentlyPlayedSounds.entries()) {
+          if (now - timestamp > 1000) {
+            SoundEffectsManager.recentlyPlayedSounds.delete(name);
+          }
         }
       }
 
@@ -639,19 +649,7 @@ class SoundEffectsManager {
     }
 
     // Ensure audio engine is assigned to scene before playing
-    const engine = FundamentalSystemBridge["babylonEngine"];
-    if (scene && engine?.audioEngine) {
-      if (!scene._audioEngine) {
-        scene._audioEngine = engine.audioEngine;
-        soundEffectsLog(`[SOUND] Assigned audio engine to scene for ${soundName}`);
-      }
-      if (!scene.audioEnabled) {
-        scene.audioEnabled = true;
-      }
-      if (!scene.audioListenerPositionProvider && scene.activeCamera) {
-        scene.audioListenerPositionProvider = () => scene.activeCamera.position;
-      }
-    } else if (!engine?.audioEngine) {
+    if (!SoundEffectsManager._ensureSceneAudio(scene)) {
       console.error(`[SOUND] Cannot play looped sound ${soundName}: AudioEngine not ready`);
       return;
     }

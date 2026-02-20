@@ -25,10 +25,6 @@ class GameplayEndOfFrameCoordinator {
       this.checkReplayEvents();
     }
 
-    // Check predictive explosions (every 3 frames for optimization)
-    if (this.frameCounter % 3 === 0) {
-      this.checkPredictiveExplosions();
-    }
   }
 
   //to do, paramaterize the test level
@@ -60,17 +56,4 @@ class GameplayEndOfFrameCoordinator {
     }
   }
 
-  /**
-   * Check and process predictive explosions
-   * Optimized to run every 3 frames instead of every frame
-   */
-  static checkPredictiveExplosions() {
-    let predictiveExplosionManager = FundamentalSystemBridge["predictiveExplosionManager"];
-    if (!predictiveExplosionManager) {
-      return;
-    }
-
-    // Explosions are now triggered immediately when movement occurs, not scheduled
-    // No processing needed here
-  }
 }

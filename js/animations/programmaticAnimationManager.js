@@ -31,10 +31,8 @@ class ProgrammaticAnimationManager {
       (map) => {
         if (map.has(scene)) {
           const animations = map.get(scene);
-          map.set(
-            scene,
-            animations.filter((a) => a !== animation)
-          );
+          const idx = animations.findIndex((a) => a === animation);
+          if (idx !== -1) animations.splice(idx, 1);
         }
       }
     );
@@ -54,10 +52,8 @@ class ProgrammaticAnimationManager {
       const animations = sourceMap.get(scene);
       if (animations.includes(animation)) {
         // Remove from the source group.
-        sourceMap.set(
-          scene,
-          animations.filter((a) => a !== animation)
-        );
+        const idx = animations.findIndex((a) => a === animation);
+        if (idx !== -1) animations.splice(idx, 1);
 
         // Add to the destination group.
         if (!destinationMap.has(scene)) {
@@ -97,10 +93,8 @@ class ProgrammaticAnimationManager {
     ].forEach((map) => {
       if (map.has(scene)) {
         const sequences = map.get(scene);
-        map.set(
-          scene,
-          sequences.filter((seq) => seq !== animationSequence)
-        );
+        const idx = sequences.findIndex((seq) => seq === animationSequence);
+        if (idx !== -1) sequences.splice(idx, 1);
       }
     });
   }
@@ -119,10 +113,8 @@ class ProgrammaticAnimationManager {
       const sequences = sourceMap.get(scene);
       if (sequences.includes(animationSequence)) {
         // Remove the sequence from the source group.
-        sourceMap.set(
-          scene,
-          sequences.filter((seq) => seq !== animationSequence)
-        );
+        const idx = sequences.findIndex((seq) => seq === animationSequence);
+        if (idx !== -1) sequences.splice(idx, 1);
 
         // Add the sequence to the destination group.
         if (!destinationMap.has(scene)) {

@@ -259,8 +259,12 @@ class StarfieldBackdrop {
       const deltaTime = this.scene.getEngine().getDeltaTime() / 1000; // Convert to seconds
       this.time += deltaTime || 0.016; // Fallback to ~60fps if deltaTime not available
 
-      // Update texture every frame for smooth shimmering
-      this.renderStars();
+      // Re-render every 3 frames — GPU texture upload is expensive and the starfield
+      // shimmers slowly enough that 20fps visual update is imperceptible.
+      this._starFrameCounter = (this._starFrameCounter || 0) + 1;
+      if (this._starFrameCounter % 3 === 0) {
+        this.renderStars();
+      }
     }
   }
 

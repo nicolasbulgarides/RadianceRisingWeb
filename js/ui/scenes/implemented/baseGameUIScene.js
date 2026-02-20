@@ -591,6 +591,10 @@ class BaseGameUIScene extends UISceneGeneralized {
 
     // Register before render to track perfection progress and level name
     this.uiDebugLog(`Registering updatePerfectionTracker to scene: ${scene.name}, scene is UI scene: ${scene === this.advancedTexture?.getScene()}`);
+    // Dirty-flag caches — updated only when values change, avoiding redundant work each frame
+    this._lastMoveCount = -1;
+    this._lastPerfectionLevelId = null;
+    this._lastIsInWorldLoader = null;
     let levelNameUpdateCounter = 0;
     scene.registerBeforeRender(() => {
       this.updatePerfectionTracker();
@@ -625,22 +629,27 @@ class BaseGameUIScene extends UISceneGeneralized {
 
       // Get current level ID and perfect solution
       const gameplayManager = FundamentalSystemBridge["gameplayManagerComposite"];
-      if (!gameplayManager || !gameplayManager.primaryActiveGameplayLevel) {
+      const activeLevel = gameplayManager?.primaryActiveGameplayLevel;
+      const levelId = activeLevel?.levelDataComposite?.levelHeaderData?.levelId ?? null;
+
+      // Skip update if nothing has changed since last render
+      if (currentMoves === this._lastMoveCount && levelId === this._lastPerfectionLevelId) return;
+      this._lastMoveCount = currentMoves;
+      this._lastPerfectionLevelId = levelId;
+
+      if (!gameplayManager || !activeLevel) {
         this.perfectionTrackerText.text = `Moves: ${currentMoves}/--`;
         this.perfectionTrackerText.color = "white";
         return;
       }
 
-      const activeLevel = gameplayManager.primaryActiveGameplayLevel;
       const levelData = activeLevel.levelDataComposite;
 
-      if (!levelData || !levelData.levelHeaderData || !levelData.levelHeaderData.levelId) {
+      if (!levelData || !levelData.levelHeaderData || !levelId) {
         this.perfectionTrackerText.text = `Moves: ${currentMoves}/--`;
         this.perfectionTrackerText.color = "white";
         return;
       }
-
-      const levelId = levelData.levelHeaderData.levelId;
       const perfectMoves = LevelProfileManifest.getPerfectSolutionMovementCount(levelId);
 
       if (perfectMoves === null) {
@@ -685,6 +694,10 @@ class BaseGameUIScene extends UISceneGeneralized {
 
     const activeGameScene = renderSceneSwapper.getActiveGameLevelScene();
     const isInWorldLoader = activeGameScene && activeGameScene instanceof WorldLoaderScene;
+
+    // Skip all property writes when the scene type hasn't changed
+    if (isInWorldLoader === this._lastIsInWorldLoader) return;
+    this._lastIsInWorldLoader = isInWorldLoader;
 
     // Control level name display visibility
     if (this.levelNameText) {

@@ -96,22 +96,6 @@ class MusicManager {
     const songUrl = SongAssetManifest.getSongUrl(songName);
     // console.log("[MUSIC] Song URL:", songUrl);
 
-    // Test if the URL is accessible (check for CORS/network issues)
-    // console.log("[MUSIC] Testing URL accessibility...");
-    fetch(songUrl, { method: 'HEAD' })
-      .then(response => {
-        // console.log("[MUSIC] ✓ URL is accessible, status:", response.status);
-        // console.log("[MUSIC] CORS headers:", {
-        /*  'access-control-allow-origin': response.headers.get('access-control-allow-origin'),
-          'content-type': response.headers.get('content-type'),
-          'content-length': response.headers.get('content-length')
-        }); */
-      })
-      .catch(error => {
-        // console.error("[MUSIC] ✗ URL fetch failed:", error);
-        // console.error("[MUSIC] This could be a CORS or network issue!");
-      });
-
     // Attach audio listener to the scene's active camera if available
     if (scene && scene.activeCamera && engine.audioEngine) {
       try {
