@@ -170,13 +170,26 @@ class SoundEffectsManager {
       // WORKAROUND: Check if ready callback fires within timeout
       let callbackFired = false;
 
+      // Hard deadline: on iOS, both BABYLON.Sound and HTML5 Audio callbacks can silently
+      // hang (AudioContext suspended, canplaythrough never fires). After 5 seconds we
+      // resolve gracefully so the level-loading await chain is never permanently blocked.
+      var hardDeadlineId = setTimeout(function() {
+        if (!callbackFired) {
+          callbackFired = true;
+          SoundEffectsManager.failedSounds.add(soundName);
+          resolve(); // Sound missing but game can continue
+        }
+      }, 5000);
+
       const sound = new BABYLON.Sound(
         soundName,
         url,
         scene,
         () => {
           // Success callback - sound loaded successfully
+          if (callbackFired) return; // already resolved by hard deadline
           callbackFired = true;
+          clearTimeout(hardDeadlineId);
           soundEffectsLog(`[SOUND] ✓ Sound ready: ${soundName}`);
           sound.setVolume(volume);
           SoundEffectsManager.sounds.set(soundName, sound);
@@ -244,6 +257,9 @@ class SoundEffectsManager {
 
             // Wait for it to be loaded
             audio.addEventListener('canplaythrough', () => {
+              if (callbackFired) return;
+              callbackFired = true;
+              clearTimeout(hardDeadlineId);
               soundEffectsLog(`[SOUND] ✓ Manual audio loaded for ${soundName}`);
               // Store the audio element as a pseudo-sound object
               const pseudoSound = {

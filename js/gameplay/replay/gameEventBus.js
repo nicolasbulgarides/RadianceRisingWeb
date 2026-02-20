@@ -1,17 +1,18 @@
 class GameEventBus {
-    static _handlers = {};
-
     static on(type, handler) {
-        if (!this._handlers[type]) this._handlers[type] = [];
-        this._handlers[type].push(handler);
+        if (!GameEventBus._handlers[type]) GameEventBus._handlers[type] = [];
+        GameEventBus._handlers[type].push(handler);
     }
 
     static emit(type, data) {
-        (this._handlers[type] || []).forEach(h => h(data));
+        (GameEventBus._handlers[type] || []).forEach(function(h) { h(data); });
     }
 
     static off(type, handler) {
-        if (!this._handlers[type]) return;
-        this._handlers[type] = this._handlers[type].filter(h => h !== handler);
+        if (!GameEventBus._handlers[type]) return;
+        GameEventBus._handlers[type] = GameEventBus._handlers[type].filter(function(h) { return h !== handler; });
     }
 }
+// Initialize outside the class body for maximum browser compatibility
+// (avoids Safari 14.0 static class field bug)
+GameEventBus._handlers = {};

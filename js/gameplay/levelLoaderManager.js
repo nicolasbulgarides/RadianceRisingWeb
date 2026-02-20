@@ -460,12 +460,16 @@ class LevelLoaderManager {
             }, 100);
             // this.runLevelAudit(levelData, activeGameplayLevel);
 
-            // Preload essential sounds to eliminate latency during gameplay
+            // Preload essential sounds to eliminate latency during gameplay.
+            // Race against a 6-second timeout so iOS audio hangs never block level load.
             this.levelLoaderDebugLog(" Loading initial sounds...");
             const soundEffectsManager = FundamentalSystemBridge["soundEffectsManager"];
             if (soundEffectsManager && gameplayLevel.hostingScene) {
-                await soundEffectsManager.loadInitialSounds(gameplayLevel.hostingScene);
-                // this.levelLoaderDebugLog(" Initial sounds loaded");
+                const soundTimeout = new Promise(function(resolve) { setTimeout(resolve, 6000); });
+                await Promise.race([
+                    soundEffectsManager.loadInitialSounds(gameplayLevel.hostingScene),
+                    soundTimeout
+                ]);
             }
 
             if (loadingScreen) {
