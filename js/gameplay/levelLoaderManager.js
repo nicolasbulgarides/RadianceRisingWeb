@@ -460,18 +460,6 @@ class LevelLoaderManager {
             }, 100);
             // this.runLevelAudit(levelData, activeGameplayLevel);
 
-            // Create duplicate level for replay (100 units to the right, offscreen)
-            const replayManager = FundamentalSystemBridge["levelReplayManager"];
-            if (replayManager) {
-                // Create duplicate level asynchronously (don't await to avoid blocking level load)
-                this.levelLoaderDebugLog(" Starting duplicate level creation for replay...");
-                replayManager.createDuplicateLevel(activeGameplayLevel).then(() => {
-                    this.levelLoaderDebugLog(" ✓ Duplicate level creation complete");
-                }).catch(error => {
-                    if (LEVEL_LOADING_DEBUG) console.error(`[LEVEL LOADING] ✗ Error creating duplicate level:`, error);
-                });
-            }
-
             // Preload essential sounds to eliminate latency during gameplay
             this.levelLoaderDebugLog(" Loading initial sounds...");
             const soundEffectsManager = FundamentalSystemBridge["soundEffectsManager"];

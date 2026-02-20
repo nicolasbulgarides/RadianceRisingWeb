@@ -153,11 +153,7 @@ class MicroEventManager {
     //microEventManagerLog(`[PICKUP] PositionedObject exists:`, !!microEvent.microEventPositionedObject);
     //microEventManagerLog(`[PICKUP] Model exists:`, !!microEvent.microEventPositionedObject?.model);
 
-    // Record pickup position for replay
-    const movementTracker = FundamentalSystemBridge["movementTracker"];
-    if (movementTracker && movementTracker.isTracking && microEvent.microEventLocation) {
-      movementTracker.recordPickupPosition(microEvent.microEventLocation);
-    }
+    GameEventBus.emit("gameInteraction", { type: "pickup", position: microEvent.microEventLocation });
 
     SoundEffectsManager.playSound("stardustAbsorptionSizzle");
 
@@ -184,11 +180,7 @@ class MicroEventManager {
 
     microEventManagerLog(`[DAMAGE] ⚔ Processing damage for: ${microEvent.microEventNickname}`);
 
-    // Record damage position for replay
-    const movementTracker = FundamentalSystemBridge["movementTracker"];
-    if (movementTracker && movementTracker.isTracking && microEvent.microEventLocation) {
-      movementTracker.recordDamagePosition(microEvent.microEventLocation);
-    }
+    GameEventBus.emit("gameInteraction", { type: "damage", position: microEvent.microEventLocation });
 
     // Play damage sound effect
     SoundEffectsManager.playSound("magicWallBreak");

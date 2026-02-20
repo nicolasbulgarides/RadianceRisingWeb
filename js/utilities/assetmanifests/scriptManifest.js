@@ -127,8 +127,8 @@ class ScriptManifest {
     "/gameplay/utilities/levelsSolvedStatusTracker.js",
     "/gameplay/levelLoaderManager.js",
     "/gameplay/levelResetHandler.js",
+    "/gameplay/replay/gameEventBus.js",
     "/gameplay/replay/movementTracker.js",
-    "/gameplay/replay/replayGridGenerator.js",  // Must load before levelReplayManager
     "/gameplay/replay/levelReplayManager.js",
     "/gameplay/utilities/sequentialLevelLoader.js",
 

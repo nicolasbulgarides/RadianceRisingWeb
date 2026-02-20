@@ -1,8 +1,9 @@
 /**
  * MovementTracker
  *
- * Tracks all player movements during gameplay for replay purposes.
- * Records direction, destination, and timing information for each move.
+ * Tracks all player interactions during gameplay for replay purposes.
+ * Uses a unified event log keyed by step number. Subscribes to GameEventBus
+ * so any subsystem can record interactions without coupling to this class.
  */
 
 // Global debug flag for MovementTracker
@@ -10,11 +11,12 @@ const MOVEMENT_TRACKER_DEBUG = false;
 
 class MovementTracker {
     constructor() {
-        this.movements = []; // Array of recorded movements
+        this.eventLog = [];
+        this.realMoveCount = 0;
         this.isTracking = false;
-        this.pickupPositions = []; // Track positions where pickups occurred
-        this.damagePositions = []; // Track positions where damage occurred
-        this.lockUnlocks = []; // Track lock unlocks with movement indices
+
+        this._boundHandler = (data) => this.handleInteractionEvent(data);
+        GameEventBus.on("gameInteraction", this._boundHandler);
     }
 
     /**
@@ -27,146 +29,81 @@ class MovementTracker {
     }
 
     /**
-     * Starts tracking movements
+     * Handles a game interaction event emitted via GameEventBus.
+     * @param {Object} data - Event data with at minimum a `type` field.
      */
-    startTracking() {
-        this.movements = [];
-        this.pickupPositions = [];
-        this.damagePositions = [];
-        this.lockUnlocks = [];
-        this.isTracking = true;
-        //console.log("[MOVEMENT TRACKER] Started tracking movements");
+    handleInteractionEvent(data) {
+        if (!this.isTracking) return;
+
+        const { type } = data;
+
+        if (type === 'move') {
+            this.eventLog.push({
+                type: 'move',
+                step: this.realMoveCount,
+                direction: data.direction,
+                startPosition: data.startPosition.clone(),
+                destinationPosition: data.destinationPosition.clone()
+            });
+            this.realMoveCount++;
+        } else if (type === 'lock') {
+            this.eventLog.push({
+                type: 'lock',
+                step: Math.max(0, this.realMoveCount - 1),
+                position: data.position.clone()
+            });
+        } else if (type === 'pickup') {
+            this.eventLog.push({
+                type: 'pickup',
+                step: Math.max(0, this.realMoveCount - 1),
+                position: data.position.clone()
+            });
+        } else if (type === 'damage') {
+            this.eventLog.push({
+                type: 'damage',
+                step: Math.max(0, this.realMoveCount - 1),
+                position: data.position.clone()
+            });
+        } else if (type === 'key_usage') {
+            this.eventLog.push({
+                type: 'key_usage',
+                step: this.realMoveCount,
+                position: data.position.clone()
+            });
+        }
+
+        this.movementTrackerDebugLog(`Recorded '${type}' event. Total log entries: ${this.eventLog.length}`);
     }
 
     /**
-     * Stops tracking movements
+     * Starts tracking interactions
+     */
+    startTracking() {
+        this.eventLog = [];
+        this.realMoveCount = 0;
+        this.isTracking = true;
+    }
+
+    /**
+     * Stops tracking interactions
      */
     stopTracking() {
         this.isTracking = false;
-        //  console.log(`[MOVEMENT TRACKER] Stopped tracking. Recorded ${this.movements.length} movements`);
     }
 
     /**
-     * Records a movement
-     * @param {string} direction - The direction of movement (e.g., "up", "down", "left", "right")
-     * @param {BABYLON.Vector3} startPosition - The starting position
-     * @param {BABYLON.Vector3} destinationPosition - The destination position
-     */
-    recordMovement(direction, startPosition, destinationPosition) {
-        if (!this.isTracking) return;
-
-        const movement = {
-            direction: direction,
-            startPosition: startPosition.clone(),
-            destinationPosition: destinationPosition.clone(),
-            timestamp: Date.now()
-        };
-
-        this.movements.push(movement);
-        //   console.log(`[MOVEMENT TRACKER] Recorded movement: ${direction} from (${startPosition.x}, ${startPosition.z}) to (${destinationPosition.x}, ${destinationPosition.z})`);
-    }
-
-    /**
-     * Records a pickup position
-     * @param {BABYLON.Vector3} position - The position where a pickup occurred
-     */
-    recordPickupPosition(position) {
-        if (!this.isTracking) return;
-
-        this.pickupPositions.push({
-            position: position.clone(),
-            timestamp: Date.now()
-        });
-    }
-
-    /**
-     * Records a damage position
-     * @param {BABYLON.Vector3} position - The position where damage occurred
-     */
-    recordDamagePosition(position) {
-        if (!this.isTracking) return;
-
-        this.damagePositions.push({
-            position: position.clone(),
-            timestamp: Date.now()
-        });
-    }
-
-    /**
-     * Gets all recorded movements
-     * @returns {Array} Array of movement records
-     */
-    getMovements() {
-        return this.movements;
-    }
-
-    /**
-     * Gets all recorded pickup positions
-     * @returns {Array} Array of pickup position records
-     */
-    getPickupPositions() {
-        return this.pickupPositions;
-    }
-
-    /**
-     * Gets all recorded damage positions
-     * @returns {Array} Array of damage position records
-     */
-    getDamagePositions() {
-        return this.damagePositions;
-    }
-
-    /**
-     * 
-     * Records a lock unlock event
-     * @param {BABYLON.Vector3} position - The position where the lock was unlocked
-     */
-    recordLockUnlock(position) {
-        if (!this.isTracking) return;
-
-        this.lockUnlocks.push({
-            position: position.clone(),
-            movementIndex: this.movements.length // Use current movement count as index
-        });
-        //console.log(`[MOVEMENT TRACKER] Recorded lock unlock at position (${position.x}, ${position.z}) at movement ${this.movements.length}`);
-    }
-
-    /**
-     * Records key usage as a movement (for move counter)
-     * @param {BABYLON.Vector3} position - The position where the key was used
-     */
-    recordKeyUsage(position) {
-        if (!this.isTracking) return;
-
-        // Record key usage as a special movement
-        const movement = {
-            direction: "key_usage", // Special direction for key usage
-            startPosition: position.clone(),
-            destinationPosition: position.clone(), // Same position for key usage
-            timestamp: Date.now(),
-            isKeyUsage: true // Flag to identify key usage movements
-        };
-
-        this.movements.push(movement);
-        this.movementTrackerDebugLog(`Recorded key usage movement at position (${position.x}, ${position.z}) - total moves: ${this.movements.length}`);
-    }
-
-    /**
-     * Gets all recorded lock unlock events
-     * @returns {Array} Array of lock unlock records
-     */
-    getLockUnlocks() {
-        return this.lockUnlocks;
-    }
-
-    /**
-     * Clears all recorded movements
+     * Clears all recorded events
      */
     clear() {
-        this.movements = [];
-        this.pickupPositions = [];
-        this.damagePositions = [];
-        this.lockUnlocks = [];
+        this.eventLog = [];
+        this.realMoveCount = 0;
+    }
+
+    /**
+     * Returns the unified event log
+     * @returns {Array}
+     */
+    getEventLog() {
+        return this.eventLog;
     }
 }
-

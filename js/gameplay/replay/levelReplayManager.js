@@ -23,11 +23,14 @@ class LevelReplayManager {
         this.isReplaying = false;
         this.replayIndex = 0;
         this.replayMovements = [];
-        this.replayPickupPositions = [];
-        this.replayDamagePositions = [];
-        this.replayLockUnlocks = []; // Track lock unlocks during replay
+        this.replayLockUnlocks = []; // retained for unlockLockForReplay compatibility
+        this.replayEventLog = [];
         this.replayPickupCount = 0; // Count of pickups collected during replay
         this.replayPlayer = null; // Reference to the player being replayed
+
+        this.replayEventHandlers = {
+            lock: (event) => this.handleReplayLockEvent(event),
+        };
 
         // Perspective shift tracker for managing model transformations during camera transitions
         this.perspectiveShiftTracker = new PerspectiveShiftModelTracker();
@@ -182,9 +185,8 @@ class LevelReplayManager {
         this.isReplaying = false;
         this.replayIndex = 0;
         this.replayMovements = [];
-        this.replayPickupPositions = [];
-        this.replayDamagePositions = [];
         this.replayLockUnlocks = [];
+        this.replayEventLog = [];
         this.replayPickupCount = 0;
         this.replayPlayer = null;
 
@@ -647,22 +649,24 @@ class LevelReplayManager {
             return;
         }
 
-        // Get movements, pickup positions, damage positions, and lock unlocks
-        this.replayMovements = movementTracker.getMovements();
-        this.replayPickupPositions = movementTracker.getPickupPositions();
-        this.replayDamagePositions = movementTracker.getDamagePositions();
-        this.replayLockUnlocks = movementTracker.getLockUnlocks();
+        // Get unified event log and derive replay arrays from it
+        this.replayEventLog = movementTracker.getEventLog();
+        this.replayMovements = this.replayEventLog.filter(e => e.type === 'move');
+        this.replayLockUnlocks = this.replayEventLog.filter(e => e.type === 'lock');
 
-        replayLog(`[REPLAY] Replay data loaded: ${this.replayMovements.length} movements, ${this.replayPickupPositions.length} pickups, ${this.replayDamagePositions.length} damage events`);
+        replayLog(`[REPLAY] Replay data loaded: ${this.replayMovements.length} moves, ${this.replayLockUnlocks.length} lock events`);
 
         if (this.replayMovements.length === 0) {
             console.warn("[REPLAY] No movements recorded! Replay will be empty.");
         }
 
-        // Reset player to starting position (7, PLAYER_HEIGHT, 7)
-        const startPosition = new BABYLON.Vector3(7, Config.PLAYER_HEIGHT, 7);
+        // Reset player to level start position
+        const levelStart = originalLevel?.levelDataComposite?.playerStartPosition;
+        const startPosition = levelStart
+            ? new BABYLON.Vector3(levelStart.x, Config.PLAYER_HEIGHT, levelStart.z)
+            : new BABYLON.Vector3(7, Config.PLAYER_HEIGHT, 7);
         originalPlayer.playerMovementManager.setPositionRelocateModelInstantly(startPosition);
-        replayLog(`[REPLAY] Player reset to starting position: (7, 0.25, 7)`);
+        replayLog(`[REPLAY] Player reset to starting position: (${startPosition.x}, ${startPosition.y}, ${startPosition.z})`);
 
         // Verify player model exists
         const playerModel = originalPlayer.playerMovementManager.getPlayerModelDirectly();
@@ -831,8 +835,8 @@ class LevelReplayManager {
                 await this.animatePlayerMovement(player, adjustedStart, adjustedDestination);
                 replayLog(`[REPLAY] Movement ${i + 1} complete`);
 
-                // Check for lock unlocks at this movement index
-                this.checkReplayLockUnlocks(i);
+                // Dispatch non-move events that occur after this step
+                this.dispatchStepEvents(i);
             }
 
             // If we collected 4 pickups, trigger explosion
@@ -890,46 +894,49 @@ class LevelReplayManager {
     }
 
     /**
-     * Checks for and executes lock unlocks during replay at the specified movement index.
-     * @param {number} movementIndex - The current movement index in the replay
+     * Dispatches all non-move events recorded at a given step index.
+     * @param {number} step - The current step (move index) in the replay
      */
-    checkReplayLockUnlocks(movementIndex) {
-        // Find lock unlocks that should happen at this movement index
-        const unlocksAtThisStep = this.replayLockUnlocks.filter(unlock => unlock.movementIndex === movementIndex);
+    dispatchStepEvents(step) {
+        const events = this.replayEventLog.filter(e => e.type !== 'move' && e.step === step);
+        for (const event of events) {
+            this.replayEventHandlers[event.type]?.(event);
+        }
+    }
 
-        for (const unlock of unlocksAtThisStep) {
-            replayLog(`[REPLAY] Unlocking lock at movement ${movementIndex}, position (${unlock.position.x}, ${unlock.position.z})`);
+    /**
+     * Handles a lock event during replay.
+     * @param {Object} event - Event object with a `position` field
+     */
+    handleReplayLockEvent(event) {
+        replayLog(`[REPLAY] Unlocking lock at position (${event.position.x}, ${event.position.z})`);
 
-            // Find and unlock the lock at this position
-            const gameplayManager = FundamentalSystemBridge["gameplayManagerComposite"];
-            const level = gameplayManager?.currentActiveLevel || gameplayManager?.primaryActiveGameplayLevel;
+        const gameplayManager = FundamentalSystemBridge["gameplayManagerComposite"];
+        const level = gameplayManager?.currentActiveLevel || gameplayManager?.primaryActiveGameplayLevel;
 
-            if (level) {
-                // Find the lock obstacle at this position
-                let obstacles = [];
-                if (level.obstacles && Array.isArray(level.obstacles)) {
-                    obstacles = level.obstacles;
-                } else if (level.levelDataComposite?.obstacles) {
-                    obstacles = level.levelDataComposite.obstacles;
-                } else if (level.levelMap?.obstacles) {
-                    obstacles = level.levelMap.obstacles;
-                }
+        if (level) {
+            let obstacles = [];
+            if (level.obstacles && Array.isArray(level.obstacles)) {
+                obstacles = level.obstacles;
+            } else if (level.levelDataComposite?.obstacles) {
+                obstacles = level.levelDataComposite.obstacles;
+            } else if (level.levelMap?.obstacles) {
+                obstacles = level.levelMap.obstacles;
+            }
 
-                const lockToUnlock = obstacles.find(obstacle =>
-                    obstacle.isUnlockable &&
-                    obstacle.obstacleArchetype === "lock" &&
-                    obstacle.position &&
-                    Math.abs(obstacle.position.x - unlock.position.x) < 0.1 &&
-                    Math.abs(obstacle.position.z - unlock.position.z) < 0.1
-                );
+            const lockToUnlock = obstacles.find(obstacle =>
+                obstacle.isUnlockable &&
+                obstacle.obstacleArchetype === "lock" &&
+                obstacle.position &&
+                Math.abs(obstacle.position.x - event.position.x) < 0.1 &&
+                Math.abs(obstacle.position.z - event.position.z) < 0.1
+            );
 
-                if (lockToUnlock) {
-                    // Unlock the lock (same logic as in BaseGameUIScene)
-                    this.unlockLockForReplay(lockToUnlock, level);
-                    replayLog(`[REPLAY] ✓ Lock unlocked during replay`);
-                } else {
-                    replayLog(`[REPLAY] ✗ Could not find lock to unlock at position (${unlock.position.x}, ${unlock.position.z})`);
-                }
+            if (lockToUnlock) {
+                this.unlockLockForReplay(lockToUnlock, level);
+                replayLog(`[REPLAY] ✓ Lock unlocked during replay`);
+            } else {
+                replayLog(`[REPLAY] ✗ Could not find lock at position (${event.position.x}, ${event.position.z})`);
             }
         }
     }

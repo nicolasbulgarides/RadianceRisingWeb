@@ -1396,33 +1396,15 @@ class BaseGameUIScene extends UISceneGeneralized {
     const lockToUnlock = nearbyLocks[0];
     this.unlockLock(lockToUnlock, activeLevel);
 
-    // Record lock unlock for replay
-    const movementTracker = FundamentalSystemBridge["movementTracker"];
-    this.keyUsageLog(`movementTracker available: ${!!movementTracker}, isTracking: ${movementTracker?.isTracking}`);
-    this.keyUsageLog(`movementTracker type:`, typeof movementTracker);
-    this.keyUsageLog(`movementTracker constructor:`, movementTracker?.constructor?.name);
-    this.keyUsageLog(`movementTracker has recordKeyUsage:`, typeof movementTracker?.recordKeyUsage);
-    if (movementTracker) {
-      const unlockPosition = lockToUnlock.position || (lockToUnlock.positionedObject && lockToUnlock.positionedObject.position);
-      this.keyUsageLog(`lockToUnlock.position:`, lockToUnlock.position);
-      this.keyUsageLog(`lockToUnlock.positionedObject:`, lockToUnlock.positionedObject);
-      this.keyUsageLog(`unlockPosition:`, unlockPosition);
-      if (unlockPosition) {
-        movementTracker.recordLockUnlock(unlockPosition);
-        // Also record key usage as a movement for the move counter
-        if (typeof movementTracker.recordKeyUsage === 'function') {
-          movementTracker.recordKeyUsage(unlockPosition);
-          this.keyUsageLog(`Recorded key usage movement. Total movements: ${movementTracker.movements.length}`);
-        } else {
-          console.error(`[KEY USAGE] recordKeyUsage method not found on movementTracker`);
-        }
+    // Record lock unlock and key usage for replay
+    const unlockPosition = lockToUnlock.position || lockToUnlock.positionedObject?.position;
+    if (unlockPosition) {
+      GameEventBus.emit("gameInteraction", { type: "lock", position: unlockPosition });
+      GameEventBus.emit("gameInteraction", { type: "key_usage", position: unlockPosition });
+      setTimeout(() => this.updatePerfectionTracker(), 10);
+    }
 
-        // Force UI update immediately
-        setTimeout(() => this.updatePerfectionTracker(), 10);
-      } else {
-        this.keyUsageLog(`No valid unlockPosition found for movement recording`);
-      }
-
+    {
       // Remove key from inventory
       // Note: We don't have a removeItem method, so we'll need to modify the inventory
       // For now, we'll just decrement the count (this is a temporary solution)

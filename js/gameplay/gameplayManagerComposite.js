@@ -72,7 +72,6 @@ class GameplayManagerComposite {
   /**
    * Loads the MAIN player into the game. This should only be called ONCE per level.
    * CRITICAL: This is for the MAIN gameboard player ONLY.
-   * For replay duplicate players, use loadReplayDuplicatePlayer() instead.
    * @param {ActiveGameplayLevel} activeGameplayLevel - The current gameplay level where the player will be loaded.
    * @param {PlayerUnit} playerToLoad - The player instance to be loaded into the level.
    */
@@ -117,39 +116,6 @@ class GameplayManagerComposite {
       activeGameplayLevel.registerCurrentPrimaryPlayer(playerToLoad); // Register the player in the active level.
       await activeGameplayLevel.loadRegisteredPlayerModel(playerToLoad, true); // Load the player's model.
       return proceed;
-    }
-    return false;
-  }
-
-  /**
-   * Loads a REPLAY DUPLICATE player. This is separate from the main player and doesn't affect game state.
-   * CRITICAL: This should ONLY be used by the LevelReplayManager for visual replay purposes.
-   * @param {ActiveGameplayLevel} duplicateLevel - The duplicate level for replays.
-   * @param {PlayerUnit} duplicatePlayer - The duplicate player instance for replays.
-   */
-  async loadReplayDuplicatePlayer(duplicateLevel, duplicatePlayer) {
-    // Check if we're in a death/reset sequence - if so, block
-    const levelResetHandler = FundamentalSystemBridge["levelResetHandler"];
-    if (levelResetHandler && (levelResetHandler.isResetting || levelResetHandler.hasEverDied)) {
-      console.error("[REPLAY PLAYER] ⛔ BLOCKED - Cannot load replay player during/after death!");
-      return false;
-    }
-
-    let proceed = LevelFactoryComposite.checkTilesLoaded();
-
-    if (proceed) {
-      if (!(duplicatePlayer instanceof PlayerUnit)) {
-        console.error("[REPLAY PLAYER] Invalid player instance");
-        return false;
-      }
-      // DO NOT add to allActivePlayers - this is only for visual replay
-      // DO NOT set as primaryActivePlayer - this would break game controls
-      // Register with the DUPLICATE level only
-      duplicateLevel.registerCurrentPrimaryPlayer(duplicatePlayer);
-
-      // Load the model (visual only)
-      await duplicateLevel.loadRegisteredPlayerModel(duplicatePlayer, false); // false = don't switch camera
-      return true;
     }
     return false;
   }
@@ -212,11 +178,13 @@ class GameplayManagerComposite {
         }
 
         // Record movement for replay
-        const movementTracker = FundamentalSystemBridge["movementTracker"];
-        if (movementTracker && movementTracker.isTracking) {
-          const startPosition = currentPlayer.playerMovementManager.getPositionVector();
-          movementTracker.recordMovement(clickedDirection, startPosition, destinationVector);
-        }
+        const moveStartPosition = currentPlayer.playerMovementManager.getPositionVector();
+        GameEventBus.emit("gameInteraction", {
+          type: "move",
+          direction: clickedDirection,
+          startPosition: moveStartPosition,
+          destinationPosition: destinationVector
+        });
 
         // Schedule explosions for this movement based on predicted collisions
         const startPosition = currentPlayer.playerMovementManager.getPositionVector();
