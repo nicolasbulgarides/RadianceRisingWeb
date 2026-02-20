@@ -12,6 +12,7 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
         super();
         this.worldSpheres = []; // Array to store all world spheres
         this.centerSphere = null; // Reference to the center sphere (at 0, 0, 0)
+        this.constellationLineMesh = null; // Line system connecting the constellation stars
         this.selectedWorldIndex = null;
         this.isLoadingWorld = false;
         this.worldSpheresInitialized = false; // Track if spheres have been created
@@ -89,162 +90,156 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
     }
 
     /**
-     * Creates 9 spheres arranged in a 3x3 grid, centered on screen
+     * Creates 9 spheres positioned at the Orion constellation star coordinates,
+     * scaled and centered to fill the camera view.
      */
     createWorldSpheres() {
-        const sphereDiameter = 2;
-        const spacing = 4; // Space between sphere centers
-        const gridSize = 3; // 3x3 grid
-
-        // Get level data from sequential level loader
         const sequentialLoader = FundamentalSystemBridge["sequentialLevelLoader"];
         if (!sequentialLoader) {
             console.error("[WorldLoaderScene] Sequential level loader not found");
             return;
         }
 
-        // Position spheres relative to center
-        // Center sphere (row 1, col 1) will be at (0, 0, 0)
-        // Other spheres offset relative to center
-        const centerRow = 1; // Middle row (0-based index)
-        const centerCol = 1; // Middle column (0-based index)
-
-        let sphereIndex = 0;
-
-        // Create 3 rows
-        for (let row = 0; row < gridSize; row++) {
-            // Create 3 columns
-            for (let col = 0; col < gridSize; col++) {
-                // Calculate offset from center: (col - centerCol) * spacing for X, (row - centerRow) * spacing for Z
-                const x = (col - centerCol) * spacing;
-                const z = (row - centerRow) * spacing;
-                const y = 0; // All spheres on horizontal plane (same as game board)
-
-                // Create sphere
-                const sphere = BABYLON.MeshBuilder.CreateSphere(
-                    `worldSphere_${row}_${col}`,
-                    {
-                        diameter: sphereDiameter,
-                        segments: 32
-                    },
-                    this
-                );
-
-                // Position the sphere
-                sphere.position = new BABYLON.Vector3(x, y, z);
-
-                // Store reference to center sphere (at 0, 0, 0)
-                if (x === 0 && y === 0 && z === 0) {
-                    this.centerSphere = sphere;
-                }
-
-                // Get level data from sequential loader
-                const levelData = sequentialLoader.getWorldLevelData(sphereIndex);
-                const isCompleted = FundamentalSystemBridge["levelsSolvedStatusTracker"]?.isLevelCompleted(sphereIndex) || false;
-
-                // Create material based on level status
-                const material = this.createSphereMaterial(sphereIndex, levelData, isCompleted);
-
-                sphere.material = material;
-
-                // Make sphere pickable for clicking (only if level is available)
-                sphere.isPickable = levelData?.isAvailable || false;
-
-                // Store level data with the sphere
-                sphere.worldData = levelData;
-                sphere.sphereIndex = sphereIndex;
-                sphere.isCompleted = isCompleted;
-
-                // Add hover effect (slight scale up and change to orange on hover) to all spheres
-                this.addHoverEffect(sphere);
-
-                this.worldSpheres.push(sphere);
-                sphereIndex++;
-            }
+        const constellation = ConstellationManifest.get("orion");
+        if (!constellation) {
+            console.error("[WorldLoaderScene] Orion constellation not found in ConstellationManifest");
+            return;
         }
 
+        const starPositions = this._buildStarWorldPositions(constellation.stars);
+        const posById = new Map(starPositions.map(s => [s.id, s]));
+
+        for (const starData of starPositions) {
+            const sphereIndex = starData.id;
+
+            const sphere = BABYLON.MeshBuilder.CreateSphere(
+                starData.name,
+                { diameter: 1.5, segments: 24 },
+                this
+            );
+
+            sphere.position = new BABYLON.Vector3(starData.worldX, 0, starData.worldZ);
+
+            const levelData  = sequentialLoader.getWorldLevelData(sphereIndex);
+            const isCompleted = FundamentalSystemBridge["levelsSolvedStatusTracker"]?.isLevelCompleted(sphereIndex) || false;
+
+            sphere.material   = this.createSphereMaterial(sphereIndex, levelData, isCompleted);
+            sphere.isPickable = levelData?.isAvailable || false;
+            sphere.worldData  = levelData;
+            sphere.sphereIndex = sphereIndex;
+            sphere.isCompleted = isCompleted;
+
+            this.addHoverEffect(sphere);
+            this.worldSpheres.push(sphere);
+        }
+
+        this._drawConstellationLines(posById, constellation.lines);
         this.worldSpheresInitialized = true;
     }
 
     /**
-     * Creates world spheres with fallback data when sequential level loader is not available
-     * This provides basic sphere creation for development/testing when the full level system isn't ready
+     * Creates world spheres with fallback data when sequential level loader is not available.
+     * Uses the same constellation layout as createWorldSpheres().
      */
     createWorldSpheresWithFallback() {
-        const sphereDiameter = 2;
-        const spacing = 4; // Space between sphere centers
-        const gridSize = 3; // 3x3 grid
-
-        // Position spheres relative to center
-        // Center sphere (row 1, col 1) will be at (0, 0, 0)
-        // Other spheres offset relative to center
-        const centerRow = 1; // Middle row (0-based index)
-        const centerCol = 1; // Middle column (0-based index)
-
-        let sphereIndex = 0;
-
-        // Create 3 rows
-        for (let row = 0; row < gridSize; row++) {
-            // Create 3 columns
-            for (let col = 0; col < gridSize; col++) {
-                // Calculate offset from center: (col - centerCol) * spacing for X, (row - centerRow) * spacing for Z
-                const x = (col - centerCol) * spacing;
-                const z = (row - centerRow) * spacing;
-                const y = 0; // All spheres on horizontal plane (same as game board)
-
-                // Create sphere
-                const sphere = BABYLON.MeshBuilder.CreateSphere(
-                    `worldSphere_${row}_${col}`,
-                    {
-                        diameter: sphereDiameter,
-                        segments: 32
-                    },
-                    this
-                );
-
-                // Position the sphere
-                sphere.position = new BABYLON.Vector3(x, y, z);
-
-                // Store reference to center sphere (at 0, 0, 0)
-                if (x === 0 && y === 0 && z === 0) {
-                    this.centerSphere = sphere;
-                }
-
-                // Create fallback level data for development
-                const fallbackLevelData = {
-                    levelId: `level${sphereIndex}`,
-                    name: `Level ${sphereIndex}`,
-                    isAvailable: sphereIndex < 6, // First 6 levels available
-                    levelUrl: null
-                };
-
-                // Create material based on level status (gray for all in fallback mode)
-                const material = new BABYLON.StandardMaterial(`worldSphereMaterial_${sphereIndex}`, this);
-                const notAvailableGray = new BABYLON.Color3(0.4, 0.4, 0.4);
-                material.emissiveColor = notAvailableGray;
-                material.diffuseColor = notAvailableGray.scale(0.5);
-                material.specularColor = new BABYLON.Color3(0.6, 0.6, 0.6);
-                material.emissiveIntensity = 0.8;
-                material.roughness = 0.2;
-
-                sphere.material = material;
-
-                // Make sphere pickable for available levels only
-                sphere.isPickable = fallbackLevelData.isAvailable;
-
-                // Store level data with the sphere
-                sphere.worldData = fallbackLevelData;
-                sphere.sphereIndex = sphereIndex;
-                sphere.isCompleted = false;
-
-                this.worldSpheres.push(sphere);
-                sphereIndex++;
-            }
+        const constellation = ConstellationManifest.get("orion");
+        if (!constellation) {
+            console.error("[WorldLoaderScene] Orion constellation not found — cannot create fallback spheres");
+            return;
         }
 
-        this.worldLoaderDebugLog(`Created ${this.worldSpheres.length} world spheres in fallback mode (sequential loader unavailable)`);
+        const starPositions = this._buildStarWorldPositions(constellation.stars);
+        const posById = new Map(starPositions.map(s => [s.id, s]));
 
+        for (const starData of starPositions) {
+            const sphereIndex = starData.id;
+
+            const sphere = BABYLON.MeshBuilder.CreateSphere(
+                starData.name,
+                { diameter: 1.5, segments: 24 },
+                this
+            );
+
+            sphere.position = new BABYLON.Vector3(starData.worldX, 0, starData.worldZ);
+
+            const fallbackLevelData = {
+                levelId:     `level${sphereIndex}`,
+                name:        `Level ${sphereIndex}`,
+                isAvailable: sphereIndex < 6,
+                levelUrl:    null,
+            };
+
+            const material = new BABYLON.StandardMaterial(`worldSphereMaterial_${sphereIndex}`, this);
+            const gray = new BABYLON.Color3(0.4, 0.4, 0.4);
+            material.emissiveColor = gray;
+            material.diffuseColor  = gray.scale(0.5);
+            material.specularColor = new BABYLON.Color3(0.6, 0.6, 0.6);
+            material.emissiveIntensity = 0.8;
+            material.roughness = 0.2;
+
+            sphere.material    = material;
+            sphere.isPickable  = fallbackLevelData.isAvailable;
+            sphere.worldData   = fallbackLevelData;
+            sphere.sphereIndex = sphereIndex;
+            sphere.isCompleted = false;
+
+            this.worldSpheres.push(sphere);
+        }
+
+        this._drawConstellationLines(posById, constellation.lines);
+        this.worldLoaderDebugLog(`Created ${this.worldSpheres.length} constellation spheres in fallback mode`);
         this.worldSpheresInitialized = true;
+    }
+
+    /**
+     * Maps normalized star coordinates ([0,1] screen-space) to 3D world positions,
+     * scaling uniformly so the longest constellation axis spans worldHalfSpan*2 units
+     * and centering the result at the origin.
+     *
+     * @param {Array<{id, name, x, y}>} stars
+     * @param {number} worldHalfSpan  Half-size in world units (default 9)
+     * @returns {Array<{id, name, x, y, worldX, worldZ}>}
+     */
+    _buildStarWorldPositions(stars, worldHalfSpan = 9) {
+        const xs = stars.map(s => s.x);
+        const ys = stars.map(s => s.y);
+        const minX = Math.min(...xs), maxX = Math.max(...xs);
+        const minY = Math.min(...ys), maxY = Math.max(...ys);
+        const cx = (minX + maxX) / 2;
+        const cy = (minY + maxY) / 2;
+        // Uniform scale preserves the constellation's aspect ratio
+        const scale = (worldHalfSpan * 2) / Math.max(maxX - minX, maxY - minY);
+        return stars.map(s => ({
+            ...s,
+            worldX: (s.x - cx) * scale,
+            worldZ: (s.y - cy) * scale, // screen Y (down) → world +Z
+        }));
+    }
+
+    /**
+     * Creates a single Babylon.js line system that draws all constellation
+     * connector lines between mapped star positions.
+     *
+     * @param {Map<number, {worldX, worldZ}>} posById  Star world positions keyed by star id
+     * @param {Array<[number, number]>}       lines     Pairs of star ids to connect
+     */
+    _drawConstellationLines(posById, lines) {
+        const lineArrays = lines.map(([a, b]) => {
+            const pa = posById.get(a);
+            const pb = posById.get(b);
+            return [
+                new BABYLON.Vector3(pa.worldX, 0.05, pa.worldZ),
+                new BABYLON.Vector3(pb.worldX, 0.05, pb.worldZ),
+            ];
+        });
+
+        this.constellationLineMesh = BABYLON.MeshBuilder.CreateLineSystem(
+            "constellationLines",
+            { lines: lineArrays },
+            this
+        );
+        this.constellationLineMesh.color = new BABYLON.Color3(0.45, 0.65, 1.0); // faint blue-white
+        this.constellationLineMesh.isPickable = false;
     }
 
     /**
@@ -727,6 +722,12 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
             this.worldLoaderCameraObserver = null;
         }
 
+
+        // Dispose constellation line system
+        if (this.constellationLineMesh) {
+            this.constellationLineMesh.dispose();
+            this.constellationLineMesh = null;
+        }
 
         // Dispose all world spheres
         if (this.worldSpheres) {

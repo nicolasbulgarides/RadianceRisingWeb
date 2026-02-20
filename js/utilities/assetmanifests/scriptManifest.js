@@ -61,6 +61,7 @@ class ScriptManifest {
     "/utilities/assetmanifests/assetManifestOverrides.js",
     "/utilities/assetmanifests/perspectiveShiftModelTracker.js",
     "/utilities/assetmanifests/levelProfileManifest.js",
+    "/utilities/assetmanifests/constellationManifest.js",
     "/utilities/assetmanifests/uiAssetManifest.js",
     "/utilities/assetmanifests/itemIconAssetManifest.js",
     "/utilities/assetmanifests/soundAssetManifest.js",
