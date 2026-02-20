@@ -51,7 +51,6 @@ class ConstellationStarToLevelManifest {
         // ════════════════════════════════════════════════════════════════════
         m["orion"] = {
             0: real("levelVoyage1", "Level 1: Voyage"), //betelgeuse
-            // 0: real("level3Spikes",  "Level 3: Spikes"),        // Betelgeuse
             1: real("level4Spikes2", "Level 4: Spikes 2"),      // Bellatrix
             2: real("level4Spikes3", "Level 4: Spikes 3"),      // Alnitak
             3: real("level4Spikes4", "Level 4: Spikes 4"),      // Alnilam
