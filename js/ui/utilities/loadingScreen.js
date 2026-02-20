@@ -16,6 +16,9 @@ class LoadingScreen {
     this.geometricShapes = [];
     this.container = null;
     this.patternPhase = 0;
+    this.canvasWidth = 0;
+    this.canvasHeight = 0;
+    this._lastFrameTime = 0;
 
     // Expanded surreal color palette - vibrant, shifting colors
     this.colorPalette = [
@@ -114,6 +117,9 @@ class LoadingScreen {
     if (this.canvas) {
       this.canvas.width = window.innerWidth;
       this.canvas.height = window.innerHeight;
+      // Cache dimensions to avoid repeated DOM reads in draw calls
+      this.canvasWidth = this.canvas.width;
+      this.canvasHeight = this.canvas.height;
       // Reinitialize particles and shapes when resizing
       this.initParticles();
       this.initGeometricShapes();
@@ -125,7 +131,7 @@ class LoadingScreen {
    */
   initParticles() {
     this.particles = [];
-    const particleCount = 80;
+    const particleCount = 60;
 
     for (let i = 0; i < particleCount; i++) {
       this.particles.push({
@@ -194,13 +200,10 @@ class LoadingScreen {
    * Draws the surreal background gradient.
    */
   drawBackground() {
+    const w = this.canvasWidth, h = this.canvasHeight;
     const gradient = this.ctx.createRadialGradient(
-      window.innerWidth / 2,
-      window.innerHeight / 2,
-      0,
-      window.innerWidth / 2,
-      window.innerHeight / 2,
-      Math.max(window.innerWidth, window.innerHeight) * 0.8
+      w / 2, h / 2, 0,
+      w / 2, h / 2, Math.max(w, h) * 0.8
     );
 
     // Create multiple color stops for surreal effect - lighter
@@ -215,7 +218,7 @@ class LoadingScreen {
     }
 
     this.ctx.fillStyle = gradient;
-    this.ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+    this.ctx.fillRect(0, 0, w, h);
   }
 
   /**
@@ -225,15 +228,18 @@ class LoadingScreen {
     this.ctx.save();
     this.ctx.globalCompositeOperation = 'screen';
 
+    const w = this.canvasWidth, h = this.canvasHeight;
+
     // Multiple wave layers with different properties
+    // Step size 4 instead of 2: halves path complexity, imperceptible on a loading screen
     for (let wave = 0; wave < 5; wave++) {
       const waveTime = this.time * (0.3 + wave * 0.2);
       const amplitude = 40 + wave * 25;
       const frequency = 0.008 + wave * 0.004;
-      const verticalOffset = (Math.sin(waveTime * 0.3) * 100) + window.innerHeight / 2;
+      const verticalOffset = (Math.sin(waveTime * 0.3) * 100) + h / 2;
 
       this.ctx.beginPath();
-      for (let x = 0; x < window.innerWidth; x += 2) {
+      for (let x = 0; x < w; x += 4) {
         const y = verticalOffset +
           Math.sin(x * frequency + waveTime) * amplitude +
           Math.cos(x * frequency * 0.7 + waveTime * 1.3) * amplitude * 0.5 +
@@ -262,6 +268,8 @@ class LoadingScreen {
     this.ctx.save();
     this.ctx.globalCompositeOperation = 'screen';
 
+    const w = this.canvasWidth, h = this.canvasHeight;
+
     this.geometricShapes.forEach(shape => {
       // Update position
       shape.x += shape.vx;
@@ -270,10 +278,10 @@ class LoadingScreen {
       shape.phase += shape.phaseSpeed;
 
       // Wrap around screen
-      if (shape.x < -shape.size) shape.x = window.innerWidth + shape.size;
-      if (shape.x > window.innerWidth + shape.size) shape.x = -shape.size;
-      if (shape.y < -shape.size) shape.y = window.innerHeight + shape.size;
-      if (shape.y > window.innerHeight + shape.size) shape.y = -shape.size;
+      if (shape.x < -shape.size) shape.x = w + shape.size;
+      if (shape.x > w + shape.size) shape.x = -shape.size;
+      if (shape.y < -shape.size) shape.y = h + shape.size;
+      if (shape.y > h + shape.size) shape.y = -shape.size;
 
       // Pulsing size effect
       const pulseSize = shape.size * (1 + Math.sin(shape.phase) * 0.2);
@@ -325,6 +333,7 @@ class LoadingScreen {
     this.ctx.globalCompositeOperation = 'overlay';
     this.ctx.globalAlpha = 0.08;
 
+    const w = this.canvasWidth, h = this.canvasHeight;
     const gridSize = 100;
     const offsetX = (this.time * 20) % gridSize;
     const offsetY = (this.time * 15) % gridSize;
@@ -332,21 +341,17 @@ class LoadingScreen {
     this.ctx.strokeStyle = '#ffffff';
     this.ctx.lineWidth = 1;
 
-    // Vertical lines
-    for (let x = -gridSize; x < window.innerWidth + gridSize; x += gridSize) {
-      this.ctx.beginPath();
+    // Batch all grid lines into a single path for fewer draw calls
+    this.ctx.beginPath();
+    for (let x = -gridSize; x < w + gridSize; x += gridSize) {
       this.ctx.moveTo(x + offsetX, 0);
-      this.ctx.lineTo(x + offsetX, window.innerHeight);
-      this.ctx.stroke();
+      this.ctx.lineTo(x + offsetX, h);
     }
-
-    // Horizontal lines
-    for (let y = -gridSize; y < window.innerHeight + gridSize; y += gridSize) {
-      this.ctx.beginPath();
+    for (let y = -gridSize; y < h + gridSize; y += gridSize) {
       this.ctx.moveTo(0, y + offsetY);
-      this.ctx.lineTo(window.innerWidth, y + offsetY);
-      this.ctx.stroke();
+      this.ctx.lineTo(w, y + offsetY);
     }
+    this.ctx.stroke();
 
     this.ctx.restore();
   }
@@ -358,8 +363,8 @@ class LoadingScreen {
     this.ctx.save();
     this.ctx.globalCompositeOperation = 'screen';
 
-    const centerX = window.innerWidth / 2;
-    const centerY = window.innerHeight / 2;
+    const centerX = this.canvasWidth / 2;
+    const centerY = this.canvasHeight / 2;
 
     for (let i = 0; i < 8; i++) {
       const angle = (this.time * 0.3 + i * Math.PI / 4) % (Math.PI * 2);
@@ -389,6 +394,8 @@ class LoadingScreen {
     this.ctx.save();
     this.ctx.globalCompositeOperation = 'lighter';
 
+    const w = this.canvasWidth, h = this.canvasHeight;
+
     this.particles.forEach(particle => {
       // Update position
       particle.x += particle.vx;
@@ -396,51 +403,43 @@ class LoadingScreen {
       particle.rotation += particle.rotationSpeed;
 
       // Wrap around screen
-      if (particle.x < 0) particle.x = window.innerWidth;
-      if (particle.x > window.innerWidth) particle.x = 0;
-      if (particle.y < 0) particle.y = window.innerHeight;
-      if (particle.y > window.innerHeight) particle.y = 0;
+      if (particle.x < 0) particle.x = w;
+      if (particle.x > w) particle.x = 0;
+      if (particle.y < 0) particle.y = h;
+      if (particle.y > h) particle.y = 0;
 
       // Update color phase
       particle.phase += particle.speed;
 
-      // Get color based on phase
       const colorT = (Math.sin(particle.phase) + 1) / 2;
       const color = this.getColor(colorT);
+      const r = color.r, g = color.g, b = color.b;
 
-      // Draw particle trail - lighter
-      const trailAlpha = 0.15;
-      for (let i = 0; i < particle.trailLength; i++) {
+      // Trail: plain solid-alpha circles — no gradient objects per step.
+      // 'lighter' compositing makes overlapping circles bloom naturally.
+      for (let i = particle.trailLength - 1; i >= 0; i--) {
         const trailX = particle.x - particle.vx * i * 2;
         const trailY = particle.y - particle.vy * i * 2;
-        const trailSize = particle.size * (1 - i / particle.trailLength);
-        const trailOpacity = trailAlpha * (1 - i / particle.trailLength);
-
-        const gradient = this.ctx.createRadialGradient(
-          trailX, trailY, 0,
-          trailX, trailY, trailSize * 2
-        );
-        gradient.addColorStop(0, `rgba(${color.r}, ${color.g}, ${color.b}, ${trailOpacity})`);
-        gradient.addColorStop(1, `rgba(${color.r}, ${color.g}, ${color.b}, 0)`);
-
-        this.ctx.fillStyle = gradient;
+        const trailSize = Math.max(particle.size * (1 - i / particle.trailLength), 0.5);
+        const alpha = (0.12 * (1 - i / particle.trailLength)).toFixed(2);
+        this.ctx.fillStyle = `rgba(${r},${g},${b},${alpha})`;
         this.ctx.beginPath();
-        this.ctx.arc(trailX, trailY, trailSize * 2, 0, Math.PI * 2);
+        this.ctx.arc(trailX, trailY, trailSize, 0, Math.PI * 2);
         this.ctx.fill();
       }
 
-      // Draw main particle with glow - lighter
+      // Main glow: one radial gradient per particle (kept for visual quality)
+      const gs = particle.size * 4;
       const gradient = this.ctx.createRadialGradient(
         particle.x, particle.y, 0,
-        particle.x, particle.y, particle.size * 4
+        particle.x, particle.y, gs
       );
-      gradient.addColorStop(0, `rgba(${color.r}, ${color.g}, ${color.b}, 0.6)`);
-      gradient.addColorStop(0.5, `rgba(${color.r}, ${color.g}, ${color.b}, 0.3)`);
-      gradient.addColorStop(1, `rgba(${color.r}, ${color.g}, ${color.b}, 0)`);
-
+      gradient.addColorStop(0, `rgba(${r},${g},${b},0.6)`);
+      gradient.addColorStop(0.5, `rgba(${r},${g},${b},0.3)`);
+      gradient.addColorStop(1, `rgba(${r},${g},${b},0)`);
       this.ctx.fillStyle = gradient;
       this.ctx.beginPath();
-      this.ctx.arc(particle.x, particle.y, particle.size * 4, 0, Math.PI * 2);
+      this.ctx.arc(particle.x, particle.y, gs, 0, Math.PI * 2);
       this.ctx.fill();
     });
 
@@ -453,13 +452,25 @@ class LoadingScreen {
   animate() {
     if (!this.isActive || !this.ctx) return;
 
-    // Clear canvas with slight fade for trailing effect - lighter
-    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
-    this.ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+    // Cap at ~30fps — halves canvas work vs uncapped rAF, frees the main thread
+    // for level loading (script injection, asset fetching, Babylon scene setup).
+    const now = performance.now();
+    const elapsed = now - this._lastFrameTime;
+    if (elapsed < 33) {
+      this.animationFrameId = requestAnimationFrame(() => this.animate());
+      return;
+    }
+    // Use real delta so animation speed is constant regardless of actual frame rate
+    const dt = Math.min(elapsed / 1000, 0.05); // seconds, capped to avoid jumps
+    this._lastFrameTime = now;
 
-    // Update time
-    this.time += 0.016; // ~60fps
-    this.patternPhase += 0.01;
+    // Clear canvas with slight fade for trailing effect
+    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+    this.ctx.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
+
+    // Advance time by actual delta (keeps animation speed frame-rate independent)
+    this.time += dt;
+    this.patternPhase += dt * 0.625;
 
     // Draw layers in order (back to front)
     this.drawBackground();
@@ -481,6 +492,7 @@ class LoadingScreen {
 
     this.isActive = true;
     this.time = 0;
+    this._lastFrameTime = 0;
 
     if (this.container) {
       this.container.style.display = 'block';
