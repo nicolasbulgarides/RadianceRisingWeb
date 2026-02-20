@@ -139,8 +139,7 @@ class BaseGameUIScene extends UISceneGeneralized {
     );
     topBasePanel.stretch = BABYLON.GUI.Image.STRETCH_FILL;
     topBasePanel.width = "100%";
-    topBasePanel.height = Config.IDEAL_UI_HEIGHT * 0.2 + "px";
-    topBasePanel.top = "50px"; // Clear Android status bar / camera cutout
+    topBasePanel.height = (Config.IDEAL_UI_HEIGHT * 0.2 + 50) + "px";
     topBasePanel.verticalAlignment =
       BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
     // Add the panel to the advancedTexture so it appears behind everything else.
@@ -260,8 +259,7 @@ class BaseGameUIScene extends UISceneGeneralized {
       "TopUIControlsContainer"
     );
     this.topUIControlsContainer.width = Config.IDEAL_UI_WIDTH + "px";
-    this.topUIControlsContainer.height = Config.IDEAL_UI_HEIGHT * 0.2 + "px";
-    this.topUIControlsContainer.top = "50px"; // Clear Android status bar / camera cutout
+    this.topUIControlsContainer.height = (Config.IDEAL_UI_HEIGHT * 0.2 + 50) + "px";
 
     // Place this container at the top (matching the top panel)
     this.topUIControlsContainer.verticalAlignment =
