@@ -100,7 +100,14 @@ class CollectiblePlacementManager {
   }
 
   /**
-   * Checks if player is near a collectible (generic function for all pickup types)
+   * Checks if player is near a collectible (generic function for all pickup types).
+   *
+   * Uses a two-phase check to be frame-rate independent:
+   *  1. Point check  — is currentPosition within the trigger box?
+   *  2. Segment sweep — did the movement path [previousPosition → currentPosition]
+   *     pass through the trigger box this frame? Catches fast-motion tunneling
+   *     where the endpoint alone would miss the collectible between frames.
+   *
    * @param {PlayerUnit} player - The player unit
    * @param {BABYLON.Vector3} collectiblePosition - Position of the collectible
    * @returns {boolean} - Whether player is near the collectible
@@ -110,23 +117,40 @@ class CollectiblePlacementManager {
       return false;
     }
 
-    const playerPosition = player.playerMovementManager.currentPosition;
+    const pm = player.playerMovementManager;
+    const currPos = pm.currentPosition;
+    const cx = collectiblePosition.x;
+    const cz = collectiblePosition.z;
 
-    // Calculate absolute distances in x and z dimensions (ignore Y difference for ground-level pickups)
-    // This allows pickup while moving over the collectible at any Y position
-    const dx = collectiblePosition.x - playerPosition.x;
-    const dz = collectiblePosition.z - playerPosition.z;
-    const absDx = Math.abs(dx);
-    const absDz = Math.abs(dz);
-
-    // Pickup only occurs if both absolute x and z distances are less than 0.3 (crossover requirement)
-    const isNear = absDx < 0.3 && absDz < 0.3;
-
-    if (isNear) {
-      // console.log(`[PICKUP DISTANCE] ✓ Within pickup range! dx: ${absDx.toFixed(3)}, dz: ${absDz.toFixed(3)}`);
+    // Phase 1: point check at current position (handles stationary overlap too)
+    if (Math.abs(cx - currPos.x) < 0.3 && Math.abs(cz - currPos.z) < 0.3) {
+      return true;
     }
 
-    return isNear;
+    // Phase 2: segment sweep — only meaningful while the player is actively moving
+    // and previousPosition has been recorded for this frame.
+    const prevPos = pm.previousPosition;
+    if (pm.movementActive && prevPos) {
+      const ax = prevPos.x, az = prevPos.z;
+      const bx = currPos.x, bz = currPos.z;
+      const segDx = bx - ax, segDz = bz - az;
+      const lenSq = segDx * segDx + segDz * segDz;
+
+      if (lenSq > 0) {
+        // Find the parameter t of the closest point on segment AB to collectible C (in XZ)
+        const t = Math.max(0, Math.min(1,
+          ((cx - ax) * segDx + (cz - az) * segDz) / lenSq
+        ));
+        const closestX = ax + t * segDx;
+        const closestZ = az + t * segDz;
+
+        if (Math.abs(cx - closestX) < 0.3 && Math.abs(cz - closestZ) < 0.3) {
+          return true;
+        }
+      }
+    }
+
+    return false;
   }
 
   /**

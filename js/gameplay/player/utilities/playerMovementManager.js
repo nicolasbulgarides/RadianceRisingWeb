@@ -20,6 +20,7 @@ class PlayerMovementManager {
     this.movementActive = false;
     this.pathingDestination = null;
     this.currentPosition = position;
+    this.previousPosition = null; // Set each frame for sweep-based collision detection
     this.maxMovementDistance = Config.MAX_MOVEMENT; //note / to do - later on this may be parameterized or overwritten by the level's rules
     this.lastCrossedTileBoundary = position;
 
@@ -331,6 +332,12 @@ class PlayerMovementManager {
     if (!this.movementActive) {
       return;
     }
+
+    // Capture position before this step so collision checks can sweep the full
+    // path segment [previousPosition → currentPosition] instead of just the
+    // endpoint. This makes pickup/damage detection frame-rate independent.
+    this.previousPosition = this.currentPosition.clone();
+
     // If all frames have been processed, ensure the player is exactly at the end position and stop moving.
     if (this.currentFrame > this.totalFrames) {
       this.currentPosition = this.pathingDestination.clone();
