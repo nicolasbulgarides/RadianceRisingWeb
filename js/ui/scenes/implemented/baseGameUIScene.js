@@ -406,7 +406,7 @@ class BaseGameUIScene extends UISceneGeneralized {
     const availableRightSpace = (Config.IDEAL_UI_WIDTH / 2) - rightMargin - expBarRightEdge;
     const centerOfRightSpace = expBarRightEdge + (availableRightSpace / 2);
 
-    const levelNameOffsetY = -Config.IDEAL_UI_HEIGHT * 0.02 - 65; // Moved down 10px (was -75)
+    const levelNameOffsetY = -Config.IDEAL_UI_HEIGHT * 0.02 - 15; // Moved down 50px (was -65)
 
     // Create level name text (centered in right space)
     this.levelNameText = new BABYLON.GUI.TextBlock("topLevelName", "Level: Unknown");
