@@ -347,17 +347,13 @@ class LevelLoaderManager {
                 return null;
             }
 
-            // Create and register stardust pickups as microevents
-            await this.createStardustPickups(activeGameplayLevel, levelData);
-
-            // Create and register spike traps as microevents
-            await this.createSpikeTraps(activeGameplayLevel, levelData);
-
-            // Create and register heart pickups as microevents
-            await this.createHeartPickups(activeGameplayLevel, levelData);
-
-            // Create and register key pickups as microevents
-            await this.createKeyPickups(activeGameplayLevel, levelData);
+            // Load all collectible types in parallel — they register independent microevents
+            await Promise.all([
+                this.createStardustPickups(activeGameplayLevel, levelData),
+                this.createSpikeTraps(activeGameplayLevel, levelData),
+                this.createHeartPickups(activeGameplayLevel, levelData),
+                this.createKeyPickups(activeGameplayLevel, levelData),
+            ]);
 
             // Render obstacles
             const sceneBuilder = FundamentalSystemBridge["renderSceneSwapper"].getSceneBuilderForScene("BaseGameScene");
@@ -390,7 +386,7 @@ class LevelLoaderManager {
                 activeGameplayLevel.levelMap.obstacles = validObstacles;
 
                 if (validObstacles.length > 0) {
-                    obstacleGenerator.renderObstaclesForLevel(activeGameplayLevel, sceneBuilder);
+                    await obstacleGenerator.renderObstaclesForLevel(activeGameplayLevel, sceneBuilder);
                 }
             }
 

@@ -7,7 +7,7 @@ class ModelLoader {
   static maxConcurrentLoads = 5; // Maximum number of concurrent model loads
   static activeLoads = 0; // Current number of active loads
   static loadQueue = []; // Queue for pending model loads
-  static minDelayBetweenLoads = 250; // Minimum delay between model loads in ms
+  static minDelayBetweenLoads = 50; // Minimum delay between model loads in ms
 
   constructor() { }
 

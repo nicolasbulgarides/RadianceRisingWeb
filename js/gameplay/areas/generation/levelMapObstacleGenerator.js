@@ -5,73 +5,58 @@ class LevelMapObstacleGenerator {
    * @param {ActiveGameplayLevel} activeGameplayLevel - The active gameplay level to populate with obstacles.
    * @param {Object} relevantSceneBuilder - The scene builder for loading models.
    */
-  renderObstaclesForLevel(activeGameplayLevel, relevantSceneBuilder) {
+  async renderObstaclesForLevel(activeGameplayLevel, relevantSceneBuilder) {
     // Get obstacles from the level data
     const obstacles = this.getObstaclesFromLevel(activeGameplayLevel);
-    if (!obstacles || obstacles.length === 0) return; // Exit if there are no obstacles to initialize.
+    if (!obstacles || obstacles.length === 0) return;
 
-    // Get all obstacle arrays that need to be updated
     const allObstacleArrays = this.getAllObstacleArrays(activeGameplayLevel);
 
-    // Get the level map for backward compatibility
+    // Separate obstacles into: locks (need individual model refs for show/hide) and mountains (thin-instanced)
+    const lockObstacles = [];
+    const mountainData = []; // { obstacle, rawPosition }
 
-    for (let i = 0; i < obstacles.length; i++) {
-      const obstacleData = obstacles[i];
-      const {
-        obstacleArchetype,
-        nickname,
-        interactionId,
-        directionsBlocked,
-        position,
-      } = obstacleData; // Destructure obstacle data.
+    for (const obstacleData of obstacles) {
+      const { obstacleArchetype, nickname, interactionId, directionsBlocked, position } = obstacleData;
+      // Save raw grid position before PositionedObject applies config offsets
+      const rawPosition = position;
 
-      // Create an Obstacle instance using preset values.
       const obstacle = LevelMapObstacleGenerator.getObstacleByPreset(
-        obstacleArchetype,
-        nickname,
-        interactionId,
-        directionsBlocked,
-        position
+        obstacleArchetype, nickname, interactionId, directionsBlocked, position
       );
 
       if (!obstacle) {
-        console.error(`LevelMap: Failed to create obstacle ${nickname}`); // Log error if obstacle creation fails.
-        continue; // Skip to the next obstacle.
+        console.error(`LevelMap: Failed to create obstacle ${nickname}`);
+        continue;
       }
 
-      // Copy additional properties from the data object to the Obstacle instance
-      if (obstacleData.isUnlockable !== undefined) {
-        obstacle.isUnlockable = obstacleData.isUnlockable;
-      }
-      if (obstacleData.obstacleArchetype !== undefined) {
-        obstacle.obstacleArchetype = obstacleData.obstacleArchetype;
-      }
-      if (obstacleData.isObstacle !== undefined) {
-        obstacle.isObstacle = obstacleData.isObstacle;
-      }
+      if (obstacleData.isUnlockable !== undefined) obstacle.isUnlockable = obstacleData.isUnlockable;
+      if (obstacleData.obstacleArchetype !== undefined) obstacle.obstacleArchetype = obstacleData.obstacleArchetype;
+      if (obstacleData.isObstacle !== undefined) obstacle.isObstacle = obstacleData.isObstacle;
 
-      // Replace the data object in all obstacle arrays with the actual Obstacle instance
-      // This ensures that all obstacle arrays contain objects with positionedObject properties
       for (const obstacleArray of allObstacleArrays) {
         const index = obstacleArray.indexOf(obstacleData);
-        if (index > -1) {
-          obstacleArray[index] = obstacle;
-        }
+        if (index > -1) obstacleArray[index] = obstacle;
       }
 
-      // Ensure obstacle is set to freeze
       obstacle.positionedObject.freeze = true;
 
-      // Load the obstacle's model into the scene regardless of board slot system
+      // Locks need individual model references so the unlock animation can hide them
+      if (obstacle.isUnlockable || obstacle.obstacleArchetype === "lock") {
+        lockObstacles.push(obstacle);
+      } else {
+        mountainData.push({ obstacle, rawPosition });
+      }
+    }
+
+    // Load locks individually (model reference required for show/hide on unlock)
+    for (const obstacle of lockObstacles) {
       relevantSceneBuilder.loadModel(obstacle.positionedObject).then((loadedModel) => {
-        // Freeze all meshes in the obstacle to prevent movement
         if (loadedModel && loadedModel.meshes) {
           loadedModel.meshes.forEach((mesh) => {
             if (mesh instanceof BABYLON.Mesh) {
-              mesh.freezeWorldMatrix(); // Freeze the mesh so it doesn't move
-              mesh.doNotSyncBoundingInfo = true; // Disable bounding info sync for static obstacles
-
-              // Also freeze all child meshes
+              mesh.freezeWorldMatrix();
+              mesh.doNotSyncBoundingInfo = true;
               if (mesh.getChildMeshes) {
                 mesh.getChildMeshes().forEach((childMesh) => {
                   if (childMesh instanceof BABYLON.Mesh) {
@@ -80,16 +65,79 @@ class LevelMapObstacleGenerator {
                   }
                 });
               }
-              // Also disable physics if any
-              if (mesh.physicsImpostor) {
-                mesh.physicsImpostor.dispose();
-              }
+              if (mesh.physicsImpostor) mesh.physicsImpostor.dispose();
             }
           });
         }
       }).catch((error) => {
-        console.warn(`Failed to freeze obstacle ${nickname}:`, error);
+        console.warn(`Failed to load lock obstacle:`, error);
       });
+    }
+
+    // Load mountains as thin instances: one model load for all positions of each archetype
+    if (mountainData.length > 0) {
+      await this.renderMountainsAsThinInstances(mountainData, relevantSceneBuilder);
+    }
+  }
+
+  /**
+   * Renders static (non-lock) obstacles as thin instances — one GPU draw call per mesh type.
+   * Loads a single base model at origin, reads each child mesh's world matrix (which includes
+   * all AssetManifestOverrides config: position offset, rotation, scale), then composes a
+   * per-instance matrix by adding each obstacle's raw grid position to that base translation.
+   */
+  async renderMountainsAsThinInstances(mountainData, relevantSceneBuilder) {
+    // Group raw positions by modelId so we load each base model only once
+    const byModel = new Map();
+    for (const { obstacle, rawPosition } of mountainData) {
+      const modelId = obstacle.positionedObject.modelId;
+      if (!byModel.has(modelId)) byModel.set(modelId, []);
+      byModel.get(modelId).push(rawPosition);
+    }
+
+    for (const [modelId, rawPositions] of byModel) {
+      // Load base model at (0,0,0) — config offsets/rotation/scale are applied to root by sceneBuilder
+      const basePosObj = PositionedObject.getPositionedObjectQuick(
+        modelId, { x: 0, y: 0, z: 0 }, 1, false, false, false
+      );
+      const baseModel = await relevantSceneBuilder.loadModel(basePosObj);
+      if (!baseModel || !baseModel.meshes || !baseModel.meshes.length) continue;
+
+      // Get renderable child meshes (same pattern as tile grid)
+      let targetMeshes = baseModel.meshes[0].getChildren
+        ? baseModel.meshes[0].getChildren(undefined, false)
+        : [];
+      if (!targetMeshes || targetMeshes.length === 0) targetMeshes = baseModel.meshes;
+
+      // Pre-read each child mesh world matrix as a flat float array.
+      // The base translation (m[12..14]) encodes config position + config offset + child local pos.
+      // Adding raw position P to those indices gives the correct world position for each instance.
+      const meshSnapshots = [];
+      for (const mesh of targetMeshes) {
+        if (!(mesh instanceof BABYLON.Mesh)) continue;
+        mesh.computeWorldMatrix(true);
+        // Copy the 16 floats so we can safely read them after any freeze/unfreeze
+        const baseFloats = Array.from(mesh.getWorldMatrix().m);
+        meshSnapshots.push({ mesh, baseFloats });
+      }
+
+      for (const { mesh, baseFloats } of meshSnapshots) {
+        if (mesh.isFrozen) mesh.unfreezeWorldMatrix();
+
+        const buffer = new Float32Array(rawPositions.length * 16);
+        for (let i = 0; i < rawPositions.length; i++) {
+          const P = rawPositions[i];
+          for (let j = 0; j < 16; j++) buffer[i * 16 + j] = baseFloats[j];
+          // m[12..14] is the world-space translation in Babylon.js matrices
+          buffer[i * 16 + 12] += P.x;
+          buffer[i * 16 + 13] += P.y;
+          buffer[i * 16 + 14] += P.z;
+        }
+
+        mesh.thinInstanceSetBuffer("matrix", buffer, 16, true);
+        mesh.doNotSyncBoundingInfo = true;
+        mesh.freezeWorldMatrix();
+      }
     }
   }
 

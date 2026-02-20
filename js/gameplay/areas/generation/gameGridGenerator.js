@@ -114,40 +114,43 @@ class GameGridGenerator {
       return false;
     }
 
-    // Iterate over every grid cell position.
+    // Collect all instance matrices per tile type first, then set buffers in one batch.
+    // This avoids O(N²) buffer reallocations that thinInstanceAdd causes on each call.
+    const tileInstanceMatrices = this.loadedTiles.map(() => []);
+
     for (let x = 0; x < width; x++) {
       for (let z = 0; z < depth; z++) {
-        // Use a pattern to vary the tile selection.
         const rowOffset = x % this.loadedTiles.length;
         const tileIndex = (z + rowOffset) % this.loadedTiles.length;
-        const baseTile = this.loadedTiles[tileIndex];
+        const xPos = x * tileSize;
+        const zPos = (depth - 1 - z) * tileSize; // flip Z from top-left builder to bottom-left world
+        tileInstanceMatrices[tileIndex].push(BABYLON.Matrix.Translation(xPos, 0, zPos));
+      }
+    }
 
-        // Ensure the base tile has meshes
-        if (!baseTile || !baseTile.meshes || baseTile.meshes.length === 0) {
-          console.warn(
-            `GridGenerator: Missing or invalid tile at index ${tileIndex}`
-          );
-          continue;
-        }
+    // Apply thin instances in a single setBuffer call per mesh — one draw call per tile type
+    for (let tileIndex = 0; tileIndex < this.loadedTiles.length; tileIndex++) {
+      const baseTile = this.loadedTiles[tileIndex];
+      if (!baseTile || !baseTile.meshes || baseTile.meshes.length === 0) {
+        console.warn(`GridGenerator: Missing or invalid tile at index ${tileIndex}`);
+        continue;
+      }
 
-        // Prefer child meshes, fall back to all meshes if none
-        let targetMeshes = baseTile.meshes[0].getChildren(undefined, false);
-        if (!targetMeshes || targetMeshes.length === 0) {
-          targetMeshes = baseTile.meshes;
-        }
+      let targetMeshes = baseTile.meshes[0].getChildren(undefined, false);
+      if (!targetMeshes || targetMeshes.length === 0) {
+        targetMeshes = baseTile.meshes;
+      }
 
-        // Instance each mesh at the correct grid position (invert Z to match builder top-left origin)
-        for (const mesh of targetMeshes) {
-          if (mesh instanceof BABYLON.Mesh) {
-            if (mesh.isFrozen) {
-              mesh.unfreezeWorldMatrix();
-            }
-            const xPos = x * tileSize;
-            const zPos = (depth - 1 - z) * tileSize; // flip Y from top-left builder to bottom-left world
-            const matrix = BABYLON.Matrix.Translation(xPos, 0, zPos);
-            mesh.thinInstanceAdd(matrix);
-          }
-        }
+      const matrices = tileInstanceMatrices[tileIndex];
+      if (matrices.length === 0) continue;
+
+      const buffer = new Float32Array(matrices.length * 16);
+      matrices.forEach((mat, i) => mat.copyToArray(buffer, i * 16));
+
+      for (const mesh of targetMeshes) {
+        if (!(mesh instanceof BABYLON.Mesh)) continue;
+        if (mesh.isFrozen) mesh.unfreezeWorldMatrix();
+        mesh.thinInstanceSetBuffer("matrix", buffer, 16, true);
       }
     }
 
