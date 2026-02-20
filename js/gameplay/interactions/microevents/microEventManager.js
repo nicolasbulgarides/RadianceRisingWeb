@@ -309,9 +309,18 @@ class MicroEventManager {
       this.gameplayLevelToMicroEventsMap[idToAddTo].push(microEventToAdd);
       microEventManagerLog(`[MICROEVENT REGISTRATION] Added to existing array. Total events for ${idToAddTo}: ${this.gameplayLevelToMicroEventsMap[idToAddTo].length}`);
     } else {
-      this.gameplayLevelToMicroEventsMap[idToAddTo] = [];
-      this.gameplayLevelToMicroEventsMap[idToAddTo].push(microEventToAdd);
+      this.gameplayLevelToMicroEventsMap[idToAddTo] = [microEventToAdd];
       microEventManagerLog(`[MICROEVENT REGISTRATION] Created new array for levelId: ${idToAddTo}`);
+    }
+
+    // Keep split caches in sync — onFrameCheck reads from these, not from the main map
+    const category = microEventToAdd.microEventCategory;
+    if (category === "pickup") {
+      if (!this._pickupEvents[idToAddTo]) this._pickupEvents[idToAddTo] = [];
+      this._pickupEvents[idToAddTo].push(microEventToAdd);
+    } else if (category === "damage") {
+      if (!this._damageEvents[idToAddTo]) this._damageEvents[idToAddTo] = [];
+      this._damageEvents[idToAddTo].push(microEventToAdd);
     }
   }
   // Filter events by category.
