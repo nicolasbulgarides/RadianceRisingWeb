@@ -329,7 +329,7 @@ class BaseGameUIScene extends UISceneGeneralized {
 
     // Position below the experience bar
     const expBarOffsetY = 0; // Experience bar is centered
-    const levelTextOffsetY = expBarOffsetY + (expBarSize / 2) + 10; // 10px below experience bar
+    const levelTextOffsetY = expBarOffsetY + (expBarSize / 2) + 20; // 20px below experience bar (shifted down 10px)
 
     // Create level text
     this.levelText = new BABYLON.GUI.TextBlock("topLevelText", "Level: 1");
@@ -406,7 +406,7 @@ class BaseGameUIScene extends UISceneGeneralized {
     const availableRightSpace = (Config.IDEAL_UI_WIDTH / 2) - rightMargin - expBarRightEdge;
     const centerOfRightSpace = expBarRightEdge + (availableRightSpace / 2);
 
-    const levelNameOffsetY = -Config.IDEAL_UI_HEIGHT * 0.02 - 75; // Moved 75 pixels up
+    const levelNameOffsetY = -Config.IDEAL_UI_HEIGHT * 0.02 - 65; // Moved down 10px (was -75)
 
     // Create level name text (centered in right space)
     this.levelNameText = new BABYLON.GUI.TextBlock("topLevelName", "Level: Unknown");
@@ -948,7 +948,7 @@ class BaseGameUIScene extends UISceneGeneralized {
       "BaseUIControlsContainer"
     );
     this.baseUIControlsContainer.width = Config.IDEAL_UI_WIDTH + "px";
-    this.baseUIControlsContainer.height = Config.IDEAL_UI_HEIGHT * 0.2 + "px";
+    this.baseUIControlsContainer.height = (Config.IDEAL_UI_HEIGHT * 0.2 + 50) + "px";
 
     // Place this container at the bottom (matching the bottom panel)
     this.baseUIControlsContainer.verticalAlignment =
@@ -1058,7 +1058,8 @@ class BaseGameUIScene extends UISceneGeneralized {
 
     // Give the D-Pad container a fixed "ideal" size and center it.
     dPadContainer.width = Config.IDEAL_UI_WIDTH + "px";
-    dPadContainer.height = Config.IDEAL_UI_HEIGHT * 0.2 + "px";
+    dPadContainer.height = (Config.IDEAL_UI_HEIGHT * 0.2 + 50) + "px";
+    dPadContainer.top = "-30px"; // 30px bottom threshold — keeps buttons clear of Android nav bar
     dPadContainer.horizontalAlignment =
       BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
     dPadContainer.verticalAlignment =

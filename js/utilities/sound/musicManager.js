@@ -170,39 +170,36 @@ class MusicManager {
         scene._audioEngine = engine.audioEngine;
       }
 
+      // Unique token for this specific playSong call.
+      // Incremented before the Sound is created so stale ready callbacks
+      // (from a previous playSong call that hadn't loaded yet) can detect
+      // they are no longer the current song and bail out immediately.
+      this._songCallId = (this._songCallId || 0) + 1;
+      const thisSongCallId = this._songCallId;
+
+      // Shared flag so only ONE of {ready callback, setInterval} ever calls play().
+      let _started = false;
+
       this.currentMusic = new BABYLON.Sound(
         songName,
         songUrl,
         scene,
         () => {
-          // Ready callback - called when sound is loaded and ready to play
-          // console.log("[MUSIC] ✓ Sound ready callback fired for:", songName);
+          // Bail if playSong was called again while this sound was loading.
+          if (this._songCallId !== thisSongCallId) return;
 
-          try {
-            // console.log("[MUSIC] Sound status - isPlaying:", this.currentMusic?.isPlaying, "isReady:", this.currentMusic?.isReady);
-          } catch (statusError) {
-            // console.warn("[MUSIC] Could not read sound status:", statusError.message);
-          }
-
-          if (autoplay) {
-            if (this.currentMusic && !this.currentMusic.isPlaying) {
-              try {
-                // console.log("[MUSIC] Attempting to play sound...");
-                this.currentMusic.play();
-                // console.log("[MUSIC] ✓ Play() called successfully. isPlaying:", this.currentMusic.isPlaying);
-              } catch (playError) {
-                console.error("[MUSIC] ✗ Failed to play sound:", playError);
-              }
-            } else {
-              //  console.log("[MUSIC] Sound already playing or currentMusic is null");
+          if (autoplay && !_started && this.currentMusic && !this.currentMusic.isPlaying) {
+            _started = true;
+            try {
+              this.currentMusic.play();
+            } catch (playError) {
+              console.error("[MUSIC] ✗ Failed to play sound:", playError);
             }
-          } else {
-            // console.log("[MUSIC] Autoplay is false, not playing automatically");
           }
         },
         {
           loop: loop,
-          autoplay: true,
+          autoplay: false, // ready callback handles playback — avoids double-play
           volume: 0.5,
           streaming: true, // Enable streaming for music files
           spatialSound: false, // Try false first (2D audio). If no sound, user can test with true
@@ -323,30 +320,32 @@ class MusicManager {
       // Add periodic checks to see the sound loading progress
       let checkCount = 0;
       const checkInterval = setInterval(() => {
+        // Stop checking if a newer playSong call has taken over.
+        if (this._songCallId !== thisSongCallId) {
+          clearInterval(checkInterval);
+          return;
+        }
+
         checkCount++;
         try {
           if (this.currentMusic) {
-            // isReady might be a function in v8
             const isReady = typeof this.currentMusic.isReady === 'function'
               ? this.currentMusic.isReady()
               : this.currentMusic.isReady;
             const isPlaying = this.currentMusic.isPlaying;
             const volume = this.currentMusic.getVolume();
 
-            //  console.log(`[MUSIC] Check ${checkCount}: isReady=${isReady}, isPlaying=${isPlaying}, volume=${volume}`);
-
-            // If ready but not playing, try to play manually
-            if (isReady && !isPlaying && autoplay) {
-              //console.log("[MUSIC] Sound is ready but not playing. Attempting manual play...");
+            // Fallback: if the ready callback didn't fire and the sound still isn't playing.
+            if (isReady && !isPlaying && autoplay && !_started) {
+              _started = true;
               try {
                 this.currentMusic.play();
-                //console.log("[MUSIC] ✓ Manual play successful");
               } catch (manualPlayError) {
                 console.error("[MUSIC] ✗ Manual play failed:", manualPlayError);
               }
             }
 
-            // If playing but volume is 0, try setting it
+            // If playing but volume is 0, fix it.
             if (isPlaying && volume === 0) {
               console.warn("[MUSIC] Sound is playing but volume is 0! Setting to 0.5...");
               this.currentMusic.setVolume(0.5);
@@ -354,14 +353,6 @@ class MusicManager {
 
             if (isReady || checkCount >= 10) {
               clearInterval(checkInterval);
-              if (!isReady) {
-                //  console.error("[MUSIC] ⚠ Sound failed to load after 5 seconds!");
-                //  console.error("[MUSIC] Sound URL:", songUrl);
-                //  console.error("[MUSIC] Check network tab for failed requests or CORS errors");
-              } else if (isPlaying) {
-                //console.log("[MUSIC] ✓✓✓ SOUND IS PLAYING! ✓✓✓");
-                //console.log("[MUSIC] Final state: volume=" + volume + ", spatialSound=" + this.currentMusic.spatialSound);
-              }
             }
           } else {
             clearInterval(checkInterval);
