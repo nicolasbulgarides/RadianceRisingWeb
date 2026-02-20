@@ -15,6 +15,12 @@ class LevelProfileManifest {
      * - obstacles: Array of obstacle types present in the level (for UI display)
      */
     static levelProfiles = {
+        levelVoyage1: {
+            levelId: "levelVoyage1",
+            filename: "levelVoyage1.txt",
+            perfectSolutionMovementCount: 12,
+            obstacles: ["mountain"]
+        },
         level0Test2: {
             levelId: "level0Test2",
             filename: "level0Test2.txt",
