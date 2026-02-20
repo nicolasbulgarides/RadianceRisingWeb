@@ -214,17 +214,10 @@ class ScriptManifest {
       // that need to be immediately available for inheritance in subsequent scripts
       // Regular script tags ensure classes are in global scope immediately after execution
 
-      // For regular scripts, onload fires after the script is loaded and executed
-      // We add a small delay to ensure all class definitions are fully registered
+      // async=false guarantees the script is fully executed before onload fires,
+      // so no rAF or microtask delay is needed. Resolving directly is safe.
       script.onload = () => {
-        // Use requestAnimationFrame + microtask to ensure execution is complete
-        // This is critical for inheritance - parent classes must be fully defined before child classes extend them
-        requestAnimationFrame(() => {
-          // Additional microtask to ensure class registration is complete
-          Promise.resolve().then(() => {
-            resolve();
-          });
-        });
+        resolve();
       };
 
       script.onerror = () => {

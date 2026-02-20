@@ -187,7 +187,7 @@ class ScriptInitializer {
 
       // If critical diagnostic scripts loaded successfully, try to load the Babylon engine
       if (criticalLoggingSequenceSuccess) {
-        babylonEngineSuccess = this.loadBabylonEngine();
+        babylonEngineSuccess = await this.loadBabylonEngine();
       }
 
       await ScriptManifest.loadAllScriptsPromise();
