@@ -118,7 +118,7 @@ class BaseGameUIScene extends UISceneGeneralized {
     );
     bottomBasePanel.stretch = BABYLON.GUI.Image.STRETCH_FILL;
     bottomBasePanel.width = "100%";
-    bottomBasePanel.height = Config.IDEAL_UI_HEIGHT * 0.2 + "px";
+    bottomBasePanel.height = (Config.IDEAL_UI_HEIGHT * 0.2 + 50) + "px";
     bottomBasePanel.verticalAlignment =
       BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
     // Add the panel to the advancedTexture so it appears behind everything else.
@@ -1059,7 +1059,7 @@ class BaseGameUIScene extends UISceneGeneralized {
     // Give the D-Pad container a fixed "ideal" size and center it.
     dPadContainer.width = Config.IDEAL_UI_WIDTH + "px";
     dPadContainer.height = (Config.IDEAL_UI_HEIGHT * 0.2 + 50) + "px";
-    dPadContainer.top = "-30px"; // 30px bottom threshold — keeps buttons clear of Android nav bar
+    dPadContainer.top = "10px"; // shift content below panel top edge; taller panel provides bottom clearance
     dPadContainer.horizontalAlignment =
       BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
     dPadContainer.verticalAlignment =
