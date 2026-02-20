@@ -621,12 +621,7 @@ class BaseGameUIScene extends UISceneGeneralized {
     try {
       // Get current movement count
       const movementTracker = FundamentalSystemBridge["movementTracker"];
-      const currentMoves = movementTracker ? movementTracker.movements.length : 0;
-
-      // Debug: Check if this is a key usage movement
-      const lastMovement = movementTracker && movementTracker.movements.length > 0
-        ? movementTracker.movements[movementTracker.movements.length - 1]
-        : null;
+      const currentMoves = movementTracker ? movementTracker.realMoveCount : 0;
 
       // Get current level ID and perfect solution
       const gameplayManager = FundamentalSystemBridge["gameplayManagerComposite"];
