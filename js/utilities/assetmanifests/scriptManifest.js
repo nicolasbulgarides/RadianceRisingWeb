@@ -62,6 +62,7 @@ class ScriptManifest {
     "/utilities/assetmanifests/perspectiveShiftModelTracker.js",
     "/utilities/assetmanifests/levelProfileManifest.js",
     "/utilities/assetmanifests/constellationManifest.js",
+    "/utilities/assetmanifests/constellationStarToLevelManifest.js",
     "/utilities/assetmanifests/uiAssetManifest.js",
     "/utilities/assetmanifests/itemIconAssetManifest.js",
     "/utilities/assetmanifests/soundAssetManifest.js",
