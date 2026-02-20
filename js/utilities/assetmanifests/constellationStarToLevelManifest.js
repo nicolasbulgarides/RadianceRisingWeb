@@ -50,15 +50,15 @@ class ConstellationStarToLevelManifest {
         // ORION  (9 stars — maps 1-to-1 with the 9 demo levels, sphere 0–8)
         // ════════════════════════════════════════════════════════════════════
         m["orion"] = {
-            0: real("levelVoyage1", "Level 1: Voyage"), //betelgeuse
-            1: real("level4Spikes2", "Level 4: Spikes 2"),      // Bellatrix
-            2: real("level4Spikes3", "Level 4: Spikes 3"),      // Alnitak
-            3: real("level4Spikes4", "Level 4: Spikes 4"),      // Alnilam
-            4: real("level5TrickyB", "Level 5: Tricky B"),      // Mintaka
-            5: real("level6Locks", "Level 6: Locks"),         // Saiph
-            6: real("level7FlipsE", "Level 7: Flips E"),       // Rigel
-            7: real("level8SpookyB", "Level 8: Spooky B"),      // Meissa
-            8: real("level9Wow", "Level 9: Wow"),           // Hatsya
+            0: real("level3Spikes", "Betelgeuse"), //betelgeuse
+            1: real("level4Spikes2", "Bellatrix"),      // Bellatrix
+            2: real("level4Spikes3", "Alnitak"),      // Alnitak
+            3: real("level4Spikes4", "Alnilam"),      // Alnilam
+            4: real("level5TrickyB", "Mintaka"),      // Mintaka
+            5: real("level6Locks", "Saiph"),         // Saiph
+            6: real("level7FlipsE", "Rigel"),       // Rigel
+            7: real("level8SpookyB", "Meissa"),      // Meissa
+            8: real("level9Wow", "Hatsya"),           // Hatsya
         };
 
         // ════════════════════════════════════════════════════════════════════
@@ -68,9 +68,12 @@ class ConstellationStarToLevelManifest {
             "Dubhe", "Merak", "Phecda", "Megrez", "Alioth",
             "Mizar", "Alkaid", "Talitha", "Tania Bor.", "Muscida",
         ];
-        m["ursa_major"] = {};
+        m["ursa_major"] = {
+            0: real("levelVoyage1", "Dubhe"), //betelgeuse
+            1: real("levelVoyage2", "Merak"),      // Bellatrix
+        };
         ursaMajorStars.forEach((name, i) => {
-            m["ursa_major"][i] = ph("ursa_major", i, name, "Ursa Major");
+            if (!m["ursa_major"][i]) m["ursa_major"][i] = ph("ursa_major", i, name, "Ursa Major");
         });
 
         // ════════════════════════════════════════════════════════════════════

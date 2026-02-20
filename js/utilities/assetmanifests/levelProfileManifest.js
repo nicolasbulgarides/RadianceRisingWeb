@@ -19,7 +19,39 @@ class LevelProfileManifest {
             levelId: "levelVoyage1",
             filename: "levelVoyage1.txt",
             perfectSolutionMovementCount: 12,
-            obstacles: ["mountain"]
+            obstacles: ["mountain"],
+            solutionPath: [
+                "RIGHT",
+                "DOWN",
+                "LEFT",
+                "UP",
+                "LEFT",
+                "UP",
+                "DOWN",
+                "RIGHT",
+                "UP",
+                "LEFT",
+                "UP",
+                "RIGHT"]
+        },
+        levelVoyage2: {
+            levelId: "levelVoyage2",
+            filename: "levelVoyage2.txt",
+            perfectSolutionMovementCount: 12,
+            obstacles: ["mountain", "spike", "lock"],
+            solutionPath: [
+                "RIGHT",
+                "DOWN",
+                "LEFT",
+                "UP",
+                "LEFT",
+                "UP",
+                "DOWN",
+                "RIGHT",
+                "UP",
+                "LEFT",
+                "UP",
+                "RIGHT"]
         },
         level0Test2: {
             levelId: "level0Test2",
