@@ -42,11 +42,9 @@ class LoadingScreen {
         75%       { transform: translate(8px,   -12px) scale(1.20); }
       }
 
-      @keyframes lsColorShift {
-        0%   { color: #fff; text-shadow: 0 0 20px rgba(255,255,255,0.8), 0 0 40px rgba(255,0,150,0.5); }
-        33%  { color: #0ff; text-shadow: 0 0 20px rgba(0,255,255,0.8),   0 0 40px rgba(0,200,255,0.4); }
-        66%  { color: #c8f; text-shadow: 0 0 20px rgba(180,100,255,0.8), 0 0 40px rgba(140,0,255,0.4); }
-        100% { color: #fff; text-shadow: 0 0 20px rgba(255,255,255,0.8), 0 0 40px rgba(255,0,150,0.5); }
+      @keyframes lsTextPulse {
+        0%, 100% { opacity: 0.75; }
+        50%       { opacity: 1.0; }
       }
 
       @keyframes lsSpin {
@@ -69,10 +67,11 @@ class LoadingScreen {
         font-weight: bold;
         color: #fff;
         letter-spacing: 0.1em;
+        text-shadow: 0 0 20px rgba(255,255,255,0.7), 0 0 40px rgba(180,0,255,0.4);
         z-index: 10000;
         pointer-events: none;
-        animation: lsColorShift 3s ease-in-out infinite;
-        will-change: color;
+        animation: lsTextPulse 2.5s ease-in-out infinite;
+        will-change: opacity;
       }
 
       #lsSpinner {
