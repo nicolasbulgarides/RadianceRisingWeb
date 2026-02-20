@@ -47,7 +47,7 @@ class LightingManager {
     );
 
     // Set intensity to 15
-    this.directionalLight.intensity = 15;
+    this.directionalLight.intensity = 5;
 
     // Set light color to white (default)
     this.directionalLight.diffuse = new BABYLON.Color3(1, 1, 1);
