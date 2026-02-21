@@ -196,6 +196,9 @@ class MicroEventManager {
    * Resets all damage event flags for the current level
    * Call this at the START of each player movement
    * This allows spike traps to hit again on a new movement
+   *
+   * Spikes at the player's current (start) position are NOT reset — the player
+   * is stepping off them, so they must not re-trigger during the exit move.
    */
   resetDamageEventFlagsForLevel() {
     const gameplayManager = FundamentalSystemBridge["gameplayManagerComposite"];
@@ -216,14 +219,27 @@ class MicroEventManager {
       return;
     }
 
+    // Get the player's current (start) position so we can skip spikes underfoot
+    const player = activeLevel.currentPrimaryPlayer;
+    const playerPos = player?.playerMovementManager?.currentPosition;
+
     // Reset flags and completion status for all damage events
     const damageEvents = this._damageEvents[levelId] || [];
     damageEvents.forEach(microEvent => {
+      // Don't reset a spike the player is already standing on — moving off it
+      // would otherwise re-trigger it immediately via the proximity check.
+      if (playerPos) {
+        const loc = microEvent.microEventLocation;
+        if (loc && Math.abs(loc.x - playerPos.x) < 0.3 && Math.abs(loc.z - playerPos.z) < 0.3) {
+          microEventManagerLog(`[DAMAGE] ⏭ Skipping reset for spike underfoot: ${microEvent.microEventNickname}`);
+          return;
+        }
+      }
       microEvent.hasTriggeredThisMovement = false; // Reset flag for new movement
       microEvent.markAsIncomplete(); // Allow it to be triggered again
     });
 
-    microEventManagerLog(`[DAMAGE] ♻ Reset ${damageEvents.length} spike trap flags for new movement`);
+    microEventManagerLog(`[DAMAGE] ♻ Reset spike trap flags for new movement`);
   }
 
   prepareAndRegisterMicroEventsForLevel(levelDataComposite) {
