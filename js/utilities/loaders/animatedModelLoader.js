@@ -67,10 +67,10 @@ class AnimatedModelLoader {
           root.position = positionedObject.getCompositePositionBaseline();
           root.rotation = positionedObject.rotation;
           root.scaling = positionedObject.scaling;
-          // Start animations if available
+          // Stop animations — game is turn-based; static render throttling requires no continuous animation
           if (result.animationGroups && result.animationGroups.length > 0) {
             result.animationGroups.forEach((animationGroup) => {
-              animationGroup.start(true); // Loop animations
+              animationGroup.stop();
             });
           }
           positionedObject.setModel(root, positionedObject.modelId);

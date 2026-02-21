@@ -138,6 +138,7 @@ class GameplayManagerComposite {
    * @param {string} clickedDirection - The direction input from the UI click.
    */
   processAttemptedMovementFromUIClick(clickedDirection) {
+    if (window.RenderController) window.RenderController.markDirty();
     gameplayManagerLog(`[MOVEMENT INPUT] ▶ Received direction: ${clickedDirection}`);
 
     // Verify we have a valid level
@@ -238,9 +239,7 @@ class GameplayManagerComposite {
     this.primaryActiveGameplayLevel = activeGameplayLevel;
     console.log("[GAMEPLAY MANAGER] ✓ primaryActiveGameplayLevel set successfully");
 
-    // Also track in allActiveGameplayLevels if not already there
-    if (!this.allActiveGameplayLevels.includes(activeGameplayLevel)) {
-      this.allActiveGameplayLevels.push(activeGameplayLevel);
-    }
+    // Replace entire array — only track current level to prevent memory growth
+    this.allActiveGameplayLevels = [activeGameplayLevel];
   }
 }

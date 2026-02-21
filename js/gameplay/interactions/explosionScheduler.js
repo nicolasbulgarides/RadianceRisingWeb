@@ -351,19 +351,7 @@ function ensureParticleTextureLoaded(scene) {
  * @returns {Promise<void>}
  */
 async function createParameterizedExplosion(config) {
-    // Create a visible debug marker at the explosion position (small, temporary)
-    const debugBox = BABYLON.MeshBuilder.CreateBox(`debug_${config.name}`, { size: 0.05 }, config.scene);
-    debugBox.position = config.position.clone();
-    const debugMaterial = new BABYLON.StandardMaterial(`debug_mat_${config.name}`, config.scene);
-    debugMaterial.diffuseColor = new BABYLON.Color3(1, 1, 0); // Yellow debug marker
-    debugBox.material = debugMaterial;
-
-    // Remove debug marker quickly
-    setTimeout(() => {
-        if (debugBox && !debugBox.isDisposed()) {
-            debugBox.dispose();
-        }
-    }, 200); // Shorter duration
+    if (window.RenderController) window.RenderController.markDirty(60);
 
     const particleSystem = new BABYLON.ParticleSystem(
         config.name || `explosion_${Date.now()}`,

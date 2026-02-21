@@ -45,9 +45,9 @@ class RadiantEngineManager {
     // Performance optimizations
     engine.autoClearDepthAndStencil = false;
 
-    // CRITICAL: Hardware scaling based on device pixel ratio
-    // This was the working configuration from the original
-    engine.setHardwareScalingLevel(1 / (window.devicePixelRatio || 1));
+    // CRITICAL: Hardware scaling based on device pixel ratio, capped at 1.5x to save GPU on high-DPR devices
+    const dpr = window.devicePixelRatio || 1;
+    engine.setHardwareScalingLevel(1 / Math.min(dpr, 1.5));
 
     window.addEventListener("resize", () => {
       FundamentalSystemBridge["babylonEngine"].resize();

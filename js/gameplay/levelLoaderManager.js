@@ -477,6 +477,7 @@ class LevelLoaderManager {
             this.levelAuditDebugLog("🎯 About to call runLevelAudit...");
             this.levelAuditDebugLog("✅ runLevelAudit call completed");
 
+            if (window.RenderController) window.RenderController.markDirty();
             return gameplayLevel;
         } catch (error) {
             //console.error("Error loading level from server:", error);
@@ -667,12 +668,11 @@ class LevelLoaderManager {
         this.stardustCreationDebugLog(`ActiveGameplayLevel levelDataComposite levelId:`, activeGameplayLevel?.levelDataComposite?.levelHeaderData?.levelId);
         this.stardustCreationDebugLog(`LevelData levelName:`, levelData.levelName);
 
-        for (const stardustEl of stardustElements) {
+        // Step 1: Build all PositionedObjects up front (no await)
+        const allStardustObjects = stardustElements.map(stardustEl => {
             const coords = stardustEl.coordinates;
             const worldCoords = this.builderToWorld(coords, depth);
             const position = new BABYLON.Vector3(worldCoords.x, Config.PLAYER_HEIGHT, worldCoords.z);
-
-            // Create positioned object for stardust
             const offset = new BABYLON.Vector3(0, 0, 0);
             const rotation = new BABYLON.Vector3(0, 0, 0);
             const stardustObject = new PositionedObject(
@@ -688,11 +688,14 @@ class LevelLoaderManager {
                 true, // Interactive
                 false // Not a clone base
             );
+            return { stardustObject, position };
+        });
 
-            // Load the model
-            await sceneBuilder.loadModel(stardustObject);
+        // Step 2: Load all models in parallel
+        await Promise.all(allStardustObjects.map(({ stardustObject }) => sceneBuilder.loadModel(stardustObject)));
 
-            // Create microevent for stardust pickup
+        // Step 3: Register microevents (sync, no await needed)
+        for (const { stardustObject, position } of allStardustObjects) {
             const stardustEvent = MicroEventFactory.generatePickup(
                 "Stardust Pickup",
                 "You grasped the iridescent glow of a stardust fragment!",
@@ -702,25 +705,8 @@ class LevelLoaderManager {
                 stardustObject
             );
 
-            // Register the microevent
             if (microEventManager) {
-                /**
-                this.stardustCreationDebugLog(`Registering stardust microevent for levelId: ${levelId}`);
-                this.stardustCreationDebugLog(`Event location:`, position);
-                this.stardustCreationDebugLog(`PositionedObject model loaded:`, !!stardustObject.model);
-                this.stardustCreationDebugLog(`MicroEvent structure:`, {
-                    category: stardustEvent.microEventCategory,
-                    value: stardustEvent.microEventValue,
-                    hasPositionedObject: !!stardustEvent.microEventPositionedObject,
-                    location: stardustEvent.microEventLocation
-                });
-*/
-                // Use the actual levelDataComposite if available, otherwise create a minimal structure
                 const levelDataForRegistration = activeGameplayLevel?.levelDataComposite || { levelHeaderData: { levelId: levelId } };
-
-                /**
-                this.stardustCreationDebugLog(`Using levelDataForRegistration with levelId:`, levelDataForRegistration.levelHeaderData?.levelId);
-                */
                 microEventManager.addNewMicroEventToLevel(
                     levelDataForRegistration,
                     stardustEvent
@@ -772,12 +758,11 @@ class LevelLoaderManager {
 
         const levelId = activeGameplayLevel?.levelDataComposite?.levelHeaderData?.levelId || levelData.levelName || "level0";
 
-        for (const spikeTrapEl of spikeTrapElements) {
+        // Step 1: Build all PositionedObjects up front (no await)
+        const allSpikeObjects = spikeTrapElements.map(spikeTrapEl => {
             const coords = spikeTrapEl.coordinates;
             const worldCoords = this.builderToWorld(coords, depth);
             const position = new BABYLON.Vector3(worldCoords.x, Config.PLAYER_HEIGHT, worldCoords.z);
-
-            // Create positioned object for spike trap
             const offset = new BABYLON.Vector3(0, 0, 0);
             const rotation = new BABYLON.Vector3(0, 0, 0);
             const spikeTrapObject = new PositionedObject(
@@ -793,11 +778,14 @@ class LevelLoaderManager {
                 true, // Interactive
                 false // Not a clone base
             );
+            return { spikeTrapObject, position };
+        });
 
-            // Load the model
-            await sceneBuilder.loadModel(spikeTrapObject);
+        // Step 2: Load all models in parallel
+        await Promise.all(allSpikeObjects.map(({ spikeTrapObject }) => sceneBuilder.loadModel(spikeTrapObject)));
 
-            // Create microevent for spike trap damage
+        // Step 3: Register microevents (sync, no await needed)
+        for (const { spikeTrapObject, position } of allSpikeObjects) {
             const spikeTrapEvent = MicroEventFactory.generateDamage(
                 "Spike Trap",
                 "Sharp spikes pierce through your defenses!",
@@ -810,7 +798,6 @@ class LevelLoaderManager {
             // Initialize flag for movement-based damage system
             spikeTrapEvent.hasTriggeredThisMovement = false;
 
-            // Register the microevent
             if (microEventManager) {
                 const levelDataForRegistration = activeGameplayLevel?.levelDataComposite || { levelHeaderData: { levelId: levelId } };
                 microEventManager.addNewMicroEventToLevel(
@@ -842,12 +829,11 @@ class LevelLoaderManager {
 
         //this.heartCreationDebugLog(`Creating ${heartElements.length} hearts for levelId: ${levelId}`);
 
-        for (const heartEl of heartElements) {
+        // Step 1: Build all PositionedObjects up front (no await)
+        const allHeartObjects = heartElements.map(heartEl => {
             const coords = heartEl.coordinates;
             const worldCoords = this.builderToWorld(coords, depth);
             const position = new BABYLON.Vector3(worldCoords.x, Config.PLAYER_HEIGHT, worldCoords.z);
-
-            // Create positioned object for heart
             const offset = new BABYLON.Vector3(0, 0, 0);
             const rotation = new BABYLON.Vector3(0, 0, 0);
             const heartObject = new PositionedObject(
@@ -863,11 +849,14 @@ class LevelLoaderManager {
                 true, // Interactive
                 false // Not a clone base
             );
+            return { heartObject, position };
+        });
 
-            // Load the model
-            await sceneBuilder.loadModel(heartObject);
+        // Step 2: Load all models in parallel
+        await Promise.all(allHeartObjects.map(({ heartObject }) => sceneBuilder.loadModel(heartObject)));
 
-            // Create microevent for heart pickup
+        // Step 3: Register microevents (sync, no await needed)
+        for (const { heartObject, position } of allHeartObjects) {
             const heartEvent = MicroEventFactory.generatePickup(
                 "Heart Pickup",
                 "You absorbed the healing energy of a radiant heart!",
@@ -877,7 +866,6 @@ class LevelLoaderManager {
                 heartObject
             );
 
-            // Register the microevent
             if (microEventManager) {
                 const levelDataForRegistration = activeGameplayLevel?.levelDataComposite || { levelHeaderData: { levelId: levelId } };
                 microEventManager.addNewMicroEventToLevel(
@@ -912,12 +900,11 @@ class LevelLoaderManager {
             console.log(`[KEY CREATION] Creating ${keyElements.length} key pickups for levelId: ${levelId}`);
         }
 
-        for (const keyEl of keyElements) {
+        // Step 1: Build all PositionedObjects up front (no await)
+        const allKeyObjects = keyElements.map(keyEl => {
             const coords = keyEl.coordinates;
             const worldCoords = this.builderToWorld(coords, depth);
             const position = new BABYLON.Vector3(worldCoords.x, Config.PLAYER_HEIGHT, worldCoords.z);
-
-            // Create positioned object for key
             const offset = new BABYLON.Vector3(0, 0, 0);
             const rotation = new BABYLON.Vector3(0, 0, 0);
             const keyObject = new PositionedObject(
@@ -933,17 +920,20 @@ class LevelLoaderManager {
                 true, // Interactive
                 false // Not a clone base
             );
+            return { keyObject, position };
+        });
 
-            // Load the model
-            if (Config.LOGGING_KEY_CREATION || KEY_CREATION_DEBUG) {
-                console.log(`[KEY CREATION] Loading model for key at position (${worldCoords.x}, ${Config.PLAYER_HEIGHT}, ${worldCoords.z})`);
-            }
-            await sceneBuilder.loadModel(keyObject);
-            if (Config.LOGGING_KEY_CREATION || KEY_CREATION_DEBUG) {
-                console.log(`[KEY CREATION] Model loaded successfully. keyObject.model exists: ${!!keyObject.model}`);
-            }
+        // Step 2: Load all models in parallel
+        if (Config.LOGGING_KEY_CREATION || KEY_CREATION_DEBUG) {
+            console.log(`[KEY CREATION] Loading models for ${allKeyObjects.length} keys in parallel`);
+        }
+        await Promise.all(allKeyObjects.map(({ keyObject }) => sceneBuilder.loadModel(keyObject)));
+        if (Config.LOGGING_KEY_CREATION || KEY_CREATION_DEBUG) {
+            console.log(`[KEY CREATION] All key models loaded`);
+        }
 
-            // Create microevent for key pickup
+        // Step 3: Register microevents (sync, no await needed)
+        for (const { keyObject, position } of allKeyObjects) {
             const keyEvent = MicroEventFactory.generatePickup(
                 "Key Pickup",
                 "You collected a glowing key fragment!",
@@ -953,7 +943,6 @@ class LevelLoaderManager {
                 keyObject
             );
 
-            // Register the microevent
             if (microEventManager) {
                 const levelDataForRegistration = activeGameplayLevel?.levelDataComposite || { levelHeaderData: { levelId: levelId } };
                 microEventManager.addNewMicroEventToLevel(

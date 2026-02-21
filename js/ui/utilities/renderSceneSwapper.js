@@ -98,6 +98,7 @@ class RenderSceneSwapper {
 
       // Dispose the scene itself
       existingScene.dispose();
+      ModelLoader.clearCache();   // prevent stale disposed-scene mesh references
       delete this.allStoredScenes["BaseGameScene"];
       delete this.sceneBuilders["BaseGameScene"];
     }
@@ -259,26 +260,20 @@ class RenderSceneSwapper {
   }
 
   /**
-   * Renders both the active game and UI scenes. It assumes that
-   * the active game scene uses a specific camera (baseGameCamera).
-   * Optimized to reduce per-frame overhead.
+   * Renders both the active game and UI scenes.
+   * Throttled via RenderController — skips frames when nothing is animating.
    */
   render() {
-    // Render game scene if available
-    if (this.activeGameScene) {
-      // Only ensure camera if it's not already set (optimization)
-      if (!this.activeGameScene.activeCamera) {
-        this.ensureCamera(this.activeGameScene);
-      }
+    const rc = window.RenderController;
+    const renderGame = !rc || rc.shouldRenderGameScene();
+    const renderUI   = !rc || rc.shouldRenderUIScene();
+
+    if (renderGame && this.activeGameScene) {
+      if (!this.activeGameScene.activeCamera) this.ensureCamera(this.activeGameScene);
       this.activeGameScene.render();
     }
-
-    // Render the UI scene
-    if (this.activeUIScene) {
-      // Only ensure camera if it's not already set (optimization)
-      if (!this.activeUIScene.activeCamera) {
-        this.ensureCamera(this.activeUIScene);
-      }
+    if (renderUI && this.activeUIScene) {
+      if (!this.activeUIScene.activeCamera) this.ensureCamera(this.activeUIScene);
       this.activeUIScene.render();
     }
   }

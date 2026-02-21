@@ -300,6 +300,8 @@ class LevelProfileManifest {
         }
     }
 
+    static _levelCache = new Map();
+
     /**
      * Retrieves the full URL for a level's data file
      * @param {string} levelId - The unique identifier for the level
@@ -325,7 +327,7 @@ class LevelProfileManifest {
             console.warn(`[LEVEL PROFILE MANIFEST] Level profile not found: ${levelId}`);
             return null;
         }
-        return { ...profile }; // Return a copy to prevent modification
+        return profile;
     }
 
     /**
@@ -365,12 +367,16 @@ class LevelProfileManifest {
      * @throws {Error} If the level is not found or fetch fails
      */
     static async fetchLevelById(levelId) {
+        if (this._levelCache.has(levelId)) {
+            return this._levelCache.get(levelId);
+        }
         const url = this.getLevelUrl(levelId);
         if (!url) {
             throw new Error(`Level not found in manifest: ${levelId}`);
         }
-        console.log(`[LEVEL PROFILE MANIFEST] Fetching level ${levelId} from ${url}`);
-        return await this.fetchLevelJsonFromUrl(url);
+        const data = await this.fetchLevelJsonFromUrl(url);
+        this._levelCache.set(levelId, data);
+        return data;
     }
 
     /**

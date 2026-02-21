@@ -182,6 +182,7 @@ class ScriptManifest {
   ];
 
   static minorUtilityScripts = [
+    "/utilities/misc/renderController.js",
     "/utilities/misc/chadUtilities.js",
     "/utilities/misc/timestampGenie.js",
     "/utilities/misc/randomAssist.js",
