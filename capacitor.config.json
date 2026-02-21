@@ -1,5 +1,8 @@
 {
   "appId": "com.peterpietri.radiancerising",
   "appName": "Radiance Rising",
-  "webDir": "js"
+  "webDir": "js",
+  "ios": {
+    "limitsNavigationsToAppBoundDomains": true
+  }
 }
