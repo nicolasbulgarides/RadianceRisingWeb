@@ -266,13 +266,14 @@ class RenderSceneSwapper {
   render() {
     const rc = window.RenderController;
     const renderGame = !rc || rc.shouldRenderGameScene();
-    const renderUI   = !rc || rc.shouldRenderUIScene();
 
+    // Game scene is throttled — skip frames when nothing is animating
     if (renderGame && this.activeGameScene) {
       if (!this.activeGameScene.activeCamera) this.ensureCamera(this.activeGameScene);
       this.activeGameScene.render();
     }
-    if (renderUI && this.activeUIScene) {
+    // UI scene always renders — it is cheap 2D GUI and must never flicker
+    if (this.activeUIScene) {
       if (!this.activeUIScene.activeCamera) this.ensureCamera(this.activeUIScene);
       this.activeUIScene.render();
     }
