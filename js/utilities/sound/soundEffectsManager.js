@@ -233,17 +233,6 @@ class SoundEffectsManager {
         }
       );
 
-      // Diagnostic: Check what audio source Babylon created
-      setTimeout(() => {
-        /** 
-        soundEffectsLog(`[SOUND] Diagnostic for ${soundName}:`, {
-          hasAudioBuffer: !!sound._audioBuffer,
-          hasHtmlAudio: !!sound._htmlAudioElement,
-          streaming: sound._streaming,
-          callbackFired: callbackFired
-        });*/
-      }, 500);
-
       // WORKAROUND: If Babylon doesn't create audio source, try manual fallback after 2 seconds
       setTimeout(() => {
         if (!callbackFired) {

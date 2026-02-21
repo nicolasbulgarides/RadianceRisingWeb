@@ -319,12 +319,19 @@ class MusicManager {
 
       //  console.log("[MUSIC] Waiting for sound to load and ready callback to fire...");
 
+      // Cancel any interval left over from a previous playSong call
+      if (this._currentCheckInterval) {
+        clearInterval(this._currentCheckInterval);
+        this._currentCheckInterval = null;
+      }
+
       // Add periodic checks to see the sound loading progress
       let checkCount = 0;
       const checkInterval = setInterval(() => {
         // Stop checking if a newer playSong call has taken over.
         if (this._songCallId !== thisSongCallId) {
           clearInterval(checkInterval);
+          this._currentCheckInterval = null;
           return;
         }
 
@@ -355,15 +362,19 @@ class MusicManager {
 
             if (isReady || checkCount >= 10) {
               clearInterval(checkInterval);
+              this._currentCheckInterval = null;
             }
           } else {
             clearInterval(checkInterval);
+            this._currentCheckInterval = null;
           }
         } catch (checkError) {
           console.warn("[MUSIC] Error during sound check:", checkError.message);
           clearInterval(checkInterval);
+          this._currentCheckInterval = null;
         }
       }, 500);
+      this._currentCheckInterval = checkInterval;
 
     } catch (error) {
       console.error("[MUSIC] Failed to create sound for", songName, ":", error);

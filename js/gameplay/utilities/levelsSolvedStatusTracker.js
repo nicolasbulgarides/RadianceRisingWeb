@@ -57,16 +57,22 @@ class LevelsSolvedStatusTracker {
     }
 
     /**
-     * Saves completed levels to localStorage
+     * Saves completed levels to localStorage.
+     * Debounced via microtask: rapid consecutive calls coalesce into one write.
      */
     saveCompletedLevels() {
-        try {
-            const completedArray = Array.from(this.completedLevels);
-            localStorage.setItem('radianceRising_completedLevels', JSON.stringify(completedArray));
-            if (this.DEBUG_MODE) console.log(`[LevelsSolvedStatusTracker] Saved ${this.completedLevels.size} completed levels to storage`);
-        } catch (error) {
-            console.error("[LevelsSolvedStatusTracker] Failed to save completed levels to storage:", error);
-        }
+        if (this._saveCompletedPending) return;
+        this._saveCompletedPending = true;
+        Promise.resolve().then(() => {
+            this._saveCompletedPending = false;
+            try {
+                const completedArray = Array.from(this.completedLevels);
+                localStorage.setItem('radianceRising_completedLevels', JSON.stringify(completedArray));
+                if (this.DEBUG_MODE) console.log(`[LevelsSolvedStatusTracker] Saved ${this.completedLevels.size} completed levels to storage`);
+            } catch (error) {
+                console.error("[LevelsSolvedStatusTracker] Failed to save completed levels to storage:", error);
+            }
+        });
     }
 
     /**
@@ -87,16 +93,22 @@ class LevelsSolvedStatusTracker {
     }
 
     /**
-     * Saves experience granted levels to localStorage
+     * Saves experience granted levels to localStorage.
+     * Debounced via microtask: rapid consecutive calls coalesce into one write.
      */
     saveExperienceGrantedLevels() {
-        try {
-            const experienceArray = Array.from(this.experienceGrantedLevels);
-            localStorage.setItem('radianceRising_experienceGrantedLevels', JSON.stringify(experienceArray));
-            if (this.DEBUG_MODE) console.log(`[LevelsSolvedStatusTracker] Saved ${this.experienceGrantedLevels.size} experience granted levels to storage`);
-        } catch (error) {
-            console.error("[LevelsSolvedStatusTracker] Failed to save experience granted levels to storage:", error);
-        }
+        if (this._saveExperiencePending) return;
+        this._saveExperiencePending = true;
+        Promise.resolve().then(() => {
+            this._saveExperiencePending = false;
+            try {
+                const experienceArray = Array.from(this.experienceGrantedLevels);
+                localStorage.setItem('radianceRising_experienceGrantedLevels', JSON.stringify(experienceArray));
+                if (this.DEBUG_MODE) console.log(`[LevelsSolvedStatusTracker] Saved ${this.experienceGrantedLevels.size} experience granted levels to storage`);
+            } catch (error) {
+                console.error("[LevelsSolvedStatusTracker] Failed to save experience granted levels to storage:", error);
+            }
+        });
     }
 
     /**

@@ -55,6 +55,15 @@ class RadiantEngineManager {
       FundamentalSystemBridge["babylonEngine"].resize();
     });
 
+    // WebGL context loss/restore — prevents unhandled errors when app backgrounds on mobile
+    engine.onContextLostObservable.add(() => {
+      console.warn("[Engine] WebGL context lost");
+    });
+    engine.onContextRestoredObservable.add(() => {
+      console.log("[Engine] WebGL context restored");
+      engine.resize();
+    });
+
     // Audio unlock
     Config.addAudioUnlock();
   }

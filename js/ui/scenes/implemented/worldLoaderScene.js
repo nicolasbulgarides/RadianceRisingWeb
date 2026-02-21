@@ -71,9 +71,10 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
         }
 
         // If not available yet, set up a periodic check
-        const checkInterval = setInterval(() => {
+        this._initCheckInterval = setInterval(() => {
             if (FundamentalSystemBridge["sequentialLevelLoader"]) {
-                clearInterval(checkInterval);
+                clearInterval(this._initCheckInterval);
+                this._initCheckInterval = null;
                 this.createWorldSpheres();
                 this.setupClickHandlers();
                 // Ensure camera is set after initialization
@@ -82,9 +83,11 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
         }, 100); // Check every 100ms
 
         // Safety timeout after 10 seconds
-        setTimeout(() => {
+        this._initSafetyTimeout = setTimeout(() => {
+            this._initSafetyTimeout = null;
             if (!this.worldSpheresInitialized) {
-                clearInterval(checkInterval);
+                clearInterval(this._initCheckInterval);
+                this._initCheckInterval = null;
                 console.error("[WorldLoaderScene] Sequential level loader still not available after 10 seconds - creating spheres with fallback");
                 this.createWorldSpheresWithFallback();
                 this.setupClickHandlers();
@@ -914,6 +917,16 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
      * Cleanup method to dispose of resources
      */
     dispose() {
+        // Clear initialization timers if scene is disposed before they fire
+        if (this._initCheckInterval) {
+            clearInterval(this._initCheckInterval);
+            this._initCheckInterval = null;
+        }
+        if (this._initSafetyTimeout) {
+            clearTimeout(this._initSafetyTimeout);
+            this._initSafetyTimeout = null;
+        }
+
         // Remove animation observers
         if (this.glowAnimationObserver) {
             this.onBeforeRenderObservable.remove(this.glowAnimationObserver);

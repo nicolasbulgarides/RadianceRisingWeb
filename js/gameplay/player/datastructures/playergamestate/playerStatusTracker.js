@@ -274,16 +274,22 @@ class PlayerStatusTracker {
   }
 
   /**
-   * Save current experience to localStorage
+   * Save current experience to localStorage.
+   * Debounced via microtask: rapid consecutive calls coalesce into one write.
    */
   saveExperienceToStorage() {
-    try {
-      if (this.playerStatus) {
-        localStorage.setItem('radianceRising_playerExperience', this.playerStatus.currentExperience.toString());
+    if (this._savePending) return;
+    this._savePending = true;
+    Promise.resolve().then(() => {
+      this._savePending = false;
+      try {
+        if (this.playerStatus) {
+          localStorage.setItem('radianceRising_playerExperience', this.playerStatus.currentExperience.toString());
+        }
+      } catch (error) {
+        console.error("[PlayerStatusTracker] Failed to save experience to storage:", error);
       }
-    } catch (error) {
-      console.error("[PlayerStatusTracker] Failed to save experience to storage:", error);
-    }
+    });
   }
 
   /**
