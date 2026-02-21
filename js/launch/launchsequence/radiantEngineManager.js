@@ -48,7 +48,7 @@ class RadiantEngineManager {
     // Cap DPR: iOS renders at 1x (1/9th native pixel count), Android at 1.5x
     const dpr = window.devicePixelRatio || 1;
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    const maxDPR = isIOS ? 1.0 : 1.5;
+    const maxDPR = isIOS ? 1.25 : 1.5;
     engine.setHardwareScalingLevel(1 / Math.min(dpr, maxDPR));
 
     window.addEventListener("resize", () => {
