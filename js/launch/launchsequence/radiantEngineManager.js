@@ -45,9 +45,11 @@ class RadiantEngineManager {
     // Performance optimizations
     engine.autoClearDepthAndStencil = false;
 
-    // CRITICAL: Hardware scaling based on device pixel ratio, capped at 1.5x to save GPU on high-DPR devices
+    // Cap DPR: iOS renders at 1x (1/9th native pixel count), Android at 1.5x
     const dpr = window.devicePixelRatio || 1;
-    engine.setHardwareScalingLevel(1 / Math.min(dpr, 1.5));
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const maxDPR = isIOS ? 1.0 : 1.5;
+    engine.setHardwareScalingLevel(1 / Math.min(dpr, maxDPR));
 
     window.addEventListener("resize", () => {
       FundamentalSystemBridge["babylonEngine"].resize();
