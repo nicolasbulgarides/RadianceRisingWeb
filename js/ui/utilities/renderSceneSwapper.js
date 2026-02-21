@@ -264,15 +264,13 @@ class RenderSceneSwapper {
    * Throttled via RenderController — skips frames when nothing is animating.
    */
   render() {
-    const rc = window.RenderController;
-    const renderGame = !rc || rc.shouldRenderGameScene();
-
-    // Game scene is throttled — skip frames when nothing is animating
-    if (renderGame && this.activeGameScene) {
+    // Both scenes render every frame. The game scene is kept cheap when idle via frozen
+    // materials, thin instances, and stopped animations — skipping renders entirely causes
+    // the canvas to clear (WebGL does not preserve the last frame without preserveDrawingBuffer).
+    if (this.activeGameScene) {
       if (!this.activeGameScene.activeCamera) this.ensureCamera(this.activeGameScene);
       this.activeGameScene.render();
     }
-    // UI scene always renders — it is cheap 2D GUI and must never flicker
     if (this.activeUIScene) {
       if (!this.activeUIScene.activeCamera) this.ensureCamera(this.activeUIScene);
       this.activeUIScene.render();
