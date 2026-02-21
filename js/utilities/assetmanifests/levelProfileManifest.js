@@ -53,17 +53,63 @@ class LevelProfileManifest {
                 "UP",
                 "RIGHT"]
         },
-        level0Test2: {
-            levelId: "level0Test2",
-            filename: "level0Test2.txt",
+        levelVoyage3: {
+            levelId: "levelVoyage3",
+            filename: "levelVoyage3B.txt",
             perfectSolutionMovementCount: 12,
-            obstacles: ["mountain"]
+            obstacles: ["mountain", "spike"],
+            solutionPath: [
+                "DOWN", "RIGHT", "UP", "RIGHT", "UP", "LEFT", "DOWN", "LEFT", "DOWN", "RIGHT", "UP", "RIGHT"]
         },
-        level2Test: {
-            levelId: "level2Test",
-            filename: "level2Test.txt",
+        levelVoyage4: {
+            levelId: "levelVoyage4",
+            filename: "levelVoyage4.txt",
+            perfectSolutionMovementCount: 11,
+            obstacles: ["mountain", "spike"],
+            solutionPath: [
+                "RIGHT", "DOWN", "LEFT", "UP", "LEFT", "UP", "LEFT", "UP", "RIGHT", "DOWN", "LEFT"]
+        },
+        levelVoyage5: {
+            levelId: "levelVoyage5",
+            filename: "levelVoyage5B.txt",
+            perfectSolutionMovementCount: 13,
+            obstacles: ["mountain", "spike"],
+            solutionPath: ["DOWN", "UP", "RIGHT", "DOWN", "RIGHT", "DOWN", "LEFT", "DOWN", "LEFT", "UP", "RIGHT", "UP", "LEFT"]
+        },
+        levelVoyage6: {
+            levelId: "levelVoyage6",
+            filename: "levelVoyage6.txt",
+            perfectSolutionMovementCount: 13,
+            obstacles: ["mountain", "spike"],
+            solutionPath: ["DOWN", "LEFT", "UP", "RIGHT", "UP", "LEFT", "DOWN", "LEFT", "DOWN", "LEFT", "DOWN", "RIGHT", "DOWN"]
+        },
+        levelVoyage7: {
+            levelId: "levelVoyage7",
+            filename: "levelVoyage7.txt",
+            perfectSolutionMovementCount: 12,
+            obstacles: ["mountain", "spike"],
+            solutionPath: ["UP", "RIGHT", "UP", "LEFT", "DOWN", "RIGHT", "DOWN", "LEFT", "UP", "LEFT", "RIGHT", "DOWN"]
+        },
+        levelVoyage8: {
+            levelId: "levelVoyage8",
+            filename: "levelVoyage8.txt",
+            perfectSolutionMovementCount: 9,
+            obstacles: ["mountain", "spike"],
+            solutionPath: ["DOWN", "RIGHT", "UP", "LEFT", "UP", "RIGHT", "DOWN", "LEFT", "DOWN"]
+        },
+        levelVoyage9: {
+            levelId: "levelVoyage9",
+            filename: "levelVoyage9.txt",
+            perfectSolutionMovementCount: 13,
+            obstacles: ["mountain", "spike"],
+            solutionPath: ["DOWN", "LEFT", "UP", "DOWN", "RIGHT", "UP", "LEFT", "DOWN", "LEFT", "DOWN", "RIGHT", "UP", "DOWN"]
+        },
+        levelVoyage10: {
+            levelId: "levelVoyage10",
+            filename: "levelVoyage10.txt",
             perfectSolutionMovementCount: 15,
-            obstacles: ["mountain"]
+            obstacles: ["mountain", "spike"],
+            solutionPath: ["UP", "LEFT", "DOWN", "UP", "LEFT", "DOWN", "RIGHT", "DOWN", "RIGHT", "DOWN", "RIGHT", "DOWN", "UP", "RIGHT", "DOWN"]
         },
         level3Spikes: {
             levelId: "level3Spikes",

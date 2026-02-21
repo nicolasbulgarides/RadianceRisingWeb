@@ -66,11 +66,19 @@ class ConstellationStarToLevelManifest {
         // ════════════════════════════════════════════════════════════════════
         const ursaMajorStars = [
             "Dubhe", "Merak", "Phecda", "Megrez", "Alioth",
-            "Mizar", "Alkaid", "Talitha", "Tania Bor.", "Muscida",
+            "Mizar", "Alkaid", "Talitha", "Tania-Borealis", "Muscida",
         ];
         m["ursa_major"] = {
-            0: real("levelVoyage1", "Dubhe"), //betelgeuse
-            1: real("levelVoyage2", "Merak"),      // Bellatrix
+            0: real("levelVoyage1", "Dubhe"),
+            1: real("levelVoyage2", "Merak"),
+            2: real("levelVoyage3", "Phecda"),
+            3: real("levelVoyage4", "Megrez"),
+            4: real("levelVoyage5", "Alioth"),
+            5: real("levelVoyage6", "Mizar"),
+            6: real("levelVoyage7", "Alkaid"),
+            7: real("levelVoyage8", "Talitha"),
+            8: real("levelVoyage9", "Tania-Borealis"),
+            9: real("levelVoyage10", "Muscida"),
         };
         ursaMajorStars.forEach((name, i) => {
             if (!m["ursa_major"][i]) m["ursa_major"][i] = ph("ursa_major", i, name, "Ursa Major");

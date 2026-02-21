@@ -98,7 +98,7 @@ ConstellationManifest.register(new Constellation({
         { id: 5, name: "Mizar", x: 0.28, y: 0.12 }, // handle star 2 (with Alcor)
         { id: 6, name: "Alkaid", x: 0.10, y: 0.22 }, // handle tip / tail
         { id: 7, name: "Talitha", x: 0.78, y: 0.62 }, // front left leg pair
-        { id: 8, name: "Tania Bor.", x: 0.68, y: 0.75 }, // middle left leg
+        { id: 8, name: "Tania-Borealis", x: 0.68, y: 0.75 }, // middle left leg
         { id: 9, name: "Muscida", x: 0.88, y: 0.40 }, // nose / snout
     ],
     lines: [
