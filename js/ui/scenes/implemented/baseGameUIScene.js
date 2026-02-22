@@ -1291,8 +1291,8 @@ class BaseGameUIScene extends UISceneGeneralized {
    */
   createTopSettingsButton() {
     const btn = new BABYLON.GUI.Rectangle("topSettingsButton");
-    btn.width               = "84px";
-    btn.height              = "28px";
+    btn.width               = "126px";
+    btn.height              = "42px";
     btn.background          = "#2d1050";
     btn.color               = "#7b4fd4";
     btn.thickness           = 1;
@@ -1304,7 +1304,7 @@ class BaseGameUIScene extends UISceneGeneralized {
 
     const lbl = new BABYLON.GUI.TextBlock("topSettingsLabel", "\u2699 Settings");
     lbl.color    = "#cccccc";
-    lbl.fontSize = 12;
+    lbl.fontSize = 18;
     btn.addControl(lbl);
 
     this.topUIControlsContainer.addControl(btn);

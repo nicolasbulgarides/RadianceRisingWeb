@@ -132,7 +132,7 @@ class SettingsPanel {
     // ── Title ──────────────────────────────────────────────────────────────
     const title = new BABYLON.GUI.TextBlock("sp_title", "Settings");
     title.color                   = "#ffffff";
-    title.fontSize                = 20;
+    title.fontSize                = 30;
     title.fontWeight              = "bold";
     title.height                  = "30px";
     title.top                     = "-200px";
@@ -164,7 +164,7 @@ class SettingsPanel {
     panel.addControl(closeBtn);
     const closeLbl = new BABYLON.GUI.TextBlock("sp_close_lbl", "\u2715");
     closeLbl.color    = "#cccccc";
-    closeLbl.fontSize = 13;
+    closeLbl.fontSize = 20;
     closeBtn.addControl(closeLbl);
     closeBtn.onPointerClickObservable.add(() => dismiss());
 
@@ -206,7 +206,7 @@ class SettingsPanel {
     panel.addControl(muteBtn);
     const muteLbl = new BABYLON.GUI.TextBlock("sp_mute_lbl", isMuted ? "Unmute All" : "Mute All");
     muteLbl.color    = "#ffffff";
-    muteLbl.fontSize = 13;
+    muteLbl.fontSize = 20;
     muteBtn.addControl(muteLbl);
     muteBtn.onPointerClickObservable.add(() => {
       isMuted            = !isMuted;
@@ -233,7 +233,7 @@ class SettingsPanel {
     panel.addControl(resetBtn);
     const resetLbl = new BABYLON.GUI.TextBlock("sp_reset_lbl", "Reset Progress");
     resetLbl.color      = "#ffffff";
-    resetLbl.fontSize   = 14;
+    resetLbl.fontSize   = 21;
     resetLbl.fontWeight = "bold";
     resetBtn.addControl(resetLbl);
     resetBtn.onPointerClickObservable.add(() => {
@@ -249,7 +249,7 @@ class SettingsPanel {
   static _addSectionLabel(panel, text, topPx) {
     const lbl = new BABYLON.GUI.TextBlock("sp_lbl_" + topPx, text);
     lbl.color                   = "#cccccc";
-    lbl.fontSize                = 13;
+    lbl.fontSize                = 20;
     lbl.height                  = "20px";
     lbl.width                   = "280px";
     lbl.top                     = topPx + "px";
@@ -280,7 +280,7 @@ class SettingsPanel {
 
     const valTxt = new BABYLON.GUI.TextBlock("sp_val_" + name, Math.round(initialValue).toString());
     valTxt.color                   = "#ffffff";
-    valTxt.fontSize                = 13;
+    valTxt.fontSize                = 20;
     valTxt.width                   = "36px";
     valTxt.height                  = "20px";
     valTxt.top                     = topPx + "px";
@@ -318,7 +318,7 @@ class SettingsPanel {
 
     const rowLbl = new BABYLON.GUI.TextBlock("sp_rowlbl_" + name, labelText);
     rowLbl.color                   = "#cccccc";
-    rowLbl.fontSize                = 13;
+    rowLbl.fontSize                = 20;
     rowLbl.width                   = "200px";
     rowLbl.height                  = "36px";
     rowLbl.horizontalAlignment     = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
@@ -337,7 +337,7 @@ class SettingsPanel {
 
     const toggleLbl = new BABYLON.GUI.TextBlock("sp_togglelbl_" + name, isOn ? "ON" : "OFF");
     toggleLbl.color    = "#ffffff";
-    toggleLbl.fontSize = 13;
+    toggleLbl.fontSize = 20;
     toggleBtn.addControl(toggleLbl);
 
     toggleBtn.onPointerClickObservable.add(() => {
@@ -385,7 +385,7 @@ class SettingsPanel {
 
     const msg = new BABYLON.GUI.TextBlock("sp_cc_msg", "Are you sure?\nThis cannot be undone.");
     msg.color                   = "#cccccc";
-    msg.fontSize                = 13;
+    msg.fontSize                = 20;
     msg.height                  = "48px";
     msg.top                     = "-38px";
     msg.textWrapping            = true;
@@ -405,7 +405,7 @@ class SettingsPanel {
     cpanel.addControl(cancelBtn);
     const cancelLbl = new BABYLON.GUI.TextBlock("sp_cc_cancel_lbl", "Cancel");
     cancelLbl.color    = "#ffffff";
-    cancelLbl.fontSize = 13;
+    cancelLbl.fontSize = 20;
     cancelBtn.addControl(cancelLbl);
     cancelBtn.onPointerClickObservable.add(() => closeCC());
 
@@ -422,7 +422,7 @@ class SettingsPanel {
     cpanel.addControl(confirmBtn);
     const confirmLbl = new BABYLON.GUI.TextBlock("sp_cc_confirm_lbl", "Confirm");
     confirmLbl.color      = "#ffffff";
-    confirmLbl.fontSize   = 13;
+    confirmLbl.fontSize   = 20;
     confirmLbl.fontWeight = "bold";
     confirmBtn.addControl(confirmLbl);
     confirmBtn.onPointerClickObservable.add(() => {
