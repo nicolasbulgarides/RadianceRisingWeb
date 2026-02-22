@@ -231,7 +231,7 @@ class SettingsPanel {
     resetBtn.cornerRadius = 4;
     resetBtn.top          = "75px";
     panel.addControl(resetBtn);
-    const resetLbl = new BABYLON.GUI.TextBlock("sp_reset_lbl", "Reset Progress");
+    const resetLbl = new BABYLON.GUI.TextBlock("sp_reset_lbl", "Reset All Levels");
     resetLbl.color      = "#ffffff";
     resetLbl.fontSize   = 21;
     resetLbl.fontWeight = "bold";
@@ -375,19 +375,19 @@ class SettingsPanel {
     ccOverlay.onPointerClickObservable.add(() => closeCC());
 
     const cpanel = new BABYLON.GUI.Rectangle("sp_cc_panel");
-    cpanel.width        = "300px";
-    cpanel.height       = "160px";
+    cpanel.width        = "320px";
+    cpanel.height       = "200px";
     cpanel.background   = "#1a0a2e";
     cpanel.color        = "#7b4fd4";
     cpanel.thickness    = 2;
     cpanel.cornerRadius = 12;
     cc.addControl(cpanel);
 
-    const msg = new BABYLON.GUI.TextBlock("sp_cc_msg", "Are you sure?\nThis cannot be undone.");
+    const msg = new BABYLON.GUI.TextBlock("sp_cc_msg", "Reset all level and constellation\nprogress for the full game?\nThis cannot be undone.");
     msg.color                   = "#cccccc";
     msg.fontSize                = 20;
-    msg.height                  = "48px";
-    msg.top                     = "-38px";
+    msg.height                  = "72px";
+    msg.top                     = "-52px";
     msg.textWrapping            = true;
     msg.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
     cpanel.addControl(msg);
@@ -399,7 +399,7 @@ class SettingsPanel {
     cancelBtn.color               = "#7b4fd4";
     cancelBtn.thickness           = 1;
     cancelBtn.cornerRadius        = 4;
-    cancelBtn.top                 = "38px";
+    cancelBtn.top                 = "55px";
     cancelBtn.left                = "-62px";
     cancelBtn.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
     cpanel.addControl(cancelBtn);
@@ -416,7 +416,7 @@ class SettingsPanel {
     confirmBtn.color               = "transparent";
     confirmBtn.thickness           = 0;
     confirmBtn.cornerRadius        = 4;
-    confirmBtn.top                 = "38px";
+    confirmBtn.top                 = "55px";
     confirmBtn.left                = "62px";
     confirmBtn.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
     cpanel.addControl(confirmBtn);
