@@ -83,8 +83,7 @@ class SettingsPanel {
 
   static _buildPanel(adt) {
     const vols           = SettingsPanel._readVolumes();
-    const isMutedInitial = localStorage.getItem("radiance_muteAll")    === "true";
-    const showStrokesInit= localStorage.getItem("radiance_showStrokes") !== "false"; // default true
+    const isMutedInitial = localStorage.getItem("radiance_muteAll") === "true";
 
     // Outer container — single node whose alpha we animate for fade-in/out.
     const container = new BABYLON.GUI.Rectangle("sp_container");
@@ -222,13 +221,6 @@ class SettingsPanel {
       }
     });
 
-    // ── Show Stroke Count toggle ────────────────────────────────────────────
-    // Saves to radiance_showStrokes. Callers should read this key to control
-    // perfectionTrackerText visibility in BaseGameUIScene.updateUIElementVisibility().
-    SettingsPanel._addToggleRow(panel, "showStrokes", 50, "Show Stroke Count", showStrokesInit, (val) => {
-      try { localStorage.setItem("radiance_showStrokes", val ? "true" : "false"); } catch (e) {}
-    });
-
     // ── Reset Progress ──────────────────────────────────────────────────────
     const resetBtn = new BABYLON.GUI.Rectangle("sp_reset_btn");
     resetBtn.width        = "220px";
@@ -237,7 +229,7 @@ class SettingsPanel {
     resetBtn.color        = "transparent";
     resetBtn.thickness    = 0;
     resetBtn.cornerRadius = 4;
-    resetBtn.top          = "120px";
+    resetBtn.top          = "75px";
     panel.addControl(resetBtn);
     const resetLbl = new BABYLON.GUI.TextBlock("sp_reset_lbl", "Reset Progress");
     resetLbl.color      = "#ffffff";

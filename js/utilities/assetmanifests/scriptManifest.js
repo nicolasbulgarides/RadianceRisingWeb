@@ -181,6 +181,7 @@ class ScriptManifest {
   static soundSystemsScripts = [
     "/utilities/sound/soundEffectsManager.js",
     "/utilities/sound/musicManager.js",
+    "/utilities/sound/audioManager.js",
   ];
 
   static minorUtilityScripts = [
