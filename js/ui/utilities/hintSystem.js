@@ -360,16 +360,16 @@ class HintSystem {
     HintSystem._hintPanel = container;
 
     const panel = new BABYLON.GUI.Rectangle("hs_panel");
-    panel.width        = "400px";
-    panel.height       = "170px";
+    panel.width        = "800px";
+    panel.height       = "340px";
     panel.background   = "#1a0a2e";
     panel.color        = "#7b4fd4";
     panel.thickness    = 2;
     panel.cornerRadius = 12;
-    // Position above the d-pad, anchored to the bottom of the screen.
-    panel.verticalAlignment   = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+    // Centered on screen, slightly above the midpoint.
+    panel.verticalAlignment   = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
     panel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-    panel.top = "-215px";
+    panel.top = "-80px";
     container.addControl(panel);
 
     // Tap panel to dismiss early.
@@ -378,26 +378,26 @@ class HintSystem {
     // Hint message — white, centered.
     const msgBlock = new BABYLON.GUI.TextBlock("hs_msg", message);
     msgBlock.color      = "#ffffff";
-    msgBlock.fontSize   = 16;
+    msgBlock.fontSize   = 32;
     msgBlock.fontWeight = "normal";
     msgBlock.textWrapping = true;
     msgBlock.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-    msgBlock.width  = "360px";
-    msgBlock.height = "80px";
-    msgBlock.top    = "-28px";
+    msgBlock.width  = "720px";
+    msgBlock.height = "160px";
+    msgBlock.top    = "-56px";
     panel.addControl(msgBlock);
 
-    // Rotating tip — small, italic, grey.
+    // Rotating tip — italic, grey.
     const tip = HINT_SYSTEM_TIPS[Math.floor(Math.random() * HINT_SYSTEM_TIPS.length)];
     const tipBlock = new BABYLON.GUI.TextBlock("hs_tip", "Tip: " + tip);
     tipBlock.color      = "#888888";
-    tipBlock.fontSize   = 12;
+    tipBlock.fontSize   = 24;
     tipBlock.fontStyle  = "italic";
     tipBlock.textWrapping = true;
     tipBlock.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-    tipBlock.width  = "360px";
-    tipBlock.height = "44px";
-    tipBlock.top    = "54px";
+    tipBlock.width  = "720px";
+    tipBlock.height = "88px";
+    tipBlock.top    = "108px";
     panel.addControl(tipBlock);
 
     // Apply d-pad glow if requested.
@@ -422,20 +422,20 @@ class HintSystem {
     HintSystem._hintPanel = container;
 
     const panel = new BABYLON.GUI.Rectangle("hs_nohints_panel");
-    panel.width  = "300px"; panel.height = "90px";
+    panel.width  = "600px"; panel.height = "180px";
     panel.background = "#1a0a2e"; panel.color = "#7b4fd4";
     panel.thickness = 2; panel.cornerRadius = 12;
-    panel.verticalAlignment   = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+    panel.verticalAlignment   = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
     panel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-    panel.top = "-215px";
+    panel.top = "-80px";
     container.addControl(panel);
     panel.onPointerClickObservable.add(() => HintSystem._dismissPanel());
 
     const msg = new BABYLON.GUI.TextBlock("hs_nohints_msg", "You have no hints remaining.");
-    msg.color = "#cccccc"; msg.fontSize = 16;
+    msg.color = "#cccccc"; msg.fontSize = 32;
     msg.textWrapping = true;
     msg.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-    msg.width = "260px"; msg.height = "60px";
+    msg.width = "520px"; msg.height = "120px";
     panel.addControl(msg);
 
     HintSystem._animateIn(container);
