@@ -60,6 +60,15 @@ class HintSystem {
   static init() {
     HintSystem._loadHintCount();
 
+    // Warn loudly if debug override is active so it is never shipped by accident.
+    if (HintSystem._isDebugMode()) {
+      console.warn(
+        "[HintSystem] \u26A0\uFE0F Debug mode active \u2014 hint count overridden to " +
+        Config.HintDebuggingAdmin.overrideHintCount +
+        ". Disable before release."
+      );
+    }
+
     window.addEventListener("radianceRequestHint", () => HintSystem.requestHint());
 
     // Re-read hint count after Firebase progress loads (may have updated settings).
@@ -67,6 +76,20 @@ class HintSystem {
       HintSystem._loadHintCount();
       HintSystem._updateBadge();
     });
+  }
+
+  // Returns true when the debug override is fully active.
+  static _isDebugMode() {
+    try {
+      const cfg = Config.HintDebuggingAdmin;
+      return cfg?.enabled === true && cfg?.overrideHintCount != null;
+    } catch (e) { return false; }
+  }
+
+  // Returns the effective hint count (override or real).
+  static _effectiveHintCount() {
+    if (HintSystem._isDebugMode()) return Config.HintDebuggingAdmin.overrideHintCount;
+    return HintSystem._hintsRemaining;
   }
 
   // ── Hint Count Persistence ────────────────────────────────────────────────
@@ -175,7 +198,7 @@ class HintSystem {
       }
     } catch (e) {}
 
-    if (HintSystem._hintsRemaining <= 0) {
+    if (HintSystem._effectiveHintCount() <= 0) {
       HintSystem._showNoHintsPanel();
       return;
     }
@@ -215,7 +238,7 @@ class HintSystem {
     cc.addControl(cpanel);
 
     const msg = new BABYLON.GUI.TextBlock("hs_cc_msg",
-      `Use a hint?\n${HintSystem._hintsRemaining} remaining`);
+      `Use a hint?\n${HintSystem._effectiveHintCount()} remaining`);
     msg.color = "#cccccc"; msg.fontSize = 18;
     msg.height = "56px"; msg.top = "-38px";
     msg.textWrapping = true;
@@ -255,8 +278,11 @@ class HintSystem {
   // ── Hint Computation & Display ────────────────────────────────────────────
 
   static _useHint() {
-    HintSystem._hintsRemaining = Math.max(0, HintSystem._hintsRemaining - 1);
-    HintSystem._saveHintCount();
+    // In debug mode hints never decrement so testing is uninterrupted.
+    if (!HintSystem._isDebugMode()) {
+      HintSystem._hintsRemaining = Math.max(0, HintSystem._hintsRemaining - 1);
+      HintSystem._saveHintCount();
+    }
     HintSystem._updateBadge();
 
     const levelId      = HintSystem._getCurrentLevelId();
@@ -443,8 +469,12 @@ class HintSystem {
   // ── Badge ─────────────────────────────────────────────────────────────────
 
   static _updateBadge() {
-    window.dispatchEvent(new CustomEvent("radianceHintBadgeUpdate",
-      { detail: { count: HintSystem._hintsRemaining } }));
+    window.dispatchEvent(new CustomEvent("radianceHintBadgeUpdate", {
+      detail: {
+        count: HintSystem._effectiveHintCount(),
+        debug: HintSystem._isDebugMode(),
+      }
+    }));
   }
 
   // ── Animations ────────────────────────────────────────────────────────────

@@ -1380,6 +1380,17 @@ class BaseGameUIScene extends UISceneGeneralized {
     btn.addControl(badge);
     this.hintBadge = badge;
 
+    // DBG label — shown only when HintDebuggingAdmin is active.
+    this.hintDbgLabel = new BABYLON.GUI.TextBlock("topHintDbgLabel", "DBG");
+    this.hintDbgLabel.color               = "#ffff00";
+    this.hintDbgLabel.fontSize            = 9;
+    this.hintDbgLabel.left                = "-44px"; // left side of button, same row as badge
+    this.hintDbgLabel.top                 = "13px";
+    this.hintDbgLabel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+    this.hintDbgLabel.verticalAlignment   = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+    this.hintDbgLabel.isVisible           = false;
+    btn.addControl(this.hintDbgLabel);
+
     this.topUIControlsContainer.addControl(btn);
 
     btn.onPointerClickObservable.add(() => {
@@ -1390,8 +1401,11 @@ class BaseGameUIScene extends UISceneGeneralized {
     this._onHintBadgeUpdate = (evt) => {
       if (!this.hintBadgeLabel) return;
       const count = evt.detail?.count ?? 0;
+      const debug = evt.detail?.debug ?? false;
       this.hintBadgeLabel.text  = count.toString();
+      this.hintBadgeLabel.color = debug ? "#ffff00" : "#ffffff";
       this.hintBadge.background = count > 0 ? "#7b4fd4" : "#555555";
+      if (this.hintDbgLabel) this.hintDbgLabel.isVisible = debug;
     };
     window.addEventListener("radianceHintBadgeUpdate", this._onHintBadgeUpdate);
 
@@ -1400,6 +1414,9 @@ class BaseGameUIScene extends UISceneGeneralized {
       this.glowDpadButton(evt.detail?.direction || null);
     };
     window.addEventListener("radianceGlowDpadButton", this._onGlowDpad);
+
+    // Sync badge immediately so debug colour/DBG label appear on first load.
+    window.HintSystem?._updateBadge?.();
   }
 
   /**

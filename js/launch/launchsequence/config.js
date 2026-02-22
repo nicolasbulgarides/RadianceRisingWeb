@@ -117,6 +117,13 @@ class Config {
 
   static REGIONAL_ADAPTATION_ACCESS_CREDENTIALS = "";
 
+  // ── Hint System Debug Admin ────────────────────────────────────────────────
+  // REMOVE BEFORE RELEASE — set enabled to false for production builds.
+  static HintDebuggingAdmin = {
+    enabled: true,           // REMOVE BEFORE RELEASE
+    overrideHintCount: 99,   // Set to null to use real localStorage hint count
+  };
+
   static RUN_LOCALLY_DETERMINED = true;
   static CURRENT_LOGGING_LEVEL =
     LoggerOmega.GetLoggingLevelByImportance("debug");
