@@ -352,6 +352,7 @@ function ensureParticleTextureLoaded(scene) {
  */
 async function createParameterizedExplosion(config) {
     if (window.RenderController) window.RenderController.markDirty(60);
+    if (window.ParticleController?.isDisabled()) return;
 
     const particleSystem = new BABYLON.ParticleSystem(
         config.name || `explosion_${Date.now()}`,

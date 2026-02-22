@@ -259,6 +259,23 @@ class PickupOccurrenceSubManager {
         return; // Don't trigger completion sequence if player died
       }
 
+      // Record completion data for share system (before replay changes anything)
+      try {
+        if (window.ShareImagePipeline) {
+          const _gm  = FundamentalSystemBridge["gameplayManagerComposite"];
+          const _mt  = FundamentalSystemBridge["movementTracker"];
+          const _pst = FundamentalSystemBridge["playerStatusTracker"];
+          const _lvl = _gm?.primaryActiveGameplayLevel;
+          const _lid = _lvl?.levelDataComposite?.levelHeaderData?.levelId;
+          if (_lvl && _lid) {
+            const _hearts = _pst?.getCurrentHealth?.() ?? 1;
+            ShareImagePipeline.recordLevelCompletion(_lid, _lvl, _mt, _hearts);
+          }
+        }
+      } catch (_shareErr) {
+        console.warn("[PICKUP] ShareImagePipeline.recordLevelCompletion error:", _shareErr);
+      }
+
       // pickupOccurrenceLog(`[PICKUP] 4th pickup detected! Triggering explosion effect and playing endOfLevelPerfect sound`);
 
       // Add 4 more experience for level completion (only if not already granted)
@@ -277,14 +294,17 @@ class PickupOccurrenceSubManager {
       }
 
       // Trigger explosion effect immediately (don't await, let it run in background)
-      const effectGenerator = new EffectGenerator();
-      effectGenerator.explosionEffect({
-        type: 'magic', // Use magic type for a celebratory effect
-        intensity: 1.5,
-        duration: 5.0 // 5 second duration
-      }).catch(error => {
-        console.error(`[PICKUP] Error triggering explosion effect:`, error);
-      });
+      // Skipped if the player has enabled "Skip Replays" in accessibility settings.
+      if (localStorage.getItem("radiance_skipReplays") !== "true") {
+        const effectGenerator = new EffectGenerator();
+        effectGenerator.explosionEffect({
+          type: 'magic', // Use magic type for a celebratory effect
+          intensity: 1.5,
+          duration: 5.0 // 5 second duration
+        }).catch(error => {
+          console.error(`[PICKUP] Error triggering explosion effect:`, error);
+        });
+      }
 
       // Play "endOfLevelPerfect" sound immediately (no delay)
       try {
@@ -348,6 +368,61 @@ class PickupOccurrenceSubManager {
         // Double-check player didn't die during the delay
         if (levelResetHandler && levelResetHandler.hasPlayerDied()) {
           //pickupOccurrenceLog(`[PICKUP] Player died before replay could start - aborting replay`);
+          return;
+        }
+
+        // Skip replay if the player has enabled "Skip Replays" in accessibility settings.
+        if (localStorage.getItem("radiance_skipReplays") === "true") {
+          // Show a brief "Skipping replay..." toast, then navigate to the world loader.
+          try {
+            const _swapper = FundamentalSystemBridge["renderSceneSwapper"];
+            const _uiScene = _swapper?.getSceneByName?.("BaseUIScene");
+            const _adt     = _uiScene?.advancedTexture;
+            if (_adt) {
+              const _toast = new BABYLON.GUI.Rectangle("skipReplayToast");
+              _toast.width        = "340px";
+              _toast.height       = "70px";
+              _toast.background   = "#1a0a2e";
+              _toast.color        = "#7b4fd4";
+              _toast.thickness    = 2;
+              _toast.cornerRadius = 12;
+              _toast.alpha        = 0;
+              _adt.addControl(_toast);
+
+              const _lbl = new BABYLON.GUI.TextBlock("skipReplayLbl", "Skipping replay...");
+              _lbl.color      = "#ffffff";
+              _lbl.fontSize   = 26;
+              _lbl.fontFamily = window.FontManager ? FontManager.getCurrentFontFamily() : "Arial";
+              _toast.addControl(_lbl);
+
+              // Fade in 300ms → hold 1.2s → fade out 400ms → navigate.
+              const _fadeIn = 300, _hold = 1200, _fadeOut = 400;
+              const _start  = performance.now();
+              const _step   = (now) => {
+                const e = now - _start;
+                if (e < _fadeIn) {
+                  _toast.alpha = e / _fadeIn;
+                  requestAnimationFrame(_step);
+                } else if (e < _fadeIn + _hold) {
+                  _toast.alpha = 1;
+                  requestAnimationFrame(_step);
+                } else if (e < _fadeIn + _hold + _fadeOut) {
+                  _toast.alpha = 1 - (e - _fadeIn - _hold) / _fadeOut;
+                  requestAnimationFrame(_step);
+                } else {
+                  _toast.alpha = 0;
+                  try { _adt.removeControl(_toast); } catch (_e) {}
+                  _swapper.setActiveGameLevelScene("WorldLoaderScene");
+                }
+              };
+              requestAnimationFrame(_step);
+            } else {
+              // No UI layer available — navigate directly.
+              _swapper?.setActiveGameLevelScene?.("WorldLoaderScene");
+            }
+          } catch (_err) {
+            console.warn("[PICKUP] Failed to show skip-replay toast:", _err);
+          }
           return;
         }
 

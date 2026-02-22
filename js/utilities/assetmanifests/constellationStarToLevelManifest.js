@@ -314,4 +314,34 @@ class ConstellationStarToLevelManifest {
     static getAllConstellationIds() {
         return Object.keys(ConstellationStarToLevelManifest._map);
     }
+
+    /**
+     * Reverse-lookup: returns first non-placeholder, non-testica match.
+     * @param {string} levelId
+     * @returns {{ starName: string, constellationId: string } | null}
+     */
+    static getStarInfoByLevelId(levelId) {
+        for (const [constellationId, stars] of Object.entries(ConstellationStarToLevelManifest._map)) {
+            if (constellationId === "testica") continue;
+            for (const [, entry] of Object.entries(stars)) {
+                if (entry.levelId === levelId && !entry.isPlaceholder) {
+                    return { starName: entry.levelName, constellationId };
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Formats a constellation ID as a display name.
+     * e.g. "ursa_major" → "Ursa Major", "orion" → "Orion"
+     * @param {string} constellationId
+     * @returns {string}
+     */
+    static formatConstellationName(constellationId) {
+        return constellationId
+            .split('_')
+            .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+            .join(' ');
+    }
 }

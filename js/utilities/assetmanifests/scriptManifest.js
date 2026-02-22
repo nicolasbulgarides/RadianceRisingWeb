@@ -80,6 +80,8 @@ class ScriptManifest {
 
 
   static uiUtilityScripts = [
+    "/ui/utilities/fontManager.js",
+    "/ui/utilities/textScaleManager.js",
     "/ui/utilities/loadingScreen.js",
     "/ui/utilities/responsiveUIManager.js",
     "/ui/utilities/renderSceneSwapper.js",
@@ -92,6 +94,13 @@ class ScriptManifest {
     "/ui/uiconstruction/manaBar.js",
     "/ui/uiconstruction/artifactSocketBar.js",
     "/ui/uiconstruction/heartSocketBar.js",
+    "/ui/share/shareEligibility.js",
+    "/ui/share/shareCaptureProvider.js",
+    "/ui/share/sharePathRenderer.js",
+    "/ui/share/shareOverlayRenderer.js",
+    "/ui/share/shareOutputHandler.js",
+    "/ui/share/shareImagePipeline.js",
+    "/ui/share/shareButton.js",
   ];
 
   static uiSceneScriptsImplemented = [
@@ -123,6 +132,7 @@ class ScriptManifest {
 
   static gameplayScripts = [
     "/gameplay/levelEventSignal.js",
+    "/gameplay/undoManager.js",
     "/gameplay/gameplayManagerComposite.js",
     "/gameplay/gameplayEndOfFrameCoordinator.js",
     "/gameplay/gameplayProgressionManager.js",
@@ -194,6 +204,7 @@ class ScriptManifest {
     "/utilities/starfieldBackdrop.js",
     "/utilities/fireballEffect.js",
     "/utilities/fireballEffect2.js",
+    "/ui/utilities/particleController.js",
     "/effects/effectGenerator.js",
   ];
 

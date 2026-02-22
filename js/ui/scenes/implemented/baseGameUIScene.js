@@ -28,7 +28,15 @@ class BaseGameUIScene extends UISceneGeneralized {
     this.artifactSocketBar = null; // Store the artifact socket bar instance
     this.heartSocketBar = null; // Store the heart socket bar instance
     this.experienceBarSegments = []; // Store experience bar segments
-    this.levelNameText = null; // Store level name text control
+    this.levelNameText = null; // Store level name text control (inside star pill)
+    this.constellationNameText = null; // Store constellation subtitle text control (inside constellation pill)
+    this.starPill = null; // Store star name pill rectangle
+    this.constellationPill = null; // Store galaxy name pill rectangle
+    this.statsBar = null; // Store stats bar background rectangle
+    this.restartButtonControl = null; // Store restart button control
+    this.undoButtonControl = null; // Store undo button control (replaces back button in action row)
+    this.exitButtonControl = null; // Store exit button (top-right, navigates to world loader)
+    this.hintButtonControl = null; // Store hint icon button control
     this.levelText = null; // Store player level text control
     this.fpsCounterText = null; // Store FPS counter text control
     this.perfectionTrackerText = null; // Store perfection tracker text control
@@ -262,6 +270,24 @@ class BaseGameUIScene extends UISceneGeneralized {
       playerStatusTracker.updateExperienceUI();
     }
 
+    // Apply stored font preference to all freshly-created controls.
+    if (window.FontManager) FontManager._sweepAllTextures();
+
+    // Listen for text scale changes (Feature 2: Text Size Scaling) and update key HUD elements.
+    this._onTextScaleChanged = () => {
+      if (!window.TextScaleManager) return;
+      if (this.levelNameText)        this.levelNameText.fontSize        = TextScaleManager.scaledSize(34);
+      if (this.constellationNameText) this.constellationNameText.fontSize = TextScaleManager.scaledSize(26);
+      if (this.perfectionTrackerText) this.perfectionTrackerText.fontSize = TextScaleManager.scaledSize(34);
+      if (this.levelText)            this.levelText.fontSize            = TextScaleManager.scaledSize(26);
+    };
+    window.addEventListener("radianceTextScaleChanged", this._onTextScaleChanged);
+
+    // Apply any saved text scale immediately.
+    if (window.TextScaleManager && TextScaleManager.getCurrentScaleName() !== "Medium") {
+      this._onTextScaleChanged();
+    }
+
   }
 
   /**
@@ -273,7 +299,7 @@ class BaseGameUIScene extends UISceneGeneralized {
       "TopUIControlsContainer"
     );
     this.topUIControlsContainer.width = Config.IDEAL_UI_WIDTH + "px";
-    this.topUIControlsContainer.height = (Config.IDEAL_UI_HEIGHT * 0.2 + 50) + "px";
+    this.topUIControlsContainer.height = (Config.IDEAL_UI_HEIGHT * 0.2 + 100) + "px";
 
     // Place this container at the top (matching the top panel)
     this.topUIControlsContainer.verticalAlignment =
@@ -296,7 +322,7 @@ class BaseGameUIScene extends UISceneGeneralized {
     const leftMargin = 50; // Minimum 50px margin from left edge
     const halfBarSize = expBarSize / 2;
     const offsetX = -(Config.IDEAL_UI_WIDTH / 2) + halfBarSize + leftMargin; // Left side with margin
-    const offsetY = 0; // Centered vertically in top panel
+    const offsetY = -95; // Shifted up: mandala sits in upper portion of panel
 
     // Create experience bar base image
     const expBarBase = new BABYLON.GUI.Image(
@@ -342,14 +368,29 @@ class BaseGameUIScene extends UISceneGeneralized {
     const expBarOffsetX = -(Config.IDEAL_UI_WIDTH / 2) + halfBarSize + leftMargin;
 
     // Position below the experience bar
-    const expBarOffsetY = 0; // Experience bar is centered
-    const levelTextOffsetY = expBarOffsetY + (expBarSize / 2) + 20; // 20px below experience bar (shifted down 10px)
+    const expBarOffsetY = -95; // Matches exp orb vertical shift
+    const levelTextOffsetY = expBarOffsetY + (expBarSize / 2) + 40; // 40px below experience bar bottom
+
+    // Level panel background (appears behind level text)
+    const lvlPanel = new BABYLON.GUI.Rectangle("topLevelPanel");
+    lvlPanel.width = "200px";
+    lvlPanel.height = "50px";
+    lvlPanel.background = "#2d1050";
+    lvlPanel.color = "#7b4fd4";
+    lvlPanel.thickness = 1;
+    lvlPanel.cornerRadius = 4;
+    lvlPanel.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+    lvlPanel.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+    lvlPanel.left = expBarOffsetX + "px";
+    lvlPanel.top = levelTextOffsetY + "px";
+    lvlPanel.isPointerBlocker = false;
+    this.topUIControlsContainer.addControl(lvlPanel);
 
     // Create level text
     this.levelText = new BABYLON.GUI.TextBlock("topLevelText", "Level: 1");
     this.levelText.color = "white";
     this.levelText.fontSize = Config.IDEAL_UI_HEIGHT * 0.025 + "px"; // Slightly smaller than level name
-    this.levelText.fontFamily = "Arial";
+    this.levelText.fontFamily = window.FontManager ? FontManager.getCurrentFontFamily() : "Arial";
     this.levelText.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
     this.levelText.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
     this.levelText.left = expBarOffsetX + "px";
@@ -363,28 +404,12 @@ class BaseGameUIScene extends UISceneGeneralized {
    * Creates the restart button positioned below the heart socket bar.
    */
   createTopRestartButton() {
-    // Calculate position between experience bar and heart bar
-    const expBarSize = Config.IDEAL_UI_WIDTH * 0.3024; // Same size as experience bar
-    const leftMargin = 50;
-    const halfBarSize = expBarSize / 2;
-    const expBarRightEdge = -(Config.IDEAL_UI_WIDTH / 2) + halfBarSize + leftMargin + halfBarSize;
+    const restartButtonSize = 96;
+    const restartOffsetX = -100;
+    const restartOffsetY = 30;
+    const gap = 8;
 
-    // Calculate center of right space (where hearts are positioned)
-    const rightMargin = 50;
-    const availableRightSpace = (Config.IDEAL_UI_WIDTH / 2) - rightMargin - expBarRightEdge;
-    const centerOfRightSpace = expBarRightEdge + (availableRightSpace / 2);
-
-    // Position restart button below the heart socket bar
-    const restartButtonSize = 96; // Size for restart button (80 * 1.2 = 20% bigger)
-    const heartBarSize = 87.5; // Same size as heart bar
-    const levelNameOffsetY = -Config.IDEAL_UI_HEIGHT * 0.02 - 75; // Same as level name
-    const heartBarOffsetY = levelNameOffsetY + Config.IDEAL_UI_HEIGHT * 0.05 + (heartBarSize / 2) - 75 + 100;
-
-    // Position restart button below heart bar with spacing, moved 325px to the left (25px less than before)
-    const restartOffsetX = centerOfRightSpace - 325; // Center the restart button with the hearts, then move 325px left (25px less)
-    const restartOffsetY = heartBarOffsetY + (heartBarSize / 2) + 20; // Below heart bar with 20px spacing (moved down 25px)
-
-    // Create restart button using ButtonFactory
+    // Restart button
     const restartButtonControl = ButtonFactory.createImageButton(
       "iconRestart",
       restartButtonSize,
@@ -397,67 +422,138 @@ class BaseGameUIScene extends UISceneGeneralized {
       this.buttonFunction.bind(this),
       "RESTART"
     );
-
-    // Ensure restart button is on top layer (higher z-index than perfection tracker)
     restartButtonControl.zIndex = 100;
-
-    // Add to the top UI controls container
+    this.restartButtonControl = restartButtonControl;
     this.topUIControlsContainer.addControl(restartButtonControl);
+
+    // Undo button — iconBack graphic wired to "UNDO" action; starts dimmed until stack is non-empty
+    const undoOffsetX = restartOffsetX + restartButtonSize + gap; // = 4px
+    const undoButtonControl = ButtonFactory.createImageButton(
+      "iconBack",
+      restartButtonSize,
+      restartButtonSize,
+      0, // thickness
+      undoOffsetX,
+      restartOffsetY,
+      BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER,
+      BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER,
+      this.buttonFunction.bind(this),
+      "UNDO"
+    );
+    undoButtonControl.zIndex = 100;
+    undoButtonControl.alpha = 0.35; // Dimmed — no moves to undo yet
+    this.undoButtonControl = undoButtonControl;
+    this.topUIControlsContainer.addControl(undoButtonControl);
+
+    // Hint button — iconExclamation, same size, placed immediately to the right of undo
+    const hintOffsetX = undoOffsetX + restartButtonSize + gap; // = 108px
+    const hintButtonControl = ButtonFactory.createImageButton(
+      "iconExclamation",
+      restartButtonSize,
+      restartButtonSize,
+      0, // thickness
+      hintOffsetX,
+      restartOffsetY,
+      BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER,
+      BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER,
+      this.buttonFunction.bind(this),
+      "HINT"
+    );
+    hintButtonControl.zIndex = 100;
+    this.hintButtonControl = hintButtonControl;
+    this.topUIControlsContainer.addControl(hintButtonControl);
+
+    // Exit button — styled rectangle at top-right, same column as settings/hint overlay buttons.
+    // Navigates back to WorldLoaderScene.
+    const exitBtn = new BABYLON.GUI.Rectangle("topExitButton");
+    exitBtn.width               = "170px";
+    exitBtn.height              = "57px";
+    exitBtn.background          = "#2d1050";
+    exitBtn.color               = "#7b4fd4";
+    exitBtn.thickness           = 1;
+    exitBtn.cornerRadius        = 4;
+    exitBtn.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+    exitBtn.verticalAlignment   = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+    exitBtn.left                = "400px";
+    exitBtn.top                 = "-92px";
+    exitBtn.zIndex              = 100;
+    const exitLbl = new BABYLON.GUI.TextBlock("topExitLabel", "\u2715 Exit");
+    exitLbl.color    = "#cccccc";
+    exitLbl.fontSize = 24;
+    exitBtn.addControl(exitLbl);
+    this.topUIControlsContainer.addControl(exitBtn);
+    this.exitButtonControl = exitBtn;
+    exitBtn.onPointerClickObservable.add(() => {
+      try { this.buttonFunction("BACK"); } catch (e) {}
+    });
+
+    // Listen for undo stack changes to update undo button appearance
+    this._onUndoStackChanged = (evt) => {
+      if (!this.undoButtonControl) return;
+      const canUndo = evt.detail?.canUndo ?? false;
+      this.undoButtonControl.alpha = canUndo ? 1.0 : 0.35;
+    };
+    window.addEventListener("radianceUndoStackChanged", this._onUndoStackChanged);
   }
 
   /**
    * Creates the level name and hint display centered in the space to the right of the experience bar.
    */
   createTopLevelInfo() {
-    // Calculate the right edge of the experience bar
-    const expBarSize = Config.IDEAL_UI_WIDTH * 0.3024; // Same size as in createTopExperienceBar (20% bigger)
-    const leftMargin = 50; // Same margin as in createTopExperienceBar
-    const halfBarSize = expBarSize / 2;
-    const expBarRightEdge = -(Config.IDEAL_UI_WIDTH / 2) + halfBarSize + leftMargin + halfBarSize;
+    // Star name pill — centered at top of HUD
+    this.starPill = new BABYLON.GUI.Rectangle("topStarPill");
+    this.starPill.width = "320px";
+    this.starPill.height = "70px";
+    this.starPill.background = "#1a0a2e";
+    this.starPill.color = "#7b4fd4";
+    this.starPill.thickness = 2;
+    this.starPill.cornerRadius = 16;
+    this.starPill.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+    this.starPill.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+    this.starPill.left = "0px";
+    this.starPill.top = "-108px";
+    this.topUIControlsContainer.addControl(this.starPill);
 
-    // Calculate the center of the remaining space on the right
-    const rightMargin = 50; // Right margin for symmetry
-    const availableRightSpace = (Config.IDEAL_UI_WIDTH / 2) - rightMargin - expBarRightEdge;
-    const centerOfRightSpace = expBarRightEdge + (availableRightSpace / 2);
-
-    const levelNameOffsetY = -Config.IDEAL_UI_HEIGHT * 0.02 - 15; // Moved down 50px (was -65)
-
-    // Create level name text (centered in right space)
-    this.levelNameText = new BABYLON.GUI.TextBlock("topLevelName", "Level: Unknown");
-    this.levelNameText.color = "white";
-    this.levelNameText.fontSize = Config.IDEAL_UI_HEIGHT * 0.028 + "px"; // Reduced by 30% (0.04 * 0.7)
-    this.levelNameText.fontFamily = "Arial";
-    this.levelNameText.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-    this.levelNameText.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
-    this.levelNameText.left = centerOfRightSpace + "px"; // Centered in right space
-    this.levelNameText.top = levelNameOffsetY + "px";
+    // Star name TextBlock inside pill
+    this.levelNameText = new BABYLON.GUI.TextBlock("topStarName", "Star: Unknown");
+    this.levelNameText.color = "#ffffff";
+    this.levelNameText.fontSize = 34;
+    this.levelNameText.fontFamily = window.FontManager ? FontManager.getCurrentFontFamily() : "Arial";
     this.levelNameText.textWrapping = true;
     this.levelNameText.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-    this.topUIControlsContainer.addControl(this.levelNameText);
+    this.starPill.addControl(this.levelNameText);
+
+    // Galaxy pill — styled box below the star pill
+    this.constellationPill = new BABYLON.GUI.Rectangle("topConstellationPill");
+    this.constellationPill.width = "320px";
+    this.constellationPill.height = "52px";
+    this.constellationPill.background = "#5c1a9e";
+    this.constellationPill.color = "#9b59d4";
+    this.constellationPill.thickness = 2;
+    this.constellationPill.cornerRadius = 12;
+    this.constellationPill.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+    this.constellationPill.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+    this.constellationPill.left = "0px";
+    this.constellationPill.top = "-50px";
+    this.topUIControlsContainer.addControl(this.constellationPill);
+
+    // Galaxy name TextBlock inside pill
+    this.constellationNameText = new BABYLON.GUI.TextBlock("topConstellationName", "Galaxy: ");
+    this.constellationNameText.color = "#ffffff";
+    this.constellationNameText.fontSize = 26;
+    this.constellationNameText.fontFamily = window.FontManager ? FontManager.getCurrentFontFamily() : "Arial";
+    this.constellationNameText.textWrapping = true;
+    this.constellationNameText.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+    this.constellationPill.addControl(this.constellationNameText);
   }
 
   /**
    * Creates the heart socket bar beneath the level title, centered.
    */
   createTopHeartBar() {
-    // Calculate positioning - move hearts further left (closer to center)
-    const expBarSize = Config.IDEAL_UI_WIDTH * 0.3024; // 20% bigger experience bar
-    const leftMargin = 50;
-    const halfBarSize = expBarSize / 2;
-    const expBarRightEdge = -(Config.IDEAL_UI_WIDTH / 2) + halfBarSize + leftMargin + halfBarSize;
-    const rightMargin = 50;
-    const availableRightSpace = (Config.IDEAL_UI_WIDTH / 2) - rightMargin - expBarRightEdge;
-
-    // Position hearts further to the left (use 1/3 of available space instead of 1/2)
-    const centerOfRightSpace = expBarRightEdge + (availableRightSpace / 3);
-
-    // Position beneath the level title, centered
-    const heartBarSize = 87.5; // Scaled down by 30% from 125px (125 * 0.7)
-    const levelNameOffsetY = -Config.IDEAL_UI_HEIGHT * 0.02 - 75; // Same as level name (moved 75px up)
-    const heartBarOffsetY = levelNameOffsetY + Config.IDEAL_UI_HEIGHT * 0.05 + (heartBarSize / 2) - 75 + 100; // Below level name with spacing, moved 75px up, then 100px down (50px additional)
-
-    // Center the hearts further to the left
-    const heartBarCenterOffsetX = centerOfRightSpace; // Center of heart bar positioned further left
+    const heartBarSize = 87.5;
+    const heartBarCenterOffsetX = -230;
+    const heartBarOffsetY = 150;
 
     // Create the heart socket bar with 4 hearts, scaled down size
     this.heartSocketBar = new HeartSocketBar(
@@ -510,7 +606,7 @@ class BaseGameUIScene extends UISceneGeneralized {
     this.fpsCounterText = new BABYLON.GUI.TextBlock("fpsCounter", "FPS: --");
     this.fpsCounterText.color = "#CCCCCC"; // Light gray color
     this.fpsCounterText.fontSize = Config.IDEAL_UI_HEIGHT * 0.025 + "px";
-    this.fpsCounterText.fontFamily = "Arial";
+    this.fpsCounterText.fontFamily = window.FontManager ? FontManager.getCurrentFontFamily() : "Arial";
     this.fpsCounterText.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
     this.fpsCounterText.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
     this.fpsCounterText.left = fpsOffsetX + "px";
@@ -523,41 +619,35 @@ class BaseGameUIScene extends UISceneGeneralized {
    * Creates the level perfection tracker text below the hearts, aligned with restart button.
    */
   createLevelPerfectionTracker() {
-    // Position aligned with restart button, below hearts
-    const expBarSize = Config.IDEAL_UI_WIDTH * 0.3024; // Same size as experience bar
-    const leftMargin = 50;
-    const halfBarSize = expBarSize / 2;
-    const expBarRightEdge = -(Config.IDEAL_UI_WIDTH / 2) + halfBarSize + leftMargin + halfBarSize;
-    const rightMargin = 50;
-    const availableRightSpace = (Config.IDEAL_UI_WIDTH / 2) - rightMargin - expBarRightEdge;
-    const centerOfRightSpace = expBarRightEdge + (availableRightSpace / 3);
+    // Stats bar background (full-width, bottom of top container)
+    this.statsBar = new BABYLON.GUI.Rectangle("topStatsBar");
+    const statsBar = this.statsBar;
+    statsBar.width = "960px";
+    statsBar.height = "70px";
+    statsBar.background = "#1a0a2e";
+    statsBar.alpha = 0.75;
+    statsBar.color = "transparent";
+    statsBar.thickness = 0;
+    statsBar.cornerRadius = 8;
+    statsBar.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+    statsBar.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+    statsBar.left = "0px";
+    statsBar.top = "150px";
+    statsBar.isPointerBlocker = false;
+    this.topUIControlsContainer.addControl(statsBar);
 
-    // Calculate positions (same as restart button)
-    const restartButtonSize = 80;
-    const heartBarSize = 87.5;
-    const levelNameOffsetY = -Config.IDEAL_UI_HEIGHT * 0.02 - 75;
-    const heartBarOffsetY = levelNameOffsetY + Config.IDEAL_UI_HEIGHT * 0.05 + (heartBarSize / 2) - 75 + 100;
-    const restartOffsetY = heartBarOffsetY + (heartBarSize / 2) + 20;
-
-    // Position perfection tracker below restart button, shifted up 75px and right 300px
-    const perfectionOffsetX = centerOfRightSpace - 50; // -150 + 100 = shifted right another 100px
-    const perfectionOffsetY = restartOffsetY + restartButtonSize - 65; // -90 + 25 = shifted down 25px
-
-    // Create perfection tracker text
+    // Moves text — right side of stats bar
     this.perfectionTrackerText = new BABYLON.GUI.TextBlock("perfectionTracker", "Moves: --/--");
-    this.perfectionTrackerText.color = "white"; // Default color
-    this.perfectionTrackerText.fontSize = Config.IDEAL_UI_HEIGHT * 0.02 + "px";
-    this.perfectionTrackerText.fontFamily = "Arial";
+    this.perfectionTrackerText.color = "white";
+    this.perfectionTrackerText.fontSize = 34;
+    this.perfectionTrackerText.fontFamily = window.FontManager ? FontManager.getCurrentFontFamily() : "Arial";
     this.perfectionTrackerText.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
     this.perfectionTrackerText.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
-    this.perfectionTrackerText.left = perfectionOffsetX + "px";
-    this.perfectionTrackerText.top = perfectionOffsetY + "px";
+    this.perfectionTrackerText.left = "270px";
+    this.perfectionTrackerText.top = "150px";
     this.perfectionTrackerText.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
-
-    // Make perfection tracker mouse transparent so clicks pass through to buttons below
     this.perfectionTrackerText.isPointerBlocker = false;
     this.perfectionTrackerText.isHitTestVisible = false;
-
     this.topUIControlsContainer.addControl(this.perfectionTrackerText);
   }
 
@@ -679,16 +769,16 @@ class BaseGameUIScene extends UISceneGeneralized {
         this.perfectionTrackerText.text = newText;
       }
 
-      // Set color based on performance
-      if (currentMoves <= perfectMoves) {
-        // Perfect or better - white
-        this.perfectionTrackerText.color = "white";
-      } else if (currentMoves <= perfectMoves + 3) {
-        // Within 3 moves - orange
-        this.perfectionTrackerText.color = "#FFA500"; // Orange
+      // Set color based on how many moves over the optimal solution
+      const excess = currentMoves - perfectMoves;
+      if (excess <= 0) {
+        this.perfectionTrackerText.color = "#FFFFFF"; // White — at or under optimal
+      } else if (excess <= 5) {
+        this.perfectionTrackerText.color = "#FFD700"; // Yellow — 1-5 over
+      } else if (excess <= 10) {
+        this.perfectionTrackerText.color = "#FF8C00"; // Orange — 6-10 over
       } else {
-        // More than 3 moves over - red
-        this.perfectionTrackerText.color = "#FF0000"; // Red
+        this.perfectionTrackerText.color = "#FF3333"; // Red — 11+ over
       }
 
     } catch (error) {
@@ -713,9 +803,14 @@ class BaseGameUIScene extends UISceneGeneralized {
     if (isInWorldLoader === this._lastIsInWorldLoader) return;
     this._lastIsInWorldLoader = isInWorldLoader;
 
-    // Control level name display visibility
-    if (this.levelNameText) {
-      this.levelNameText.isVisible = !isInWorldLoader;
+    // Control star pill visibility (contains levelNameText)
+    if (this.starPill) {
+      this.starPill.isVisible = !isInWorldLoader;
+    }
+
+    // Control galaxy pill visibility (contains constellationNameText)
+    if (this.constellationPill) {
+      this.constellationPill.isVisible = !isInWorldLoader;
     }
 
     // Control level hint display visibility
@@ -728,17 +823,36 @@ class BaseGameUIScene extends UISceneGeneralized {
       this.perfectionTrackerText.isVisible = !isInWorldLoader;
     }
 
+    // Control stats bar background visibility
+    if (this.statsBar) {
+      this.statsBar.isVisible = !isInWorldLoader;
+    }
+
     // Control heart socket bar visibility
     if (this.heartSocketBar && this.heartSocketBar.container) {
       this.heartSocketBar.container.isVisible = !isInWorldLoader;
     }
 
-    // Control level text visibility and update content
-    if (this.levelText) {
-      this.levelText.isVisible = !isInWorldLoader;
-      if (!isInWorldLoader) {
-        this.updateLevelText();
-      }
+    // Control restart, back, and hint button visibility
+    if (this.restartButtonControl) {
+      this.restartButtonControl.isVisible = !isInWorldLoader;
+    }
+    if (this.undoButtonControl) {
+      this.undoButtonControl.isVisible = !isInWorldLoader;
+    }
+    if (this.exitButtonControl) {
+      this.exitButtonControl.isVisible = !isInWorldLoader;
+    }
+    if (this.hintButtonControl) {
+      this.hintButtonControl.isVisible = !isInWorldLoader;
+    }
+
+    // Level text and experience bar always visible regardless of scene
+    if (this.levelText && !this.levelText.isVisible) {
+      this.levelText.isVisible = true;
+    }
+    if (!isInWorldLoader) {
+      this.updateLevelText();
     }
   }
 
@@ -897,15 +1011,17 @@ class BaseGameUIScene extends UISceneGeneralized {
   }
 
   /**
-   * Updates the level name display.
-   * @param {string} levelName - The level name to display.
-   * @param {string} levelHint - The level hint (stored for future use with different system).
+   * Updates the star name pill and constellation subtitle.
+   * @param {string} starName - The star name to display (e.g. "Dubhe").
+   * @param {string|null} constellationName - The constellation display name (e.g. "Ursa Major"), or null to hide.
    */
-  updateLevelInfo(levelName, levelHint) {
+  updateLevelInfo(starName, constellationName) {
     if (this.levelNameText) {
-      this.levelNameText.text = levelName ? `Level: ${levelName}` : "Level: Unknown";
+      this.levelNameText.text = starName ? `Star: ${starName}` : "Star: Unknown";
     }
-    // Hint system removed - will be implemented differently
+    if (this.constellationNameText) {
+      this.constellationNameText.text = constellationName ? `Galaxy: ${constellationName}` : "Galaxy: ";
+    }
   }
 
   /**
@@ -936,17 +1052,30 @@ class BaseGameUIScene extends UISceneGeneralized {
         levelName = levelData.levelNickname;
       }
 
-      // If level name is not found, try to get level ID from manifest
-      if (!levelName && levelData.levelHeaderData && levelData.levelHeaderData.levelId) {
-        const levelId = levelData.levelHeaderData.levelId;
-        // Use the level ID as the display name
+      // Resolve level ID
+      let levelId = null;
+      if (levelData.levelHeaderData && levelData.levelHeaderData.levelId) {
+        levelId = levelData.levelHeaderData.levelId;
+      }
+      if (!levelName && levelId) {
         levelName = levelId;
       }
 
-      // Get level hint (stored directly on levelDataComposite)
-      const levelHint = levelData.levelHint || null;
+      // Try to resolve star name from ConstellationStarToLevelManifest
+      try {
+        if (levelId && typeof ConstellationStarToLevelManifest !== "undefined") {
+          const starInfo = ConstellationStarToLevelManifest.getStarInfoByLevelId(levelId);
+          if (starInfo) {
+            const constellationDisplay =
+              ConstellationStarToLevelManifest.formatConstellationName(starInfo.constellationId);
+            this.updateLevelInfo(starInfo.starName, constellationDisplay);
+            return;
+          }
+        }
+      } catch (e) {}
 
-      this.updateLevelInfo(levelName, levelHint);
+      // Fallback: use nickname or levelId, no constellation subtitle
+      this.updateLevelInfo(levelName, null);
     } catch (error) {
       console.warn("[UI] Failed to refresh level info:", error);
       this.updateLevelInfo(null, null);
@@ -1299,8 +1428,8 @@ class BaseGameUIScene extends UISceneGeneralized {
    */
   createTopSettingsButton() {
     const btn = new BABYLON.GUI.Rectangle("topSettingsButton");
-    btn.width               = "126px";
-    btn.height              = "42px";
+    btn.width               = "170px";
+    btn.height              = "57px";
     btn.background          = "#2d1050";
     btn.color               = "#7b4fd4";
     btn.thickness           = 1;
@@ -1312,7 +1441,7 @@ class BaseGameUIScene extends UISceneGeneralized {
 
     const lbl = new BABYLON.GUI.TextBlock("topSettingsLabel", "\u2699 Settings");
     lbl.color    = "#cccccc";
-    lbl.fontSize = 18;
+    lbl.fontSize = 24;
     btn.addControl(lbl);
 
     this.topUIControlsContainer.addControl(btn);
@@ -1334,8 +1463,8 @@ class BaseGameUIScene extends UISceneGeneralized {
    */
   createTopHintButton() {
     const btn = new BABYLON.GUI.Rectangle("topHintButton");
-    btn.width               = "126px";
-    btn.height              = "42px";
+    btn.width               = "170px";
+    btn.height              = "57px";
     btn.background          = "#2d1050";
     btn.color               = "#7b4fd4";
     btn.thickness           = 1;
@@ -1343,7 +1472,7 @@ class BaseGameUIScene extends UISceneGeneralized {
     btn.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
     btn.verticalAlignment   = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
     btn.left                = "400px";
-    btn.top                 = "-107px";
+    btn.top                 = "-92px";
 
     // ── GRAPHIC SWAP POINT ────────────────────────────────────────────────────
     // To replace this placeholder with a PNG/sprite icon, swap the TextBlock
@@ -1353,7 +1482,7 @@ class BaseGameUIScene extends UISceneGeneralized {
     const lbl = new BABYLON.GUI.TextBlock("topHintLabel", "\uD83D\uDCA1 Hint");
     // ── END GRAPHIC SWAP POINT ────────────────────────────────────────────────
     lbl.color    = "#cccccc";
-    lbl.fontSize = 18;
+    lbl.fontSize = 24;
     btn.addControl(lbl);
 
     // Badge — small circle overlaid on bottom-right of the button.
@@ -1391,6 +1520,9 @@ class BaseGameUIScene extends UISceneGeneralized {
     this.hintDbgLabel.isVisible           = false;
     btn.addControl(this.hintDbgLabel);
 
+    btn.isVisible       = false; // Replaced by iconExclamation button in the action row
+    btn.isPointerBlocker  = false; // Don't block clicks on the Exit button underneath
+    btn.isHitTestVisible  = false;
     this.topUIControlsContainer.addControl(btn);
 
     btn.onPointerClickObservable.add(() => {
@@ -1566,6 +1698,7 @@ class BaseGameUIScene extends UISceneGeneralized {
         }
       } else {
         // In gameplay scene: reset current level
+        if (window.UndoManager) UndoManager.clear();
         const levelResetHandler = FundamentalSystemBridge["levelResetHandler"];
         if (levelResetHandler) {
           levelResetHandler.resetLevel();
@@ -1575,6 +1708,19 @@ class BaseGameUIScene extends UISceneGeneralized {
           console.error("[RESTART BUTTON] LevelResetHandler not found");
         }
       }
+    } else if (buttonFunctionKey === "UNDO") {
+      if (window.UndoManager?.canUndo?.()) {
+        UndoManager.undo();
+        SoundEffectsManager.playSound("directionalPadTap");
+      }
+    } else if (buttonFunctionKey === "BACK") {
+      // Navigate back to the constellation world loader scene
+      const renderSceneSwapper = FundamentalSystemBridge["renderSceneSwapper"];
+      if (renderSceneSwapper) {
+        renderSceneSwapper.setActiveGameLevelScene("WorldLoaderScene");
+      }
+    } else if (buttonFunctionKey === "HINT") {
+      try { window.dispatchEvent(new CustomEvent("radianceRequestHint")); } catch (e) {}
     }
   }
 

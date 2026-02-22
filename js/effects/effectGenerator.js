@@ -99,6 +99,7 @@ class EffectGenerator {
             console.error("Explosion failed: Scene or player position is undefined.");
             return;
         }
+        if (window.ParticleController?.isDisabled()) return;
 
         // Default options
         const settings = {

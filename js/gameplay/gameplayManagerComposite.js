@@ -56,6 +56,7 @@ class GameplayManagerComposite {
    */
   resetForNewLevel() {
     this.mainPlayerLoadedForCurrentLevel = false;
+    if (window.UndoManager) UndoManager.clear();
     if (this.DEBUG_MODE) console.log("[GAMEPLAY MANAGER] Reset for new level - main player can be loaded");
   }
 
@@ -178,8 +179,20 @@ class GameplayManagerComposite {
           microEventManager.resetDamageEventFlagsForLevel();
         }
 
-        // Record movement for replay
+        // Push undo snapshot BEFORE recording the move so we can restore pre-move state
         const moveStartPosition = currentPlayer.playerMovementManager.getPositionVector();
+        if (window.UndoManager) {
+          const movementTracker = FundamentalSystemBridge["movementTracker"];
+          const playerStatusTracker = FundamentalSystemBridge["playerStatusTracker"];
+          UndoManager.pushSnapshot({
+            position: moveStartPosition.clone(),
+            realMoveCount: movementTracker?.realMoveCount ?? 0,
+            eventLogLength: movementTracker?.eventLog?.length ?? 0,
+            health: playerStatusTracker?.getCurrentHealth?.() ?? 3,
+          });
+        }
+
+        // Record movement for replay
         GameEventBus.emit("gameInteraction", {
           type: "move",
           direction: clickedDirection,
