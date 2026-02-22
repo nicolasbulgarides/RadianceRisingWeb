@@ -84,6 +84,7 @@ class ScriptManifest {
     "/ui/utilities/responsiveUIManager.js",
     "/ui/utilities/renderSceneSwapper.js",
     "/ui/utilities/constellationSignInPrompt.js",
+    "/ui/utilities/settingsPanel.js",
     "/ui/uiconstruction/basicfactories/buttonFactory.js",
     "/ui/uiconstruction/basicfactories/containerFactory.js",
     "/ui/uiconstruction/basicfactories/imageFactory.js",

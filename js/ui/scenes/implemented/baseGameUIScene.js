@@ -228,6 +228,12 @@ class BaseGameUIScene extends UISceneGeneralized {
       "levelPerfectionTracker"
     );
 
+    // Add settings button to the top-right of the top panel.
+    this.attemptUIElementLoad(
+      () => this.createTopSettingsButton(),
+      "topSettingsButton"
+    );
+
     // Initialize perfection tracking
     this.initializePerfectionTracking();
 
@@ -1274,6 +1280,42 @@ class BaseGameUIScene extends UISceneGeneralized {
     if (!this.signInButton) return;
     this.signInButton.isVisible = window.AuthService?.isGuest?.() ?? true;
   }
+  /**
+   * Creates a small "⚙ Settings" button in the top-right of the top panel.
+   * Clicking it dispatches the "radianceOpenSettings" custom event, which
+   * SettingsPanel.init() listens for to open the overlay.
+   *
+   * Placement: topUIControlsContainer is 1000×450px centered.
+   *   left = 400px → 100px from right edge
+   *   top  = -155px → ~70px from top edge
+   */
+  createTopSettingsButton() {
+    const btn = new BABYLON.GUI.Rectangle("topSettingsButton");
+    btn.width               = "84px";
+    btn.height              = "28px";
+    btn.background          = "#2d1050";
+    btn.color               = "#7b4fd4";
+    btn.thickness           = 1;
+    btn.cornerRadius        = 4;
+    btn.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+    btn.verticalAlignment   = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+    btn.left                = "400px";
+    btn.top                 = "-155px";
+
+    const lbl = new BABYLON.GUI.TextBlock("topSettingsLabel", "\u2699 Settings");
+    lbl.color    = "#cccccc";
+    lbl.fontSize = 12;
+    btn.addControl(lbl);
+
+    this.topUIControlsContainer.addControl(btn);
+
+    btn.onPointerClickObservable.add(() => {
+      try {
+        window.dispatchEvent(new CustomEvent("radianceOpenSettings"));
+      } catch (e) {}
+    });
+  }
+
   /**
    * Handles a button click by routing to the appropriate functionality.
    * @param {string} buttonFunctionKey - The key representing the function of the button.

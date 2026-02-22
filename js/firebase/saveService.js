@@ -290,6 +290,40 @@ class SaveService {
   }
 
   /**
+   * Wipes all level progress from localStorage and from Firebase for the current user.
+   * Clears every key matching "level_*" and "radianceRising_completedLevels".
+   * Dispatches "radianceProgressLoaded" so the constellation map refreshes.
+   * Called by SettingsPanel after the user confirms the Reset Progress action.
+   */
+  static async resetProgress() {
+    // Collect keys to remove (cannot mutate localStorage while iterating by index).
+    const toRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key?.startsWith("level_") || key === "radianceRising_completedLevels") {
+        toRemove.push(key);
+      }
+    }
+    for (const key of toRemove) {
+      try { localStorage.removeItem(key); } catch (e) {}
+    }
+
+    // Notify listeners (e.g. WorldLoaderScene) so star colors refresh to white.
+    try {
+      window.dispatchEvent(new CustomEvent("radianceProgressLoaded", { detail: { reset: true } }));
+    } catch (e) {}
+
+    // Wipe progress node from Firebase (setting to null deletes the node).
+    const user = window.AuthService?.getCurrentUser();
+    if (!user) return;
+    try {
+      await set(dbRef(database, `users/${user.uid}/progress`), null);
+    } catch (err) {
+      console.error("[SaveService] resetProgress Firebase write failed:", err);
+    }
+  }
+
+  /**
    * Adds levelFileId to the radianceRising_completedLevels localStorage array
    * if not already present. Keeps the flat list that LevelsSolvedStatusTracker
    * uses in sync when Firebase data is loaded.
