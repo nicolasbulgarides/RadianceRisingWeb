@@ -171,6 +171,7 @@ class LevelLoaderManager {
         if (soundEffectsManager && gameplayLevel.hostingScene) {
             await soundEffectsManager.loadInitialSounds(gameplayLevel.hostingScene);
             this.levelLoaderDebugLog(" Initial sounds loaded");
+            window.AudioManager?.applyStoredSettings();
         }
 
         loadingScreen.destroy();
@@ -466,6 +467,7 @@ class LevelLoaderManager {
                     soundEffectsManager.loadInitialSounds(gameplayLevel.hostingScene),
                     soundTimeout
                 ]);
+                window.AudioManager?.applyStoredSettings();
             }
 
             if (loadingScreen) {
