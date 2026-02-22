@@ -1217,6 +1217,62 @@ class BaseGameUIScene extends UISceneGeneralized {
         dPadContainer.addControl(buttonControl);
       }, `actionButton_${button.name}`);
     });
+
+    this.attemptUIElementLoad(
+      () => this.createSignInButton(dPadContainer),
+      "signInButton"
+    );
+  }
+
+  /**
+   * Creates a "Sign in" text button below the artifact button.
+   * Visible only when the player is an anonymous guest.
+   * Clicking it calls AuthService.upgradeGuestWithGoogle().
+   */
+  createSignInButton(dPadContainer) {
+    const specialButtonSize = Config.IDEAL_UI_WIDTH * 0.15;
+    const specialButtonXOffset = Config.IDEAL_UI_WIDTH * 0.3;
+    const btnWidth = 130;
+    const btnHeight = 26;
+    const gap = 8;
+
+    const btn = new BABYLON.GUI.Rectangle("signInButton");
+    btn.width = btnWidth + "px";
+    btn.height = btnHeight + "px";
+    btn.background = "#4285f4";
+    btn.color = "transparent";
+    btn.thickness = 0;
+    btn.cornerRadius = 4;
+    btn.left = specialButtonXOffset + "px";
+    btn.top = (specialButtonSize / 2 + gap + btnHeight / 2) + "px";
+    btn.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+    btn.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+
+    const label = new BABYLON.GUI.TextBlock("signInLabel", "Sign in");
+    label.color = "#ffffff";
+    label.fontSize = 13;
+    btn.addControl(label);
+
+    dPadContainer.addControl(btn);
+    this.signInButton = btn;
+
+    btn.onPointerClickObservable.add(() => {
+      window.AuthService?.triggerGoogleSignIn?.();
+    });
+
+    // Set initial visibility and keep it in sync with auth state.
+    this._updateSignInButtonVisibility();
+    window.AuthService?.onAuthStateChanged?.(() => {
+      this._updateSignInButtonVisibility();
+    });
+  }
+
+  /**
+   * Shows the sign-in button only when the current user is an anonymous guest.
+   */
+  _updateSignInButtonVisibility() {
+    if (!this.signInButton) return;
+    this.signInButton.isVisible = window.AuthService?.isGuest?.() ?? true;
   }
   /**
    * Handles a button click by routing to the appropriate functionality.

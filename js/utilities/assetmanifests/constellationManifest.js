@@ -52,7 +52,22 @@ class ConstellationManifest {
         return ConstellationManifest._registry.values().next().value ?? null;
     }
 }
-
+// ── Testica ─────────────────────────────────────────────────────────────────
+// Test constellation — 3 stars for rapid completion testing
+ConstellationManifest.register(new Constellation({
+    id: "testica",
+    name: "Testica",
+    stars: [
+        { id: 0, name: "TestStarAlpha", x: 0.35, y: 0.35 },
+        { id: 1, name: "TestStarBeta", x: 0.65, y: 0.35 },
+        { id: 2, name: "TestStarGamma", x: 0.50, y: 0.65 },
+    ],
+    lines: [
+        [0, 1], // alpha -> beta
+        [1, 2], // beta -> gamma
+        [2, 0], // gamma -> alpha
+    ],
+}));
 // ── Orion ───────────────────────────────────────────────────────────────────
 // Stars ordered by id 0-8, which maps directly to level/sphere index.
 ConstellationManifest.register(new Constellation({

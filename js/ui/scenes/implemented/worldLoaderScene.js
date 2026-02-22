@@ -15,7 +15,7 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
         this.constellationLineMesh = null; // Line system connecting the constellation stars
         this.shimmerParticleSystems = []; // One particle system per star sphere
         this._sparkleTexture = null;      // Shared texture for all shimmer particles
-        this._activeConstellationId = "ursa_major"; // Currently displayed constellation
+        this._activeConstellationId = "testica"; // Currently displayed constellation
         this._constellationQueue = [];          // Non-repeating shuffle queue
         this.selectedWorldIndex = null;
         this.isLoadingWorld = false;
@@ -38,6 +38,7 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
 
         // Register callback for level completion updates
         this.setupLevelCompletionCallback();
+        this.setupFirebaseProgressCallback();
         this.setupBackgroundImage();
         this.setupCamera();
         this.setupLighting();
@@ -110,7 +111,7 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
 
         const constellation = ConstellationManifest.get(this._activeConstellationId);
         if (!constellation) {
-            console.error("[WorldLoaderScene] Orion constellation not found in ConstellationManifest");
+            console.error("[WorldLoaderScene] Testica constellation not found in ConstellationManifest");
             return;
         }
 
@@ -129,14 +130,20 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
             sphere.position = new BABYLON.Vector3(starData.worldX, 0, starData.worldZ);
 
             const levelData = sequentialLoader.getWorldLevelDataForConstellation(this._activeConstellationId, sphereIndex);
-            const isCompleted = FundamentalSystemBridge["levelsSolvedStatusTracker"]?.isLevelCompleted(sphereIndex) || false;
+            const isCompleted = window.SaveService?.isLevelCompleted(this._activeConstellationId, sphereIndex)
+                || FundamentalSystemBridge["levelsSolvedStatusTracker"]?.isLevelCompleted(sphereIndex)
+                || false;
+            const isPerfect = isCompleted
+                && window.SaveService?.isPerfectCompletion(this._activeConstellationId, sphereIndex, levelData?.levelId)
+                || false;
 
-            sphere.material        = this.createSphereMaterial(sphereIndex, levelData, isCompleted);
-            sphere.isPickable      = levelData?.isAvailable || false;
-            sphere.worldData       = levelData;
-            sphere.sphereIndex     = sphereIndex;
+            sphere.material = this.createSphereMaterial(sphereIndex, levelData, isCompleted, isPerfect);
+            sphere.isPickable = levelData?.isAvailable || false;
+            sphere.worldData = levelData;
+            sphere.sphereIndex = sphereIndex;
             sphere.constellationId = this._activeConstellationId;
-            sphere.isCompleted     = isCompleted;
+            sphere.isCompleted = isCompleted;
+            sphere.isPerfect = isPerfect;
 
             this.addHoverEffect(sphere);
             this._addStarShimmer(sphere);
@@ -408,13 +415,18 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
 
             if (sequentialLoader) {
                 const levelData = sequentialLoader.getWorldLevelDataForConstellation(this._activeConstellationId, sphereIndex);
-                const isCompleted = FundamentalSystemBridge["levelsSolvedStatusTracker"]
-                    ?.isLevelCompleted(sphereIndex) || false;
-                sphere.material        = this.createSphereMaterial(sphereIndex, levelData, isCompleted);
-                sphere.isPickable      = levelData?.isAvailable || false;
-                sphere.worldData       = levelData;
+                const isCompleted = window.SaveService?.isLevelCompleted(this._activeConstellationId, sphereIndex)
+                    || FundamentalSystemBridge["levelsSolvedStatusTracker"]?.isLevelCompleted(sphereIndex)
+                    || false;
+                const isPerfect = isCompleted
+                    && window.SaveService?.isPerfectCompletion(this._activeConstellationId, sphereIndex, levelData?.levelId)
+                    || false;
+                sphere.material = this.createSphereMaterial(sphereIndex, levelData, isCompleted, isPerfect);
+                sphere.isPickable = levelData?.isAvailable || false;
+                sphere.worldData = levelData;
                 sphere.constellationId = this._activeConstellationId;
-                sphere.isCompleted     = isCompleted;
+                sphere.isCompleted = isCompleted;
+                sphere.isPerfect = isPerfect;
                 this.addHoverEffect(sphere);
             } else {
                 const mat = new BABYLON.StandardMaterial(`worldSphereMaterial_${sphereIndex}`, this);
@@ -486,31 +498,46 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
 
 
     /**
-     * Creates appropriate material for sphere based on level status
-     * @param {number} sphereIndex - Index of the sphere
-     * @param {Object} levelData - Level data for this sphere
-     * @param {boolean} isCompleted - Whether the level is completed
-     * @returns {BABYLON.StandardMaterial} The material for the sphere
+     * Creates the material for a constellation sphere based on its status.
+     *
+     * Color scheme:
+     *   Purple — completed in perfect strokes (bestStrokes <= perfectSolutionMovementCount)
+     *   Blue   — completed (but not perfect)
+     *   White  — available and not yet completed
+     *   Gray   — not yet available
+     *
+     * @param {number}  sphereIndex  - Index of the sphere (used to name the material)
+     * @param {Object}  levelData    - Level data for this sphere (isAvailable, levelId, …)
+     * @param {boolean} isCompleted  - Whether the level has been completed
+     * @param {boolean} isPerfect    - Whether the level was completed in perfect stroke count
+     * @returns {BABYLON.StandardMaterial}
      */
-    createSphereMaterial(sphereIndex, levelData, isCompleted) {
+    createSphereMaterial(sphereIndex, levelData, isCompleted, isPerfect) {
         const material = new BABYLON.StandardMaterial(`worldSphereMaterial_${sphereIndex}`, this);
 
-        if (isCompleted) {
-            // Green for completed levels
-            const completedGreen = new BABYLON.Color3(0.2, 0.8, 0.3);
-            material.emissiveColor = completedGreen;
-            material.diffuseColor = completedGreen.scale(0.7);
-            material.specularColor = new BABYLON.Color3(0.8, 1.0, 0.8);
+        if (isCompleted && isPerfect) {
+            // Purple — perfect completion
+            const perfectPurple = new BABYLON.Color3(0.65, 0.1, 0.9);
+            material.emissiveColor = perfectPurple;
+            material.diffuseColor = perfectPurple.scale(0.7);
+            material.specularColor = new BABYLON.Color3(0.9, 0.7, 1.0);
+            material.emissiveIntensity = 1.4;
+        } else if (isCompleted) {
+            // Blue — completed but not perfect
+            const completedBlue = new BABYLON.Color3(0.2, 0.5, 1.0);
+            material.emissiveColor = completedBlue;
+            material.diffuseColor = completedBlue.scale(0.7);
+            material.specularColor = new BABYLON.Color3(0.8, 0.9, 1.0);
             material.emissiveIntensity = 1.2;
         } else if (levelData?.isAvailable) {
-            // Blue for available but not completed levels
-            const availableBlue = new BABYLON.Color3(0.2, 0.6, 1.0);
-            material.emissiveColor = availableBlue;
-            material.diffuseColor = availableBlue.scale(0.6);
+            // White — available but not yet completed
+            const availableWhite = new BABYLON.Color3(0.95, 0.95, 1.0);
+            material.emissiveColor = availableWhite;
+            material.diffuseColor = availableWhite.scale(0.8);
             material.specularColor = new BABYLON.Color3(1.0, 1.0, 1.0);
-            material.emissiveIntensity = 1.4;
+            material.emissiveIntensity = 1.1;
         } else {
-            // Gray for levels not yet made
+            // Gray — not yet available
             const notAvailableGray = new BABYLON.Color3(0.4, 0.4, 0.4);
             material.emissiveColor = notAvailableGray;
             material.diffuseColor = notAvailableGray.scale(0.5);
@@ -534,14 +561,20 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
         }
 
         const levelData = sphere.worldData;
-        const isCompleted = FundamentalSystemBridge["levelsSolvedStatusTracker"]?.isLevelCompleted(sphereIndex) || false;
+        const isCompleted = window.SaveService?.isLevelCompleted(sphere.constellationId, sphereIndex)
+            || FundamentalSystemBridge["levelsSolvedStatusTracker"]?.isLevelCompleted(sphereIndex)
+            || false;
+        const isPerfect = isCompleted
+            && window.SaveService?.isPerfectCompletion(sphere.constellationId, sphereIndex, levelData?.levelId)
+            || false;
 
         // Update sphere properties
         sphere.isCompleted = isCompleted;
+        sphere.isPerfect = isPerfect;
         sphere.isPickable = levelData?.isAvailable || false;
 
         // Create new material
-        const newMaterial = this.createSphereMaterial(sphereIndex, levelData, isCompleted);
+        const newMaterial = this.createSphereMaterial(sphereIndex, levelData, isCompleted, isPerfect);
         sphere.material = newMaterial;
     }
 
@@ -795,16 +828,19 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
             // Re-activate the UI scene to ensure it stays rendered after game scene swap
             renderSceneSwapper.setActiveUIScene("BaseUIScene");
 
-            // Store the sphere index globally so level completion can be tracked back to the sphere
+            // Store the sphere index and constellation globally so level completion
+            // can be tracked back to the correct star when the 4th pickup fires.
             if (!window.currentLevelSphereIndex) {
                 window.currentLevelSphereIndex = this.selectedWorldIndex;
+                window.currentConstellationId = this._activeConstellationId;
             }
 
             //console.log(`[WorldLoaderScene] Loaded ${worldData.name} from ${levelUrl} and activated BaseGameScene`);
         } catch (error) {
             // console.error(`[WorldLoaderScene] Error loading level ${worldData.levelUrl}:`, error);
-            // Clear the sphere index on error
+            // Clear the sphere index and constellation on error
             window.currentLevelSphereIndex = null;
+            window.currentConstellationId = null;
         }
     }
 
@@ -979,7 +1015,48 @@ class WorldLoaderScene extends GameWorldSceneGeneralized {
             this.cameraControlUI = null;
         }
 
+        if (this._onFirebaseProgressLoaded) {
+            window.removeEventListener("radianceProgressLoaded", this._onFirebaseProgressLoaded);
+            this._onFirebaseProgressLoaded = null;
+        }
+
+        if (this._onLevelSaved) {
+            window.removeEventListener("radiance_levelSaved", this._onLevelSaved);
+            this._onLevelSaved = null;
+        }
+
         super.dispose();
+    }
+
+    /**
+     * Redraws the completion color for every sphere in the constellation.
+     * Called after Firebase progress has been merged into localStorage so
+     * stars that were completed on another device show green immediately.
+     */
+    refreshAllStarColors() {
+        if (!this.worldSpheres?.length) return;
+        for (const sphere of this.worldSpheres) {
+            this.updateSphereColor(sphere.sphereIndex);
+        }
+    }
+
+    /**
+     * Listens for the 'radianceProgressLoaded' event dispatched by SaveService
+     * after Firebase data is merged into localStorage, then refreshes all star
+     * colors so Firebase-sourced completions are reflected in the UI.
+     * The listener is stored for cleanup on scene dispose.
+     */
+    setupFirebaseProgressCallback() {
+        this._onFirebaseProgressLoaded = () => this.refreshAllStarColors();
+        window.addEventListener("radianceProgressLoaded", this._onFirebaseProgressLoaded);
+
+        this._onLevelSaved = (evt) => {
+            const { constellationId, starId } = evt.detail ?? {};
+            if (constellationId === this._activeConstellationId && starId != null) {
+                this.updateSphereColor(starId);
+            }
+        };
+        window.addEventListener("radiance_levelSaved", this._onLevelSaved);
     }
 
     /**

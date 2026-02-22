@@ -299,6 +299,39 @@ class PickupOccurrenceSubManager {
         pickupOccurrenceLog(`[PICKUP] Marking sphere ${window.currentLevelSphereIndex} as completed`);
         console.log(`[PICKUP] Found levelsSolvedStatusTracker in FundamentalSystemBridge, marking sphere ${window.currentLevelSphereIndex} as completed`);
         levelsSolvedStatusTracker.markLevelCompleted(window.currentLevelSphereIndex);
+
+        // Persist best stroke count and perfect-lotus flag to SaveService (localStorage + Firebase).
+        // allLotusCollected is true by definition — this block only runs on the 4th stardust pickup.
+        const completionLevelData = levelsSolvedStatusTracker.getLevelData(window.currentLevelSphereIndex);
+        const completionMoveTracker = FundamentalSystemBridge["movementTracker"];
+        const completionStrokes = completionMoveTracker?.realMoveCount ?? 0;
+        if (completionLevelData && window.SaveService && window.currentConstellationId) {
+          window.SaveService.saveLevelCompletion(window.currentConstellationId, window.currentLevelSphereIndex, completionLevelData.levelId, completionStrokes, true);
+
+          // Notify the world map to re-color this sphere now that SaveService has the
+          // final stroke count in localStorage (isPerfect can only be evaluated after this).
+          try {
+            window.dispatchEvent(new CustomEvent("radiance_levelSaved", {
+              detail: { constellationId: window.currentConstellationId, starId: window.currentLevelSphereIndex }
+            }));
+          } catch (e) {}
+
+          // Check if completing this level also finishes the entire constellation.
+          // saveLevelCompletion writes to localStorage synchronously, so isLevelCompleted
+          // will already reflect this completion when we check below.
+          const _cid = window.currentConstellationId;
+          if (typeof ConstellationStarToLevelManifest !== "undefined") {
+            const _allStars = ConstellationStarToLevelManifest.getForConstellation(_cid);
+            const _realStars = _allStars.filter(s => !s.isPlaceholder);
+            if (_realStars.length > 0 && _realStars.every(s => window.SaveService.isLevelCompleted(_cid, s.starId))) {
+              try {
+                window.dispatchEvent(new CustomEvent("radianceConstellationComplete", {
+                  detail: { constellationId: _cid }
+                }));
+              } catch (e) {}
+            }
+          }
+        }
       } else {
         console.warn(`[PICKUP] Cannot mark level as completed: levelsSolvedStatusTracker=${!!levelsSolvedStatusTracker}, currentLevelSphereIndex=${window.currentLevelSphereIndex}`);
       }

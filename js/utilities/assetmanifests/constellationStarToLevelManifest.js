@@ -47,6 +47,15 @@ class ConstellationStarToLevelManifest {
         });
 
         // ════════════════════════════════════════════════════════════════════
+        // TESTICA  (3 stars — test constellation for completion testing)
+        // ════════════════════════════════════════════════════════════════════
+        m["testica"] = {
+            0: real("levelVoyage1", "TestStarAlpha"),
+            1: real("levelVoyage1", "TestStarBeta"),
+            2: real("levelVoyage1", "TestStarGamma"),
+        };
+
+        // ════════════════════════════════════════════════════════════════════
         // ORION  (9 stars — maps 1-to-1 with the 9 demo levels, sphere 0–8)
         // ════════════════════════════════════════════════════════════════════
         m["orion"] = {
