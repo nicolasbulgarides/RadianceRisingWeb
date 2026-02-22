@@ -170,6 +170,8 @@ class BaseGameUIScene extends UISceneGeneralized {
 
     // Add the central game pad
     const dPadContainer = this.createDirectionalGamePadContainer();
+    // Store reference so glowDpadButton() can place overlays on it.
+    this.dPadContainer = dPadContainer;
     this.addDirectionalButtons(dPadContainer);
     this.addActionButtons(dPadContainer);
 
@@ -232,6 +234,12 @@ class BaseGameUIScene extends UISceneGeneralized {
     this.attemptUIElementLoad(
       () => this.createTopSettingsButton(),
       "topSettingsButton"
+    );
+
+    // Add hint button directly beneath the settings button.
+    this.attemptUIElementLoad(
+      () => this.createTopHintButton(),
+      "topHintButton"
     );
 
     // Initialize perfection tracking
@@ -1314,6 +1322,129 @@ class BaseGameUIScene extends UISceneGeneralized {
         window.dispatchEvent(new CustomEvent("radianceOpenSettings"));
       } catch (e) {}
     });
+  }
+
+  /**
+   * Creates a hint lightbulb button directly beneath the settings button,
+   * with a badge showing remaining hint count in the bottom-right corner.
+   *
+   * Dimensions match the settings button exactly (126×42px).
+   * Placement: same left="400px"; top="-107px" positions it 6px below the
+   * settings button (which has top="-155px", height=42px).
+   */
+  createTopHintButton() {
+    const btn = new BABYLON.GUI.Rectangle("topHintButton");
+    btn.width               = "126px";
+    btn.height              = "42px";
+    btn.background          = "#2d1050";
+    btn.color               = "#7b4fd4";
+    btn.thickness           = 1;
+    btn.cornerRadius        = 4;
+    btn.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+    btn.verticalAlignment   = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+    btn.left                = "400px";
+    btn.top                 = "-107px";
+
+    // ── GRAPHIC SWAP POINT ────────────────────────────────────────────────────
+    // To replace this placeholder with a PNG/sprite icon, swap the TextBlock
+    // below for a BABYLON.GUI.Image, for example:
+    //   const icon = new BABYLON.GUI.Image("topHintIcon", "path/to/lightbulb.png");
+    //   icon.width = "26px"; icon.height = "26px"; btn.addControl(icon);
+    const lbl = new BABYLON.GUI.TextBlock("topHintLabel", "\uD83D\uDCA1 Hint");
+    // ── END GRAPHIC SWAP POINT ────────────────────────────────────────────────
+    lbl.color    = "#cccccc";
+    lbl.fontSize = 18;
+    btn.addControl(lbl);
+
+    // Badge — small circle overlaid on bottom-right of the button.
+    const initialCount = (() => {
+      const n = parseInt(localStorage.getItem("radiance_hints") || "3", 10);
+      return isNaN(n) ? 3 : n;
+    })();
+    this.hintBadgeLabel = new BABYLON.GUI.TextBlock("topHintBadgeLabel", initialCount.toString());
+    this.hintBadgeLabel.color    = "#ffffff";
+    this.hintBadgeLabel.fontSize = 11;
+
+    const badge = new BABYLON.GUI.Rectangle("topHintBadgeBg");
+    badge.width               = "20px";
+    badge.height              = "20px";
+    badge.background          = "#7b4fd4";
+    badge.color               = "transparent";
+    badge.thickness           = 0;
+    badge.cornerRadius        = 10;
+    badge.left                = "50px";  // right edge of 126px button, inset 13px
+    badge.top                 = "12px";  // bottom edge of 42px button, inset 7px
+    badge.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+    badge.verticalAlignment   = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+    badge.addControl(this.hintBadgeLabel);
+    btn.addControl(badge);
+    this.hintBadge = badge;
+
+    this.topUIControlsContainer.addControl(btn);
+
+    btn.onPointerClickObservable.add(() => {
+      try { window.dispatchEvent(new CustomEvent("radianceRequestHint")); } catch (e) {}
+    });
+
+    // Keep badge in sync with HintSystem.
+    this._onHintBadgeUpdate = (evt) => {
+      if (!this.hintBadgeLabel) return;
+      const count = evt.detail?.count ?? 0;
+      this.hintBadgeLabel.text  = count.toString();
+      this.hintBadge.background = count > 0 ? "#7b4fd4" : "#555555";
+    };
+    window.addEventListener("radianceHintBadgeUpdate", this._onHintBadgeUpdate);
+
+    // Listen for glow requests from HintSystem.
+    this._onGlowDpad = (evt) => {
+      this.glowDpadButton(evt.detail?.direction || null);
+    };
+    window.addEventListener("radianceGlowDpadButton", this._onGlowDpad);
+  }
+
+  /**
+   * Places a soft purple glow overlay over the specified d-pad button for 3 seconds.
+   * Called via the "radianceGlowDpadButton" event dispatched by HintSystem.
+   * Pass null to clear any existing glow immediately.
+   * @param {string|null} direction — "LEFT" | "RIGHT" | "UP" | "DOWN" | null
+   */
+  glowDpadButton(direction) {
+    // Remove any existing glow overlay.
+    if (this._dpadGlowOverlay && this.dPadContainer) {
+      try { this.dPadContainer.removeControl(this._dpadGlowOverlay); } catch (e) {}
+      this._dpadGlowOverlay = null;
+    }
+
+    if (!direction || !this.dPadContainer) return;
+
+    const symmetricalOffset = Config.IDEAL_UI_WIDTH * 0.1;
+    const buttonSize        = Config.IDEAL_UI_WIDTH * 0.125;
+
+    const offsets = {
+      LEFT:  { x: -symmetricalOffset, y: 0 },
+      RIGHT: { x:  symmetricalOffset, y: 0 },
+      UP:    { x: 0, y: -symmetricalOffset },
+      DOWN:  { x: 0, y:  symmetricalOffset },
+    };
+    const offset = offsets[direction.toUpperCase()];
+    if (!offset) return;
+
+    const glow = new BABYLON.GUI.Rectangle("dpadGlowOverlay");
+    glow.width        = (buttonSize + 12) + "px";
+    glow.height       = (buttonSize + 12) + "px";
+    glow.background   = "#7b4fd4";
+    glow.alpha        = 0.45;
+    glow.color        = "transparent";
+    glow.thickness    = 0;
+    glow.cornerRadius = 10;
+    glow.left         = offset.x + "px";
+    glow.top          = offset.y + "px";
+    glow.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+    glow.verticalAlignment   = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+    glow.isPointerBlocker    = false;
+    glow.isHitTestVisible    = false;
+    this.dPadContainer.addControl(glow);
+    this._dpadGlowOverlay = glow;
   }
 
   /**
