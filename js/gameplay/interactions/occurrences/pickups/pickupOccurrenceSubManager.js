@@ -259,6 +259,23 @@ class PickupOccurrenceSubManager {
         return; // Don't trigger completion sequence if player died
       }
 
+      // Log solution to console on Windows
+      try {
+        const _isWindows = (navigator.userAgentData?.platform ?? navigator.platform ?? "").toLowerCase().includes("win");
+        if (_isWindows) {
+          const _solMT = FundamentalSystemBridge["movementTracker"];
+          const _solGM = FundamentalSystemBridge["gameplayManagerComposite"];
+          const _solLvl = _solGM?.primaryActiveGameplayLevel;
+          const _solId = _solLvl?.levelDataComposite?.levelHeaderData?.levelId ?? "unknown";
+          const _solMoves = (_solMT?.getEventLog() ?? [])
+            .filter(e => e.type === "move")
+            .map(e => e.direction);
+          console.log(`[SOLUTION] Level "${_solId}" solved in ${_solMoves.length} move(s):`, _solMoves.join(", ") || "(none)");
+        }
+      } catch (_solErr) {
+        // ignore
+      }
+
       // Record completion data for share system (before replay changes anything)
       try {
         if (window.ShareImagePipeline) {

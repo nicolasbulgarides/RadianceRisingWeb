@@ -50,9 +50,9 @@ class ConstellationStarToLevelManifest {
         // TESTICA  (3 stars — test constellation for completion testing)
         // ════════════════════════════════════════════════════════════════════
         m["testica"] = {
-            0: real("levelVoyage1", "TestStarAlpha"),
-            1: real("levelVoyage1", "TestStarBeta"),
-            2: real("levelVoyage1", "TestStarGamma"),
+            0: real("levelEasy6", "TestStarAlpha"),
+            1: real("levelEasy7", "TestStarBeta"),
+            2: real("levelEasy9", "TestStarGamma"),
         };
 
         // ════════════════════════════════════════════════════════════════════

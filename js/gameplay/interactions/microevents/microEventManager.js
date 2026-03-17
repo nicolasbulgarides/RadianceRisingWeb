@@ -115,25 +115,27 @@ class MicroEventManager {
       }
     }
 
-    // Check for damage events
-    for (let microEvent of incompleteDamageEvents) {
-      // Check if this spike has already triggered during the current movement
-      if (microEvent.hasTriggeredThisMovement) {
-        continue; // Skip this spike - it already hit during this movement
-      }
+    // Check for damage events — only when the player has fully landed (not mid-animation).
+    // This ensures spikes fire exactly once on arrival and never on departure.
+    const pm = activeGameplayLevel.currentPrimaryPlayer?.playerMovementManager;
+    if (!pm?.movementActive) {
+      for (let microEvent of incompleteDamageEvents) {
+        if (microEvent.hasTriggeredThisMovement) {
+          continue;
+        }
 
-      let nearADamageTrigger =
-        collectiblePlacementManager.checkCollectibleForPickupEventTrigger(
-          microEvent
-        );
+        let nearADamageTrigger =
+          collectiblePlacementManager.checkCollectibleForPickupEventTrigger(
+            microEvent
+          );
 
-      if (nearADamageTrigger) {
-        // Mark as completed and flag as triggered during this movement
-        if (microEvent.microEventCompletionStatus === false) {
-          microEvent.markAsCompleted();
-          microEvent.hasTriggeredThisMovement = true; // Flag: hit during this movement
-          microEventManagerLog(`[DAMAGE] ⚠ Spike hit! ${microEvent.microEventNickname} - flagged for this movement`);
-          this.processSuccessfulDamage(microEvent);
+        if (nearADamageTrigger) {
+          if (microEvent.microEventCompletionStatus === false) {
+            microEvent.markAsCompleted();
+            microEvent.hasTriggeredThisMovement = true;
+            microEventManagerLog(`[DAMAGE] ⚠ Spike hit! ${microEvent.microEventNickname}`);
+            this.processSuccessfulDamage(microEvent);
+          }
         }
       }
     }
@@ -193,12 +195,13 @@ class MicroEventManager {
   }
 
   /**
-   * Resets all damage event flags for the current level
-   * Call this at the START of each player movement
-   * This allows spike traps to hit again on a new movement
+   * Resets all damage event flags for the current level.
+   * Call this at the START of each player movement to re-arm spike traps for the new move.
    *
-   * Spikes at the player's current (start) position are NOT reset — the player
-   * is stepping off them, so they must not re-trigger during the exit move.
+   * Spikes at the player's current position are skipped as a defensive measure —
+   * they were just triggered and should not be immediately re-armed until the player
+   * has left that tile. Damage detection is further guarded by the movementActive check
+   * in onFrameCheckMicroEventsForTriggered, so exit-move re-triggering is prevented there.
    */
   resetDamageEventFlagsForLevel() {
     const gameplayManager = FundamentalSystemBridge["gameplayManagerComposite"];

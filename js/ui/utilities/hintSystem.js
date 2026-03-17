@@ -509,6 +509,19 @@ class HintSystem {
     } catch (e) { return null; }
   }
 
+  // ── SolvabilityDetector Integration ──────────────────────────────────────
+
+  /**
+   * Called by SolvabilityDetector after every BFS run.
+   * Stores the result so hint messages can use real solvability instead of
+   * the move-count heuristic when SolvabilityDetector is available.
+   *
+   * @param {{ solvable: boolean|'unknown', statesExplored: number, minStrokes?: number }} result
+   */
+  static onSolvabilityResult(result) {
+    HintSystem._lastSolvabilityResult = result;
+  }
+
   // ── Dev Utility ───────────────────────────────────────────────────────────
 
   /**

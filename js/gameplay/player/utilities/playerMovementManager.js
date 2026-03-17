@@ -438,6 +438,11 @@ class PlayerMovementManager {
     this.currentFrame = 0;
     let status = this.currentPlayer.playerStatus.playerCurrentActionStatus;
     status.setInDirectionalMotion(false);
+
+    // Signal that the slide animation is complete (SolvabilityDetector listens here)
+    if (typeof GameEventBus !== "undefined") {
+      GameEventBus.emit("movementComplete", {});
+    }
   }
 
   /**

@@ -480,6 +480,10 @@ class LevelLoaderManager {
             this.levelAuditDebugLog("✅ runLevelAudit call completed");
 
             if (window.RenderController) window.RenderController.markDirty();
+
+            // Signal level ready so SolvabilityDetector can run its initial analysis
+            window.dispatchEvent(new CustomEvent("radianceLevelLoaded"));
+
             return gameplayLevel;
         } catch (error) {
             //console.error("Error loading level from server:", error);
