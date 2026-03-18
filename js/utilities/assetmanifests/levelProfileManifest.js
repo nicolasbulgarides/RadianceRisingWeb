@@ -584,15 +584,147 @@ class LevelProfileManifest {
                 "LEFT",
                 "DOWN"
             ]
+        },
+        levelLess2Easy0: {
+            levelId: "levelLess2Easy0",
+            filename: "levelLess2Easy0.txt",
+            perfectSolutionMovementCount: 6,
+            obstacles: ["mountain", "spike"],
+            solutionPath: [
+                "RIGHT",
+                "UP",
+                "LEFT",
+                "DOWN",
+                "LEFT",
+                "DOWN",
+            ]
+        },
+        levelLess2Easy1: {
+            levelId: "levelLess2Easy1",
+            filename: "levelLess2Easy1.txt",
+            perfectSolutionMovementCount: 6,
+            obstacles: ["mountain", "spike"],
+            solutionPath: [
+                "DOWN",
+                "RIGHT",
+                "DOWN",
+                "RIGHT",
+                "UP",
+                "LEFT",
+            ]
+        },
+        levelLess2Easy2: {
+            levelId: "levelLess2Easy2",
+            filename: "levelLess2Easy2.txt",
+            perfectSolutionMovementCount: 6,
+            obstacles: ["mountain", "spike"],
+            solutionPath: [
+                "UP",
+                "RIGHT",
+                "UP",
+                "LEFT",
+                "DOWN",
+                "LEFT",
+            ]
+        },
+        levelLess2Easy3: {
+            levelId: "levelLess2Easy3",
+            filename: "levelLess2Easy3.txt",
+            perfectSolutionMovementCount: 6,
+            obstacles: ["mountain", "spike"],
+            solutionPath: [
+                "DOWN",
+                "RIGHT",
+                "UP",
+                "LEFT",
+                "UP",
+                "LEFT",
+            ]
+        },
+        levelLess2Easy4: {
+            levelId: "levelLess2Easy4",
+            filename: "levelLess2Easy4.txt",
+            perfectSolutionMovementCount: 6,
+            obstacles: ["mountain", "spike"],
+            solutionPath: [
+                "RIGHT",
+                "DOWN",
+                "LEFT",
+                "UP",
+                "RIGHT",
+                "DOWN",
+            ]
+        },
+        levelLess2Easy5: {
+            levelId: "levelLess2Easy5",
+            filename: "levelLess2Easy5.txt",
+            perfectSolutionMovementCount: 6,
+            obstacles: ["mountain", "spike"],
+            solutionPath: [
+                "UP",
+                "LEFT",
+                "DOWN",
+                "LEFT",
+                "DOWN",
+                "RIGHT",
+            ]
+        },
+        levelLess2Easy6: {
+            levelId: "levelLess2Easy6",
+            filename: "levelLess2Easy6.txt",
+            perfectSolutionMovementCount: 6,
+            obstacles: ["mountain", "spike"],
+            solutionPath: [
+                "RIGHT",
+                "DOWN",
+                "LEFT",
+                "UP",
+                "RIGHT",
+                "DOWN",
+            ]
+        },
+        levelLess2Easy7: {
+            levelId: "levelLess2Easy7",
+            filename: "levelLess2Easy7.txt",
+            perfectSolutionMovementCount: 6,
+            obstacles: ["mountain", "spike"],
+            solutionPath: [
+                "DOWN",
+                "RIGHT",
+                "UP",
+                "LEFT",
+                "DOWN",
+                "LEFT",
+            ]
+        },
+        levelLess2Easy8: {
+            levelId: "levelLess2Easy8",
+            filename: "levelLess2Easy8.txt",
+            perfectSolutionMovementCount: 6,
+            obstacles: ["mountain", "spike"],
+            solutionPath: [
+                "DOWN",
+                "RIGHT",
+                "DOWN",
+                "RIGHT",
+                "UP",
+                "LEFT",
+            ]
+        },
+        levelLess2Easy9: {
+            levelId: "levelLess2Easy9",
+            filename: "levelLess2Easy9.txt",
+            perfectSolutionMovementCount: 6,
+            obstacles: ["mountain", "spike"],
+            solutionPath: [
+                "DOWN",
+                "RIGHT",
+                "UP",
+                "LEFT",
+                "UP",
+                "LEFT",
+            ]
         }
-
-
-
-
-
-
-
-
 
     }
 
