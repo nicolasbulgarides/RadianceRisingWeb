@@ -139,6 +139,7 @@ class ScriptManifest {
     "/gameplay/gameplayloggers/gameplayLogger.js",
     "/gameplay/gameplayloggers/movementLogger.js",
     "/gameplay/utilities/levelAuditor.js",
+    "/gameplay/utilities/levelSolutionMegaAuditor.js",
     "/gameplay/solvabilityDetector.js",
     "/gameplay/utilities/levelsSolvedStatusTracker.js",
     "/gameplay/levelLoaderManager.js",

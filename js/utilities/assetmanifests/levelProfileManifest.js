@@ -375,7 +375,7 @@ class LevelProfileManifest {
                 "RIGHT",
                 "UP",
                 "RIGHT",
-                "UP,"
+                "UP"
             ]
         },
         levelEasy5: {

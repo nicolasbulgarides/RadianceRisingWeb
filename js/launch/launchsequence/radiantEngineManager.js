@@ -72,6 +72,11 @@ class RadiantEngineManager {
     this.loadRenderingAndStartupExperienceSystems();
     this.loadGameplayEssentialSystems();
     this.loadTestLevel();
+    this.loadLevelAuditor();
+  }
+
+  async loadLevelAuditor() {
+    await LevelSolutionMegaAuditor.auditAllLevels();
   }
 
   loadTestLevel() {

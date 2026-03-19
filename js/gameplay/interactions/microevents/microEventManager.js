@@ -115,27 +115,26 @@ class MicroEventManager {
       }
     }
 
-    // Check for damage events — only when the player has fully landed (not mid-animation).
-    // This ensures spikes fire exactly once on arrival and never on departure.
-    const pm = activeGameplayLevel.currentPrimaryPlayer?.playerMovementManager;
-    if (!pm?.movementActive) {
-      for (let microEvent of incompleteDamageEvents) {
-        if (microEvent.hasTriggeredThisMovement) {
-          continue;
-        }
+    // Check for damage events every frame (during and after movement).
+    // The hasTriggeredThisMovement flag prevents the same spike from firing twice
+    // in one move. resetDamageEventFlagsForLevel() (called at move start) skips
+    // resetting spikes underfoot, preventing re-triggering on departure.
+    for (let microEvent of incompleteDamageEvents) {
+      if (microEvent.hasTriggeredThisMovement) {
+        continue;
+      }
 
-        let nearADamageTrigger =
-          collectiblePlacementManager.checkCollectibleForPickupEventTrigger(
-            microEvent
-          );
+      let nearADamageTrigger =
+        collectiblePlacementManager.checkCollectibleForPickupEventTrigger(
+          microEvent
+        );
 
-        if (nearADamageTrigger) {
-          if (microEvent.microEventCompletionStatus === false) {
-            microEvent.markAsCompleted();
-            microEvent.hasTriggeredThisMovement = true;
-            microEventManagerLog(`[DAMAGE] ⚠ Spike hit! ${microEvent.microEventNickname}`);
-            this.processSuccessfulDamage(microEvent);
-          }
+      if (nearADamageTrigger) {
+        if (microEvent.microEventCompletionStatus === false) {
+          microEvent.markAsCompleted();
+          microEvent.hasTriggeredThisMovement = true;
+          microEventManagerLog(`[DAMAGE] ⚠ Spike hit! ${microEvent.microEventNickname}`);
+          this.processSuccessfulDamage(microEvent);
         }
       }
     }
