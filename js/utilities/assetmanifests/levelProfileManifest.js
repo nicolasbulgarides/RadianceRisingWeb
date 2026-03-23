@@ -892,6 +892,306 @@ class LevelProfileManifest {
                 "DOWN",
                 "RIGHT",
             ]
+        },
+        levelLess4Easy0: {
+            levelId: "levelLess4Easy0",
+            filename: "levelLess4Easy0.txt",
+            perfectSolutionMovementCount: 7,
+            obstacles: ["mountain", "spike"],
+            solutionPath: [
+                "DOWN",
+                "LEFT",
+                "RIGHT",
+                "UP",
+                "RIGHT",
+                "DOWN",
+                "RIGHT"
+            ]
+        },
+        levelLess4Easy1: {
+            levelId: "levelLess4Easy1",
+            filename: "levelLess4Easy1.txt",
+            perfectSolutionMovementCount: 7,
+            obstacles: ["mountain", "spike"],
+            solutionPath: [
+                "DOWN",
+                "LEFT",
+                "UP",
+                "RIGHT",
+                "UP",
+                "LEFT",
+                "DOWN"
+            ]
+        },
+        levelLess4Easy2: {
+            levelId: "levelLess4Easy2",
+            filename: "levelLess4Easy2.txt",
+            perfectSolutionMovementCount: 7,
+            obstacles: ["mountain", "spike"],
+            solutionPath: [
+                "LEFT",
+                "DOWN",
+                "RIGHT",
+                "DOWN",
+                "RIGHT",
+                "UP",
+                "LEFT"
+            ]
+        },
+        levelLess4Easy3: {
+            levelId: "levelLess4Easy3",
+            filename: "levelLess4Easy3.txt",
+            perfectSolutionMovementCount: 7,
+            obstacles: ["mountain", "spike"],
+            solutionPath: [
+                "LEFT",
+                "DOWN",
+                "LEFT",
+                "UP",
+                "RIGHT",
+                "UP",
+                "DOWN"
+            ]
+        },
+        levelLess4Easy4: {
+            levelId: "levelLess4Easy4",
+            filename: "levelLess4Easy4.txt",
+            perfectSolutionMovementCount: 7,
+            obstacles: ["mountain", "spike"],
+            solutionPath: [
+                "UP",
+                "RIGHT",
+                "DOWN",
+                "LEFT",
+                "UP",
+                "RIGHT",
+                "DOWN"
+            ]
+        },
+        levelLess4Easy5: {
+            levelId: "levelLess4Easy5",
+            filename: "levelLess4Easy5.txt",
+            perfectSolutionMovementCount: 7,
+            obstacles: ["mountain", "spike"],
+            solutionPath: [
+                "RIGHT",
+                "DOWN",
+                "LEFT",
+                "UP",
+                "RIGHT",
+                "UP",
+                "LEFT"
+            ]
+        },
+        levelLess4Easy6: {
+            levelId: "levelLess4Easy6",
+            filename: "levelLess4Easy6.txt",
+            perfectSolutionMovementCount: 7,
+            obstacles: ["mountain", "spike"],
+            solutionPath: [
+                "UP",
+                "LEFT",
+                "DOWN",
+                "RIGHT",
+                "DOWN",
+                "LEFT",
+                "DOWN"
+            ]
+        },
+        levelLess4Easy7: {
+            levelId: "levelLess4Easy7",
+            filename: "levelLess4Easy7.txt",
+            perfectSolutionMovementCount: 7,
+            obstacles: ["mountain", "spike"],
+            solutionPath: [
+                "DOWN",
+                "LEFT",
+                "DOWN",
+                "RIGHT",
+                "UP",
+                "RIGHT",
+                "DOWN"
+            ]
+        },
+        levelLess4Easy8: {
+            levelId: "levelLess4Easy8",
+            filename: "levelLess4Easy8.txt",
+            perfectSolutionMovementCount: 7,
+            obstacles: ["mountain", "spike"],
+            solutionPath: [
+                "DOWN",
+                "LEFT",
+                "UP",
+                "RIGHT",
+                "UP",
+                "RIGHT",
+                "DOWN"
+            ]
+        },
+        levelLess4Easy9: {
+            levelId: "levelLess4Easy9",
+            filename: "levelLess4Easy9.txt",
+            perfectSolutionMovementCount: 7,
+            obstacles: ["mountain", "spike"],
+            solutionPath: [
+                "LEFT",
+                "UP",
+                "LEFT",
+                "UP",
+                "RIGHT",
+                "DOWN",
+                "RIGHT"
+            ]
+        },
+        levelLess5Easy0: {
+            levelId: "levelLess5Easy0",
+            filename: "levelLess5Easy0.txt",
+            perfectSolutionMovementCount: 7,
+            obstacles: ["mountain", "spike"],
+            solutionPath: [
+                "DOWN",
+                "LEFT",
+                "UP",
+                "RIGHT",
+                "UP",
+                "RIGHT",
+                "UP"
+            ]
+        },
+        levelLess5Easy1: {
+            levelId: "levelLess5Easy1",
+            filename: "levelLess5Easy1.txt",
+            perfectSolutionMovementCount: 7,
+            obstacles: ["mountain", "spike"],
+            solutionPath: [
+                "DOWN",
+                "RIGHT",
+                "LEFT",
+                "UP",
+                "RIGHT",
+                "UP",
+                "RIGHT"
+            ]
+        },
+        levelLess5Easy2: {
+            levelId: "levelLess5Easy2",
+            filename: "levelLess5Easy2.txt",
+            perfectSolutionMovementCount: 7,
+            obstacles: ["mountain", "spike"],
+            solutionPath: [
+                "RIGHT",
+                "UP",
+                "LEFT",
+                "UP",
+                "LEFT",
+                "DOWN",
+                "RIGHT"
+            ]
+        },
+        levelLess5Easy3: {
+            levelId: "levelLess5Easy3",
+            filename: "levelLess5Easy3.txt",
+            perfectSolutionMovementCount: 7,
+            obstacles: ["mountain", "spike"],
+            solutionPath: [
+                "RIGHT",
+                "DOWN",
+                "RIGHT",
+                "LEFT",
+                "DOWN",
+                "RIGHT",
+                "DOWN"
+            ]
+        },
+        levelLess5Easy4: {
+            levelId: "levelLess5Easy4",
+            filename: "levelLess5Easy4.txt",
+            perfectSolutionMovementCount: 7,
+            obstacles: ["mountain", "spike"],
+            solutionPath: [
+                "LEFT",
+                "DOWN",
+                "RIGHT",
+                "UP",
+                "RIGHT",
+                "DOWN",
+                "LEFT"
+            ]
+        },
+        levelLess5Easy5: {
+            levelId: "levelLess5Easy5",
+            filename: "levelLess5Easy5.txt",
+            perfectSolutionMovementCount: 7,
+            obstacles: ["mountain", "spike"],
+            solutionPath: [
+                "LEFT",
+                "DOWN",
+                "LEFT",
+                "DOWN",
+                "RIGHT",
+                "UP",
+                "RIGHT"
+            ]
+        },
+        levelLess5Easy6: {
+            levelId: "levelLess5Easy6",
+            filename: "levelLess5Easy6.txt",
+            perfectSolutionMovementCount: 7,
+            obstacles: ["mountain", "spike"],
+            solutionPath: [
+                "UP",
+                "RIGHT",
+                "LEFT",
+                "DOWN",
+                "RIGHT",
+                "UP",
+                "RIGHT"
+            ]
+        },
+        levelLess5Easy7: {
+            levelId: "levelLess5Easy7",
+            filename: "levelLess5Easy7.txt",
+            perfectSolutionMovementCount: 7,
+            obstacles: ["mountain", "spike"],
+            solutionPath: [
+                "RIGHT",
+                "UP",
+                "DOWN",
+                "LEFT",
+                "DOWN",
+                "LEFT",
+                "RIGHT"
+            ]
+        },
+        levelLess5Easy8: {
+            levelId: "levelLess5Easy8",
+            filename: "levelLess5Easy8.txt",
+            perfectSolutionMovementCount: 7,
+            obstacles: ["mountain", "spike"],
+            solutionPath: [
+                "UP",
+                "RIGHT",
+                "DOWN",
+                "RIGHT",
+                "UP",
+                "RIGHT",
+                "DOWN"
+            ]
+        },
+        levelLess5Easy9: {
+            levelId: "levelLess5Easy9",
+            filename: "levelLess5Easy9.txt",
+            perfectSolutionMovementCount: 7,
+            obstacles: ["mountain", "spike"],
+            solutionPath: [
+                "DOWN",
+                "RIGHT",
+                "UP",
+                "LEFT",
+                "RIGHT",
+                "DOWN",
+                "RIGHT"
+            ]
         }
     }
 
